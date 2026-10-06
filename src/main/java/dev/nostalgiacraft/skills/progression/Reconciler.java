@@ -51,28 +51,8 @@ public final class Reconciler {
             }
             s.setStartingRoot(null);
         } else {
-            Set<String> kept = new LinkedHashSet<>();
-            kept.add(start);
-            Map<String, Integer> sectorPoints = new HashMap<>();
-            sectorPoints.merge(g.nodes().get(start).sector(), s.allocations().get(start).paidCost(), Integer::sum);
-            List<Allocation> order = s.orderedAllocations();
-            boolean progress = true;
-            while (progress) {
-                progress = false;
-                for (Allocation a : order) {
-                    if (kept.contains(a.nodeId()) || !g.contains(a.nodeId())) {
-                        continue;
-                    }
-                    SkillNodeDefinition n = g.nodes().get(a.nodeId());
-                    if (AllocationService.reason(g, n, kept, sectorPoints) == null) {
-                        kept.add(a.nodeId());
-                        sectorPoints.merge(n.sector(), a.paidCost(), Integer::sum);
-                        progress = true;
-                        break; // restart so older nodes always get the first chance at exclusive slots
-                    }
-                }
-            }
-            for (Allocation a : order) {
+            Set<String> kept = survivors(s, g, Set.of());
+            for (Allocation a : s.orderedAllocations()) {
                 if (!kept.contains(a.nodeId())) {
                     refunded += s.refund(a.nodeId());
                     removed.add(a.nodeId());
@@ -86,5 +66,41 @@ public final class Reconciler {
         }
         s.setReconciledFingerprint(g.fingerprint());
         return new Report(changed, migrated, removed, refunded);
+    }
+
+    /**
+     * The allocations that remain valid when {@code excluded} is taken out of the build: starting from the
+     * starting root, nodes are kept oldest acquisition first (ties by id) while they stay connected to kept nodes,
+     * their requirements hold and no older kept node of their exclusive group blocks them. Pure query, no mutation.
+     * Returns an empty set when the starting root is missing, invalid or itself excluded.
+     */
+    public static Set<String> survivors(PlayerSkillState s, SkillGraphSnapshot g, Set<String> excluded) {
+        String start = s.startingRoot().orElse(null);
+        if (start == null || excluded.contains(start) || !g.contains(start) || !g.nodes().get(start).isRoot()
+                || !s.isAllocated(start)) {
+            return Set.of();
+        }
+        Set<String> kept = new LinkedHashSet<>();
+        kept.add(start);
+        Map<String, Integer> sectorPoints = new HashMap<>();
+        sectorPoints.merge(g.nodes().get(start).sector(), s.allocations().get(start).paidCost(), Integer::sum);
+        List<Allocation> order = s.orderedAllocations();
+        boolean progress = true;
+        while (progress) {
+            progress = false;
+            for (Allocation a : order) {
+                if (kept.contains(a.nodeId()) || excluded.contains(a.nodeId()) || !g.contains(a.nodeId())) {
+                    continue;
+                }
+                SkillNodeDefinition n = g.nodes().get(a.nodeId());
+                if (AllocationService.reason(g, n, kept, sectorPoints) == null) {
+                    kept.add(a.nodeId());
+                    sectorPoints.merge(n.sector(), a.paidCost(), Integer::sum);
+                    progress = true;
+                    break; // restart so older nodes always get the first chance at exclusive slots
+                }
+            }
+        }
+        return kept;
     }
 }
