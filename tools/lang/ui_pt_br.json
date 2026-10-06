@@ -11,7 +11,7 @@
   "gui.nostalgiaskills.home_tooltip": "Centralizar no seu hub inicial (tecla Home)",
   "gui.nostalgiaskills.fit_tooltip": "Enquadrar a árvore inteira (F)",
   "gui.nostalgiaskills.search": "Buscar habilidades",
-  "gui.nostalgiaskills.search_hint": "Buscar…  (Enter: próximo)",
+  "gui.nostalgiaskills.search_hint": "Buscar…",
   "gui.nostalgiaskills.loading": "Carregando a árvore de habilidades…",
   "gui.nostalgiaskills.zoom": "Zoom %s",
   "gui.nostalgiaskills.maximum": "Máximo",
@@ -136,5 +136,6 @@
   "attribute.name.nostalgiaskills.healing_received": "Cura Recebida",
   "attribute.name.nostalgiaskills.lifesteal": "Roubo de Vida",
   "attribute.name.nostalgiaskills.damage_reduction": "Redução de Dano",
-  "attribute.name.nostalgiaskills.low_health_damage": "Dano com Pouca Vida"
+  "attribute.name.nostalgiaskills.low_health_damage": "Dano com Pouca Vida",
+  "gui.nostalgiaskills.stats.no_world": "Os valores de atributos aparecem quando você está em um mundo."
 }

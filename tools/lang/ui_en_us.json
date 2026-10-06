@@ -11,7 +11,7 @@
   "gui.nostalgiaskills.home_tooltip": "Recenter on your starting hub (Home key)",
   "gui.nostalgiaskills.fit_tooltip": "Fit the whole tree in view (F)",
   "gui.nostalgiaskills.search": "Search skills",
-  "gui.nostalgiaskills.search_hint": "Search…  (Enter: next)",
+  "gui.nostalgiaskills.search_hint": "Search…",
   "gui.nostalgiaskills.loading": "Loading the skill tree…",
   "gui.nostalgiaskills.zoom": "Zoom %s",
   "gui.nostalgiaskills.maximum": "Maximum",
@@ -136,5 +136,6 @@
   "attribute.name.nostalgiaskills.healing_received": "Healing Received",
   "attribute.name.nostalgiaskills.lifesteal": "Lifesteal",
   "attribute.name.nostalgiaskills.damage_reduction": "Damage Reduction",
-  "attribute.name.nostalgiaskills.low_health_damage": "Low-Health Damage"
+  "attribute.name.nostalgiaskills.low_health_damage": "Low-Health Damage",
+  "gui.nostalgiaskills.stats.no_world": "Attribute values appear when you are in a world."
 }

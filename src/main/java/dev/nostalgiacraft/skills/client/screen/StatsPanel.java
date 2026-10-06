@@ -40,6 +40,16 @@ public final class StatsPanel {
                                         int pendingCost) {
         List<Component> out = new ArrayList<>();
         out.add(Component.translatable(k("title")).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+        if (p != null) {
+            attributeLines(out, p);
+        } else {
+            out.add(Component.translatable(k("no_world")).withStyle(ChatFormatting.DARK_GRAY));
+        }
+        effectLines(out, s, g, pending, pendingCost);
+        return out;
+    }
+
+    private static void attributeLines(List<Component> out, Player p) {
         AttributeInstance hp = p.getAttribute(Attributes.MAX_HEALTH);
         if (hp != null) {
             double v = hp.getValue();
@@ -66,6 +76,10 @@ public final class StatsPanel {
                 out.add(Component.translatable(k("mod_line"), Component.translatable(e.getValue().value().getDescriptionId()), signedPct(v)));
             }
         }
+    }
+
+    private static void effectLines(List<Component> out, PlayerSkillState s, SkillGraphSnapshot g, Collection<String> pending,
+                                    int pendingCost) {
         // conditional and triggered effects, and keystones with their penalties
         List<Component> cond = new ArrayList<>();
         List<Component> keys = new ArrayList<>();
@@ -112,7 +126,6 @@ public final class StatsPanel {
                 });
             });
         }
-        return out;
     }
 
     private static Map<String, Holder<Attribute>> modExtras() {

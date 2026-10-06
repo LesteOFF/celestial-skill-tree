@@ -1,5 +1,6 @@
 package dev.nostalgiacraft.skills.client.render;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.config.ClientConfig;
 import net.minecraft.client.gui.GuiGraphics;
@@ -43,6 +44,8 @@ public final class BackgroundRenderer {
         if (!ClientConfig.BACKGROUND_DECORATIONS.get()) {
             return;
         }
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
         boolean still = ClientConfig.REDUCED_MOTION.get();
         double px = still ? 0 : panX;
         double py = still ? 0 : panY;
@@ -71,6 +74,7 @@ public final class BackgroundRenderer {
             sprite(g, PLATFORM, x + pw / 2, y0 + ph / 2, pw, ph, 0, 0, 1024, 160, 1024, 160);
         }
         motes(g, w, h, still ? 0 : timeSeconds);
+        RenderSystem.disableBlend();
     }
 
     private static double offset(double pan, double factor, int size) {

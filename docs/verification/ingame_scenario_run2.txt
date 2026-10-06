@@ -1,0 +1,10 @@
+joined world; graph nodes=480, max health=20.0, available points=0
+xp before purchases: level 30 progress 0.0 (raw 1395)
+after buying: purchased=6, available=6, xp raw 385 (level 16), expected XP spent 100+122+148+178+212+250=1010, next cost=292
+pending selection of 5 nodes created (not confirmed)
+after cancel: allocations=0, available=6, max health=20.0
+confirm sent for [nostalgiaskills:guardian/hub, nostalgiaskills:guardian/vitality_1, nostalgiaskills:guardian/vitality_2, nostalgiaskills:guardian/vitality_3, nostalgiaskills:guardian/gatekeeper]
+after confirm: allocations=5, available=1, spent=5, max health 20.0 -> 29.0 (expected +9: hub +2, 3x Vitality +1, Gatekeeper +4), ledger ok=true
+after death+respawn: allocations 5 -> 5, max health=29.0, available=1
+before reset: orbs=1, allocations=5, available=1, purchased=6
+after reset: orbs=0, allocations=0, available=6, purchased=6, next cost=292 (curve not restarted: expected 292), max health=20.0, starting root free again=true, ledger ok=true

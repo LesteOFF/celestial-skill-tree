@@ -25,6 +25,9 @@ public final class ClientSkillState {
     private static UUID inFlight;
     private static Consumer<Payloads.TransactionResult> resultListener = r -> { };
     private static Runnable changeListener = () -> { };
+    private static boolean fixture;
+    private static int fixtureLevel;
+    private static float fixtureProgress;
 
     private ClientSkillState() {
     }
@@ -68,7 +71,35 @@ public final class ClientSkillState {
         changeListener = () -> { };
     }
 
+    /** Visual-QA fixtures only: installs a local graph/state without any server connection. */
+    public static void loadFixture(SkillGraphSnapshot g, PlayerSkillState s, Payloads.Economy eco, int level, float progress) {
+        graph = g;
+        graphRevision = 1;
+        state = s;
+        stateGraphRevision = 1;
+        economy = eco;
+        inFlight = null;
+        fixture = true;
+        fixtureLevel = level;
+        fixtureProgress = progress;
+        changeListener.run();
+    }
+
+    public static boolean isFixture() {
+        return fixture;
+    }
+
+    /** Raw XP balance shown by the UI: the local player's, or the fixture's when no world is loaded. */
+    public static long xpBalance() {
+        net.minecraft.world.entity.player.Player p = Minecraft.getInstance().player;
+        if (p != null) {
+            return dev.nostalgiacraft.skills.progression.XpMath.balance(p.experienceLevel, p.experienceProgress);
+        }
+        return fixture ? dev.nostalgiacraft.skills.progression.XpMath.balance(fixtureLevel, fixtureProgress) : 0;
+    }
+
     public static void reset() {
+        fixture = false;
         graph = null;
         graphRevision = -1;
         state = null;

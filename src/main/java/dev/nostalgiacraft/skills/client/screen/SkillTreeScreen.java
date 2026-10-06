@@ -103,6 +103,72 @@ public final class SkillTreeScreen extends Screen {
         return Component.translatable("gui." + NostalgiaSkills.MODID + "." + key, args);
     }
 
+    /** Sends an intent; without a server connection (visual-QA fixtures) nothing is sent and nothing changes. */
+    private static void send(net.minecraft.network.protocol.common.custom.CustomPacketPayload payload) {
+        if (Minecraft.getInstance().getConnection() != null) {
+            PacketDistributor.sendToServer(payload);
+        }
+    }
+
+    // ---- visual-QA hooks (dev harness only; no effect on gameplay)
+    private double qaMouseX = Double.NaN;
+    private double qaMouseY = Double.NaN;
+
+    public void qaSetup(java.util.Collection<String> pendingIds, boolean stats, boolean reset) {
+        pending.clear();
+        pending.addAll(pendingIds);
+        panel = stats ? Panel.STATS : reset ? Panel.RESET : Panel.NONE;
+        statesDirty = true;
+    }
+
+    public void qaHover(String nodeId) {
+        ClientSkillState.graph().ifPresent(g -> {
+            SkillNodeDefinition n = g.nodes().get(nodeId);
+            if (n != null) {
+                cam.centerOn(n.position().x(), n.position().y());
+                qaMouseX = cam.toScreenX(n.position().x());
+                qaMouseY = cam.toScreenY(n.position().y());
+            }
+        });
+    }
+
+    /** Places the camera so the node sits at a screen fraction (used to test tooltips near window edges). */
+    public void qaHoverAt(String nodeId, double fx, double fy) {
+        ClientSkillState.graph().ifPresent(g -> {
+            SkillNodeDefinition n = g.nodes().get(nodeId);
+            if (n != null) {
+                double sx = width * fx, sy = height * fy;
+                cam.centerOn(n.position().x() - (sx - cam.vcx()) / cam.zoomValue(), n.position().y() - (sy - cam.vcy()) / cam.zoomValue());
+                qaMouseX = sx;
+                qaMouseY = sy;
+            }
+        });
+    }
+
+    public void qaBuy() {
+        buyPoint();
+    }
+
+    public void qaConfirm() {
+        confirm();
+    }
+
+    public void qaReset() {
+        sendReset();
+    }
+
+    public void qaFit() {
+        cameraPlaced = true;
+        fit();
+    }
+
+    public void qaZoom(double zoom, String centerNode) {
+        cameraPlaced = true;
+        cam.zoom = zoom;
+        String nid = centerNode.contains(":") ? centerNode : NostalgiaSkills.MODID + ":" + centerNode;
+        ClientSkillState.graph().flatMap(g -> g.node(nid)).ifPresent(n -> cam.centerOn(n.position().x(), n.position().y()));
+    }
+
     @Override
     public boolean isPauseScreen() {
         return false;
@@ -113,7 +179,7 @@ public final class SkillTreeScreen extends Screen {
     @Override
     protected void init() {
         ClientSkillState.setListeners(this::onResult, () -> statesDirty = true);
-        PacketDistributor.sendToServer(new Payloads.RequestSync(ClientSkillState.graph().map(SkillGraphSnapshot::fingerprint).orElse("")));
+        send(new Payloads.RequestSync(ClientSkillState.graph().map(SkillGraphSnapshot::fingerprint).orElse("")));
         Component buyLabel = t("buy_point");
         Component pointsLabel = t("points_left", 888);
         Component statsLabel = t("show_stats");
@@ -272,8 +338,7 @@ public final class SkillTreeScreen extends Screen {
             pointsButton.setTooltip(Tooltip.create(t("points_tooltip", available, pendingCost)));
         }
         if (buyButton != null) {
-            net.minecraft.world.entity.player.Player p = Minecraft.getInstance().player;
-            long balance = p == null ? 0 : XpMath.balance(p.experienceLevel, p.experienceProgress);
+            long balance = ClientSkillState.xpBalance();
             int cost = eco.nextPointCost();
             boolean capped = s != null && s.purchasedPoints() >= eco.pointLimit();
             buyButton.active = ready && !busy && eco.xpPurchaseEnabled() && !capped && balance >= cost;
@@ -326,7 +391,7 @@ public final class SkillTreeScreen extends Screen {
         ClientSkillState.state().ifPresent(s -> {
             UUID id = UUID.randomUUID();
             ClientSkillState.markInFlight(id);
-            PacketDistributor.sendToServer(new Payloads.BuyPoint(id, s.stateRevision()));
+            send(new Payloads.BuyPoint(id, s.stateRevision()));
             updateControls();
         });
     }
@@ -338,7 +403,7 @@ public final class SkillTreeScreen extends Screen {
         PlayerSkillState s = ClientSkillState.state().get();
         UUID id = UUID.randomUUID();
         ClientSkillState.markInFlight(id);
-        PacketDistributor.sendToServer(new Payloads.ConfirmAllocation(id, s.stateRevision(), ClientSkillState.graphRevision(),
+        send(new Payloads.ConfirmAllocation(id, s.stateRevision(), ClientSkillState.graphRevision(),
                 List.copyOf(pending)));
         updateControls();
     }
@@ -356,7 +421,7 @@ public final class SkillTreeScreen extends Screen {
         ClientSkillState.state().ifPresent(s -> {
             UUID id = UUID.randomUUID();
             ClientSkillState.markInFlight(id);
-            PacketDistributor.sendToServer(new Payloads.RequestReset(id, s.stateRevision(), ClientSkillState.graphRevision()));
+            send(new Payloads.RequestReset(id, s.stateRevision(), ClientSkillState.graphRevision()));
         });
     }
 
@@ -656,6 +721,10 @@ public final class SkillTreeScreen extends Screen {
 
     @Override
     public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partial) {
+        if (!Double.isNaN(qaMouseX)) {
+            mouseX = (int) qaMouseX;
+            mouseY = (int) qaMouseY;
+        }
         double time = (Util.getMillis() - openedAt) / 1000.0;
         BackgroundRenderer.render(g, width, height, cam.centerX(), cam.centerY(), time);
         if (statesDirty) {
@@ -685,15 +754,23 @@ public final class SkillTreeScreen extends Screen {
         }
         g.enableScissor((int) cam.left(), (int) cam.top(), (int) cam.right(), (int) cam.bottom());
         GraphRenderer.edges(g, graph, cam, this::state, preview, time);
+        com.mojang.blaze3d.systems.RenderSystem.enableBlend();
+        com.mojang.blaze3d.systems.RenderSystem.defaultBlendFunc();
         for (SkillNodeDefinition n : graph.nodes().values()) {
             GraphRenderer.node(g, n, cam, state(n.id()), affordable(n, s), n.id().equals(focusId) || n.id().equals(hoverId),
                     searchHits.contains(n.id()), time);
         }
+        g.setColor(1f, 1f, 1f, 1f);
+        com.mojang.blaze3d.systems.RenderSystem.disableBlend();
         g.disableScissor();
     }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partial) {
+        if (!Double.isNaN(qaMouseX)) {
+            mouseX = (int) qaMouseX;
+            mouseY = (int) qaMouseY;
+        }
         super.render(g, mouseX, mouseY, partial);
         renderProgressBar(g, mouseX, mouseY);
         String zoomText = String.format(Locale.ROOT, "%.2f×", cam.zoomValue());
@@ -728,15 +805,14 @@ public final class SkillTreeScreen extends Screen {
     /** Segmented gold bar: progress of current XP toward the next skill point purchase. */
     private void renderProgressBar(GuiGraphics g, int mouseX, int mouseY) {
         PlayerSkillState s = ClientSkillState.state().orElse(null);
-        net.minecraft.world.entity.player.Player p = Minecraft.getInstance().player;
-        if (s == null || p == null) {
+        if (s == null || (Minecraft.getInstance().player == null && !ClientSkillState.isFixture())) {
             return;
         }
         Payloads.Economy eco = ClientSkillState.economy();
         int barW = Math.min(320, width - 160);
         int x0 = (width - barW) / 2;
         int y0 = height - 18;
-        long balance = XpMath.balance(p.experienceLevel, p.experienceProgress);
+        long balance = ClientSkillState.xpBalance();
         boolean max = s.purchasedPoints() >= eco.pointLimit();
         double frac = max ? 1.0 : Math.min(1.0, balance / (double) Math.max(1, eco.nextPointCost()));
         g.fill(x0 - 2, y0 - 2, x0 + barW + 2, y0 + 8, 0xFF000000 | (Palette.BRONZE & 0xFFFFFF));

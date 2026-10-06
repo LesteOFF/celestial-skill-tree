@@ -103,7 +103,15 @@ public final class GraphRenderer {
 
     /** Screen radius of a node frame. */
     public static double screenRadius(SkillNodeDefinition n, Camera cam) {
-        return diameter(n.type()) * cam.zoomValue() * ClientConfig.UI_SCALE.get() / 2;
+        double r = diameter(n.type()) * cam.zoomValue() * ClientConfig.UI_SCALE.get() / 2;
+        // keep nodes legible (and clickable) when zoomed far out; hierarchy is preserved by type
+        double min = switch (n.type()) {
+            case MINOR -> 1.6;
+            case NOTABLE -> 2.2;
+            case KEYSTONE -> 3.0;
+            case ROOT -> 3.6;
+        };
+        return Math.max(r, min);
     }
 
     public static void node(GuiGraphics g, SkillNodeDefinition n, Camera cam, NodeState state, boolean affordable,
