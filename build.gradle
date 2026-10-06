@@ -98,3 +98,12 @@ tasks.withType(JavaCompile).configureEach {
 tasks.matching { it.name == 'runServer' }.configureEach {
     standardInput = System.in
 }
+
+// Offline tree validation for authors: ./gradlew validateTree [-PtreeDir=<datapack>/data] [-PtreeId=ns:main]
+tasks.register('validateTree', JavaExec) {
+    group = 'verification'
+    description = 'Validates skill tree JSON outside the game with the same parser the server uses.'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.nostalgiacraft.skills.graph.TreeValidatorCli'
+    args = [project.findProperty('treeDir') ?: 'src/main/resources/data', project.findProperty('treeId') ?: 'nostalgiaskills:main']
+}

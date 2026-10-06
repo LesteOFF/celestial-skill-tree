@@ -50,6 +50,9 @@ public final class InWorldQa {
     private static double healthBefore;
     private static int boughtTarget;
     private static int allocatedBeforeDeath;
+    private static int purchasedBeforeSpam;
+    private static int availableBeforeReload;
+    private static final List<String> RESULTS = new ArrayList<>();
 
     private InWorldQa() {
     }
@@ -159,6 +162,82 @@ public final class InWorldQa {
         STEPS.add(new Step("report respawn", () -> log("after death+respawn: allocations " + allocatedBeforeDeath + " -> "
                 + st().allocations().size() + ", max health=" + mc().player.getAttributeValue(Attributes.MAX_HEALTH)
                 + ", available=" + st().availablePoints()), () -> true, 5));
+        STEPS.add(new Step("dimension change", () -> mc().player.connection.sendCommand("execute in minecraft:the_nether run tp @s 0 120 0"),
+                () -> mc().level.dimension() == net.minecraft.world.level.Level.NETHER
+                        && mc().player.getAttributeValue(Attributes.MAX_HEALTH) > healthBefore, 400));
+        STEPS.add(new Step("report dimension", () -> {
+            log("after moving to the Nether: max health=" + mc().player.getAttributeValue(Attributes.MAX_HEALTH)
+                    + ", allocations=" + st().allocations().size());
+            mc().player.connection.sendCommand("execute in minecraft:overworld run tp @s 0 -59 0");
+        }, () -> mc().level.dimension() == net.minecraft.world.level.Level.OVERWORLD, 400));
+        STEPS.add(new Step("xp for spam test", () -> mc().player.connection.sendCommand("xp add @s 1000 points"),
+                () -> ClientSkillState.xpBalance() >= ClientSkillState.economy().nextPointCost(), 200));
+        STEPS.add(new Step("replay and spam requests", () -> {
+            RESULTS.clear();
+            ClientSkillState.setListeners(r -> RESULTS.add(r.ok() ? "ok" : r.messageKey()), () -> { });
+            long rev = st().stateRevision();
+            purchasedBeforeSpam = st().purchasedPoints();
+            java.util.UUID same = java.util.UUID.randomUUID();
+            for (int i = 0; i < 2; i++) {
+                net.neoforged.neoforge.network.PacketDistributor.sendToServer(new dev.nostalgiacraft.skills.network.Payloads.BuyPoint(same, rev));
+            }
+            for (int i = 0; i < 12; i++) {
+                net.neoforged.neoforge.network.PacketDistributor.sendToServer(
+                        new dev.nostalgiacraft.skills.network.Payloads.BuyPoint(java.util.UUID.randomUUID(), rev));
+            }
+        }, () -> RESULTS.size() >= 14, 400));
+        STEPS.add(new Step("report spam", () -> {
+            java.util.Map<String, Integer> counts = new java.util.TreeMap<>();
+            RESULTS.forEach(r -> counts.merge(r, 1, Integer::sum));
+            log("14 rapid buy requests (2 share one request id, all expect the same state revision): results " + counts
+                    + "; purchased " + purchasedBeforeSpam + " -> " + st().purchasedPoints() + " (exactly one purchase expected)"
+                    + ", ledger ok=" + st().ledgerHolds());
+            ClientSkillState.clearListeners();
+        }, () -> true, 5));
+        STEPS.add(new Step("save and quit world", () -> {
+            allocatedBeforeDeath = st().allocations().size();
+            purchasedBeforeSpam = st().purchasedPoints();
+            // same sequence as the vanilla pause menu: tell the integrated server the owner left, then tear down
+            mc().level.disconnect();
+            mc().disconnect(new net.minecraft.client.gui.screens.GenericMessageScreen(
+                    net.minecraft.network.chat.Component.literal("Saving world")));
+        }, () -> mc().level == null && mc().getSingleplayerServer() == null, 1200));
+        STEPS.add(new Step("reopen world", () -> {
+            ClientSkillState.reset();
+            mc().createWorldOpenFlows().openWorld("nostalgiaskills_qa", () -> log("FAILED to reopen world"));
+        }, () -> mc().player != null && ClientSkillState.ready() && mc().player.getAttributeValue(Attributes.MAX_HEALTH) > healthBefore, 2400));
+        STEPS.add(new Step("report restart", () -> log("after saving, quitting and reloading the world (integrated server restart): allocations "
+                + allocatedBeforeDeath + " -> " + st().allocations().size() + ", purchased " + purchasedBeforeSpam + " -> "
+                + st().purchasedPoints() + ", max health=" + mc().player.getAttributeValue(Attributes.MAX_HEALTH)
+                + ", ledger ok=" + st().ledgerHolds()), () -> true, 5));
+        STEPS.add(new Step("live prerequisite change via datapack + /reload", () -> {
+            availableBeforeReload = st().availablePoints();
+            allocatedBeforeDeath = st().allocations().size();
+            try {
+                java.nio.file.Path pack = mc().getSingleplayerServer().getWorldPath(net.minecraft.world.level.storage.LevelResource.DATAPACK_DIR)
+                        .resolve("qa_reconcile");
+                java.nio.file.Path node = pack.resolve("data/nostalgiaskills/skill_nodes/guardian/gatekeeper.json");
+                Files.createDirectories(node.getParent());
+                Files.writeString(pack.resolve("pack.mcmeta"), "{\"pack\":{\"pack_format\":48,\"description\":\"QA: gatekeeper now requires bastion\"}}");
+                com.google.gson.JsonObject json;
+                try (var in = InWorldQa.class.getResourceAsStream("/data/nostalgiaskills/skill_nodes/guardian/gatekeeper.json")) {
+                    json = com.google.gson.JsonParser.parseString(new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
+                }
+                com.google.gson.JsonArray all = new com.google.gson.JsonArray();
+                all.add("nostalgiaskills:guardian/bastion");
+                json.getAsJsonObject("requirements").add("all_of", all);
+                Files.writeString(node, json.toString());
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+            mc().player.connection.sendCommand("reload");
+        }, () -> !st().isAllocated("nostalgiaskills:guardian/gatekeeper")
+                && mc().player.getAttributeValue(Attributes.MAX_HEALTH) < 29, 1200));
+        STEPS.add(new Step("report reconcile", () -> log("after /reload with Gatekeeper now requiring Bastion (graph revision "
+                + ClientSkillState.graphRevision() + "): allocations " + allocatedBeforeDeath + " -> " + st().allocations().size()
+                + ", available " + availableBeforeReload + " -> " + st().availablePoints() + " (recorded price 2 refunded once)"
+                + ", max health=" + mc().player.getAttributeValue(Attributes.MAX_HEALTH) + " (expected 25), ledger ok=" + st().ledgerHolds()),
+                () -> true, 5));
         STEPS.add(new Step("give orb", () -> mc().player.connection.sendCommand("give @s nostalgiaskills:orb_of_reconfiguration 1"),
                 () -> orbs() == 1, 200));
         STEPS.add(new Step("reset with orb", () -> {
@@ -170,7 +249,7 @@ public final class InWorldQa {
         STEPS.add(new Step("after reset", () -> { }, () -> orbs() == 0 && mc().player.getAttributeValue(Attributes.MAX_HEALTH) == healthBefore, 200));
         STEPS.add(new Step("report reset", () -> log("after reset: orbs=" + orbs() + ", allocations=" + st().allocations().size()
                 + ", available=" + st().availablePoints() + ", purchased=" + st().purchasedPoints() + ", next cost="
-                + ClientSkillState.economy().nextPointCost() + " (curve not restarted: expected 292), max health="
+                + ClientSkillState.economy().nextPointCost() + " (curve not restarted: purchased stays " + purchasedBeforeSpam + "), max health="
                 + mc().player.getAttributeValue(Attributes.MAX_HEALTH) + ", starting root free again=" + st().startingRoot().isEmpty()
                 + ", ledger ok=" + st().ledgerHolds()), () -> true, 5));
         STEPS.add(new Step("finish", InWorldQa::finish, () -> true, 5));

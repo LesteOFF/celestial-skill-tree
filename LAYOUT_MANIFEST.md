@@ -61,6 +61,29 @@ Graph bounds (node centres): X -756.5 … 810.0, Y -733.5 … 772.5 (1566 × 150
 
 Degree-1 nodes are deliberate endpoints (keystones, arrowhead barbs, ore veins, star leaves). Degree-4 nodes are deliberate junctions (gates, nocking point, level crossings).
 
+## Control constraints (SkillTreeScreen.init)
+
+| Element | Rule |
+|---|---|
+| Row 1 | `Buy Skill Point`, `Points left: N` (read-only), `Show Stats`; equal widths from localized text + 20, clamped 132–150 GUI units, height 20, gap 6, centred, y = 6 |
+| Row 2 | `Confirm`, `Cancel`, same width, centred under row 1 (y = 30) |
+| Narrow windows | if 3 widths + gaps exceed width − 16, widths shrink to fit (min 60); labels stay unclipped at tested sizes |
+| Secondary toolbar | search box left (≤120 wide), `Home` / `Fit` right (44 wide); moved to a third row when they would touch the centred group |
+| Graph viewport | from below the controls to height − 34; scissor-clipped; controls and panels take input precedence |
+| Progress bar | bottom centre, width min(320, W − 160), 12 segments, labels left/right/centre; zoom indicator bottom-right, separate |
+| Panels | stats panel docked right (≤230 wide); reset/discard/dependent-chain dialogs centred and modal |
+| Tooltips | wrapped to min(260, W/2 − 12); vanilla positioner keeps them inside the window (verified at all four edges) |
+
+Verified captures: `docs/screenshots/` (1000×563, 1280×720, 1920×1080 at GUI 2/3, 2560×1080).
+
+## Decoration layers (not part of the graph)
+
+Draw order: space base → distant stars → nebula → astrolabe ghost → moon → ruins fragments → platform → motes → inactive edges → lit routes → nodes → state marks/focus → controls → panels → tooltips. The astrolabe is drawn without filled discs and at alpha ≤ 34 so it cannot be mistaken for nodes; see ART_DIRECTION.md for anchors.
+
+## Intentional crossings and exceptions
+
+None: the validator reports 0 edge crossings, 0 overlaps and 0 edge-clearance violations. Lines that pass near each other never form a connection; only declared edges connect nodes.
+
 ## Adjacent root routes (cheapest, paid points incl. destination root)
 
 | From | To | Paid points | Nodes on route |

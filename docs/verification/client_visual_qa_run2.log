@@ -1,33 +1,37 @@
-Visual QA: captured nostalgiaskills_qa_overview_1000x563_gui2.png (1000x563 window, gui scale 2, framebuffer 1000x563, gui 500x282)
-Visual QA: captured nostalgiaskills_qa_overview_1000x563_gui3.png (1000x563 window, gui scale 3, framebuffer 1000x563, gui 500x282)
-Visual QA: captured nostalgiaskills_qa_overview_1280x720_gui2.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360)
-Visual QA: captured nostalgiaskills_qa_overview_1280x720_gui3.png (1280x720 window, gui scale 3, framebuffer 1280x720, gui 427x240)
-Visual QA: captured nostalgiaskills_qa_overview_1920x1080_gui2.png (1920x1080 window, gui scale 2, framebuffer 1920x1080, gui 960x540)
-Visual QA: captured nostalgiaskills_qa_overview_1920x1080_gui3.png (1920x1080 window, gui scale 3, framebuffer 1920x1080, gui 640x360)
-Visual QA: captured nostalgiaskills_qa_fresh_character_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360)
-Visual QA: captured nostalgiaskills_qa_focused_guardian_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360)
-Visual QA: captured nostalgiaskills_qa_hybrid_closeup_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360)
-Visual QA: captured nostalgiaskills_qa_pending_changes_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360)
-Visual QA: captured nostalgiaskills_qa_route_preview_tooltip_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360)
-Visual QA: captured nostalgiaskills_qa_conflict_tooltip_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360)
-Visual QA: captured nostalgiaskills_qa_insufficient_points_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360)
-Visual QA: captured nostalgiaskills_qa_stats_panel_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360)
-Visual QA: captured nostalgiaskills_qa_reset_panel_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360)
-Visual QA: captured nostalgiaskills_qa_tooltip_edge_left_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360)
-Visual QA: captured nostalgiaskills_qa_tooltip_edge_right_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360)
-Visual QA: captured nostalgiaskills_qa_tooltip_edge_top_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360)
-Visual QA: captured nostalgiaskills_qa_tooltip_edge_bottom_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360)
-Visual QA: captured nostalgiaskills_qa_reduced_motion_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360)
-Visual QA: captured nostalgiaskills_qa_high_contrast_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360)
-Visual QA: captured nostalgiaskills_qa_ultrawide_2560x1080_gui3.png (2560x1080 window, gui scale 3, framebuffer 2560x1080, gui 854x360)
-In-world QA: joined world; graph nodes=480, max health=20.0, available points=0
-In-world QA: xp before purchases: level 30 progress 0.0 (raw 1395)
-In-world QA: after buying: purchased=6, available=6, xp raw 385 (level 16), expected XP spent 100+122+148+178+212+250=1010, next cost=292
-In-world QA: pending selection of 5 nodes created (not confirmed)
-In-world QA: after cancel: allocations=0, available=6, max health=20.0
-In-world QA: confirm sent for [nostalgiaskills:guardian/hub, nostalgiaskills:guardian/vitality_1, nostalgiaskills:guardian/vitality_2, nostalgiaskills:guardian/vitality_3, nostalgiaskills:guardian/gatekeeper]
-In-world QA: after confirm: allocations=5, available=1, spent=5, max health 20.0 -> 29.0 (expected +9: hub +2, 3x Vitality +1, Gatekeeper +4), ledger ok=true
-In-world QA: after death+respawn: allocations 5 -> 5, max health=29.0, available=1
-In-world QA: before reset: orbs=1, allocations=5, available=1, purchased=6
-In-world QA: after reset: orbs=0, allocations=0, available=6, purchased=6, next cost=292 (curve not restarted: expected 292), max health=20.0, starting root free again=true, ledger ok=true
-In-world QA: finished
+[09:48:49] Visual QA: captured nostalgiaskills_qa_overview_1000x563_gui2.png (1000x563 window, gui scale 2, framebuffer 1000x563, gui 500x282, 25 fps)
+[09:48:49] Visual QA: captured nostalgiaskills_qa_overview_1000x563_gui3.png (1000x563 window, gui scale 3, framebuffer 1000x563, gui 500x282, 30 fps)
+[09:48:50] Visual QA: captured nostalgiaskills_qa_overview_1280x720_gui2.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360, 47 fps)
+[09:48:51] Visual QA: captured nostalgiaskills_qa_overview_1280x720_gui3.png (1280x720 window, gui scale 3, framebuffer 1280x720, gui 427x240, 47 fps)
+[09:48:52] Visual QA: captured nostalgiaskills_qa_overview_1920x1080_gui2.png (1920x1080 window, gui scale 2, framebuffer 1920x1080, gui 960x540, 36 fps)
+[09:48:52] Visual QA: captured nostalgiaskills_qa_overview_1920x1080_gui3.png (1920x1080 window, gui scale 3, framebuffer 1920x1080, gui 640x360, 28 fps)
+[09:48:53] Visual QA: captured nostalgiaskills_qa_fresh_character_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360, 28 fps)
+[09:48:54] Visual QA: captured nostalgiaskills_qa_focused_guardian_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360, 42 fps)
+[09:48:54] Visual QA: captured nostalgiaskills_qa_hybrid_closeup_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360, 54 fps)
+[09:48:55] Visual QA: captured nostalgiaskills_qa_pending_changes_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360, 54 fps)
+[09:48:56] Visual QA: captured nostalgiaskills_qa_route_preview_tooltip_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360, 56 fps)
+[09:48:56] Visual QA: captured nostalgiaskills_qa_conflict_tooltip_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360, 52 fps)
+[09:48:57] Visual QA: captured nostalgiaskills_qa_insufficient_points_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360, 50 fps)
+[09:48:58] Visual QA: captured nostalgiaskills_qa_stats_panel_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360, 50 fps)
+[09:48:58] Visual QA: captured nostalgiaskills_qa_reset_panel_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360, 41 fps)
+[09:48:59] Visual QA: captured nostalgiaskills_qa_tooltip_edge_left_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360, 49 fps)
+[09:49:00] Visual QA: captured nostalgiaskills_qa_tooltip_edge_right_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360, 49 fps)
+[09:49:01] Visual QA: captured nostalgiaskills_qa_tooltip_edge_top_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360, 56 fps)
+[09:49:01] Visual QA: captured nostalgiaskills_qa_tooltip_edge_bottom_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360, 59 fps)
+[09:49:02] Visual QA: captured nostalgiaskills_qa_reduced_motion_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360, 59 fps)
+[09:49:03] Visual QA: captured nostalgiaskills_qa_high_contrast_1280x720.png (1280x720 window, gui scale 2, framebuffer 1280x720, gui 640x360, 50 fps)
+[09:49:03] Visual QA: captured nostalgiaskills_qa_ultrawide_2560x1080_gui3.png (2560x1080 window, gui scale 3, framebuffer 2560x1080, gui 854x360, 42 fps)
+[09:49:08] In-world QA: joined world; graph nodes=480, max health=20.0, available points=0
+[09:49:09] In-world QA: xp before purchases: level 30 progress 0.0 (raw 1395)
+[09:49:09] In-world QA: after buying: purchased=6, available=6, xp raw 385 (level 16), expected XP spent 100+122+148+178+212+250=1010, next cost=292
+[09:49:09] In-world QA: pending selection of 5 nodes created (not confirmed)
+[09:49:09] In-world QA: after cancel: allocations=0, available=6, max health=20.0
+[09:49:10] In-world QA: confirm sent for [nostalgiaskills:guardian/hub, nostalgiaskills:guardian/vitality_1, nostalgiaskills:guardian/vitality_2, nostalgiaskills:guardian/vitality_3, nostalgiaskills:guardian/gatekeeper]
+[09:49:10] In-world QA: after confirm: allocations=5, available=1, spent=5, max health 20.0 -> 29.0 (expected +9: hub +2, 3x Vitality +1, Gatekeeper +4), ledger ok=true
+[09:49:10] In-world QA: after death+respawn: allocations 5 -> 5, max health=29.0, available=1
+[09:49:11] In-world QA: after moving to the Nether: max health=29.0, allocations=5
+[09:49:15] In-world QA: 14 rapid buy requests (2 share one request id, all expect the same state revision): results {error.nostalgiaskills.duplicate_request=1, error.nostalgiaskills.rate_limited=4, error.nostalgiaskills.stale_state_revision=8, ok=1}; purchased 6 -> 7 (exactly one purchase expected), ledger ok=true
+[09:49:20] In-world QA: after saving, quitting and reloading the world (integrated server restart): allocations 5 -> 5, purchased 7 -> 7, max health=29.0, ledger ok=true
+[09:49:21] In-world QA: after /reload with Gatekeeper now requiring Bastion (graph revision 2): allocations 5 -> 4, available 2 -> 4 (recorded price 2 refunded once), max health=25.0 (expected 25), ledger ok=true
+[09:49:21] In-world QA: before reset: orbs=1, allocations=4, available=4, purchased=7
+[09:49:22] In-world QA: after reset: orbs=0, allocations=0, available=7, purchased=7, next cost=338 (curve not restarted: purchased stays 7), max health=20.0, starting root free again=true, ledger ok=true
+[09:49:22] In-world QA: finished

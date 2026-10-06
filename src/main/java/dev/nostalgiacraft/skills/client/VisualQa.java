@@ -80,9 +80,9 @@ public final class VisualQa {
         Shot s = shots.get(index);
         String file = "nostalgiaskills_qa_" + s.name() + ".png";
         Screenshot.grab(mc.gameDirectory, file, mc.getMainRenderTarget(), msg -> { });
-        NostalgiaSkills.LOGGER.info("Visual QA: captured {} ({}x{} window, gui scale {}, framebuffer {}x{}, gui {}x{})",
+        NostalgiaSkills.LOGGER.info("Visual QA: captured {} ({}x{} window, gui scale {}, framebuffer {}x{}, gui {}x{}, {} fps)",
                 file, s.w(), s.h(), s.gui(), mc.getWindow().getWidth(), mc.getWindow().getHeight(),
-                mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight());
+                mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight(), mc.getFps());
         next(mc);
     }
 

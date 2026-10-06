@@ -6,5 +6,9 @@ after cancel: allocations=0, available=6, max health=20.0
 confirm sent for [nostalgiaskills:guardian/hub, nostalgiaskills:guardian/vitality_1, nostalgiaskills:guardian/vitality_2, nostalgiaskills:guardian/vitality_3, nostalgiaskills:guardian/gatekeeper]
 after confirm: allocations=5, available=1, spent=5, max health 20.0 -> 29.0 (expected +9: hub +2, 3x Vitality +1, Gatekeeper +4), ledger ok=true
 after death+respawn: allocations 5 -> 5, max health=29.0, available=1
-before reset: orbs=1, allocations=5, available=1, purchased=6
-after reset: orbs=0, allocations=0, available=6, purchased=6, next cost=292 (curve not restarted: expected 292), max health=20.0, starting root free again=true, ledger ok=true
+after moving to the Nether: max health=29.0, allocations=5
+14 rapid buy requests (2 share one request id, all expect the same state revision): results {error.nostalgiaskills.duplicate_request=1, error.nostalgiaskills.rate_limited=4, error.nostalgiaskills.stale_state_revision=8, ok=1}; purchased 6 -> 7 (exactly one purchase expected), ledger ok=true
+after saving, quitting and reloading the world (integrated server restart): allocations 5 -> 5, purchased 7 -> 7, max health=29.0, ledger ok=true
+after /reload with Gatekeeper now requiring Bastion (graph revision 2): allocations 5 -> 4, available 2 -> 4 (recorded price 2 refunded once), max health=25.0 (expected 25), ledger ok=true
+before reset: orbs=1, allocations=4, available=4, purchased=7
+after reset: orbs=0, allocations=0, available=7, purchased=7, next cost=338 (curve not restarted: purchased stays 7), max health=20.0, starting root free again=true, ledger ok=true
