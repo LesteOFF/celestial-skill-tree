@@ -1,0 +1,5 @@
+proxy: 127.0.0.1:25566 -> 127.0.0.1:25565
+proxy: connection opened (150 ms each way)
+proxy: connection closed
+proxy: connection opened (150 ms each way)
+proxy: connection closed

@@ -103,6 +103,14 @@ file, field and reason and the last valid tree stays active. Examples:
 Tools: `python3 tools/layout/export.py` regenerates all node/connection data, translations and the layout manifest
 from the authored blueprints; `python3 tools/layout/builds.py` recomputes the example builds.
 
+## Known limitations
+
+- Respecialization is a full reset with the Orb of Reconfiguration; refunding a single node is not implemented.
+- No optional integrations ship; compatibility was tested only with NeoForge 21.1.256 and this mod alone.
+- Verified in a cloud container without a GPU: performance on real hardware (FPS, frame time) has not been measured,
+  and no human playtest or human visual review has been done. See `docs/verification/VERIFICATION.md` for exactly
+  what ran.
+
 ## Documentation
 
 - [TREE_DESIGN.md](TREE_DESIGN.md) — sectors, effects, caps, example builds
@@ -110,7 +118,7 @@ from the authored blueprints; `python3 tools/layout/builds.py` recomputes the ex
 - [LAYOUT_MANIFEST.md](LAYOUT_MANIFEST.md) — every node and edge, coordinates, validation results
 - [ART_DIRECTION.md](ART_DIRECTION.md) — backdrop composition, palette, sprites, asset pipeline
 - [PROGRESS.md](PROGRESS.md) — what was verified, how, and what remains
-- `docs/screenshots/`, `docs/verification/` — captures and test logs from real runs
+- `docs/screenshots/`, `docs/verification/` — captures and test logs from real runs ([VERIFICATION.md](docs/verification/VERIFICATION.md) maps each in-game check to its evidence)
 
 ## License
 

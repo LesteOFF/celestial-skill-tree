@@ -44,7 +44,8 @@ public final class MultiplayerQa {
     private static final String ROLE = System.getProperty("nostalgiaskills.mpqa", "");
     private static final String ADDRESS = System.getProperty("nostalgiaskills.mpqa.address", "127.0.0.1:25565");
     private static final String GUARDIAN_TARGET = "nostalgiaskills:guardian/gatekeeper";
-    private static final String MARKSMAN_TARGET = "nostalgiaskills:marksman/nocking_point";
+    private static final String MARKSMAN_TARGET = "nostalgiaskills:marksman/eagle_eye";
+    private static final String MARKSMAN_LAST = "nostalgiaskills:marksman/fletching_4";
 
     private static final List<Step> STEPS = new ArrayList<>();
     private static final List<String> REPORT = new ArrayList<>();
@@ -211,13 +212,21 @@ public final class MultiplayerQa {
                     + "; purchased " + counter + " -> " + st().purchasedPoints() + " (exactly one purchase expected), ledger ok=" + st().ledgerHolds());
             ClientSkillState.clearListeners();
         }));
+        // let the per-second request limiter window pass and the last state sync arrive before confirming
+        STEPS.add(new Step("cool down", () -> { }, () -> ticks >= 60, 100));
         STEPS.add(new Step("marksman route", () -> {
-            List<String> nodes = route("nostalgiaskills:marksman/hub", MARKSMAN_TARGET, 99);
+            List<String> nodes = route("nostalgiaskills:marksman/hub", MARKSMAN_TARGET, 5);
+            RESULTS.clear();
+            ClientSkillState.setListeners(r -> RESULTS.add(r.ok() ? "ok" : r.messageKey() + " " + r.detail()), () -> { });
             UUID id = UUID.randomUUID();
             ClientSkillState.markInFlight(id);
             PacketDistributor.sendToServer(new Payloads.ConfirmAllocation(id, st().stateRevision(), ClientSkillState.graphRevision(), nodes));
             log("confirm sent for " + nodes);
-        }, () -> st().isAllocated(MARKSMAN_TARGET), 1200));
+        }, () -> st().isAllocated(MARKSMAN_LAST) || !RESULTS.isEmpty() && !RESULTS.contains("ok"), 1200));
+        STEPS.add(note("report confirm result", () -> {
+            log("server answer to confirm: " + RESULTS);
+            ClientSkillState.clearListeners();
+        }));
         STEPS.add(new Step("effects", () -> { }, () -> projectile() > 0.0, 400));
         STEPS.add(note("report build", () -> log("after confirm: " + summary() + " (no guardian nodes expected: builds are per player)")));
     }

@@ -2,7 +2,7 @@
 # Two real clients against a real dedicated server (dev-only; see client/MultiplayerQa.java).
 # Phase 1: Alpha (direct) and Beta (through a 150 ms each-way latency proxy) join together, buy points with XP and
 #          confirm different builds; Beta fires rapid repeated buy requests; Alpha logs out/in and returns from the End.
-# Phase 2: the server is stopped and restarted; with Beta offline, a datapack makes Beta's notable require a node Beta
+# Phase 2: the server is stopped and restarted; with Beta offline, a datapack makes Beta's Fletching III require a node Beta
 #          does not own and /reload runs live; then both reconnect and report their state.
 # Usage (repository root): tools/qa/multiplayer_scenario.sh OUT_DIR
 # Needs build/moddev/minecraft_assets.properties when resources.download.minecraft.net is unreachable (see PROGRESS.md).
@@ -56,10 +56,10 @@ cp run_mpqa/alpha/nostalgiaskills_mpqa_alpha.txt run_mpqa/beta/nostalgiaskills_m
 # ---- phase 2: restart, live reload while Beta is offline, then reconnect
 start_server "$OUT/server_phase2.log"
 PACK="$SRV/world/datapacks/qa_offline_reconcile"
-NODE="$PACK/data/nostalgiaskills/skill_nodes/marksman/nocking_point.json"
+NODE="$PACK/data/nostalgiaskills/skill_nodes/marksman/fletching_3.json"
 mkdir -p "$(dirname "$NODE")"
-echo '{"pack":{"pack_format":48,"description":"QA: nocking point now requires volley doctrine"}}' > "$PACK/pack.mcmeta"
-python3 - src/main/resources/data/nostalgiaskills/skill_nodes/marksman/nocking_point.json "$NODE" <<'PY'
+echo '{"pack":{"pack_format":48,"description":"QA: fletching III now requires volley doctrine"}}' > "$PACK/pack.mcmeta"
+python3 - src/main/resources/data/nostalgiaskills/skill_nodes/marksman/fletching_3.json "$NODE" <<'PY'
 import json, sys
 d = json.load(open(sys.argv[1])); d["requirements"]["all_of"] = ["nostalgiaskills:marksman/volley_doctrine"]
 json.dump(d, open(sys.argv[2], "w"), indent=2)

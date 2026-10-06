@@ -18,9 +18,9 @@ Work branch: `claude/nostalgiaskills`. The Gradle project lives at the repositor
 | 7 | Rendering, controls, tooltips, previews | done; rendered in the real client under Xvfb (screenshots) |
 | 8 | Content and effects in every sector | done; one effect per sector + Reckless Fury verified by GameTests; max-health route verified in-world |
 | 9 | Point purchases, stats, respec, commands, config | done; XP purchase, stats, orb reset verified in-world; `validate` + reload via console |
-| 10 | Compile, test client + dedicated server, fix | done (build, 56 unit tests, 6 GameTests, dedicated server, client under Xvfb, reload scenario) |
+| 10 | Compile, test client + dedicated server, fix | done (build, 56 unit tests, 6 GameTests, dedicated server, client under Xvfb, reload scenario, two-client dedicated-server scenario) |
 | 11 | Visual QA vs layout/art spec | partial (23 real-client captures at 1000x563/1280x720/1920x1080/2560x1080, GUI 2/3; reviewed by eye; no human playtest) |
-| 12 | Deliver artifacts and verification evidence | partial (all docs + evidence committed; remaining-limitations list below; some in-game checks not run) |
+| 12 | Deliver artifacts and verification evidence | partial (all docs + evidence committed incl. VERIFICATION.md and README limitations; all 17.2 checks run; GPU FPS and human playtest impossible here) |
 
 ## Pinned versions
 
@@ -110,6 +110,21 @@ Work branch: `claude/nostalgiaskills`. The Gradle project lives at the repositor
 - `./gradlew --no-daemon build` -> BUILD SUCCESSFUL (3m22s), 56/56 unit tests, 0 failures; jar
   `build/libs/nostalgiaskills-0.1.0.jar` (713933 bytes).
 - `./gradlew validateTree` -> `nostalgiaskills:main: 480 node files, 0 error(s), 0 warning(s) -> VALID`.
+- New dev-only multiplayer harness `client/MultiplayerQa.java` + `tools/qa/multiplayer_scenario.sh` +
+  `tools/qa/latency_proxy.py`, run configs `mpqaServer` / `mpqaAlpha` / `mpqaBeta` in build.gradle (game dirs under
+  `run_mpqa/`, gitignored). Ran it (third attempt passed; the first two failed only because of harness bugs: a route
+  that cost more points than Beta had, then a confirm sent inside the rate-limit window right after the spam burst —
+  the server rejected both correctly). Results (`docs/verification/multiplayer_run4/`):
+  - Alpha + Beta online together on a real dedicated server with independent balances and builds.
+  - Alpha: 3 points for exactly 370 XP; Guardian hub + 3 Vitality -> max health 25; logout+login, End entry and End exit
+    portal + credits all keep 4 allocations / 25 health / ledger ok.
+  - Beta via 150 ms each-way latency proxy: 4 points for exactly 548 XP; 12 back-to-back buy requests -> exactly one
+    purchase (duplicate=1, rate_limited=3, stale=7); Marksman hub + Fletching I–IV confirmed, projectile_damage 0.11.
+  - Dedicated server stop + restart: Alpha unchanged. With Beta offline, a datapack made Fletching III require Volley
+    Doctrine and `/reload` ran live (revision 2); at Beta's next login Fletching III and the now-disconnected
+    Fletching IV were removed (5 -> 3), 2 points refunded once (available 1 -> 3), ledger ok.
+- Added `docs/verification/VERIFICATION.md` (spec 17.2 checklist -> evidence) and a "Known limitations" section in
+  README.md (deliverable 14).
 
 ## BLOCKED: NETWORK (partial)
 
@@ -123,13 +138,11 @@ Work branch: `claude/nostalgiaskills`. The Gradle project lives at the repositor
 
 ## Next action
 
-1. Remaining verification that this environment can still add: two *real* networked clients (only mock players so
-   far), simulated latency / rapid repeated requests against a running server, server restart persistence (save +
-   relaunch the same world), dimension change and End return, offline-player reconciliation after a node removal on a
-   live server, FPS/frame-time measurement with recorded hardware (only llvmpipe software GL is available here).
-2. Optional polish: individual-node refunds are not implemented (full reset only, documented); no optional
-   integrations ship.
-3. When everything above that can run has run, set STATUS: COMPLETE only if nothing required remains unverified.
+1. Everything this environment can execute has now run (see VERIFICATION.md). What remains cannot run here:
+   FPS/frame-time on real GPU hardware and a human playtest/visual review. Keep STATUS: IN PROGRESS for those.
+2. Optional work if a future run has time: individual-node refunds (currently full reset only, documented in README),
+   more visual polish from a human review. Re-run `./gradlew build` and `tools/qa/multiplayer_scenario.sh` after any
+   code change.
 
 ## Known failures
 
@@ -144,5 +157,7 @@ Work branch: `claude/nostalgiaskills`. The Gradle project lives at the repositor
 - Run 3: in-world dimension change (Nether), rapid/duplicate request replay, save-quit-reopen persistence,
   live reload cascading invalidation + exact refund (all in the real client under Xvfb).
 - Run 4: `./gradlew build` (pass, 56/56), `./gradlew validateTree` (VALID).
-- Not run: two real networked clients against a dedicated server, artificial network latency, End return,
-  FPS measurement on real GPU hardware, human visual review/playtest.
+- Run 4 (later): dedicated server + two real clients scenario (`tools/qa/multiplayer_scenario.sh build/mpqa`):
+  independence, latency + rapid requests, logout/login, End return, dedicated-server restart, offline-player
+  reconciliation after a live reload — all passed.
+- Not run (environment cannot): FPS measurement on real GPU hardware, human visual review/playtest.

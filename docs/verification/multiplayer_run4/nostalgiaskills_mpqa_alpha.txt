@@ -1,0 +1,7 @@
+joined dedicated server; online players=[Alpha, Beta]; player=Alpha, purchased=0, available=0, allocations=0 [], max health=20.0, projectile_damage=0.0, ledger ok=true
+bought 3 points: xp raw 1395 -> 1025 (expected -370), next cost=178
+confirm sent for [nostalgiaskills:guardian/hub, nostalgiaskills:guardian/vitality_1, nostalgiaskills:guardian/vitality_2, nostalgiaskills:guardian/vitality_3]
+after confirm: player=Alpha, purchased=3, available=0, allocations=4 [nostalgiaskills:guardian/hub, nostalgiaskills:guardian/vitality_1, nostalgiaskills:guardian/vitality_2, nostalgiaskills:guardian/vitality_3], max health=25.0, projectile_damage=0.0, ledger ok=true (expected max health 25: hub +2, 3x Vitality +1)
+after logout + login: player=Alpha, purchased=3, available=0, allocations=4 [nostalgiaskills:guardian/hub, nostalgiaskills:guardian/vitality_1, nostalgiaskills:guardian/vitality_2, nostalgiaskills:guardian/vitality_3], max health=25.0, projectile_damage=0.0, ledger ok=true
+in the End: player=Alpha, purchased=3, available=0, allocations=4 [nostalgiaskills:guardian/hub, nostalgiaskills:guardian/vitality_1, nostalgiaskills:guardian/vitality_2, nostalgiaskills:guardian/vitality_3], max health=25.0, projectile_damage=0.0, ledger ok=true
+after End exit portal + credits (End return): player=Alpha, purchased=3, available=0, allocations=4 [nostalgiaskills:guardian/hub, nostalgiaskills:guardian/vitality_1, nostalgiaskills:guardian/vitality_2, nostalgiaskills:guardian/vitality_3], max health=25.0, projectile_damage=0.0, ledger ok=true
