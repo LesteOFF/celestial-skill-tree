@@ -6,7 +6,7 @@ screen, i.e. towards the neighbour whose axis angle is 60 degrees larger).
 """
 import math
 
-from builder import Graph, Sector, diamond, nearest, spur, spur_dir, star
+from builder import Graph, Sector, diamond, local_of, nearest, spur, spur_dir, star
 
 ROOTS = {  # authored tree-space coordinates (spec section 4.2)
     "duelist": (-180, 0), "guardian": (-90, -156), "arcanist": (90, -156),
@@ -81,38 +81,66 @@ def arc(radius, degrees, cu=0.0):
     return [(cu + radius * math.cos(math.radians(d)), radius * math.sin(math.radians(d))) for d in degrees]
 
 
+def arc_about(center, r_from, r_to, deg_from, deg_to, steps=10):
+    """Arc around a local centre, radius and angle interpolated linearly (endpoints excluded at start)."""
+    out = []
+    for i in range(1, steps + 1):
+        t = i / steps
+        r = r_from + (r_to - r_from) * t
+        d = math.radians(deg_from + (deg_to - deg_from) * t)
+        out.append((center[0] + r * math.cos(d), center[1] + r * math.sin(d)))
+    return out
+
+
+def polar_about(center, point):
+    du, dv = point[0] - center[0], point[1] - center[1]
+    return math.hypot(du, dv), math.degrees(math.atan2(dv, du))
+
+
 def guardian(g):
-    """Fortress: a straight keep road crossed by two concentric curtain walls with corner towers."""
+    """Fortress: concentric curtain walls arced around the hub, pierced by a straight keep road."""
     s = Sector(g, "guardian", ANGLES["guardian"], ROOTS["guardian"])
+    hub = (180.0, 0.0)
     a = s.chain(s.root, [(450, 0), (720, 0)], 15, "vitality", "keep_road", name="A")
-    gate1, gate2 = a[3], a[10]
-    w1p = s.chain(gate1, arc(324, [8, 14, 20, 26]), 4, "plating", "inner_wall")
-    w1m = s.chain(gate1, arc(324, [-8, -14, -20, -26]), 4, "plating", "inner_wall")
-    s.chain(s.root, [(220, 64), (256, 110)], 3, "rooted", "west_stair", end=w1p[-1])
-    s.chain(s.root, [(220, -64), (256, -110)], 3, "rooted", "east_stair", end=w1m[-1])
-    s.named["inner+"] = s.chain(w1p[-1], [cp("guardian", +1)], 2, "rooted", "west_stair")[-1]
-    s.named["inner-"] = s.chain(w1m[-1], [cp("guardian", -1)], 3, "rooted", "east_stair")[-1]
-    w2p = s.chain(gate2, arc(576, [6, 11, 16, 21]), 5, "tempered", "outer_wall")
-    w2m = s.chain(gate2, arc(576, [-6, -11, -16, -21]), 5, "tempered", "outer_wall")
-    s.chain(w1m[1], [(450, -60)], 5, "bulwark_drill", "sally_port", end=w2m[1])
-    tp = s.ring(w2p[-1], (640, 260), 4, "vitality", "west_tower")
-    tm = s.ring(w2m[-1], (640, -260), 4, "vitality", "east_tower")
-    s.mark(tp[2], "notable", "watchtower")
+    gate1, gate2, gate3 = a[3], a[6], a[11]
+    # inner curtain (radius 144 around the hub)
+    c1p = s.chain(gate1, arc_about(hub, 144, 144, 0, 58), 4, "plating", "inner_curtain")
+    c1m = s.chain(gate1, arc_about(hub, 144, 144, 0, -58), 4, "plating", "inner_curtain")
+    # middle wall ends exactly on the two inner corridors
+    rp, dp = polar_about(hub, cp("guardian", +1))
+    rm, dm = polar_about(hub, cp("guardian", -1))
+    w2p = s.chain(gate2, arc_about(hub, 252, rp, 0, dp), 6, "tempered", "middle_wall")
+    w2m = s.chain(gate2, arc_about(hub, 252, rm, 0, dm), 6, "tempered", "middle_wall")
+    s.named["inner+"], s.named["inner-"] = w2p[-1], w2m[-1]
+    # buttresses between the inner curtain and the middle wall
+    s.chain(c1p[-2], [], 2, "rooted", "west_buttress", end=nearest(s, w2p, c1p[-2]))
+    s.chain(c1m[-2], [], 2, "rooted", "east_buttress", end=nearest(s, w2m, c1m[-2]))
+    # outer wall only on the eastern (duelist) flank, ending in a tower
+    w3m = s.chain(gate3, arc_about(hub, 432, 432, 0, -31), 7, "tempered", "outer_wall")
+    tm = s.ring(w3m[-1], (650, -280), 4, "vitality", "east_tower")
     s.mark(tm[2], "notable", "beacon_keep")
-    s.named["outer+"] = s.chain(tp[1], [cp("guardian", +1, "outer")], 2, "tempered", "west_tower")[-1]
-    for k, slug in ((gate1, "gatekeeper"), (gate2, "inner_sanctum"), (a[6], "iron_will"), (a[13], "unbroken"),
-                    (w1p[1], "shield_wall"), (w1m[1], "stalwart"), (w2p[2], "warden"), (w2m[2], "oathbound")):
+    # western watch road from the middle wall out to the warded gate corridor
+    road = s.chain(w2p[-1], [(420, 196), (500, 230), cp("guardian", +1, "outer")], 7, "rooted", "watch_road")
+    s.named["outer+"] = road[-1]
+    # barracks between the middle wall and the watch road; armoury diamond on the east side
+    bh, leaves = star(s, w2p[2], (500, 110), [30, 110, -40], "vitality", "barracks", "warden")
+    post = s.ring(a[12], (660, 110), 5, "vitality", "sentinel_post")
+    s.mark(post[2], "notable", "sentinel")
+    s.chain(w2m[4], [], 3, "rooted", "last_line", end=nearest(s, w3m, w2m[4]))
+    diamond(s, w2m[2], (490, -110), (520, -150), (530, -90), (565, -128), "bulwark_drill", "armoury", "shield_drill")
+    for k, slug in ((gate1, "gatekeeper"), (gate2, "inner_sanctum"), (gate3, "unbroken"), (a[8], "iron_will"),
+                    (c1p[-1], "shield_wall"), (c1m[-1], "stalwart"), (road[3], "watchtower"), (w3m[3], "oathbound")):
         s.mark(k, "notable", slug)
     spur_dir(s, a[-1], 0, 1, "vitality", "keystone_bastion", "bastion", exclusive_group="guardian_vow")
-    spur_dir(s, tm[3], -20, 1, "bulwark_drill", "keystone_aegis", "living_aegis", exclusive_group="guardian_vow")
-    spur_dir(s, w1p[2], 150, 0, "plating", "keystone_root", "rooted_stance")
+    spur_dir(s, tm[3], -10, 1, "bulwark_drill", "keystone_aegis", "living_aegis", exclusive_group="guardian_vow")
+    spur_dir(s, leaves[0], 20, 0, "plating", "keystone_root", "rooted_stance")
     return s
 
 
 def arcanist(g):
     """Alchemical spiral: one long winding helix with spokes, flanked by flask clusters."""
     s = Sector(g, "arcanist", ANGLES["arcanist"], ROOTS["arcanist"])
-    entry = s.chain(s.root, [(240, -6), (300, 0)], 3, "distillation", "aether_path")
+    entry = s.chain(s.root, [(240, -6), (300, 0)], 4, "distillation", "aether_path")
     cu, r0, r1, turns = 490.0, 190.0, 80.0, 1.15
     pts = []
     for i in range(1, 49):
@@ -121,22 +149,30 @@ def arcanist(g):
         r = r0 - (r0 - r1) * t
         pts.append((cu + r * math.cos(ang), -r * math.sin(ang)))
     sp = s.chain(entry[-1], pts, 28, "warding_salts", "great_spiral", name="spiral")
-    for i in (5, 9):
+    for i, slug in ((5, "sympathetic_link"), (9, "resonance")):
         outer = sp[i]
         inner = min(sp[i + 14:], key=lambda k: (g.pos(k)[0] - g.pos(outer)[0]) ** 2 + (g.pos(k)[1] - g.pos(outer)[1]) ** 2)
-        s.chain(outer, [], 2, "clear_mind", "spokes", end=inner)
+        spoke = s.chain(outer, [], 2, "clear_mind", "spokes", end=inner)
+        s.mark(spoke[0], "notable", slug)
     spur_dir(s, sp[-1], 0, 0, "warding_salts", "keystone_concentrate", "volatile_concentrate",
              exclusive_group="arcanist_formula")
     b = s.chain(s.root, [(232, 66), (320, 150), cp("arcanist", +1)], 7, "restorative_brew", "east_still")
-    c = s.chain(s.root, [(232, -60), (300, -130), cp("arcanist", -1)], 6, "distillation", "west_still")
+    c = s.chain(s.root, [(232, -60), (300, -130), cp("arcanist", -1)], 7, "distillation", "west_still")
     s.named["inner+"], s.named["inner-"] = b[-1], c[-1]
-    f1 = s.ring(b[-1], (500, 290), 5, "restorative_brew", "east_flask")
-    f2 = s.ring(c[-1], (440, -260), 5, "distillation", "west_flask")
+    s.mark(b[3], "notable", "herbalism")
+    s.mark(c[3], "notable", "distillers_patience")
+    f1 = s.ring(b[-1], (560, 245), 5, "restorative_brew", "east_flask")
     s.mark(f1[2], "notable", "panacea")
+    ward = s.chain(c[-1], [(440, -222), (520, -264), cp("arcanist", -1, "outer")], 7, "warding_salts", "warded_path")
+    s.named["outer-"] = ward[-1]
+    s.mark(ward[3], "notable", "warded_path")
+    f2 = s.ring(ward[-1], (700, -250), 5, "distillation", "west_flask")
     s.mark(f2[2], "notable", "tincture_mastery")
-    s.named["outer-"] = s.chain(f2[3], [(540, -300), cp("arcanist", -1, "outer")], 3, "warding_salts", "west_flask")[-1]
-    spur_dir(s, f1[3], 20, 1, "restorative_brew", "keystone_elixir", "elixir_of_ages", exclusive_group="arcanist_formula")
+    spur_dir(s, f1[3], 10, 1, "restorative_brew", "keystone_elixir", "elixir_of_ages", exclusive_group="arcanist_formula")
     spur_dir(s, sp[14], 0, 1, "clear_mind", "keystone_ward", "arcane_ward")
+    rim = min(sp[:24], key=lambda k: (local_of(s, k)[0] - 640) ** 2 + (local_of(s, k)[1] - 130) ** 2)
+    ath = s.ring(rim, (720, 170), 5, "clear_mind", "athanor")
+    s.chain(nearest(s, ath, f1[1]), [], 2, "restorative_brew", "athanor", end=nearest(s, f1, ath[0]))
     for i, slug in ((2, "steady_hand"), (8, "catalyst"), (13, "transmutation"), (19, "quintessence"), (24, "philosophers_eye")):
         s.mark(sp[i], "notable", slug)
     return s
