@@ -95,6 +95,8 @@ class Sector:
         pts = [self.g.pos(start)] + [self.p(*w) for w in waypoints]
         if end is not None:
             pts.append(self.g.pos(end))
+        if not smooth:
+            return self._polyline_chain(start, pts, n, theme, cluster, end, style, name)
         if smooth:
             samples = catmull_rom(pts)
         else:
@@ -122,6 +124,36 @@ class Sector:
         if end is not None:
             self.g.add_edge(prev, end, _bend_points(samples, acc, prev_s, total, self.g.pos(prev), self.g.pos(end))
                             if smooth else self._corner_points(pts, samples, acc, prev_s, total), style)
+        if name:
+            self.named[name] = keys
+        return keys
+
+    def _polyline_chain(self, start, pts, n, theme, cluster, end, style, name):
+        """Straight segments with a node on every corner; nodes spread evenly inside each segment."""
+        lens = [math.hypot(b[0] - a[0], b[1] - a[1]) for a, b in zip(pts, pts[1:])]
+        divisions = n + (1 if end is not None else 0)
+        assert divisions >= len(lens), "polyline chain needs at least one node per segment"
+        ideal = [l * divisions / sum(lens) for l in lens]
+        alloc = [max(1, int(x)) for x in ideal]
+        while sum(alloc) < divisions:
+            i = max(range(len(lens)), key=lambda j: ideal[j] - alloc[j])
+            alloc[i] += 1
+        while sum(alloc) > divisions:
+            i = max((j for j in range(len(lens)) if alloc[j] > 1), key=lambda j: alloc[j] - ideal[j])
+            alloc[i] -= 1
+        keys, prev = [], start
+        for si, (a, b) in enumerate(zip(pts, pts[1:])):
+            for j in range(1, alloc[si] + 1):
+                last_point = si == len(lens) - 1 and j == alloc[si]
+                if last_point and end is not None:
+                    self.g.add_edge(prev, end, [], style)
+                    continue
+                t = j / alloc[si]
+                k = self.g.add_node(self.name, "minor", a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t,
+                                    f"{self.name}:{cluster}", theme)
+                self.g.add_edge(prev, k, [], style)
+                keys.append(k)
+                prev = k
         if name:
             self.named[name] = keys
         return keys
@@ -226,8 +258,12 @@ def spur_dir(sec, attach, heading, n_minors, theme, cluster, slug, ntype="keysto
 
 def star(sec, attach, center, leaf_dirs, theme, cluster, slug, leaf_len=34.0):
     """A notable junction with minor leaves pointing along local angles (degrees)."""
-    center = toward(sec, attach, center)
-    hub = sec.chain(attach, [center], 1, theme, cluster)[0]
+    ax, ay = local_of(sec, attach)
+    steps = max(1, round(math.hypot(center[0] - ax, center[1] - ay) / (TARGET_SPACING + 2)))
+    if steps == 1:
+        center = toward(sec, attach, center)
+    stem = sec.chain(attach, [center], steps, theme, cluster)
+    hub = stem[-1]
     sec.mark(hub, "notable", slug)
     leaves = []
     for d in leaf_dirs:
