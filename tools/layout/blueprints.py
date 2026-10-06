@@ -36,7 +36,7 @@ def duelist(g):
     s = Sector(g, "duelist", ANGLES["duelist"], ROOTS["duelist"])
     a = s.chain(s.root, [(260, -14), (340, 14), (420, -14), (500, 14), (580, -10), (650, 6), (700, 0)], 16,
                 "quick_hands", "riposte_line", name="A")
-    b = s.chain(s.root, [(228, 46), (290, 104), (352, 156), cp("duelist", +1)], 9, "light_step", "feint_arc", name="B")
+    b = s.chain(s.root, [(228, 46), (290, 104), (352, 156), cp("duelist", +1)], 8, "light_step", "feint_arc", name="B")
     s.named["inner+"] = b[-1]
     c = s.chain(s.root, [(222, -56), (290, -104), (348, -150), cp("duelist", -1)], 8, "fencers_poise", "low_guard",
                 name="C")
@@ -186,8 +186,8 @@ def marksman(g):
     nu = 180 + (770 - 180) / 16 * 11
     bp = s.chain(nock, arc(290, [8, 16, 24, 30, 36], nu - 290), 5, "steady_draw", "bow_limb")
     bm = s.chain(nock, arc(290, [-8, -16, -24, -30, -36], nu - 290), 5, "steady_draw", "bow_limb")
-    sp_ = s.chain(s.root, [(250, 66), (380, 130)], 8, "hunters_stride", "bowstring", end=bp[-1])
-    sm_ = s.chain(s.root, [(250, -66), (380, -130)], 8, "bolt_smith", "bowstring", end=bm[-1])
+    sp_ = s.chain(s.root, [(250, 66), (380, 130)], 9, "hunters_stride", "bowstring", end=bp[-1])
+    sm_ = s.chain(s.root, [(250, -66), (380, -130)], 9, "bolt_smith", "bowstring", end=bm[-1])
     s.named["inner+"] = s.chain(sp_[5], [cp("marksman", +1)], 2, "hunters_stride", "flank")[-1]
     s.named["inner-"] = s.chain(sm_[6], [cp("marksman", -1)], 2, "bolt_smith", "flank")[-1]
     s.named["outer+"] = s.chain(bp[-1], [(590, 250), cp("marksman", +1, "outer")], 4, "steady_draw", "outer_flank")[-1]
@@ -197,7 +197,13 @@ def marksman(g):
     q = s.ring(a[13], (690, -110), 5, "draw_weight", "quiver")
     s.mark(q[2], "notable", "full_quiver")
     spur_dir(s, q[3], -40, 1, "draw_weight", "keystone_volley", "volley_doctrine", exclusive_group="marksman_discipline")
-    spur_dir(s, bm[-1], -60, 1, "bolt_smith", "keystone_bolt", "heavy_bolts")
+    diamond(s, sp_[5], (420, 92), (452, 58), (460, 110), (492, 76), "hunters_stride", "hunters_blind", "hunters_blind")
+    star(s, sm_[4], (395, -70), [-20, 40], "bolt_smith", "bolt_workshop", "bolt_workshop")
+    wr = s.ring(s.named["outer+"], (700, 250), 4, "steady_draw", "windreader")
+    s.mark(wr[2], "notable", "windreader")
+    rf = s.chain(bm[-1], [(600, -222), (660, -262), (700, -286)], 4, "draw_weight", "rangefinder")
+    s.mark(rf[-1], "notable", "rangefinder")
+    spur_dir(s, rf[-1], 10, 0, "bolt_smith", "keystone_bolt", "heavy_bolts")
     for k, slug in ((nock, "nocking_point"), (bp[2], "upper_limb"), (bm[2], "lower_limb"), (sp_[3], "taut_string"),
                     (sm_[3], "crossbow_drill"), (a[4], "eagle_eye"), (a[7], "long_shot")):
         s.mark(k, "notable", slug)
@@ -205,31 +211,39 @@ def marksman(g):
 
 
 def artificer(g):
-    """Mine workings: orthogonal shafts and galleries with ore-vein combs (sharp right-angle routes)."""
+    """Mine workings: a main shaft with three working levels joined by raises (an orthogonal ladder grid)."""
     s = Sector(g, "artificer", ANGLES["artificer"], ROOTS["artificer"])
-    a = s.chain(s.root, [(420, 0)], 7, "prospector", "main_shaft", smooth=False, name="A")
-    g1p = s.chain(a[-1], [(420, 140)], 4, "careful_hands", "upper_gallery", smooth=False)
-    g1m = s.chain(a[-1], [(420, -110)], 3, "careful_hands", "lower_gallery", smooth=False)
+    a = s.chain(s.root, [(420, 0)], 8, "prospector", "main_shaft", smooth=False, name="A")
+    g1p = s.chain(a[-1], [(420, 140)], 4, "careful_hands", "upper_level", smooth=False)
+    g1m = s.chain(a[-1], [(420, -110)], 3, "careful_hands", "upper_level", smooth=False)
     a2 = s.chain(a[-1], [(640, 0)], 6, "prospector", "deep_shaft", smooth=False)
-    g2p = s.chain(a2[-1], [(640, 170)], 5, "pathfinder", "deep_gallery_east", smooth=False)
-    g2m = s.chain(a2[-1], [(640, -200)], 6, "sure_footing", "deep_gallery_west", smooth=False)
-    s.named["inner+"] = s.chain(g1p[-1], [(420, 179), cp("artificer", +1)], 2, "pathfinder", "winze", smooth=False)[-1]
-    s.named["inner-"] = s.chain(g1m[-1], [(420, -198), cp("artificer", -1)], 3, "sure_footing", "winze", smooth=False)[-1]
-    s.named["outer-"] = s.chain(g2m[-1], [cp("artificer", -1, "outer")], 3, "sure_footing", "far_winze", smooth=False)[-1]
-    for k in (g2p[1], g2p[3]):
+    mid = a2[2]
+    m_p = s.chain(mid, [(532, 105)], 3, "pathfinder", "middle_level", smooth=False)
+    m_m = s.chain(mid, [(532, -105)], 3, "sure_footing", "middle_level", smooth=False)
+    s.chain(g1p[2], [], 2, "careful_hands", "east_raise", smooth=False, end=m_p[-1])
+    s.chain(g1m[-1], [], 2, "careful_hands", "west_raise", smooth=False, end=m_m[-1])
+    g2p = s.chain(a2[-1], [(640, 170)], 5, "pathfinder", "deep_level", smooth=False)
+    g2m = s.chain(a2[-1], [(640, -200)], 7, "sure_footing", "deep_level", smooth=False)
+    s.named["inner+"] = s.chain(g1p[-1], [(420, 179), cp("artificer", +1)], 3, "pathfinder", "winze", smooth=False)[-1]
+    s.named["inner-"] = s.chain(g1m[-1], [(420, -198), cp("artificer", -1)], 3, "sure_footing", "winze",
+                                smooth=False)[-1]
+    s.named["outer-"] = s.chain(g2m[-1], [cp("artificer", -1, "outer")], 3, "sure_footing", "far_winze",
+                                smooth=False)[-1]
+    for k in (g2p[1], g2p[3], m_p[1]):
         spur_dir(s, k, 0, 0, "prospector", "ore_vein", "vein", ntype="minor")
-    for k in (g1m[1], g2m[2], g2m[4]):
+    for k in (g2m[2], g2m[4], m_m[1]):
         spur_dir(s, k, 180, 0, "careful_hands", "ore_vein", "vein", ntype="minor")
     camp = s.ring(g2p[-1], (720, 210), 4, "pathfinder", "prospectors_camp")
     s.mark(camp[2], "notable", "prospectors_camp")
-    tip = s.chain(a2[-1], [(740, 0)], 2, "prospector", "deep_shaft", smooth=False)
+    tip = s.chain(a2[-1], [(740, 0)], 3, "prospector", "deep_shaft", smooth=False)
     spur_dir(s, tip[-1], 0, 0, "prospector", "keystone_excavator", "master_excavator", exclusive_group="artificer_craft")
     spur_dir(s, g2m[-1], 0, 1, "careful_hands", "keystone_tinker", "tinkers_bargain", exclusive_group="artificer_craft")
     spur_dir(s, camp[3], 30, 0, "pathfinder", "keystone_wayfinder", "wayfinder")
-    s.chain(s.root, [(230, 70), (300, 120)], 3, "lung_capacity", "air_shaft", smooth=False)
-    s.chain(s.root, [(240, -60), (330, -60)], 2, "long_reach", "tool_rack", smooth=False, end=g1m[1])
-    for k, slug in ((a[3], "deep_breath"), (a[-1], "junction_lamp"), (g1p[2], "tool_care"), (a2[2], "rich_seams"),
-                    (a2[-1], "foremans_post"), (g2p[2], "trailblazer"), (g2m[3], "reinforced_handles")):
+    air = s.chain(s.root, [(230, 70), (300, 70), (300, 110)], 5, "lung_capacity", "air_shaft", smooth=False)
+    rack = s.chain(s.root, [(240, -62), (330, -62)], 5, "long_reach", "tool_rack", smooth=False, end=g1m[1])
+    for k, slug in ((a[3], "deep_breath"), (a[-1], "junction_lamp"), (g1p[2], "tool_care"), (a2[4], "rich_seams"),
+                    (a2[-1], "foremans_post"), (g2p[2], "trailblazer"), (g2m[3], "reinforced_handles"),
+                    (m_p[-1], "lantern_post"), (m_m[-1], "shoring"), (air[-1], "fresh_air"), (rack[1], "tinkerer")):
         s.mark(k, "notable", slug)
     return s
 
