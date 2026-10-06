@@ -35,6 +35,28 @@ neoForge {
             programArgument '--nogui'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
+        // Dev-only multiplayer scenario (tools/qa/multiplayer_scenario.sh, client/MultiplayerQa.java): one dedicated
+        // server and two real clients in separate game directories. -PmpqaAlpha / -PmpqaBeta pick the scenario role.
+        mpqaServer {
+            server()
+            gameDirectory = file('run_mpqa/server')
+            programArgument '--nogui'
+        }
+        mpqaAlpha {
+            client()
+            gameDirectory = file('run_mpqa/alpha')
+            programArguments.addAll('--username', 'Alpha')
+            systemProperty 'nostalgiaskills.mpqa', (project.findProperty('mpqaAlpha') ?: 'alpha').toString()
+            systemProperty 'nostalgiaskills.mpqa.address', '127.0.0.1:25565'
+        }
+        mpqaBeta {
+            client()
+            gameDirectory = file('run_mpqa/beta')
+            programArguments.addAll('--username', 'Beta')
+            systemProperty 'nostalgiaskills.mpqa', (project.findProperty('mpqaBeta') ?: 'beta').toString()
+            // through tools/qa/latency_proxy.py
+            systemProperty 'nostalgiaskills.mpqa.address', '127.0.0.1:25566'
+        }
         gameTestServer {
             type = "gameTestServer"
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
@@ -95,7 +117,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 // Forward the console to the dev server so scripted scenarios (tools/qa/reload_scenario.sh) can type commands.
-tasks.matching { it.name == 'runServer' }.configureEach {
+tasks.matching { it.name == 'runServer' || it.name == 'runMpqaServer' }.configureEach {
     standardInput = System.in
 }
 

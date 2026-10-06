@@ -8,3 +8,4 @@ runs/
 __pycache__/
 *.pyc
 tools/**/out/
+run_mpqa/
