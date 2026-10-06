@@ -21,7 +21,7 @@ public final class ClientSkillState {
     private static int graphRevision = -1;
     private static PlayerSkillState state;
     private static int stateGraphRevision = -1;
-    private static Payloads.Economy economy = new Payloads.Economy(100, 120, true, true);
+    private static Payloads.Economy economy = new Payloads.Economy(100, 120, true, true, true, false);
     private static UUID inFlight;
     private static Consumer<Payloads.TransactionResult> resultListener = r -> { };
     private static Runnable changeListener = () -> { };

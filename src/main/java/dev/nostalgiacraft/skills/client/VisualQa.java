@@ -138,7 +138,7 @@ public final class VisualQa {
             default -> build(0, null);
         };
         int level = name.equals("insufficient") ? 3 : 24;
-        Payloads.Economy eco = new Payloads.Economy(100 + 20 * 0, 120, true, true);
+        Payloads.Economy eco = new Payloads.Economy(100 + 20 * 0, 120, true, true, true, false);
         ClientSkillState.loadFixture(graph, s, eco, level, 0.4f);
     }
 

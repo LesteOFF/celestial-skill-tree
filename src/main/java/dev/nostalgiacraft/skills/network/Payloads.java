@@ -78,6 +78,21 @@ public final class Payloads {
         }
     }
 
+    /** Intent to refund one allocated skill; the server decides which dependent allocations go with it. */
+    public record RequestRefund(UUID requestId, long expectedStateRevision, int expectedGraphRevision, String nodeId)
+            implements CustomPacketPayload {
+        public static final Type<RequestRefund> TYPE = typeOf("request_refund");
+        public static final StreamCodec<ByteBuf, RequestRefund> CODEC = StreamCodec.composite(
+                UUIDUtil.STREAM_CODEC, RequestRefund::requestId,
+                ByteBufCodecs.VAR_LONG, RequestRefund::expectedStateRevision,
+                ByteBufCodecs.VAR_INT, RequestRefund::expectedGraphRevision,
+                NODE_ID, RequestRefund::nodeId, RequestRefund::new);
+
+        public Type<RequestRefund> type() {
+            return TYPE;
+        }
+    }
+
     // ------------------------------------------------------------------ server -> client
 
     public record GraphSync(int revision, byte[] data) implements CustomPacketPayload {
@@ -92,10 +107,13 @@ public final class Payloads {
     }
 
     /** Economy values the client needs to present (never to decide). */
-    public record Economy(int nextPointCost, int pointLimit, boolean xpPurchaseEnabled, boolean orbRequired) {
+    public record Economy(int nextPointCost, int pointLimit, boolean xpPurchaseEnabled, boolean orbRequired,
+                          boolean nodeRefundsEnabled, boolean orbRequiredForNodeRefund) {
         public static final StreamCodec<ByteBuf, Economy> CODEC = StreamCodec.composite(
                 ByteBufCodecs.VAR_INT, Economy::nextPointCost, ByteBufCodecs.VAR_INT, Economy::pointLimit,
-                ByteBufCodecs.BOOL, Economy::xpPurchaseEnabled, ByteBufCodecs.BOOL, Economy::orbRequired, Economy::new);
+                ByteBufCodecs.BOOL, Economy::xpPurchaseEnabled, ByteBufCodecs.BOOL, Economy::orbRequired,
+                ByteBufCodecs.BOOL, Economy::nodeRefundsEnabled, ByteBufCodecs.BOOL, Economy::orbRequiredForNodeRefund,
+                Economy::new);
     }
 
     public record StateSync(int graphRevision, PlayerSkillState state, Economy economy) implements CustomPacketPayload {

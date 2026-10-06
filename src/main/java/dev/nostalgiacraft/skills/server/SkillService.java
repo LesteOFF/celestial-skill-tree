@@ -11,6 +11,7 @@ import dev.nostalgiacraft.skills.progression.AllocationService;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.progression.ProgressionService;
 import dev.nostalgiacraft.skills.progression.Reconciler;
+import dev.nostalgiacraft.skills.progression.RefundService;
 import dev.nostalgiacraft.skills.progression.RejectReason;
 import dev.nostalgiacraft.skills.progression.RequestGuard;
 import dev.nostalgiacraft.skills.progression.RespecService;
@@ -54,7 +55,8 @@ public final class SkillService {
     public static Payloads.Economy economy(PlayerSkillState s) {
         ProgressionService.Settings st = ServerConfig.progression();
         return new Payloads.Economy(st.curve().cost(s.purchasedPoints()), st.pointLimit(), st.xpPurchaseEnabled(),
-                ServerConfig.ORB_REQUIRED_FOR_RESET.get());
+                ServerConfig.ORB_REQUIRED_FOR_RESET.get(), ServerConfig.ALLOW_NODE_REFUNDS.get(),
+                ServerConfig.ORB_REQUIRED_FOR_NODE_REFUND.get());
     }
 
     /** Sends only when the client negotiated the channel (mock/test players and foreign clients are skipped). */
@@ -223,6 +225,55 @@ public final class SkillService {
         }
         EffectEngine.refresh(p);
         ok(p, msg.requestId(), "message.nostalgiaskills.reset_done", done.refund() + "/" + done.removed().size());
+    }
+
+    /**
+     * Single-skill refund. One authoritative step: plan against the live state, consume the orb only when the plan
+     * holds, refund the recorded costs of the node and its dependent chain, rebuild effects, bump and sync.
+     */
+    public static void onRefund(Payloads.RequestRefund msg, IPayloadContext ctx) {
+        if (!(ctx.player() instanceof ServerPlayer p) || limited(p, msg.requestId())) {
+            return;
+        }
+        Optional<SkillGraphSnapshot> g = SkillTreeManager.graph();
+        PlayerSkillState s = ModAttachments.state(p);
+        if (g.isEmpty()) {
+            reply(p, msg.requestId(), RejectReason.TREE_UNAVAILABLE, "");
+            return;
+        }
+        Optional<RejectReason> denied = guard(p).admit(msg.requestId(), msg.expectedStateRevision(), s.stateRevision(),
+                msg.expectedGraphRevision(), SkillTreeManager.revision(), true);
+        if (denied.isPresent()) {
+            reply(p, msg.requestId(), denied.get(), "");
+            if (denied.get() == RejectReason.STALE_GRAPH_REVISION) {
+                sendGraph(p);
+            }
+            return;
+        }
+        boolean enabled = ServerConfig.ALLOW_NODE_REFUNDS.get();
+        RefundService.Plan plan = RefundService.plan(g.get(), s, msg.nodeId(), enabled);
+        if (!plan.ok()) {
+            reply(p, msg.requestId(), plan.reason().orElseThrow(), msg.nodeId());
+            return;
+        }
+        ItemStack orb = ItemStack.EMPTY;
+        if (ServerConfig.ORB_REQUIRED_FOR_NODE_REFUND.get() && !p.getAbilities().instabuild) {
+            orb = findOrb(p);
+            if (orb.isEmpty()) {
+                reply(p, msg.requestId(), RejectReason.MISSING_RESET_ITEM, "");
+                return;
+            }
+        }
+        RefundService.Plan done = RefundService.apply(g.get(), s, msg.nodeId(), enabled);
+        if (!done.ok()) {
+            reply(p, msg.requestId(), done.reason().orElseThrow(), msg.nodeId());
+            return;
+        }
+        if (!orb.isEmpty()) {
+            orb.shrink(1);
+        }
+        EffectEngine.refresh(p);
+        ok(p, msg.requestId(), "message.nostalgiaskills.refunded", done.refund() + "/" + done.removed().size());
     }
 
     private static ItemStack findOrb(ServerPlayer p) {

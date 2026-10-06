@@ -17,6 +17,7 @@ public final class NetworkSetup {
         r.playToServer(Payloads.BuyPoint.TYPE, Payloads.BuyPoint.CODEC, SkillService::onBuyPoint);
         r.playToServer(Payloads.ConfirmAllocation.TYPE, Payloads.ConfirmAllocation.CODEC, SkillService::onConfirm);
         r.playToServer(Payloads.RequestReset.TYPE, Payloads.RequestReset.CODEC, SkillService::onReset);
+        r.playToServer(Payloads.RequestRefund.TYPE, Payloads.RequestRefund.CODEC, SkillService::onRefund);
         r.playToClient(Payloads.GraphSync.TYPE, Payloads.GraphSync.CODEC, (msg, ctx) -> ClientHandlers.graph(msg));
         r.playToClient(Payloads.StateSync.TYPE, Payloads.StateSync.CODEC, (msg, ctx) -> ClientHandlers.state(msg));
         r.playToClient(Payloads.TransactionResult.TYPE, Payloads.TransactionResult.CODEC, (msg, ctx) -> ClientHandlers.result(msg));

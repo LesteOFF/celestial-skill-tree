@@ -20,6 +20,8 @@ public final class ServerConfig {
     public static final ModConfigSpec.IntValue COST_ROOT;
     public static final ModConfigSpec.BooleanValue KEEP_ON_DEATH;
     public static final ModConfigSpec.BooleanValue ORB_REQUIRED_FOR_RESET;
+    public static final ModConfigSpec.BooleanValue ALLOW_NODE_REFUNDS;
+    public static final ModConfigSpec.BooleanValue ORB_REQUIRED_FOR_NODE_REFUND;
     public static final ModConfigSpec.DoubleValue CAP_CRIT_CHANCE;
     public static final ModConfigSpec.DoubleValue CAP_DODGE_CHANCE;
     public static final ModConfigSpec.DoubleValue CAP_LIFESTEAL;
@@ -58,6 +60,10 @@ public final class ServerConfig {
         KEEP_ON_DEATH = b.comment("Keep skill progression after death").define("keepOnDeath", true);
         ORB_REQUIRED_FOR_RESET = b.comment("Players need an Orb of Reconfiguration to reset (operators can always use the command)")
                 .define("orbRequiredForReset", true);
+        ALLOW_NODE_REFUNDS = b.comment("Allow refunding a single skill (together with the allocations that depend on it) without a full reset")
+                .define("allowNodeRefunds", true);
+        ORB_REQUIRED_FOR_NODE_REFUND = b.comment("Also consume an Orb of Reconfiguration for a single-skill refund")
+                .define("orbRequiredForNodeRefund", false);
         b.pop();
         b.comment("Caps on this mod's own contribution; equipment and other mods are never clamped").push("caps");
         CAP_CRIT_CHANCE = b.defineInRange("critChance", 0.5, 0.0, 1.0);

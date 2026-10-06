@@ -137,5 +137,17 @@
   "attribute.name.nostalgiaskills.lifesteal": "Roubo de Vida",
   "attribute.name.nostalgiaskills.damage_reduction": "Redução de Dano",
   "attribute.name.nostalgiaskills.low_health_damage": "Dano com Pouca Vida",
-  "gui.nostalgiaskills.stats.no_world": "Os valores de atributos aparecem quando você está em um mundo."
+  "gui.nostalgiaskills.stats.no_world": "Os valores de atributos aparecem quando você está em um mundo.",
+  "gui.nostalgiaskills.refund.title": "Desaprender %s?",
+  "gui.nostalgiaskills.refund.body": "Devolve %s ponto(s) e remove %s habilidade(s):",
+  "gui.nostalgiaskills.refund.chain": "Outras habilidades aprendidas dependem dela e serão removidas junto.",
+  "gui.nostalgiaskills.refund.keeps": "Você recebe de volta exatamente os pontos que pagou. O XP gasto não é devolvido e seu hub inicial permanece.",
+  "gui.nostalgiaskills.refund.orb": "Consome um Orbe de Reconfiguração apenas se o reembolso funcionar.",
+  "gui.nostalgiaskills.refund.confirm": "Desaprender",
+  "gui.nostalgiaskills.status.refundable": "Clique para desaprender e recuperar os pontos.",
+  "gui.nostalgiaskills.status.root_reset_only": "Hub inicial: só um reset completo o substitui.",
+  "error.nostalgiaskills.not_allocated": "Essa habilidade não está aprendida.",
+  "error.nostalgiaskills.root_needs_reset": "O hub inicial só muda com um reset completo.",
+  "error.nostalgiaskills.refund_disabled": "Reembolsos de habilidade individual estão desativados neste servidor.",
+  "message.nostalgiaskills.refunded": "%2$s habilidade(s) desaprendida(s): %1$s ponto(s) devolvido(s)."
 }

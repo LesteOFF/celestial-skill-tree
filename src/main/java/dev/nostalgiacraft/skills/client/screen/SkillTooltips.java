@@ -81,7 +81,13 @@ public final class SkillTooltips {
         g.groupOf(n.id()).ifPresent(eg -> out.add(exclusive(g, s, pending, eg, n)));
         // why it cannot be selected
         switch (state) {
-            case ALLOCATED -> out.add(Component.translatable(key("status.allocated")).withStyle(ChatFormatting.GOLD));
+            case ALLOCATED -> {
+                out.add(Component.translatable(key("status.allocated")).withStyle(ChatFormatting.GOLD));
+                if (dev.nostalgiacraft.skills.client.ClientSkillState.economy().nodeRefundsEnabled()) {
+                    out.add(Component.translatable(key(s.startingRoot().filter(n.id()::equals).isPresent()
+                            ? "status.root_reset_only" : "status.refundable")).withStyle(ChatFormatting.DARK_AQUA));
+                }
+            }
             case PENDING -> out.add(Component.translatable(key("status.pending")).withStyle(ChatFormatting.AQUA));
             case AVAILABLE -> {
                 int left = s.availablePoints() - pendingCost;

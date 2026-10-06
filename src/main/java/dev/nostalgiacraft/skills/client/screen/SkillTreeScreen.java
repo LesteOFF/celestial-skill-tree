@@ -13,6 +13,7 @@ import dev.nostalgiacraft.skills.progression.Allocation;
 import dev.nostalgiacraft.skills.progression.AllocationService;
 import dev.nostalgiacraft.skills.progression.PathFinder;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
+import dev.nostalgiacraft.skills.progression.RefundService;
 import dev.nostalgiacraft.skills.progression.RejectReason;
 import dev.nostalgiacraft.skills.progression.RespecService;
 import dev.nostalgiacraft.skills.progression.XpMath;
@@ -46,7 +47,7 @@ import java.util.UUID;
  * Does not pause the game.
  */
 public final class SkillTreeScreen extends Screen {
-    private enum Panel { NONE, STATS, RESET, DISCARD, DEPENDENTS }
+    private enum Panel { NONE, STATS, RESET, DISCARD, DEPENDENTS, REFUND }
 
     private static final double DRAG_THRESHOLD_WINDOW_PX = 4.0;
     private static final double HIT_MARGIN_GUI_PX = 2.0;
@@ -64,6 +65,8 @@ public final class SkillTreeScreen extends Screen {
     private Panel panel = Panel.NONE;
     private String dependentsOf;
     private Set<String> dependents = Set.of();
+    private String refundOf;
+    private RefundService.Plan refundPlan;
 
     private String hoverId;
     private String focusId;
@@ -311,6 +314,12 @@ public final class SkillTreeScreen extends Screen {
             }
             states.put(n.id(), st);
         }
+        if (panel == Panel.REFUND) {
+            refundPlan = RefundService.plan(g, s, refundOf, ClientSkillState.economy().nodeRefundsEnabled());
+            if (!refundPlan.ok()) {
+                panel = Panel.NONE;
+            }
+        }
         statesDirty = false;
         tooltipCache = null;
         routeFor = null;
@@ -381,7 +390,7 @@ public final class SkillTreeScreen extends Screen {
         }
         String[] d = r.detail().split("/");
         flash(Component.translatable(r.messageKey(), (Object[]) d).withStyle(r.ok() ? ChatFormatting.GREEN : ChatFormatting.RED));
-        if (r.ok() && panel == Panel.RESET) {
+        if (r.ok() && (panel == Panel.RESET || panel == Panel.REFUND)) {
             panel = Panel.NONE;
         }
         statesDirty = true;
@@ -425,6 +434,31 @@ public final class SkillTreeScreen extends Screen {
         });
     }
 
+    /** Opens the confirmation for removing one confirmed skill (plus whatever depends on it). */
+    private void openRefundPanel(String id) {
+        SkillGraphSnapshot g = ClientSkillState.graph().get();
+        PlayerSkillState s = ClientSkillState.state().get();
+        RefundService.Plan plan = RefundService.plan(g, s, id, ClientSkillState.economy().nodeRefundsEnabled());
+        if (!plan.ok()) {
+            flash(Component.translatable(plan.reason().orElseThrow().translationKey()).withStyle(ChatFormatting.RED));
+            return;
+        }
+        refundOf = id;
+        refundPlan = plan;
+        panel = Panel.REFUND;
+    }
+
+    private void sendRefund() {
+        if (refundOf == null || ClientSkillState.requestInFlight()) {
+            return;
+        }
+        ClientSkillState.state().ifPresent(s -> {
+            UUID id = UUID.randomUUID();
+            ClientSkillState.markInFlight(id);
+            send(new Payloads.RequestRefund(id, s.stateRevision(), ClientSkillState.graphRevision(), refundOf));
+        });
+    }
+
     private void toggle(String id, boolean addRoute) {
         if (!ClientSkillState.ready()) {
             return;
@@ -433,7 +467,13 @@ public final class SkillTreeScreen extends Screen {
         PlayerSkillState s = ClientSkillState.state().get();
         SkillNodeDefinition n = g.nodes().get(id);
         switch (state(id)) {
-            case ALLOCATED -> flash(t("already_allocated", Component.translatable(n.nameKey())));
+            case ALLOCATED -> {
+                if (ClientSkillState.economy().nodeRefundsEnabled()) {
+                    openRefundPanel(id);
+                } else {
+                    flash(t("already_allocated", Component.translatable(n.nameKey())));
+                }
+            }
             case PENDING -> {
                 Set<String> deps = AllocationService.dependentsOfPendingRemoval(g, s, pending, id);
                 if (deps.isEmpty()) {
@@ -853,6 +893,11 @@ public final class SkillTreeScreen extends Screen {
         }
         SkillGraphSnapshot graph = ClientSkillState.graph().get();
         PlayerSkillState s = ClientSkillState.state().get();
+        if (panel == Panel.REFUND && (refundPlan == null || !refundPlan.ok() || refundOf == null
+                || !s.isAllocated(refundOf) || !graph.contains(refundOf))) {
+            panel = Panel.NONE; // the build changed under the open preview
+            return;
+        }
         List<Component> lines = new ArrayList<>();
         switch (panel) {
             case STATS -> lines.addAll(StatsPanel.lines(Minecraft.getInstance().player, s, graph, pending, pendingCost));
@@ -868,6 +913,26 @@ public final class SkillTreeScreen extends Screen {
                 }
                 if (ClientSkillState.economy().orbRequired()) {
                     lines.add(t("reset.orb").withStyle(ChatFormatting.LIGHT_PURPLE));
+                }
+            }
+            case REFUND -> {
+                RefundService.Plan pv = refundPlan;
+                lines.add(t("refund.title", Component.translatable(graph.nodes().get(refundOf).nameKey()))
+                        .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+                lines.add(t("refund.body", pv.refund(), pv.removed().size()));
+                if (pv.chained()) {
+                    lines.add(t("refund.chain").withStyle(ChatFormatting.RED));
+                }
+                pv.removed().stream().limit(10).forEach(id -> lines.add(Component.literal(" - ")
+                        .append(Component.translatable(graph.node(id).map(SkillNodeDefinition::nameKey).orElse(id)))
+                        .append(Component.literal(" (" + (s.isAllocated(id) ? s.allocations().get(id).paidCost() : 0) + ")"))
+                        .withStyle(ChatFormatting.GRAY)));
+                if (pv.removed().size() > 10) {
+                    lines.add(t("reset.more", pv.removed().size() - 10).withStyle(ChatFormatting.DARK_GRAY));
+                }
+                lines.add(t("refund.keeps").withStyle(ChatFormatting.GRAY));
+                if (ClientSkillState.economy().orbRequiredForNodeRefund()) {
+                    lines.add(t("refund.orb").withStyle(ChatFormatting.LIGHT_PURPLE));
                 }
             }
             case DISCARD -> {
@@ -912,6 +977,15 @@ public final class SkillTreeScreen extends Screen {
                 addPanelButton(px + 8, by, (pw - 24) / 2, t("reset.confirm"), () -> {
                     if (!busy) {
                         sendReset();
+                    }
+                }, true);
+                addPanelButton(px + 16 + (pw - 24) / 2, by, (pw - 24) / 2, t("cancel"), () -> panel = Panel.NONE, false);
+            }
+            case REFUND -> {
+                boolean busy = ClientSkillState.requestInFlight();
+                addPanelButton(px + 8, by, (pw - 24) / 2, t("refund.confirm"), () -> {
+                    if (!busy) {
+                        sendRefund();
                     }
                 }, true);
                 addPanelButton(px + 16 + (pw - 24) / 2, by, (pw - 24) / 2, t("cancel"), () -> panel = Panel.NONE, false);
