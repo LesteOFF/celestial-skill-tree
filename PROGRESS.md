@@ -96,6 +96,21 @@ Work branch: `claude/nostalgiaskills`. The Gradle project lives at the repositor
 - Docs written: README.md, ARCHITECTURE.md, TREE_DESIGN.md (+ generated example builds, `docs/builds.json`),
   ART_DIRECTION.md; example datapacks in `examples/datapacks/`.
 
+### Run 3 (2026-10-06, commit 3be2ac4 — PROGRESS.md was not updated by that run; recorded here by run 4)
+- InWorldQa extended and run in the real client (evidence `docs/verification/ingame_scenario_run2.txt`):
+  Nether dimension change keeps 5 allocations / 29 max health; 14 rapid buy requests (duplicate id + stale revision)
+  -> exactly one purchase (duplicate=1, rate_limited=4, stale=8, ok=1), ledger ok; save-quit-reopen of the world
+  (integrated server restart) keeps allocations/purchases/health; live `/reload` with Gatekeeper now requiring Bastion
+  -> cascading invalidation 5 -> 4 allocations, recorded price 2 refunded exactly once, max health 25.
+- Added `./gradlew validateTree` (TreeValidatorCli) authoring task; LAYOUT_MANIFEST.md gained control constraints,
+  decoration layers and intentional-crossings sections; screenshots re-captured.
+
+### Run 4 (2026-10-06)
+- Overlap guard ok (last commit 09:49 UTC, run started 12:51 UTC).
+- `./gradlew --no-daemon build` -> BUILD SUCCESSFUL (3m22s), 56/56 unit tests, 0 failures; jar
+  `build/libs/nostalgiaskills-0.1.0.jar` (713933 bytes).
+- `./gradlew validateTree` -> `nostalgiaskills:main: 480 node files, 0 error(s), 0 warning(s) -> VALID`.
+
 ## BLOCKED: NETWORK (partial)
 
 - `resources.download.minecraft.net` is still denied (proxy 403 on CONNECT), so MDG `downloadAssets` cannot fetch the
@@ -126,6 +141,8 @@ Work branch: `claude/nostalgiaskills`. The Gradle project lives at the repositor
 - Run 2: network probes, `./gradlew build` (scaffold), layout analysis + export (clean), `./gradlew test` (56/56 pass),
   `./gradlew compileJava` (whole mod), dedicated server start (`runServer -x downloadAssets`, success).
 - Run 2 (later): client under Xvfb (visual QA + in-world scenario), GameTests 6/6, reload scenario, full build + tests.
-- Not run: two real networked clients, latency simulation, server restart with an existing world, dimension/End
-  return, FPS measurement on real GPU hardware, human visual review.
-- Not run: any compile, unit test, client, dedicated server, in-game or visual check.
+- Run 3: in-world dimension change (Nether), rapid/duplicate request replay, save-quit-reopen persistence,
+  live reload cascading invalidation + exact refund (all in the real client under Xvfb).
+- Run 4: `./gradlew build` (pass, 56/56), `./gradlew validateTree` (VALID).
+- Not run: two real networked clients against a dedicated server, artificial network latency, End return,
+  FPS measurement on real GPU hardware, human visual review/playtest.
