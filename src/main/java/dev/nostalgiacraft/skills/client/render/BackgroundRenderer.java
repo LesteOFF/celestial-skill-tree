@@ -61,14 +61,14 @@ public final class BackgroundRenderer {
         sprite(g, RUINS, w * 0.06 - fx, h * 0.12 - fy, f, f, 0, 0, 256, 256, 512, 512);
         sprite(g, RUINS, w * 0.93 - fx, h * 0.10 - fy, f, f, 256, 0, 256, 256, 512, 512);
         sprite(g, RUINS, w * 0.95 - fx, h * 0.62 - fy, f * 0.8, f * 0.8, 0, 256, 256, 256, 512, 512);
-        sprite(g, RUINS, w * 0.30 - fx, h * 0.97 - fy, f * 0.7, f * 0.7, 256, 256, 256, 256, 512, 512);
+        sprite(g, RUINS, w * 0.87 - fx, h * 0.80 - fy, f * 0.7, f * 0.7, 256, 256, 256, 256, 512, 512);
         // weathered platform edge along the bottom, tiled horizontally (8% parallax)
-        double ph = 150 * s;
-        double pw = 1024 * (ph / 192.0);
+        double ph = 118 * s;
+        double pw = 1024 * (ph / 160.0);
         double off = offset(px, 0.08, w) % pw;
         int y0 = (int) Math.round(h - ph + offset(py, 0.08, h) * 0.3);
         for (double x = -pw - off; x < w + pw; x += pw) {
-            sprite(g, PLATFORM, x + pw / 2, y0 + ph / 2, pw, ph, 0, 0, 1024, 192, 1024, 192);
+            sprite(g, PLATFORM, x + pw / 2, y0 + ph / 2, pw, ph, 0, 0, 1024, 160, 1024, 160);
         }
         motes(g, w, h, still ? 0 : timeSeconds);
     }

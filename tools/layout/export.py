@@ -211,6 +211,19 @@ def main():
         merged.update(dict(sorted(lang[short].items())))
         write_json(os.path.join(ASSETS, "lang", f"{code}.json"), merged)
 
+    # ---- classpath index for the verified bundled fallback (read by BundledTree, bypassing datapacks) ----
+    index = {}
+    for d in ("skill_trees", "skill_nodes", "skill_connections"):
+        base = os.path.join(DATA, d)
+        paths = []
+        for root, _, files in os.walk(base):
+            for fn in files:
+                if fn.endswith(".json"):
+                    rel = os.path.relpath(os.path.join(root, fn), base).replace(os.sep, "/")
+                    paths.append(rel[:-5])
+        index[d] = sorted(paths)
+    write_json(os.path.join(REPO, "src", "main", "resources", "nostalgiaskills_bundled_index.json"), index)
+
     # ---- manifest ----
     write_manifest(g, rep, ids, adj, node_records, connections, ex_groups)
     print(f"exported {len(node_records)} nodes, {len(connections)} connections")
