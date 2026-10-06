@@ -32,6 +32,8 @@ public final class GraphParser {
     public static final int MAX_TAGS = 16;
     public static final int MAX_POINTS = 32;
     public static final int MAX_TEXT = 256;
+    /** Node ids are sent in allocation requests, so they are kept short (network budget). */
+    public static final int MAX_NODE_ID = 64;
     public static final int MAX_COST = 100;
     public static final double MAX_COORDINATE = 100_000;
 
@@ -169,8 +171,8 @@ public final class GraphParser {
         JsonObject o = el.getAsJsonObject();
         int before = r.errors().size();
         checkSchema(o, src, r);
-        if (!Ids.isValid(id)) {
-            r.error(src, "id", "invalid id derived from path: '" + id + "'");
+        if (!Ids.isValid(id) || id.length() > MAX_NODE_ID) {
+            r.error(src, "id", "invalid id derived from path (max " + MAX_NODE_ID + " chars): '" + id + "'");
         }
         if (o.has("id") && !o.get("id").getAsString().equals(id)) {
             r.error(src, "id", "explicit id '" + o.get("id").getAsString() + "' disagrees with file path id '" + id + "'");

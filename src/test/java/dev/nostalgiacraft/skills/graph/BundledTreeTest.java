@@ -148,4 +148,15 @@ class BundledTreeTest {
             assertTrue(g.accessFrom(c.a()).contains(c.b()));
         }
     }
+
+    @Test
+    void networkCodecRoundTripsWithinPayloadBudget() throws Exception {
+        byte[] bytes = GraphCodec.encode(g);
+        System.out.println("graph sync payload: " + bytes.length + " bytes (compressed)");
+        assertTrue(bytes.length < GraphCodec.MAX_BYTES, "payload " + bytes.length);
+        SkillGraphSnapshot back = GraphCodec.decode(bytes);
+        assertEquals(g.fingerprint(), back.fingerprint());
+        assertEquals(g.nodes(), back.nodes());
+        assertEquals(g.connections(), back.connections());
+    }
 }

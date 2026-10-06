@@ -21,7 +21,7 @@ import java.util.TreeSet;
  * accepted repeatedly until nothing changes. Any node left over rejects the whole batch.
  */
 public final class AllocationService {
-    public static final int MAX_BATCH = 512;
+    public static final int MAX_BATCH = 400; // keeps a worst-case request below the 32 KiB client-to-server limit
 
     public record Accepted(String nodeId, int cost, boolean startingRoot) {
     }
