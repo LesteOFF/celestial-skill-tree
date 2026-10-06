@@ -11,7 +11,7 @@ Work branch: `claude/nostalgiaskills`. The Gradle project lives at the repositor
 |---|------|--------|
 | 1 | Verify target platform, study references/docs | partial |
 | 2 | Author layout manifest, art direction, graph design | pending |
-| 3 | NeoForge project pinned to MC 1.21.1 | partial |
+| 3 | NeoForge project pinned to MC 1.21.1 | done (empty mod builds) |
 | 4 | Model, resource loader, validation, progression domain | pending |
 | 5 | Persistence, server authority, transactions, networking | pending |
 | 6 | Background, icons, frames, item art (+ sources) | pending |
@@ -22,36 +22,13 @@ Work branch: `claude/nostalgiaskills`. The Gradle project lives at the repositor
 | 11 | Visual QA vs layout/art spec | pending |
 | 12 | Deliver artifacts and verification evidence | pending |
 
-## BLOCKED: NETWORK
-
-The sandbox network policy denies these hosts (proxy answers `403` to CONNECT):
-
-- `maven.neoforged.net` (NeoForge, NeoForm runtime, MDG dependencies)
-- `libraries.minecraft.net`
-- `piston-meta.mojang.com`
-- `docs.neoforged.net` (cannot consult docs online)
-
-Reachable: `plugins.gradle.org`, `services.gradle.org`, `repo1.maven.org` (but Maven Central answered HTTP 429 rate limit once).
-
-Failing command (run 2026-10-06):
-
-```
-./gradlew --no-daemon build
-> Task :createMinecraftArtifacts FAILED
-Could not resolve net.neoforged:neoform-runtime:2.0.31.
-Could not GET 'https://maven.neoforged.net/releases/net/neoforged/neoform-runtime/2.0.31/neoform-runtime-2.0.31.pom'.
-Received status code 403 from server: Forbidden
-```
-
-Remedy for the owner: allow the hosts above in the cloud environment's Network access settings.
-
 ## Pinned versions
 
 - Minecraft 1.21.1, Java 21 (JDK 21.0.12 available locally).
 - Gradle wrapper 8.14.3.
 - ModDevGradle `net.neoforged.moddev` 2.0.148 — verified to exist on plugins.gradle.org this run.
-- NeoForge 21.1.172 — NOT verified online (maven.neoforged.net blocked). Chosen from knowledge of the 21.1.x release line; re-check when network allows.
-- Parchment 1.21.1 / 2024.11.17 — NOT verified online.
+- NeoForge 21.1.256 — verified run 2 as the latest 21.1.x in maven.neoforged.net metadata.
+- Parchment 1.21.1 / 2024.11.17 — verified run 2 (maven.parchmentmc.org serves it; Gradle resolved it).
 
 ## Run log
 
@@ -59,6 +36,12 @@ Remedy for the owner: allow the hosts above in the cloud environment's Network a
 - Created branch, PROGRESS.md, Gradle scaffold (settings.gradle, build.gradle, gradle.properties,
   wrapper 8.14.3, neoforge.mods.toml template, .gitignore).
 - Confirmed network block (see above).
+
+### Run 2 (2026-10-06)
+- Owner opened network access. Re-tested: maven.neoforged.net, libraries.minecraft.net, piston-meta.mojang.com,
+  piston-data.mojang.com all reachable (HTTP 200 on real artifact URLs). BLOCKED: NETWORK section removed;
+  compiling is available from now on.
+- Bumped NeoForge pin 21.1.172 -> 21.1.256. `./gradlew --no-daemon build` -> BUILD SUCCESSFUL (no sources yet).
 
 ## Next action
 
@@ -69,9 +52,10 @@ and `ART_DIRECTION.md`.
 
 ## Known failures
 
-- `./gradlew build` fails: NeoForge maven blocked (see BLOCKED: NETWORK).
+- None currently.
 
 ## Checks run vs not run
 
-- Ran: network probes (curl), `./gradlew --no-daemon build` (failed as above).
+- Run 1: network probes, build (failed, network).
+- Run 2: network probes (all OK), `./gradlew --no-daemon build` (SUCCESS, scaffold only).
 - Not run: any compile, unit test, client, dedicated server, in-game or visual check.
