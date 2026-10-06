@@ -12,7 +12,7 @@ Work branch: `claude/nostalgiaskills`. The Gradle project lives at the repositor
 | 1 | Verify target platform, study references/docs | partial |
 | 2 | Author layout manifest, art direction, graph design | partial (layout + content + manifest done; ART_DIRECTION.md pending) |
 | 3 | NeoForge project pinned to MC 1.21.1 | done (empty mod builds) |
-| 4 | Model, resource loader, validation, progression domain | pending |
+| 4 | Model, resource loader, validation, progression domain | partial (pure-Java domain + 55 passing tests; Minecraft resource loader pending) |
 | 5 | Persistence, server authority, transactions, networking | pending |
 | 6 | Background, icons, frames, item art (+ sources) | pending |
 | 7 | Rendering, controls, tooltips, previews | pending |
@@ -57,13 +57,22 @@ Work branch: `claude/nostalgiaskills`. The Gradle project lives at the repositor
   charged_shot_damage, mining_speed, tool_preservation, potion_duration, magic_resistance, healing_received, lifesteal,
   damage_reduction, low_health_damage. Item tags referenced: nostalgiaskills:light_weapons, heavy_weapons, bows, crossbows.
 
+- Domain layer in `src/main/java/dev/nostalgiacraft/skills/{graph,progression}` (no Minecraft classes):
+  GraphParser (file/field/reason errors, limits), GraphValidator (references, reachability from every root,
+  exclusive-choice blockades, unsatisfiable/cyclic requirements, overlap warnings), SkillGraphSnapshot (immutable,
+  content fingerprint), AllocationService (batch expansion, atomic confirm, dependents of pending removal),
+  PathFinder (least-cost route + requirement check), XpMath/XpCurve/ProgressionService, LedgerService, RespecService,
+  Reconciler (migration map, oldest-first replay, exactly-once refunds), RequestGuard (dedup + stale revisions).
+- `./gradlew --no-daemon test`: 55 tests, 0 failures (ran this run), including BundledTreeTest over the real dataset.
+
 ## Next action
 
-Step 4: Java domain + data loading. Create `dev.nostalgiacraft.skills` main class, register the custom attributes above
-(RangedAttribute, add to player via EntityAttributeModificationEvent), item tags JSON for light/heavy weapons, bows,
-crossbows, mining tools; then pure-Java domain (graph snapshot, node definition parsing with Gson, validation,
-AllocationService batch validation, ProgressionService XP curve, ledger) with JUnit tests that also load the bundled
-480-node dataset (`test` task already sets system property `nostalgiaskills.dataRoot`). Then ART_DIRECTION.md + art scripts.
+Step 4/5 Minecraft layer: `NostalgiaSkills` @Mod class; register custom attributes (17 ids listed above) and add them
+to players (EntityAttributeModificationEvent); item tags `nostalgiaskills:light_weapons|heavy_weapons|bows|crossbows`
+and damage-type tag `nostalgiaskills:magic`; server reload listener (AddReloadListenerEvent) reading
+skill_trees/skill_nodes/skill_connections into GraphParser.Sources, keep last valid snapshot, fallback to bundled
+tree; player data attachment (Codec for PlayerSkillState, copyOnDeath); payloads (RegisterPayloadHandlersEvent);
+then effects engine, commands, config, Orb of Reconfiguration, client screen.
 
 ## Known failures
 
@@ -72,5 +81,5 @@ AllocationService batch validation, ProgressionService XP curve, ledger) with JU
 ## Checks run vs not run
 
 - Run 1: network probes, build (failed, network).
-- Run 2: network probes (all OK), `./gradlew --no-daemon build` (SUCCESS, scaffold only), layout analysis + export (clean).
+- Run 2: network probes (all OK), `./gradlew --no-daemon build` (SUCCESS, scaffold only), layout analysis + export (clean), `./gradlew test` (55/55 pass).
 - Not run: any compile, unit test, client, dedicated server, in-game or visual check.
