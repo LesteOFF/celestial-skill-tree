@@ -1,36 +1,40 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:berserker/heavy_swing_15",
-  "tree": "nostalgiaskills:main",
-  "sector": "berserker",
-  "type": "minor",
-  "position": {
-    "x": -348.5,
-    "y": 655.5
-  },
-  "name": "skill.nostalgiaskills.berserker.heavy_swing_15.name",
-  "description": "skill.nostalgiaskills.berserker.heavy_swing_15.description",
-  "icon": "nostalgiaskills:textures/skill_icons/heavy_weapon.png",
-  "frame": "bronze_circle",
-  "cost": 1,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:heavy_weapon_damage",
-      "operation": "add_value",
-      "amount": 0.03
-    }
-  ],
-  "tags": [
-    "heavy_weapon",
-    "damage",
-    "berserker"
-  ],
-  "cluster": "berserker:keystone_juggernaut"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:berserker/heavy_swing_15",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "berserker",
+    "type":  "minor",
+    "position":  {
+                     "x":  -1791.9599,
+                     "y":  -752.5942
+                 },
+    "name":  "skill.nostalgiaskills.berserker.heavy_swing_15.name",
+    "description":  "skill.nostalgiaskills.berserker.heavy_swing_15.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/heavy_weapon.png",
+    "frame":  "bronze_circle",
+    "cost":  1,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "nostalgiaskills:heavy_weapon_damage",
+                        "operation":  "add_value",
+                        "amount":  0.03
+                    }
+                ],
+    "tags":  [
+                 "heavy_weapon",
+                 "damage",
+                 "berserker"
+             ],
+    "cluster":  "berserker:keystone_juggernaut"
 }

@@ -2,7 +2,6 @@ package dev.nostalgiacraft.skills.progression;
 
 import java.util.Locale;
 
-/** Every rejection the server can send; each maps to a translation key "error.nostalgiaskills.<name>". */
 public enum RejectReason {
     EMPTY_REQUEST,
     REQUEST_TOO_LARGE,
@@ -28,7 +27,10 @@ public enum RejectReason {
     RATE_LIMITED,
     INVALID_AMOUNT,
     OVER_LIMIT_NEEDS_OVERRIDE,
-    TREE_UNAVAILABLE;
+    TREE_UNAVAILABLE,
+    UNDISCOVERED,
+    CONSUMED,
+    COMMUNITY_COMPLETE;
 
     public String translationKey() {
         return "error.nostalgiaskills." + name().toLowerCase(Locale.ROOT);

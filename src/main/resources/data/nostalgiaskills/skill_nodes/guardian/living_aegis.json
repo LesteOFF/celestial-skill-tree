@@ -5,8 +5,8 @@
   "sector": "guardian",
   "type": "keystone",
   "position": {
-    "x": -554.0,
-    "y": -472.0
+    "x": 1066.2639,
+    "y": -1579.145
   },
   "name": "skill.nostalgiaskills.guardian.living_aegis.name",
   "description": "skill.nostalgiaskills.guardian.living_aegis.description",
@@ -38,6 +38,5 @@
     "defense",
     "guardian"
   ],
-  "cluster": "guardian:keystone_aegis",
-  "exclusive_group": "guardian_vow"
+  "cluster": "guardian:keystone_aegis"
 }

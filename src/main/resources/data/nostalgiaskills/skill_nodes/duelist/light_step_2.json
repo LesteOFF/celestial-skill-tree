@@ -1,35 +1,39 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:duelist/light_step_2",
-  "tree": "nostalgiaskills:main",
-  "sector": "duelist",
-  "type": "minor",
-  "position": {
-    "x": -234.5,
-    "y": -52.0
-  },
-  "name": "skill.nostalgiaskills.duelist.light_step_2.name",
-  "description": "skill.nostalgiaskills.duelist.light_step_2.description",
-  "icon": "nostalgiaskills:textures/skill_icons/mobility.png",
-  "frame": "bronze_circle",
-  "cost": 1,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "minecraft:generic.movement_speed",
-      "operation": "add_multiplied_base",
-      "amount": 0.01
-    }
-  ],
-  "tags": [
-    "mobility",
-    "duelist"
-  ],
-  "cluster": "duelist:feint_arc"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:duelist/light_step_2",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "duelist",
+    "type":  "minor",
+    "position":  {
+                     "x":  -545.8728,
+                     "y":  -312.1941
+                 },
+    "name":  "skill.nostalgiaskills.duelist.light_step_2.name",
+    "description":  "skill.nostalgiaskills.duelist.light_step_2.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/mobility.png",
+    "frame":  "bronze_circle",
+    "cost":  1,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "minecraft:generic.movement_speed",
+                        "operation":  "add_multiplied_base",
+                        "amount":  0.01
+                    }
+                ],
+    "tags":  [
+                 "mobility",
+                 "duelist"
+             ],
+    "cluster":  "duelist:feint_arc"
 }

@@ -1,36 +1,40 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:arcanist/warding_salts_19",
-  "tree": "nostalgiaskills:main",
-  "sector": "arcanist",
-  "type": "minor",
-  "position": {
-    "x": 284.5,
-    "y": -324.0
-  },
-  "name": "skill.nostalgiaskills.arcanist.warding_salts_19.name",
-  "description": "skill.nostalgiaskills.arcanist.warding_salts_19.description",
-  "icon": "nostalgiaskills:textures/skill_icons/magic.png",
-  "frame": "bronze_circle",
-  "cost": 1,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:magic_resistance",
-      "operation": "add_value",
-      "amount": 0.02
-    }
-  ],
-  "tags": [
-    "magic",
-    "defense",
-    "arcanist"
-  ],
-  "cluster": "arcanist:great_spiral"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:arcanist/warding_salts_19",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "arcanist",
+    "type":  "minor",
+    "position":  {
+                     "x":  1126.6682,
+                     "y":  70.0544
+                 },
+    "name":  "skill.nostalgiaskills.arcanist.warding_salts_19.name",
+    "description":  "skill.nostalgiaskills.arcanist.warding_salts_19.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/magic.png",
+    "frame":  "bronze_circle",
+    "cost":  1,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "nostalgiaskills:magic_resistance",
+                        "operation":  "add_value",
+                        "amount":  0.02
+                    }
+                ],
+    "tags":  [
+                 "magic",
+                 "defense",
+                 "arcanist"
+             ],
+    "cluster":  "arcanist:great_spiral"
 }

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "xp_required": 20000,
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.movement_speed",
+      "operation": "add_multiplied_base",
+      "amount": 0.02
+    }
+  ]
+}

@@ -5,8 +5,8 @@
   "sector": "duelist",
   "type": "keystone",
   "position": {
-    "x": -756.5,
-    "y": -47.5
+    "x": -13.0999,
+    "y": -1984.3998
   },
   "name": "skill.nostalgiaskills.duelist.swift_hands.name",
   "description": "skill.nostalgiaskills.duelist.swift_hands.description",
@@ -46,6 +46,5 @@
     "light_weapon",
     "duelist"
   ],
-  "cluster": "duelist:keystone_swift",
-  "exclusive_group": "duelist_style"
+  "cluster": "duelist:keystone_swift"
 }

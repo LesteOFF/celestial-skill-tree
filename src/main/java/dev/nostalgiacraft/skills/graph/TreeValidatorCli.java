@@ -11,13 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
-/**
- * Offline validation of tree data outside the game (authoring tool).
- * Usage: {@code ./gradlew validateTree -PtreeDir=path/to/data} where the directory contains
- * {@code <namespace>/skill_trees}, {@code skill_nodes} and {@code skill_connections} (i.e. a datapack's data/ folder).
- * Prints every error/warning with file, field and reason; exits 1 when the tree would be rejected.
- * Registry ids are only checked for syntax here (the game additionally checks them against live registries).
- */
 public final class TreeValidatorCli {
     private TreeValidatorCli() {
     }
@@ -35,13 +28,13 @@ public final class TreeValidatorCli {
                 read(ns, "skill_connections", conns);
             }
         }
-        GraphParser.Outcome o = new GraphParser(KnownIds.PERMISSIVE).parse(tree, new GraphParser.Sources(trees, nodes, conns));
-        o.report().issues().forEach(System.out::println);
+        GraphParser.Outcome outcome = new GraphParser(KnownIds.PERMISSIVE).parse(tree, new GraphParser.Sources(trees, nodes, conns));
+        outcome.report().issues().forEach(System.out::println);
         System.out.printf("%s: %d node files, %d error(s), %d warning(s) -> %s%n", tree, nodes.size(),
-                o.report().errors().size(), o.report().warnings().size(), o.snapshot().isPresent() ? "VALID" : "REJECTED");
-        o.snapshot().ifPresent(g -> System.out.printf("fingerprint %s, bounds x %.1f..%.1f y %.1f..%.1f%n",
+                outcome.report().errors().size(), outcome.report().warnings().size(), outcome.snapshot().isPresent() ? "VALID" : "REJECTED");
+        outcome.snapshot().ifPresent(g -> System.out.printf("fingerprint %s, bounds x %.1f..%.1f y %.1f..%.1f%n",
                 g.fingerprint(), g.minX(), g.maxX(), g.minY(), g.maxY()));
-        if (o.snapshot().isEmpty()) {
+        if (outcome.snapshot().isEmpty()) {
             System.exit(1);
         }
     }

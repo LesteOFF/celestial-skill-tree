@@ -2,8 +2,15 @@ package dev.nostalgiacraft.skills.graph;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import dev.nostalgiacraft.skills.progression.AllocationService;
+import dev.nostalgiacraft.skills.progression.LedgerService;
+import dev.nostalgiacraft.skills.progression.PathFinder;
+import dev.nostalgiacraft.skills.progression.PlayerSkillState;
+import dev.nostalgiacraft.skills.progression.RefundService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -12,15 +19,11 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-/** Validates the complete bundled 480-node dataset exactly as the server loads it. */
 class BundledTreeTest {
     static final String NS = "nostalgiaskills";
     static GraphParser.Outcome outcome;
@@ -71,38 +74,40 @@ class BundledTreeTest {
 
     @Test
     void hasExactDistribution() {
-        assertEquals(480, g.nodes().size());
-        for (Sector s : g.sectors()) {
+        assertEquals(484, g.nodes().size());
+        for (Sector sector : g.sectors()) {
             Map<NodeType, Integer> c = new HashMap<>();
-            g.nodes().values().stream().filter(n -> n.sector().equals(s.id())).forEach(n -> c.merge(n.type(), 1, Integer::sum));
-            assertEquals(Map.of(NodeType.ROOT, 1, NodeType.MINOR, 64, NodeType.NOTABLE, 12, NodeType.KEYSTONE, 3), c, s.id());
+            g.nodes().values().stream().filter(n -> n.sector().equals(sector.id()) && n.type() != NodeType.PORTAL)
+                    .forEach(n -> c.merge(n.type(), 1, Integer::sum));
+            assertEquals(Map.of(NodeType.ROOT, 1, NodeType.MINOR, 64, NodeType.NOTABLE, 12, NodeType.KEYSTONE, 3), c, sector.id());
         }
         assertEquals(6, g.roots().size());
-        assertEquals(6, g.exclusiveGroups().size());
+        assertEquals(0, g.exclusiveGroups().size(), "no skill excludes another");
+        assertEquals(4, g.nodes().values().stream().filter(n -> n.type() == NodeType.PORTAL).count());
     }
 
     @Test
-    void rootsUseAuthoredCoordinates() {
-        Map<String, Vec2> want = Map.of("duelist", new Vec2(-180, 0), "guardian", new Vec2(-90, -156),
-                "arcanist", new Vec2(90, -156), "marksman", new Vec2(180, 0), "artificer", new Vec2(90, 156),
-                "berserker", new Vec2(-90, 156));
+    void rootsSitOnTheGoldenRatioExpansionOfTheAuthoredHexagon() {
+        Map<String, Vec2> want = Map.of("duelist", new Vec2(-471.2461, 0), "guardian", new Vec2(-235.3862, -408.5499),
+                "arcanist", new Vec2(235.8598, -408.2766), "marksman", new Vec2(471.2461, 0),
+                "artificer", new Vec2(235.3862, 408.5499), "berserker", new Vec2(-235.8598, 408.2766));
         want.forEach((s, v) -> assertEquals(v, g.nodes().get(NS + ":" + s + "/hub").position(), s));
     }
 
     @Test
-    void everyNodeHasARealEffect() {
-        for (SkillNodeDefinition n : g.nodes().values()) {
-            assertFalse(n.effects().isEmpty(), n.id());
+    void everySkillExceptAGateHasARealEffect() {
+        for (SkillNodeDefinition node : g.nodes().values()) {
+            assertEquals(node.type() == NodeType.PORTAL, node.effects().isEmpty(), node.id());
         }
     }
 
     @Test
     void keystonesCombineAdvantageWithDrawback() {
-        for (SkillNodeDefinition n : g.nodes().values()) {
-            if (n.type() != NodeType.KEYSTONE) {
+        for (SkillNodeDefinition node : g.nodes().values()) {
+            if (node.type() != NodeType.KEYSTONE) {
                 continue;
             }
-            assertTrue(n.effects().size() >= 2, n.id());
+            assertTrue(node.effects().size() >= 2, node.id());
         }
     }
 
@@ -119,11 +124,11 @@ class BundledTreeTest {
 
     static int cheapest(String from, String to) {
         Map<String, Integer> dist = new HashMap<>();
-        PriorityQueue<Map.Entry<String, Integer>> pq = new PriorityQueue<>(Map.Entry.comparingByValue());
+        PriorityQueue<Map.Entry<String, Integer>> priorityQueue = new PriorityQueue<>(Map.Entry.comparingByValue());
         dist.put(from, 0);
-        pq.add(Map.entry(from, 0));
-        while (!pq.isEmpty()) {
-            Map.Entry<String, Integer> e = pq.poll();
+        priorityQueue.add(Map.entry(from, 0));
+        while (!priorityQueue.isEmpty()) {
+            Map.Entry<String, Integer> e = priorityQueue.poll();
             if (e.getKey().equals(to)) {
                 return e.getValue();
             }
@@ -134,7 +139,7 @@ class BundledTreeTest {
                 int nd = e.getValue() + g.nodes().get(m).cost();
                 if (nd < dist.getOrDefault(m, Integer.MAX_VALUE)) {
                     dist.put(m, nd);
-                    pq.add(Map.entry(m, nd));
+                    priorityQueue.add(Map.entry(m, nd));
                 }
             }
         }
@@ -142,10 +147,54 @@ class BundledTreeTest {
     }
 
     @Test
+    void oneCharacterCanLearnEverySkill() {
+        AllocationService.Expansion everything = AllocationService.expand(g, new PlayerSkillState(), g.ids());
+        assertTrue(everything.rejected().isEmpty(), "blocked: " + everything.rejected().keySet());
+        assertEquals(484, everything.accepted().size());
+        assertEquals(593, everything.totalCost(), "points needed for the whole tree");
+    }
+
+    @Test
+    void portalsComeInPairsThatLinkOppositeSidesOfTheTree() {
+        for (String[] pair : new String[][]{{"east", "west"}, {"north", "south"}}) {
+            String first = NS + ":portal/" + pair[0];
+            String second = NS + ":portal/" + pair[1];
+            assertEquals(Optional.of(second), g.portalDestination(first));
+            assertEquals(Optional.of(first), g.portalDestination(second));
+            assertTrue(g.neighbours(first).contains(second));
+            assertTrue(g.neighbours(first).size() >= 2 && g.neighbours(second).size() >= 2, "each gate opens onto its own side");
+            assertTrue(g.nodes().get(first).position().distanceTo(g.nodes().get(second).position()) > 2000);
+            assertEquals(3, g.nodes().get(first).cost());
+        }
+    }
+
+    @Test
+    void learningOneGateOpensItsTwinForFreeAndRefundingEitherClosesBoth() {
+        String east = NS + ":portal/east";
+        String west = NS + ":portal/west";
+        PlayerSkillState state = new PlayerSkillState();
+        LedgerService.grant(state, 700, 10_000, false);
+        assertTrue(AllocationService.confirm(g, state, List.of(g.roots().get(0))).ok());
+        PathFinder.Route route = PathFinder.route(g, state, List.of(), east).orElseThrow();
+        AllocationService.BatchResult bought = AllocationService.confirm(g, state, route.newNodes());
+        assertTrue(bought.ok(), "route to the gate rejected: " + bought.rejection());
+        assertEquals(route.cost(), bought.totalCost());
+        assertEquals(3, state.allocations().get(east).paidCost());
+        assertEquals(0, state.allocations().get(west).paidCost());
+        assertTrue(g.neighbours(west).stream().filter(id -> !id.equals(east))
+                .allMatch(id -> AllocationService.eligibility(g, state, List.of(), id).isEmpty()), "the far side is open");
+
+        RefundService.Plan plan = RefundService.plan(g, state, west, true);
+        assertTrue(plan.ok());
+        assertTrue(plan.removed().containsAll(List.of(east, west)));
+        assertEquals(3, plan.refund());
+    }
+
+    @Test
     void connectionsReferenceTheSameGraphUsedForEligibility() {
-        for (SkillConnection c : g.connections()) {
-            assertTrue(g.accessFrom(c.b()).contains(c.a()));
-            assertTrue(g.accessFrom(c.a()).contains(c.b()));
+        for (SkillConnection connection : g.connections()) {
+            assertTrue(g.accessFrom(connection.b()).contains(connection.a()));
+            assertTrue(g.accessFrom(connection.a()).contains(connection.b()));
         }
     }
 

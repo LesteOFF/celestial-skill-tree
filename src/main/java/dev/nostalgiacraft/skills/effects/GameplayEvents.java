@@ -24,6 +24,7 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.PotionItem;
 import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -45,14 +46,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Server-side gameplay hooks for event effects. Damage numbers documented in ARCHITECTURE.md:
- * dealt bonuses are summed into one multiplier applied to the incoming amount (after vanilla weapon, enchantment
- * and vanilla-critical calculation, before armor); taken modifiers likewise, then damage reduction.
- */
 @EventBusSubscriber(modid = NostalgiaSkills.MODID)
 public final class GameplayEvents {
     static final String ORIGIN_KEY = "nostalgiaskills_origin";
+    private static final double LONG_RANGE_BLOCKS = 12.0;
+    private static final float LOW_HEALTH_DAMAGE_FRACTION = 0.5f;
+    private static final float LOW_HEALTH_TRIGGER_FRACTION = 0.3f;
+    private static final double MIN_DAMAGE_MULTIPLIER = 0.05;
+    private static final double MAX_TAKEN_MULTIPLIER = 3.0;
+    private static final double MIN_MINING_MULTIPLIER = 0.1;
+    private static final int CONDITIONAL_REFRESH_TICKS = 10;
+    private static final double NO_SHOT_DISTANCE = -1;
     private static final Map<UUID, Long> VANILLA_CRIT_TICK = new HashMap<>();
     private static final Map<UUID, PendingWear> PENDING_WEAR = new HashMap<>();
 
@@ -62,303 +66,334 @@ public final class GameplayEvents {
     private GameplayEvents() {
     }
 
-    static double attr(LivingEntity e, Holder<Attribute> h) {
-        return e.getAttributes().hasAttribute(h) ? e.getAttributeValue(h) : 0.0;
+    static double attributeValue(LivingEntity entity, Holder<Attribute> attribute) {
+        return entity.getAttributes().hasAttribute(attribute) ? entity.getAttributeValue(attribute) : 0.0;
     }
 
-    static boolean melee(DamageSource s, ServerPlayer p) {
-        return s.getEntity() == p && s.getDirectEntity() == p && s.is(DamageTypes.PLAYER_ATTACK);
+    static boolean melee(DamageSource source, ServerPlayer player) {
+        return source.getEntity() == player && source.getDirectEntity() == player && source.is(DamageTypes.PLAYER_ATTACK);
     }
 
-    static boolean projectile(DamageSource s, ServerPlayer p) {
-        return s.getEntity() == p && s.getDirectEntity() != p && s.is(DamageTypeTags.IS_PROJECTILE);
+    static boolean projectile(DamageSource source, ServerPlayer player) {
+        return source.getEntity() == player && source.getDirectEntity() != player && source.is(DamageTypeTags.IS_PROJECTILE);
     }
 
-    static boolean inScope(String scope, DamageSource s, ServerPlayer attacker, boolean dealt) {
+    static boolean inScope(String scope, DamageSource source, ServerPlayer player, boolean dealt) {
+        boolean byProjectile = source.is(DamageTypeTags.IS_PROJECTILE);
         return switch (scope) {
-            case "melee" -> dealt ? melee(s, attacker) : s.getDirectEntity() instanceof LivingEntity && !s.is(DamageTypeTags.IS_PROJECTILE);
-            case "projectile" -> dealt ? projectile(s, attacker) : s.is(DamageTypeTags.IS_PROJECTILE);
-            case "magic" -> s.is(ModTags.MAGIC);
-            case "fire" -> s.is(DamageTypeTags.IS_FIRE);
+            case "melee" -> dealt ? melee(source, player) : source.getDirectEntity() instanceof LivingEntity && !byProjectile;
+            case "projectile" -> dealt ? projectile(source, player) : byProjectile;
+            case "magic" -> source.is(ModTags.MAGIC);
+            case "fire" -> source.is(DamageTypeTags.IS_FIRE);
             default -> true;
         };
     }
 
-    static double shotDistance(DamageSource s, LivingEntity victim) {
-        Entity direct = s.getDirectEntity();
+    static double shotDistance(DamageSource source, LivingEntity victim) {
+        Entity direct = source.getDirectEntity();
         if (direct == null || !direct.getPersistentData().contains(ORIGIN_KEY)) {
-            return -1;
+            return NO_SHOT_DISTANCE;
         }
-        CompoundTag o = direct.getPersistentData().getCompound(ORIGIN_KEY);
-        return new Vec3(o.getDouble("x"), o.getDouble("y"), o.getDouble("z")).distanceTo(victim.position());
+        CompoundTag origin = direct.getPersistentData().getCompound(ORIGIN_KEY);
+        return new Vec3(origin.getDouble("x"), origin.getDouble("y"), origin.getDouble("z")).distanceTo(victim.position());
     }
 
-    /** Records where a player's projectile was fired; piercing hits measure from this same origin. */
+    private static LivingEntity livingAttacker(DamageSource source) {
+        return source.getEntity() instanceof LivingEntity attacker ? attacker : null;
+    }
+
+    private static double modifierSum(ServerPlayer player, DamageSource source, boolean dealt,
+                                      EffectEngine.DamageContext context) {
+        double sum = 0;
+        for (CompiledBuild.Keyed<SkillEffect.DamageModifier> keyed : EffectEngine.build(player).damage()) {
+            SkillEffect.DamageModifier modifier = keyed.effect();
+            boolean applies = modifier.dealt() == dealt && inScope(modifier.scope(), source, player, dealt)
+                    && modifier.condition().map(condition -> EffectEngine.holds(player, condition, context)).orElse(true);
+            if (applies) {
+                sum += modifier.amount();
+            }
+        }
+        return sum;
+    }
+
     @SubscribeEvent
-    public static void onJoin(EntityJoinLevelEvent e) {
-        if (e.getLevel().isClientSide() || !(e.getEntity() instanceof Projectile proj)) {
+    public static void onJoin(EntityJoinLevelEvent event) {
+        if (event.getLevel().isClientSide() || !(event.getEntity() instanceof Projectile projectile)) {
             return;
         }
-        if (proj.getOwner() instanceof ServerPlayer && !proj.getPersistentData().contains(ORIGIN_KEY)) {
-            CompoundTag o = new CompoundTag();
-            o.putDouble("x", proj.getX());
-            o.putDouble("y", proj.getY());
-            o.putDouble("z", proj.getZ());
-            proj.getPersistentData().put(ORIGIN_KEY, o);
+        if (projectile.getOwner() instanceof ServerPlayer && !projectile.getPersistentData().contains(ORIGIN_KEY)) {
+            CompoundTag origin = new CompoundTag();
+            origin.putDouble("x", projectile.getX());
+            origin.putDouble("y", projectile.getY());
+            origin.putDouble("z", projectile.getZ());
+            projectile.getPersistentData().put(ORIGIN_KEY, origin);
         }
     }
 
     @SubscribeEvent
-    public static void onVanillaCrit(CriticalHitEvent e) {
-        if (e.isCriticalHit() && e.getEntity() instanceof ServerPlayer p) {
-            VANILLA_CRIT_TICK.put(p.getUUID(), p.serverLevel().getGameTime());
+    public static void onVanillaCrit(CriticalHitEvent event) {
+        if (event.isCriticalHit() && event.getEntity() instanceof ServerPlayer player) {
+            VANILLA_CRIT_TICK.put(player.getUUID(), player.serverLevel().getGameTime());
         }
     }
 
     @SubscribeEvent(priority = EventPriority.LOW)
-    public static void onIncomingDamage(LivingIncomingDamageEvent e) {
-        LivingEntity victim = e.getEntity();
+    public static void onIncomingDamage(LivingIncomingDamageEvent event) {
+        LivingEntity victim = event.getEntity();
         if (victim.level().isClientSide()) {
             return;
         }
-        DamageSource src = e.getSource();
-        // ---------------- defender side
-        if (victim instanceof ServerPlayer def) {
-            boolean dodgeable = !src.is(DamageTypeTags.BYPASSES_INVULNERABILITY)
-                    && (src.getDirectEntity() instanceof LivingEntity || src.is(DamageTypeTags.IS_PROJECTILE))
-                    && src.getEntity() != def;
-            double dodge = Math.min(attr(def, ModAttributes.DODGE_CHANCE), ServerConfig.CAP_DODGE_CHANCE.get());
-            if (dodgeable && dodge > 0 && def.getRandom().nextDouble() < dodge) {
-                e.setCanceled(true);
-                def.level().playSound(null, def.blockPosition(), SoundEvents.PLAYER_ATTACK_NODAMAGE, SoundSource.PLAYERS, 0.8f, 1.4f);
-                Triggers.fire(def, "on_dodge", src.getEntity() instanceof LivingEntity l ? l : null);
-                return;
-            }
-            double mult = 1.0;
-            for (CompiledBuild.Keyed<SkillEffect.DamageModifier> k : EffectEngine.build(def).damage()) {
-                SkillEffect.DamageModifier d = k.effect();
-                if (!d.dealt() && inScope(d.scope(), src, def, false)
-                        && d.condition().map(c -> EffectEngine.holds(def, c, null)).orElse(true)) {
-                    mult += d.amount();
-                }
-            }
-            if (src.is(ModTags.MAGIC)) {
-                mult -= Math.min(attr(def, ModAttributes.MAGIC_RESISTANCE), ServerConfig.CAP_MAGIC_RESISTANCE.get());
-            }
-            mult -= Math.min(attr(def, ModAttributes.DAMAGE_REDUCTION), ServerConfig.CAP_DAMAGE_REDUCTION.get());
-            if (mult != 1.0) {
-                e.setAmount((float) (e.getAmount() * Math.max(0.05, Math.min(3.0, mult))));
-            }
-        }
-        // ---------------- attacker side
-        if (!(src.getEntity() instanceof ServerPlayer atk) || atk == victim) {
+        DamageSource source = event.getSource();
+        if (victim instanceof ServerPlayer defender && !defend(event, defender, source)) {
             return;
         }
-        boolean isMelee = melee(src, atk);
-        boolean isProjectile = projectile(src, atk);
-        if (!isMelee && !isProjectile) {
-            return; // environmental or indirect damage is never treated as weapon damage
+        if (source.getEntity() instanceof ServerPlayer attacker && attacker != victim) {
+            attack(event, attacker, victim, source);
         }
-        double dist = isProjectile ? shotDistance(src, victim) : -1;
-        EffectEngine.DamageContext ctx = new EffectEngine.DamageContext(victim, dist);
+    }
+
+    private static boolean defend(LivingIncomingDamageEvent event, ServerPlayer defender, DamageSource source) {
+        if (dodges(defender, source)) {
+            event.setCanceled(true);
+            defender.level().playSound(null, defender.blockPosition(), SoundEvents.PLAYER_ATTACK_NODAMAGE, SoundSource.PLAYERS, 0.8f, 1.4f);
+            Triggers.fire(defender, "on_dodge", livingAttacker(source));
+            return false;
+        }
+        double multiplier = 1.0 + modifierSum(defender, source, false, null);
+        if (source.is(ModTags.MAGIC)) {
+            multiplier -= Math.min(attributeValue(defender, ModAttributes.MAGIC_RESISTANCE), ServerConfig.CAP_MAGIC_RESISTANCE.get());
+        }
+        multiplier -= Math.min(attributeValue(defender, ModAttributes.DAMAGE_REDUCTION), ServerConfig.CAP_DAMAGE_REDUCTION.get());
+        if (multiplier != 1.0) {
+            double clamped = Math.max(MIN_DAMAGE_MULTIPLIER, Math.min(MAX_TAKEN_MULTIPLIER, multiplier));
+            event.setAmount((float) (event.getAmount() * clamped));
+        }
+        return true;
+    }
+
+    private static boolean dodges(ServerPlayer defender, DamageSource source) {
+        boolean dodgeable = !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)
+                && (source.getDirectEntity() instanceof LivingEntity || source.is(DamageTypeTags.IS_PROJECTILE))
+                && source.getEntity() != defender;
+        double chance = Math.min(attributeValue(defender, ModAttributes.DODGE_CHANCE), ServerConfig.CAP_DODGE_CHANCE.get());
+        return dodgeable && chance > 0 && defender.getRandom().nextDouble() < chance;
+    }
+
+    private static void attack(LivingIncomingDamageEvent event, ServerPlayer attacker, LivingEntity victim,
+                               DamageSource source) {
+        boolean isMelee = melee(source, attacker);
+        if (!isMelee && !projectile(source, attacker)) {
+            return;
+        }
+        double distance = isMelee ? NO_SHOT_DISTANCE : shotDistance(source, victim);
+        double bonus = isMelee ? meleeBonus(attacker) : projectileBonus(attacker, source, distance);
+        bonus += modifierSum(attacker, source, true, new EffectEngine.DamageContext(victim, distance));
+        float amount = (float) (event.getAmount() * Math.max(MIN_DAMAGE_MULTIPLIER, 1.0 + bonus));
+        event.setAmount(isMelee ? amount * criticalMultiplier(attacker, victim) : amount);
+    }
+
+    private static double meleeBonus(ServerPlayer attacker) {
+        ItemStack weapon = attacker.getMainHandItem();
         double bonus = 0;
-        ItemStack held = atk.getMainHandItem();
-        if (isMelee) {
-            if (held.is(ModTags.itemTag(ServerConfig.LIGHT_WEAPON_TAG.get()))) {
-                bonus += attr(atk, ModAttributes.LIGHT_WEAPON_DAMAGE);
-            }
-            if (held.is(ModTags.itemTag(ServerConfig.HEAVY_WEAPON_TAG.get()))) {
-                bonus += attr(atk, ModAttributes.HEAVY_WEAPON_DAMAGE);
-            }
-            if (atk.getHealth() < atk.getMaxHealth() * 0.5f) {
-                bonus += attr(atk, ModAttributes.LOW_HEALTH_DAMAGE);
-            }
-        } else {
-            bonus += attr(atk, ModAttributes.PROJECTILE_DAMAGE);
-            if (dist > 12.0) {
-                bonus += attr(atk, ModAttributes.LONG_RANGE_DAMAGE);
-            }
-            if (src.getDirectEntity() instanceof AbstractArrow arrow) {
-                ItemStack weapon = arrow.getWeaponItem();
-                if (weapon != null && weapon.is(ModTags.itemTag(ServerConfig.CROSSBOW_TAG.get()))) {
-                    bonus += attr(atk, ModAttributes.CROSSBOW_DAMAGE);
-                } else if (arrow.isCritArrow()) {
-                    bonus += attr(atk, ModAttributes.CHARGED_SHOT_DAMAGE);
-                }
+        if (weapon.is(ModTags.itemTag(ServerConfig.LIGHT_WEAPON_TAG.get()))) {
+            bonus += attributeValue(attacker, ModAttributes.LIGHT_WEAPON_DAMAGE);
+        }
+        if (weapon.is(ModTags.itemTag(ServerConfig.HEAVY_WEAPON_TAG.get()))) {
+            bonus += attributeValue(attacker, ModAttributes.HEAVY_WEAPON_DAMAGE);
+        }
+        if (attacker.getHealth() < attacker.getMaxHealth() * LOW_HEALTH_DAMAGE_FRACTION) {
+            bonus += attributeValue(attacker, ModAttributes.LOW_HEALTH_DAMAGE);
+        }
+        return bonus;
+    }
+
+    private static double projectileBonus(ServerPlayer attacker, DamageSource source, double distance) {
+        double bonus = attributeValue(attacker, ModAttributes.PROJECTILE_DAMAGE);
+        if (distance > LONG_RANGE_BLOCKS) {
+            bonus += attributeValue(attacker, ModAttributes.LONG_RANGE_DAMAGE);
+        }
+        if (source.getDirectEntity() instanceof AbstractArrow arrow) {
+            ItemStack weapon = arrow.getWeaponItem();
+            if (weapon != null && weapon.is(ModTags.itemTag(ServerConfig.CROSSBOW_TAG.get()))) {
+                bonus += attributeValue(attacker, ModAttributes.CROSSBOW_DAMAGE);
+            } else if (arrow.isCritArrow()) {
+                bonus += attributeValue(attacker, ModAttributes.CHARGED_SHOT_DAMAGE);
             }
         }
-        for (CompiledBuild.Keyed<SkillEffect.DamageModifier> k : EffectEngine.build(atk).damage()) {
-            SkillEffect.DamageModifier d = k.effect();
-            if (d.dealt() && inScope(d.scope(), src, atk, true)
-                    && d.condition().map(c -> EffectEngine.holds(atk, c, ctx)).orElse(true)) {
-                bonus += d.amount();
-            }
+        return bonus;
+    }
+
+    private static float criticalMultiplier(ServerPlayer attacker, LivingEntity victim) {
+        boolean vanillaCrit = VANILLA_CRIT_TICK.getOrDefault(attacker.getUUID(), -1L) == attacker.serverLevel().getGameTime();
+        double chance = Math.min(attributeValue(attacker, ModAttributes.CRIT_CHANCE), ServerConfig.CAP_CRIT_CHANCE.get());
+        boolean treeCrit = !vanillaCrit && chance > 0 && attacker.getRandom().nextDouble() < chance;
+        if (treeCrit) {
+            attacker.level().playSound(null, victim.blockPosition(), SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.PLAYERS, 1f, 1.2f);
         }
-        float amount = (float) (e.getAmount() * Math.max(0.05, 1.0 + bonus));
-        boolean vanillaCrit = VANILLA_CRIT_TICK.getOrDefault(atk.getUUID(), -1L) == atk.serverLevel().getGameTime();
-        if (isMelee) {
-            double chance = Math.min(attr(atk, ModAttributes.CRIT_CHANCE), ServerConfig.CAP_CRIT_CHANCE.get());
-            // The mod's critical hit only rolls on hits that are not already vanilla (jump) criticals,
-            // so the two never multiply together; both count as critical hits for on_crit triggers.
-            if (!vanillaCrit && chance > 0 && atk.getRandom().nextDouble() < chance) {
-                amount *= (float) (1.0 + attr(atk, ModAttributes.CRIT_DAMAGE));
-                atk.level().playSound(null, victim.blockPosition(), SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.PLAYERS, 1f, 1.2f);
-                Triggers.fire(atk, "on_crit", victim);
-            } else if (vanillaCrit) {
-                Triggers.fire(atk, "on_crit", victim);
-            }
+        if (treeCrit || vanillaCrit) {
+            Triggers.fire(attacker, "on_crit", victim);
         }
-        e.setAmount(amount);
+        return treeCrit ? (float) (1.0 + attributeValue(attacker, ModAttributes.CRIT_DAMAGE)) : 1f;
     }
 
     @SubscribeEvent
-    public static void onDamagePost(LivingDamageEvent.Post e) {
-        LivingEntity victim = e.getEntity();
-        if (victim.level().isClientSide() || e.getNewDamage() <= 0) {
+    public static void onDamagePost(LivingDamageEvent.Post event) {
+        LivingEntity victim = event.getEntity();
+        if (victim.level().isClientSide() || event.getNewDamage() <= 0) {
             return;
         }
-        DamageSource src = e.getSource();
-        if (src.getEntity() instanceof ServerPlayer atk && atk != victim) {
-            if (melee(src, atk)) {
-                double ls = Math.min(attr(atk, ModAttributes.LIFESTEAL), ServerConfig.CAP_LIFESTEAL.get());
-                if (ls > 0 && ModAttachments.cooldowns(atk).tryUse("lifesteal", atk.serverLevel().getGameTime(),
-                        ServerConfig.LIFESTEAL_COOLDOWN_TICKS.get())) {
-                    atk.heal((float) (e.getNewDamage() * ls));
-                }
-            } else if (projectile(src, atk) && src.getDirectEntity() instanceof AbstractArrow arrow && arrow.isCritArrow()) {
-                Triggers.fire(atk, "on_full_charge_hit", victim);
-            }
+        DamageSource source = event.getSource();
+        if (source.getEntity() instanceof ServerPlayer attacker && attacker != victim) {
+            afterDealingDamage(attacker, victim, source, event.getNewDamage());
         }
-        if (victim instanceof ServerPlayer p && p.isAlive()) {
-            Triggers.fire(p, "on_hurt", src.getEntity() instanceof LivingEntity l ? l : null);
-            float max = p.getMaxHealth();
-            float after = p.getHealth();
-            float before = after + e.getNewDamage();
-            if (before >= max * 0.3f && after < max * 0.3f) {
-                Triggers.fire(p, "on_low_health", null);
+        if (victim instanceof ServerPlayer hurt && hurt.isAlive()) {
+            afterTakingDamage(hurt, source, event.getNewDamage());
+        }
+    }
+
+    private static void afterDealingDamage(ServerPlayer attacker, LivingEntity victim, DamageSource source, float dealt) {
+        if (melee(source, attacker)) {
+            double lifesteal = Math.min(attributeValue(attacker, ModAttributes.LIFESTEAL), ServerConfig.CAP_LIFESTEAL.get());
+            boolean ready = lifesteal > 0 && ModAttachments.cooldowns(attacker).tryUse("lifesteal",
+                    attacker.serverLevel().getGameTime(), ServerConfig.LIFESTEAL_COOLDOWN_TICKS.get());
+            if (ready) {
+                attacker.heal((float) (dealt * lifesteal));
             }
+        } else if (projectile(source, attacker) && source.getDirectEntity() instanceof AbstractArrow arrow && arrow.isCritArrow()) {
+            Triggers.fire(attacker, "on_full_charge_hit", victim);
+        }
+    }
+
+    private static void afterTakingDamage(ServerPlayer hurt, DamageSource source, float taken) {
+        Triggers.fire(hurt, "on_hurt", livingAttacker(source));
+        float threshold = hurt.getMaxHealth() * LOW_HEALTH_TRIGGER_FRACTION;
+        float after = hurt.getHealth();
+        if (after + taken >= threshold && after < threshold) {
+            Triggers.fire(hurt, "on_low_health", null);
         }
     }
 
     @SubscribeEvent
-    public static void onShieldBlock(LivingShieldBlockEvent e) {
-        if (e.getBlocked() && e.getEntity() instanceof ServerPlayer p) {
-            Triggers.fire(p, "on_block", e.getDamageSource().getEntity() instanceof LivingEntity l ? l : null);
+    public static void onShieldBlock(LivingShieldBlockEvent event) {
+        if (event.getBlocked() && event.getEntity() instanceof ServerPlayer player) {
+            Triggers.fire(player, "on_block", livingAttacker(event.getDamageSource()));
         }
     }
 
     @SubscribeEvent
-    public static void onDeath(LivingDeathEvent e) {
-        if (e.getEntity().level().isClientSide() || !(e.getSource().getEntity() instanceof ServerPlayer p) || p == e.getEntity()) {
+    public static void onDeath(LivingDeathEvent event) {
+        boolean killedByOtherPlayer = !event.getEntity().level().isClientSide()
+                && event.getSource().getEntity() instanceof ServerPlayer && event.getSource().getEntity() != event.getEntity();
+        if (!killedByOtherPlayer) {
             return;
         }
-        Triggers.fire(p, "on_kill", null);
-        if (projectile(e.getSource(), p)) {
-            Triggers.fire(p, "on_projectile_kill", null);
+        ServerPlayer killer = (ServerPlayer) event.getSource().getEntity();
+        Triggers.fire(killer, "on_kill", null);
+        if (projectile(event.getSource(), killer)) {
+            Triggers.fire(killer, "on_projectile_kill", null);
         }
     }
 
     @SubscribeEvent
-    public static void onHeal(LivingHealEvent e) {
-        if (e.getEntity() instanceof ServerPlayer p) {
-            double bonus = attr(p, ModAttributes.HEALING_RECEIVED);
+    public static void onHeal(LivingHealEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            double bonus = attributeValue(player, ModAttributes.HEALING_RECEIVED);
             if (bonus != 0) {
-                e.setAmount((float) Math.max(0, e.getAmount() * (1.0 + bonus)));
+                event.setAmount((float) Math.max(0, event.getAmount() * (1.0 + bonus)));
             }
         }
     }
 
-    /**
-     * Beneficial effects from a drunk potion last (1 + potion_duration) times their potion duration. The target
-     * duration is computed from the potion itself, so drinking again refreshes but can never compound.
-     */
     @SubscribeEvent
-    public static void onUseFinish(LivingEntityUseItemEvent.Finish e) {
-        if (!(e.getEntity() instanceof ServerPlayer p) || !(e.getItem().getItem() instanceof PotionItem)) {
+    public static void onUseFinish(LivingEntityUseItemEvent.Finish event) {
+        if (!(event.getEntity() instanceof ServerPlayer player) || !(event.getItem().getItem() instanceof PotionItem)) {
             return;
         }
-        PotionContents contents = e.getItem().get(DataComponents.POTION_CONTENTS);
+        PotionContents contents = event.getItem().get(DataComponents.POTION_CONTENTS);
         if (contents == null) {
             return;
         }
         boolean anyBeneficial = false;
-        double bonus = attr(p, ModAttributes.POTION_DURATION);
-        for (MobEffectInstance fx : contents.getAllEffects()) {
-            if (!fx.getEffect().value().isBeneficial() || fx.getEffect().value().isInstantenous()) {
-                continue;
-            }
-            anyBeneficial = true;
-            if (bonus == 0) {
-                continue;
-            }
-            int target = (int) Math.max(1, Math.round(fx.getDuration() * (1.0 + bonus)));
-            MobEffectInstance active = p.getEffect(fx.getEffect());
-            if (active != null && active.getAmplifier() == fx.getAmplifier() && active.getDuration() < target) {
-                p.addEffect(new MobEffectInstance(fx.getEffect(), target, fx.getAmplifier(), fx.isAmbient(),
-                        fx.isVisible(), fx.showIcon()));
+        double bonus = attributeValue(player, ModAttributes.POTION_DURATION);
+        for (MobEffectInstance drunk : contents.getAllEffects()) {
+            if (drunk.getEffect().value().isBeneficial() && !drunk.getEffect().value().isInstantenous()) {
+                anyBeneficial = true;
+                extendDuration(player, drunk, bonus);
             }
         }
         if (anyBeneficial) {
-            Triggers.fire(p, "on_potion", null);
+            Triggers.fire(player, "on_potion", null);
         }
     }
 
+    private static void extendDuration(ServerPlayer player, MobEffectInstance drunk, double bonus) {
+        if (bonus == 0) {
+            return;
+        }
+        int target = (int) Math.max(1, Math.round(drunk.getDuration() * (1.0 + bonus)));
+        MobEffectInstance active = player.getEffect(drunk.getEffect());
+        if (active != null && active.getAmplifier() == drunk.getAmplifier() && active.getDuration() < target) {
+            player.addEffect(new MobEffectInstance(drunk.getEffect(), target, drunk.getAmplifier(), drunk.isAmbient(),
+                    drunk.isVisible(), drunk.showIcon()));
+        }
+    }
+
+    private static boolean isEligibleMiningTool(ItemStack tool, BlockState state) {
+        return tool.is(ModTags.itemTag(ServerConfig.MINING_TOOL_TAG.get())) && tool.isCorrectToolForDrops(state);
+    }
+
     @SubscribeEvent
-    public static void onBreakSpeed(PlayerEvent.BreakSpeed e) {
-        // Runs on both sides with the synced attribute so client break prediction matches the server.
-        ItemStack tool = e.getEntity().getMainHandItem();
-        if (tool.is(ModTags.itemTag(ServerConfig.MINING_TOOL_TAG.get())) && tool.isCorrectToolForDrops(e.getState())) {
-            double bonus = attr(e.getEntity(), ModAttributes.MINING_SPEED);
+    public static void onBreakSpeed(PlayerEvent.BreakSpeed event) {
+        if (isEligibleMiningTool(event.getEntity().getMainHandItem(), event.getState())) {
+            double bonus = attributeValue(event.getEntity(), ModAttributes.MINING_SPEED);
             if (bonus != 0) {
-                e.setNewSpeed((float) (e.getNewSpeed() * Math.max(0.1, 1.0 + bonus)));
+                event.setNewSpeed((float) (event.getNewSpeed() * Math.max(MIN_MINING_MULTIPLIER, 1.0 + bonus)));
             }
         }
     }
 
-    /**
-     * Tool wear: the break event fires before vanilla damages the tool. We remember the damage value and settle it
-     * at the end of the tick: a positive preservation roll undoes that break's wear, a negative value may add one
-     * extra point. Each break is settled exactly once, so wear is never charged twice.
-     */
     @SubscribeEvent
-    public static void onBlockBreak(BlockEvent.BreakEvent e) {
-        if (!(e.getPlayer() instanceof ServerPlayer p)) {
+    public static void onBlockBreak(BlockEvent.BreakEvent event) {
+        if (!(event.getPlayer() instanceof ServerPlayer player)) {
             return;
         }
-        ItemStack tool = p.getMainHandItem();
-        if (!tool.is(ModTags.itemTag(ServerConfig.MINING_TOOL_TAG.get())) || !tool.isCorrectToolForDrops(e.getState())) {
+        ItemStack tool = player.getMainHandItem();
+        if (!isEligibleMiningTool(tool, event.getState())) {
             return;
         }
-        Triggers.fire(p, "on_block_break", null);
-        double pres = attr(p, ModAttributes.TOOL_PRESERVATION);
-        if (pres != 0 && tool.isDamageableItem()) {
-            PENDING_WEAR.put(p.getUUID(), new PendingWear(tool, tool.getDamageValue(), p.getRandom().nextDouble()));
+        Triggers.fire(player, "on_block_break", null);
+        if (attributeValue(player, ModAttributes.TOOL_PRESERVATION) != 0 && tool.isDamageableItem()) {
+            PENDING_WEAR.put(player.getUUID(), new PendingWear(tool, tool.getDamageValue(), player.getRandom().nextDouble()));
         }
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(PlayerTickEvent.Post e) {
-        if (!(e.getEntity() instanceof ServerPlayer p)) {
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
-        PendingWear w = PENDING_WEAR.remove(p.getUUID());
-        if (w != null && !w.stack().isEmpty() && w.stack().getDamageValue() > w.damageBefore()) {
-            double pres = attr(p, ModAttributes.TOOL_PRESERVATION);
-            if (pres > 0 && w.roll() < pres) {
-                w.stack().setDamageValue(w.damageBefore());
-            } else if (pres < 0 && w.roll() < -pres) {
-                w.stack().hurtAndBreak(1, p.serverLevel(), p, item -> { });
-            }
+        PendingWear wear = PENDING_WEAR.remove(player.getUUID());
+        if (wear != null && !wear.stack().isEmpty() && wear.stack().getDamageValue() > wear.damageBefore()) {
+            settleWear(player, wear);
         }
-        if (p.tickCount % 10 == 0) {
-            EffectEngine.updateConditionals(p);
+        if (player.tickCount % CONDITIONAL_REFRESH_TICKS == 0) {
+            EffectEngine.updateConditionals(player);
+        }
+    }
+
+    private static void settleWear(ServerPlayer player, PendingWear wear) {
+        double preservation = attributeValue(player, ModAttributes.TOOL_PRESERVATION);
+        if (preservation > 0 && wear.roll() < preservation) {
+            wear.stack().setDamageValue(wear.damageBefore());
+        } else if (preservation < 0 && wear.roll() < -preservation) {
+            wear.stack().hurtAndBreak(1, player.serverLevel(), player, item -> { });
         }
     }
 
     @SubscribeEvent
-    public static void onEquipmentChange(LivingEquipmentChangeEvent e) {
-        if (e.getEntity() instanceof ServerPlayer p) {
-            EffectEngine.updateConditionals(p);
+    public static void onEquipmentChange(LivingEquipmentChangeEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            EffectEngine.updateConditionals(player);
         }
     }
 

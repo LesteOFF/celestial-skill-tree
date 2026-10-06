@@ -1,46 +1,50 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:marksman/heavy_bolts",
-  "tree": "nostalgiaskills:main",
-  "sector": "marksman",
-  "type": "keystone",
-  "position": {
-    "x": 739.5,
-    "y": -279.0
-  },
-  "name": "skill.nostalgiaskills.marksman.heavy_bolts.name",
-  "description": "skill.nostalgiaskills.marksman.heavy_bolts.description",
-  "icon": "nostalgiaskills:textures/skill_icons/keystone_heavy_bolts.png",
-  "frame": "gold_ornate",
-  "cost": 3,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:crossbow_damage",
-      "operation": "add_value",
-      "amount": 0.25
-    },
-    {
-      "type": "conditional_attribute",
-      "attribute": "minecraft:generic.movement_speed",
-      "operation": "add_multiplied_base",
-      "amount": -0.1,
-      "condition": {
-        "type": "holding",
-        "tag": "nostalgiaskills:crossbows"
-      }
-    }
-  ],
-  "tags": [
-    "keystone",
-    "crossbow",
-    "marksman"
-  ],
-  "cluster": "marksman:keystone_bolt"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:marksman/heavy_bolts",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "marksman",
+    "type":  "keystone",
+    "position":  {
+                     "x":  779.7637,
+                     "y":  1916.6989
+                 },
+    "name":  "skill.nostalgiaskills.marksman.heavy_bolts.name",
+    "description":  "skill.nostalgiaskills.marksman.heavy_bolts.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/keystone_heavy_bolts.png",
+    "frame":  "gold_ornate",
+    "cost":  3,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "nostalgiaskills:crossbow_damage",
+                        "operation":  "add_value",
+                        "amount":  0.25
+                    },
+                    {
+                        "type":  "conditional_attribute",
+                        "attribute":  "minecraft:generic.movement_speed",
+                        "operation":  "add_multiplied_base",
+                        "amount":  -0.1,
+                        "condition":  {
+                                          "type":  "holding",
+                                          "tag":  "nostalgiaskills:crossbows"
+                                      }
+                    }
+                ],
+    "tags":  [
+                 "keystone",
+                 "crossbow",
+                 "marksman"
+             ],
+    "cluster":  "marksman:keystone_bolt"
 }

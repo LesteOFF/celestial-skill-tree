@@ -1,5 +1,7 @@
 package dev.nostalgiacraft.skills.client.render;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.math.Axis;
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.client.screen.Camera;
 import dev.nostalgiacraft.skills.client.screen.NodeState;
@@ -12,174 +14,241 @@ import dev.nostalgiacraft.skills.graph.Vec2;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Draws edges and nodes from the same validated snapshot the server uses for eligibility. Nodes and edge
- * segments outside the viewport are culled; segments crossing the boundary are kept and clipped by scissor.
- */
 public final class GraphRenderer {
     private static final String FRAMES = "textures/gui/skill_tree/frames/";
+    private static final int TEXTURE_SIZE = 32;
+    private static final int ROUTE_PREVIEW_COLOR = 0x99F3D15C;
+    private static final double CULLING_REACH = 1.6;
+    private static final double MIN_LOCK_MARK_RADIUS = 5;
+    private static final int PORTAL_LINK_TILE_WIDTH = 16;
+    private static final int PORTAL_LINK_LANE_HEIGHT = 8;
+    private static final int PORTAL_LINK_LANE_GAP = 1;
+    private static final double PORTAL_LINK_SPEED = 24;
     private static final Map<String, ResourceLocation> CACHE = new HashMap<>();
+
+    public interface StateLookup {
+        NodeState state(String id);
+    }
 
     private GraphRenderer() {
     }
 
     public static ResourceLocation frameTex(String name) {
-        return CACHE.computeIfAbsent(FRAMES + name, p -> ResourceLocation.fromNamespaceAndPath(NostalgiaSkills.MODID, p + ".png"));
+        return CACHE.computeIfAbsent(FRAMES + name,
+                path -> ResourceLocation.fromNamespaceAndPath(NostalgiaSkills.MODID, path + ".png"));
     }
 
     public static ResourceLocation iconTex(String id) {
         return CACHE.computeIfAbsent(id, ResourceLocation::parse);
     }
 
-    /** Logical frame diameter in tree units at zoom 1 (design section 5.7). */
-    public static double diameter(NodeType t) {
-        return switch (t) {
-            case MINOR -> 13;
-            case NOTABLE -> 17;
-            case KEYSTONE -> 24;
-            case ROOT -> 30;
+    public static double diameter(NodeType nodeType) {
+        return switch (nodeType) {
+            case MINOR -> 32;
+            case NOTABLE -> 34;
+            case KEYSTONE -> 48;
+            case ROOT -> 60;
+            case PORTAL -> 90;
         };
     }
 
-    public interface StateLookup {
-        NodeState state(String id);
+    private static boolean held(NodeState state) {
+        return state == NodeState.ALLOCATED || state == NodeState.PENDING;
     }
 
-    public static void edges(GuiGraphics g, SkillGraphSnapshot graph, Camera cam, StateLookup states, Set<String> routePreview,
-                             double time) {
-        boolean hc = ClientConfig.HIGH_CONTRAST.get();
-        float base = (float) Math.max(1.0, Math.min(3.0, 1.5 * Math.sqrt(cam.zoomValue())));
-        LineBatch inactive = new LineBatch(g);
-        for (SkillConnection c : graph.connections()) {
-            NodeState a = states.state(c.a());
-            NodeState b = states.state(c.b());
-            boolean lit = (a == NodeState.ALLOCATED || a == NodeState.PENDING) && (b == NodeState.ALLOCATED || b == NodeState.PENDING);
-            if (!lit) {
-                polyline(inactive, graph, c, cam, base, hc ? Palette.EDGE_INACTIVE_HC : Palette.EDGE_INACTIVE);
+    public static void edges(GuiGraphics graphics, SkillGraphSnapshot graph, Camera camera, StateLookup states,
+                             Set<String> routePreview, double time) {
+        float baseWidth = (float) Math.max(1.0, Math.min(3.0, 1.5 * Math.sqrt(camera.zoomValue())));
+        int inactiveColor = ClientConfig.HIGH_CONTRAST.get() ? Palette.EDGE_INACTIVE_HC : Palette.EDGE_INACTIVE;
+        LineBatch inactive = new LineBatch(graphics);
+        LineBatch active = new LineBatch(graphics);
+        for (SkillConnection connection : graph.connections()) {
+            NodeState a = states.state(connection.a());
+            NodeState b = states.state(connection.b());
+            if (connection.isPortal() || a == NodeState.HIDDEN || b == NodeState.HIDDEN) {
+                continue;
+            }
+            if (a == NodeState.ALLOCATED && b == NodeState.ALLOCATED) {
+                polyline(active, graph, connection, camera, baseWidth + 1.0f, Palette.ALLOCATED);
+            } else if (held(a) && held(b)) {
+                polyline(active, graph, connection, camera, baseWidth + 0.5f, Palette.PENDING);
+            } else {
+                polyline(inactive, graph, connection, camera, baseWidth, inactiveColor);
+                if (routePreview.contains(connection.a()) && routePreview.contains(connection.b())) {
+                    polyline(active, graph, connection, camera, baseWidth, ROUTE_PREVIEW_COLOR);
+                }
             }
         }
         inactive.draw();
-        LineBatch active = new LineBatch(g);
-        for (SkillConnection c : graph.connections()) {
-            NodeState a = states.state(c.a());
-            NodeState b = states.state(c.b());
-            boolean bothAllocated = a == NodeState.ALLOCATED && b == NodeState.ALLOCATED;
-            boolean pending = !bothAllocated && (a == NodeState.ALLOCATED || a == NodeState.PENDING)
-                    && (b == NodeState.ALLOCATED || b == NodeState.PENDING);
-            if (bothAllocated) {
-                polyline(active, graph, c, cam, base + 1.0f, Palette.ALLOCATED);
-            } else if (pending) {
-                polyline(active, graph, c, cam, base + 0.5f, Palette.PENDING);
-            } else if (routePreview.contains(c.a()) && routePreview.contains(c.b())) {
-                polyline(active, graph, c, cam, base, 0x99F3D15C);
-            }
-        }
         active.draw();
     }
 
-    private static void polyline(LineBatch batch, SkillGraphSnapshot graph, SkillConnection c, Camera cam, float width, int argb) {
-        Vec2 p0 = graph.nodes().get(c.a()).position();
-        double x0 = cam.toScreenX(p0.x()), y0 = cam.toScreenY(p0.y());
-        int n = c.points().size();
-        for (int i = 0; i <= n; i++) {
-            Vec2 p1 = i < n ? c.points().get(i) : graph.nodes().get(c.b()).position();
-            double x1 = cam.toScreenX(p1.x()), y1 = cam.toScreenY(p1.y());
-            if (segmentVisible(cam, x0, y0, x1, y1)) {
-                batch.segment(x0, y0, x1, y1, width, argb);
+    private static void polyline(LineBatch batch, SkillGraphSnapshot graph, SkillConnection connection, Camera camera,
+                                 float width, int argb) {
+        List<Vec2> path = new ArrayList<>();
+        path.add(graph.nodes().get(connection.a()).position());
+        path.addAll(connection.points());
+        path.add(graph.nodes().get(connection.b()).position());
+        for (int i = 1; i < path.size(); i++) {
+            double fromX = camera.toScreenX(path.get(i - 1).x());
+            double fromY = camera.toScreenY(path.get(i - 1).y());
+            double toX = camera.toScreenX(path.get(i).x());
+            double toY = camera.toScreenY(path.get(i).y());
+            if (segmentVisible(camera, fromX, fromY, toX, toY)) {
+                batch.segment(fromX, fromY, toX, toY, width, argb);
             }
-            x0 = x1;
-            y0 = y1;
         }
     }
 
-    private static boolean segmentVisible(Camera cam, double x0, double y0, double x1, double y1) {
-        return Math.max(x0, x1) >= cam.left() && Math.min(x0, x1) <= cam.right()
-                && Math.max(y0, y1) >= cam.top() && Math.min(y0, y1) <= cam.bottom();
+    private static boolean segmentVisible(Camera camera, double x0, double y0, double x1, double y1) {
+        return Math.max(x0, x1) >= camera.left() && Math.min(x0, x1) <= camera.right()
+                && Math.max(y0, y1) >= camera.top() && Math.min(y0, y1) <= camera.bottom();
     }
 
-    /** Screen radius of a node frame. */
-    public static double screenRadius(SkillNodeDefinition n, Camera cam) {
-        double r = diameter(n.type()) * cam.zoomValue() * ClientConfig.UI_SCALE.get() / 2;
-        // keep nodes legible (and clickable) when zoomed far out; hierarchy is preserved by type
-        double min = switch (n.type()) {
-            case MINOR -> 1.6;
-            case NOTABLE -> 2.2;
-            case KEYSTONE -> 3.0;
-            case ROOT -> 3.6;
+    public static void portalLinks(GuiGraphics graphics, SkillGraphSnapshot graph, Camera camera, StateLookup states,
+                                   double time) {
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        for (SkillConnection connection : graph.connections()) {
+            if (connection.isPortal() && held(states.state(connection.a())) && held(states.state(connection.b()))) {
+                portalLink(graphics, graph, connection, camera, time);
+            }
+        }
+        RenderSystem.disableBlend();
+    }
+
+    private static void portalLink(GuiGraphics graphics, SkillGraphSnapshot graph, SkillConnection connection, Camera camera,
+                                   double time) {
+        Vec2 from = graph.nodes().get(connection.a()).position();
+        Vec2 to = graph.nodes().get(connection.b()).position();
+        double fromX = camera.toScreenX(from.x());
+        double fromY = camera.toScreenY(from.y());
+        double deltaX = camera.toScreenX(to.x()) - fromX;
+        double deltaY = camera.toScreenY(to.y()) - fromY;
+        int length = (int) Math.hypot(deltaX, deltaY);
+        float scroll = ClientConfig.REDUCED_MOTION.get() ? 0 : (float) ((time * PORTAL_LINK_SPEED) % PORTAL_LINK_TILE_WIDTH);
+        ResourceLocation texture = frameTex("portal_link");
+        graphics.pose().pushPose();
+        graphics.pose().translate(fromX, fromY, 0);
+        graphics.pose().mulPose(Axis.ZP.rotation((float) Math.atan2(deltaY, deltaX)));
+        graphics.blit(texture, 0, -PORTAL_LINK_LANE_HEIGHT - PORTAL_LINK_LANE_GAP, length, PORTAL_LINK_LANE_HEIGHT, -scroll, 0,
+                length, PORTAL_LINK_LANE_HEIGHT, PORTAL_LINK_TILE_WIDTH, 2 * PORTAL_LINK_LANE_HEIGHT);
+        graphics.blit(texture, 0, PORTAL_LINK_LANE_GAP, length, PORTAL_LINK_LANE_HEIGHT, scroll, 0,
+                length, PORTAL_LINK_LANE_HEIGHT, -PORTAL_LINK_TILE_WIDTH, 2 * PORTAL_LINK_LANE_HEIGHT);
+        graphics.pose().popPose();
+    }
+
+    public static double screenRadius(SkillNodeDefinition node, Camera camera) {
+        double scaled = diameter(node.type()) * camera.zoomValue() * ClientConfig.UI_SCALE.get() / 2;
+        double minimum = switch (node.type()) {
+            case MINOR -> 3.2;
+            case NOTABLE -> 3.4;
+            case KEYSTONE -> 4.4;
+            case ROOT -> 5.2;
+            case PORTAL -> 8.0;
         };
-        return Math.max(r, min);
+        return Math.max(scaled, minimum);
     }
 
-    public static void node(GuiGraphics g, SkillNodeDefinition n, Camera cam, NodeState state, boolean affordable,
-                            boolean focused, boolean searchHit, double time) {
-        double sx = cam.toScreenX(n.position().x());
-        double sy = cam.toScreenY(n.position().y());
-        double r = screenRadius(n, cam);
-        if (sx + r * 1.6 < cam.left() || sx - r * 1.6 > cam.right() || sy + r * 1.6 < cam.top() || sy - r * 1.6 > cam.bottom()) {
+    public static void node(GuiGraphics graphics, SkillNodeDefinition node, Camera camera, NodeState state,
+                            boolean affordable, boolean focused, boolean searchHit, boolean portalActive, double time) {
+        double x = camera.toScreenX(node.position().x());
+        double y = camera.toScreenY(node.position().y());
+        double radius = screenRadius(node, camera);
+        double reach = radius * CULLING_REACH;
+        boolean offScreen = x + reach < camera.left() || x - reach > camera.right()
+                || y + reach < camera.top() || y - reach > camera.bottom();
+        if (offScreen || state == NodeState.HIDDEN) {
             return;
         }
-        boolean still = ClientConfig.REDUCED_MOTION.get();
-        float glow = (float) (double) ClientConfig.GLOW_INTENSITY.get();
-        // state halo behind the frame
-        if (state == NodeState.ALLOCATED && glow > 0) {
-            g.setColor(1f, 1f, 1f, Math.min(1f, 0.85f * glow));
-            draw(g, frameTex("ring_allocated"), sx, sy, r * 1.55);
-        } else if (state == NodeState.AVAILABLE && affordable) {
-            float pulse = still ? 0.8f : (float) (0.65 + 0.25 * Math.sin(time * 2.4));
-            g.setColor(1f, 1f, 1f, pulse * Math.max(0.4f, glow));
-            draw(g, frameTex("ring_available"), sx, sy, r * 1.4);
+        if (node.type() == NodeType.PORTAL && (portalActive || held(state))) {
+            drawPortalSwirl(graphics, x, y, radius, portalActive, time);
         }
-        // frame, dimmed when locked or conflicting
-        float shade = switch (state) {
+        drawGlow(graphics, state, affordable, x, y, radius, time);
+        float shade = shade(state, affordable);
+        graphics.setColor(shade, shade, shade, 1f);
+        draw(graphics, frameTex(node.frame()), x, y, radius);
+        draw(graphics, iconTex(node.icon()), x, y, radius * (node.type() == NodeType.MINOR ? 0.62 : 0.58));
+        graphics.setColor(1f, 1f, 1f, 1f);
+        drawStateMark(graphics, state, x, y, radius, time);
+        if (searchHit) {
+            draw(graphics, frameTex("ring_search"), x, y, radius * 1.75);
+        }
+        if (focused) {
+            draw(graphics, frameTex("focus"), x, y, radius * 1.5 + 2);
+        }
+    }
+
+    private static void drawGlow(GuiGraphics graphics, NodeState state, boolean affordable, double x, double y,
+                                 double radius, double time) {
+        float glow = ClientConfig.GLOW_INTENSITY.get().floatValue();
+        if (state == NodeState.ALLOCATED && glow > 0) {
+            graphics.setColor(1f, 1f, 1f, Math.min(1f, 0.85f * glow));
+            draw(graphics, frameTex("ring_allocated"), x, y, radius * 1.55);
+        } else if (state == NodeState.AVAILABLE && affordable) {
+            float pulse = ClientConfig.REDUCED_MOTION.get() ? 0.8f : (float) (0.65 + 0.25 * Math.sin(time * 2.4));
+            graphics.setColor(1f, 1f, 1f, pulse * Math.max(0.4f, glow));
+            draw(graphics, frameTex("ring_available"), x, y, radius * 1.4);
+        }
+    }
+
+    private static void drawPortalSwirl(GuiGraphics graphics, double x, double y, double radius, boolean active, double time) {
+        boolean still = ClientConfig.REDUCED_MOTION.get();
+        double speed = active ? 2.4 : 0.6;
+        float pulse = still ? 0.8f : (float) (0.7 + 0.3 * Math.sin(time * 3));
+        graphics.setColor(0.5f, 0.84f, 0.91f, active ? pulse : 0.45f);
+        drawRotated(graphics, frameTex("ring_pending"), x, y, radius * 1.3, still ? 0 : time * speed);
+        drawRotated(graphics, frameTex("ring_pending"), x, y, radius * (active ? 1.6 + 0.08 * pulse : 1.5), still ? 0 : -time * speed * 0.6);
+        graphics.setColor(1f, 1f, 1f, 1f);
+    }
+
+    private static void drawRotated(GuiGraphics graphics, ResourceLocation texture, double x, double y, double radius, double angle) {
+        graphics.pose().pushPose();
+        graphics.pose().translate(x, y, 0);
+        graphics.pose().mulPose(Axis.ZP.rotation((float) angle));
+        draw(graphics, texture, 0, 0, radius);
+        graphics.pose().popPose();
+    }
+
+    private static float shade(NodeState state, boolean affordable) {
+        return switch (state) {
             case LOCKED -> 0.42f;
             case CONFLICTING -> 0.5f;
             case AVAILABLE -> affordable ? 1f : 0.7f;
             default -> 1f;
         };
-        g.setColor(shade, shade, shade, 1f);
-        draw(g, frameTex(n.frame()), sx, sy, r);
-        double iconR = r * (n.type() == NodeType.MINOR ? 0.62 : 0.58);
-        draw(g, iconTex(n.icon()), sx, sy, iconR);
-        g.setColor(1f, 1f, 1f, 1f);
-        // state marks drawn over the frame (shape-coded, not colour-only)
+    }
+
+    private static void drawStateMark(GuiGraphics graphics, NodeState state, double x, double y, double radius, double time) {
         switch (state) {
-            case PENDING -> {
-                g.pose().pushPose();
-                g.pose().translate(sx, sy, 0);
-                if (!still) {
-                    g.pose().mulPose(com.mojang.math.Axis.ZP.rotation((float) (time * 0.8)));
-                }
-                draw(g, frameTex("ring_pending"), 0, 0, r * 1.35);
-                g.pose().popPose();
-            }
-            case CONFLICTING -> draw(g, frameTex("mark_conflict"), sx, sy, r * 0.9);
+            case PENDING -> drawPendingRing(graphics, x, y, radius, time);
+            case CONFLICTING -> draw(graphics, frameTex("mark_conflict"), x, y, radius * 0.9);
             case LOCKED -> {
-                if (r > 5) {
-                    draw(g, frameTex("mark_locked"), sx + r * 0.62, sy + r * 0.62, Math.max(3, r * 0.42));
+                if (radius > MIN_LOCK_MARK_RADIUS) {
+                    draw(graphics, frameTex("mark_locked"), x + radius * 0.62, y + radius * 0.62, Math.max(3, radius * 0.42));
                 }
             }
             default -> {
             }
         }
-        if (searchHit) {
-            draw(g, frameTex("ring_search"), sx, sy, r * 1.75);
-        }
-        if (focused) {
-            draw(g, frameTex("focus"), sx, sy, r * 1.5 + 2);
-        }
     }
 
-    /** Blits a square 32x32-authored texture centred at (cx, cy) with screen radius r. */
-    public static void draw(GuiGraphics g, ResourceLocation tex, double cx, double cy, double r) {
-        g.pose().pushPose();
-        g.pose().translate(cx - r, cy - r, 0);
-        float s = (float) (2 * r / 32.0);
-        g.pose().scale(s, s, 1f);
-        g.blit(tex, 0, 0, 0, 0, 32, 32, 32, 32);
-        g.pose().popPose();
+    private static void drawPendingRing(GuiGraphics graphics, double x, double y, double radius, double time) {
+        drawRotated(graphics, frameTex("ring_pending"), x, y, radius * 1.35, ClientConfig.REDUCED_MOTION.get() ? 0 : time * 0.8);
+    }
+
+    public static void draw(GuiGraphics graphics, ResourceLocation texture, double centerX, double centerY, double radius) {
+        graphics.pose().pushPose();
+        graphics.pose().translate(centerX - radius, centerY - radius, 0);
+        float scale = (float) (2 * radius / TEXTURE_SIZE);
+        graphics.pose().scale(scale, scale, 1f);
+        graphics.blit(texture, 0, 0, 0, 0, TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE);
+        graphics.pose().popPose();
     }
 }

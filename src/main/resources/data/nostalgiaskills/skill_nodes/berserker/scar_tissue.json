@@ -1,40 +1,44 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:berserker/scar_tissue",
-  "tree": "nostalgiaskills:main",
-  "sector": "berserker",
-  "type": "notable",
-  "position": {
-    "x": -60.5,
-    "y": 699.0
-  },
-  "name": "skill.nostalgiaskills.berserker.scar_tissue.name",
-  "description": "skill.nostalgiaskills.berserker.scar_tissue.description",
-  "icon": "nostalgiaskills:textures/skill_icons/healing.png",
-  "frame": "violet_facet",
-  "cost": 2,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "trigger",
-      "trigger": "on_low_health",
-      "action": {
-        "type": "self_effect",
-        "effect": "minecraft:regeneration",
-        "duration_ticks": 100,
-        "amplifier": 1
-      },
-      "cooldown_ticks": 1200
-    }
-  ],
-  "tags": [
-    "healing",
-    "berserker"
-  ],
-  "cluster": "berserker:scar_pact"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:berserker/scar_tissue",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "berserker",
+    "type":  "notable",
+    "position":  {
+                     "x":  -1833.1236,
+                     "y":  116.9042
+                 },
+    "name":  "skill.nostalgiaskills.berserker.scar_tissue.name",
+    "description":  "skill.nostalgiaskills.berserker.scar_tissue.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/healing.png",
+    "frame":  "violet_facet",
+    "cost":  2,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "trigger",
+                        "trigger":  "on_low_health",
+                        "action":  {
+                                       "type":  "self_effect",
+                                       "effect":  "minecraft:regeneration",
+                                       "duration_ticks":  100,
+                                       "amplifier":  1
+                                   },
+                        "cooldown_ticks":  1200
+                    }
+                ],
+    "tags":  [
+                 "healing",
+                 "berserker"
+             ],
+    "cluster":  "berserker:scar_pact"
 }

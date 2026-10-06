@@ -8,7 +8,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Builds small graphs through the real JSON parser so tests exercise the same path as datapacks. */
 public final class TestGraphs {
     public static final String TREE = "t:main";
 
@@ -19,32 +18,32 @@ public final class TestGraphs {
     private double nextX = 0;
 
     public TestGraphs sector(String sector) {
-        JsonObject s = new JsonObject();
-        s.addProperty("id", sector);
-        s.addProperty("root", "t:" + sector + "/hub");
-        s.addProperty("name", "sector." + sector);
-        sectors.add(s);
+        JsonObject json = new JsonObject();
+        json.addProperty("id", sector);
+        json.addProperty("root", "t:" + sector + "/hub");
+        json.addProperty("name", "sector." + sector);
+        sectors.add(json);
         node(sector + "/hub", sector, "root", 1);
         return this;
     }
 
     public JsonObject node(String path, String sector, String type, int cost) {
-        JsonObject o = new JsonObject();
-        o.addProperty("schema_version", 1);
-        o.addProperty("tree", TREE);
-        o.addProperty("sector", sector);
-        o.addProperty("type", type);
+        JsonObject json = new JsonObject();
+        json.addProperty("schema_version", 1);
+        json.addProperty("tree", TREE);
+        json.addProperty("sector", sector);
+        json.addProperty("type", type);
         JsonObject p = new JsonObject();
         p.addProperty("x", nextX);
         p.addProperty("y", 0.0);
         nextX += 40;
-        o.add("position", p);
-        o.addProperty("name", "n." + path);
-        o.addProperty("description", "d." + path);
-        o.addProperty("icon", "t:textures/i.png");
-        o.addProperty("frame", "bronze_circle");
-        o.addProperty("cost", cost);
-        o.addProperty("max_rank", 1);
+        json.add("position", p);
+        json.addProperty("name", "n." + path);
+        json.addProperty("description", "d." + path);
+        json.addProperty("icon", "t:textures/i.png");
+        json.addProperty("frame", "bronze_circle");
+        json.addProperty("cost", cost);
+        json.addProperty("max_rank", 1);
         JsonArray effects = new JsonArray();
         JsonObject e = new JsonObject();
         e.addProperty("type", "attribute");
@@ -52,10 +51,10 @@ public final class TestGraphs {
         e.addProperty("operation", "add_value");
         e.addProperty("amount", 1.0);
         effects.add(e);
-        o.add("effects", effects);
-        o.add("tags", new JsonArray());
-        nodes.put("t:" + path, o);
-        return o;
+        json.add("effects", effects);
+        json.add("tags", new JsonArray());
+        nodes.put("t:" + path, json);
+        return json;
     }
 
     public TestGraphs minor(String path, String sector) {
@@ -69,13 +68,13 @@ public final class TestGraphs {
     }
 
     public TestGraphs keystone(String path, String sector, String group) {
-        JsonObject o = node(path, sector, "keystone", 3);
+        JsonObject json = node(path, sector, "keystone", 3);
         if (group != null) {
-            o.addProperty("exclusive_group", group);
+            json.addProperty("exclusive_group", group);
             JsonObject g = null;
-            for (JsonElement el : groups) {
-                if (el.getAsJsonObject().get("id").getAsString().equals(group)) {
-                    g = el.getAsJsonObject();
+            for (JsonElement element : groups) {
+                if (element.getAsJsonObject().get("id").getAsString().equals(group)) {
+                    g = element.getAsJsonObject();
                 }
             }
             if (g == null) {
@@ -97,23 +96,23 @@ public final class TestGraphs {
     }
 
     public TestGraphs requires(String path, List<String> allOf, List<String> anyOf, int sectorPoints) {
-        JsonObject q = new JsonObject();
-        JsonArray a = new JsonArray();
-        allOf.forEach(a::add);
+        JsonObject json = new JsonObject();
+        JsonArray array = new JsonArray();
+        allOf.forEach(array::add);
         JsonArray b = new JsonArray();
         anyOf.forEach(b::add);
-        q.add("all_of", a);
-        q.add("any_of", b);
-        q.addProperty("minimum_sector_points", sectorPoints);
-        nodes.get("t:" + path).getAsJsonObject().add("requirements", q);
+        json.add("all_of", array);
+        json.add("any_of", b);
+        json.addProperty("minimum_sector_points", sectorPoints);
+        nodes.get("t:" + path).getAsJsonObject().add("requirements", json);
         return this;
     }
 
     public TestGraphs edge(String a, String b) {
-        JsonObject c = new JsonObject();
-        c.addProperty("a", "t:" + a);
-        c.addProperty("b", "t:" + b);
-        connections.add(c);
+        JsonObject json = new JsonObject();
+        json.addProperty("a", "t:" + a);
+        json.addProperty("b", "t:" + b);
+        connections.add(json);
         return this;
     }
 
@@ -137,40 +136,34 @@ public final class TestGraphs {
     }
 
     public SkillGraphSnapshot build() {
-        GraphParser.Outcome o = parse();
-        if (o.snapshot().isEmpty()) {
-            throw new AssertionError("test graph invalid: " + o.report().errors());
+        GraphParser.Outcome outcome = parse();
+        if (outcome.snapshot().isEmpty()) {
+            throw new AssertionError("test graph invalid: " + outcome.report().errors());
         }
-        return o.snapshot().get();
+        return outcome.snapshot().get();
     }
 
     public static String id(String path) {
         return "t:" + path;
     }
 
-    /**
-     * Standard fixture:
-     * a/hub - a/m1 - a/m2 - a/n1(notable) ; a/m2 - a/k1, a/m2 - a/k2 (exclusive "vow")
-     * a/m1 - a/m3 - a/m4 - b/m1 - b/hub ; b/hub - b/m2
-     * a/m1 - a/req_all (all_of a/n1) ; a/m1 - a/req_any (any_of #fire | a/k1) ; a/m1 - a/sector5 (5 sector pts)
-     */
     public static TestGraphs standard() {
-        TestGraphs t = new TestGraphs().sector("a").sector("b");
-        t.minor("a/m1", "a").minor("a/m2", "a").notable("a/n1", "a").minor("a/m3", "a").minor("a/m4", "a")
+        TestGraphs testGraphs = new TestGraphs().sector("a").sector("b");
+        testGraphs.minor("a/m1", "a").minor("a/m2", "a").notable("a/n1", "a").minor("a/m3", "a").minor("a/m4", "a")
                 .keystone("a/k1", "a", "vow").keystone("a/k2", "a", "vow").minor("b/m1", "b").minor("b/m2", "b")
                 .minor("a/req_all", "a").minor("a/req_any", "a").minor("a/sector5", "a").minor("a/fire", "a");
-        t.tag("a/fire", "fire");
-        t.requires("a/req_all", List.of("t:a/n1"), List.of(), 0);
-        t.requires("a/req_any", List.of(), List.of("#fire", "t:a/k1"), 0);
-        t.requires("a/sector5", List.of(), List.of(), 5);
-        t.chain("a/hub", "a/m1", "a/m2", "a/n1");
-        t.edge("a/m2", "a/k1");
-        t.edge("a/m2", "a/k2");
-        t.chain("a/m1", "a/m3", "a/m4", "b/m1", "b/hub", "b/m2");
-        t.edge("a/m1", "a/req_all");
-        t.edge("a/m1", "a/req_any");
-        t.edge("a/m1", "a/sector5");
-        t.edge("a/m3", "a/fire");
-        return t;
+        testGraphs.tag("a/fire", "fire");
+        testGraphs.requires("a/req_all", List.of("t:a/n1"), List.of(), 0);
+        testGraphs.requires("a/req_any", List.of(), List.of("#fire", "t:a/k1"), 0);
+        testGraphs.requires("a/sector5", List.of(), List.of(), 5);
+        testGraphs.chain("a/hub", "a/m1", "a/m2", "a/n1");
+        testGraphs.edge("a/m2", "a/k1");
+        testGraphs.edge("a/m2", "a/k2");
+        testGraphs.chain("a/m1", "a/m3", "a/m4", "b/m1", "b/hub", "b/m2");
+        testGraphs.edge("a/m1", "a/req_all");
+        testGraphs.edge("a/m1", "a/req_any");
+        testGraphs.edge("a/m1", "a/sector5");
+        testGraphs.edge("a/m3", "a/fire");
+        return testGraphs;
     }
 }

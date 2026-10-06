@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** Simple per-player window limiter for mutating requests (server thread only). */
 public final class RateLimiter {
     private final Map<UUID, long[]> windows = new HashMap<>();
 

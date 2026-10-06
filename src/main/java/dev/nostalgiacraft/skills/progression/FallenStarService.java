@@ -1,0 +1,47 @@
+package dev.nostalgiacraft.skills.progression;
+
+import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
+import dev.nostalgiacraft.skills.graph.SkillNodeDefinition;
+
+import java.util.List;
+import java.util.Optional;
+
+public final class FallenStarService {
+    public enum Recovery { RELEARNED, POINTS_RETURNED, POINTS_TAKEN, REJECTED }
+
+    private FallenStarService() {
+    }
+
+    public static Optional<Allocation> dropNewest(PlayerSkillState state, SkillGraphSnapshot graph) {
+        List<Allocation> newestFirst = state.orderedAllocations().reversed();
+        Optional<Allocation> dropped = newestFirst.stream().filter(allocation -> standsAlone(state, graph, allocation)).findFirst();
+        dropped.ifPresent(allocation -> {
+            state.forfeit(allocation.nodeId());
+            state.bumpRevision();
+            state.log("dropped " + allocation.nodeId() + " as a fallen star worth " + allocation.paidCost());
+        });
+        return dropped;
+    }
+
+    private static boolean standsAlone(PlayerSkillState state, SkillGraphSnapshot graph, Allocation allocation) {
+        RefundService.Plan plan = RefundService.plan(graph, state, allocation.nodeId(), true);
+        return plan.ok() && !plan.chained();
+    }
+
+    public static Recovery recoverOwn(PlayerSkillState state, SkillGraphSnapshot graph, String nodeId, int paidCost) {
+        Optional<SkillNodeDefinition> node = graph.node(nodeId).filter(found -> !state.isAllocated(nodeId));
+        boolean placeable = node.filter(found -> AllocationService.rejectionOf(graph, found, Holdings.of(graph, state)).isEmpty()).isPresent();
+        if (placeable) {
+            state.reclaim(nodeId, paidCost);
+        } else {
+            state.adjustGranted(paidCost);
+        }
+        state.bumpRevision();
+        state.log("recovered the fallen star " + nodeId + (placeable ? " as a skill" : " as " + paidCost + " point(s)"));
+        return placeable ? Recovery.RELEARNED : Recovery.POINTS_RETURNED;
+    }
+
+    public static Recovery claimForeign(PlayerSkillState state, int paidCost, int pointLimit) {
+        return LedgerService.grant(state, paidCost, pointLimit, false).ok() ? Recovery.POINTS_TAKEN : Recovery.REJECTED;
+    }
+}

@@ -5,8 +5,8 @@
   "sector": "duelist",
   "type": "keystone",
   "position": {
-    "x": -756.5,
-    "y": 47.5
+    "x": -261.216,
+    "y": -1967.1757
   },
   "name": "skill.nostalgiaskills.duelist.thousand_cuts.name",
   "description": "skill.nostalgiaskills.duelist.thousand_cuts.description",
@@ -38,6 +38,5 @@
     "critical",
     "duelist"
   ],
-  "cluster": "duelist:keystone_blade",
-  "exclusive_group": "duelist_style"
+  "cluster": "duelist:keystone_blade"
 }

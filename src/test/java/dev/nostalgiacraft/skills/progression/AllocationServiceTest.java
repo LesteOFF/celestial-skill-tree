@@ -11,7 +11,6 @@ import java.util.Set;
 import static dev.nostalgiacraft.skills.graph.TestGraphs.id;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AllocationServiceTest {
@@ -26,8 +25,8 @@ class AllocationServiceTest {
         assertTrue(AllocationService.confirm(g, s, List.of(id("a/hub"))).ok());
     }
 
-    static RejectReason reason(AllocationService.BatchResult r) {
-        return r.rejection().orElseThrow().reason();
+    static RejectReason reason(AllocationService.BatchResult result) {
+        return result.rejection().orElseThrow().reason();
     }
 
     @Test
@@ -37,17 +36,17 @@ class AllocationServiceTest {
         assertEquals(RejectReason.STARTING_ROOT_REQUIRED, reason(AllocationService.validate(g, fresh, List.of(id("a/m1")))));
         assertEquals(RejectReason.MULTIPLE_STARTING_ROOTS,
                 reason(AllocationService.validate(g, fresh, List.of(id("a/hub"), id("b/hub")))));
-        AllocationService.BatchResult r = AllocationService.confirm(g, fresh, List.of(id("a/hub"), id("a/m1")));
-        assertTrue(r.ok());
-        assertEquals(1, r.totalCost());
+        AllocationService.BatchResult result = AllocationService.confirm(g, fresh, List.of(id("a/hub"), id("a/m1")));
+        assertTrue(result.ok());
+        assertEquals(1, result.totalCost());
         assertEquals(0, fresh.allocations().get(id("a/hub")).paidCost());
         assertEquals(id("a/hub"), fresh.startingRoot().orElseThrow());
     }
 
     @Test
     void purchasesValidAdjacentNode() {
-        AllocationService.BatchResult r = AllocationService.confirm(g, s, List.of(id("a/m1")));
-        assertTrue(r.ok());
+        AllocationService.BatchResult result = AllocationService.confirm(g, s, List.of(id("a/m1")));
+        assertTrue(result.ok());
         assertEquals(19, s.availablePoints());
         assertTrue(s.isAllocated(id("a/m1")));
         assertTrue(s.ledgerHolds());
@@ -60,31 +59,31 @@ class AllocationServiceTest {
 
     @Test
     void acceptsPathBatchReceivedOutOfOrder() {
-        AllocationService.BatchResult r = AllocationService.confirm(g, s, List.of(id("a/n1"), id("a/m2"), id("a/m1")));
-        assertTrue(r.ok(), () -> r.rejection().toString());
-        assertEquals(4, r.totalCost());
-        assertEquals(List.of(id("a/m1"), id("a/m2"), id("a/n1")), r.accepted().stream().map(AllocationService.Accepted::nodeId).toList());
+        AllocationService.BatchResult result = AllocationService.confirm(g, s, List.of(id("a/n1"), id("a/m2"), id("a/m1")));
+        assertTrue(result.ok(), () -> result.rejection().toString());
+        assertEquals(4, result.totalCost());
+        assertEquals(List.of(id("a/m1"), id("a/m2"), id("a/n1")), result.accepted().stream().map(AllocationService.Accepted::nodeId).toList());
     }
 
     @Test
     void exactBalanceSucceedsAndOneShortFails() {
-        PlayerSkillState t = new PlayerSkillState();
-        LedgerService.grant(t, 3, 120, false);
-        AllocationService.confirm(g, t, List.of(id("a/hub")));
+        PlayerSkillState state = new PlayerSkillState();
+        LedgerService.grant(state, 3, 120, false);
+        AllocationService.confirm(g, state, List.of(id("a/hub")));
         assertEquals(RejectReason.INSUFFICIENT_POINTS,
-                reason(AllocationService.validate(g, t, List.of(id("a/m1"), id("a/m2"), id("a/n1")))));
-        assertTrue(AllocationService.confirm(g, t, List.of(id("a/m1"), id("a/m2"))).ok());
-        assertEquals(1, t.availablePoints());
+                reason(AllocationService.validate(g, state, List.of(id("a/m1"), id("a/m2"), id("a/n1")))));
+        assertTrue(AllocationService.confirm(g, state, List.of(id("a/m1"), id("a/m2"))).ok());
+        assertEquals(1, state.availablePoints());
     }
 
     @Test
     void partiallyInvalidBatchIsRejectedAtomically() {
         long rev = s.stateRevision();
         int before = s.availablePoints();
-        AllocationService.BatchResult r = AllocationService.confirm(g, s, List.of(id("a/m1"), id("b/m2")));
-        assertFalse(r.ok());
-        assertEquals(RejectReason.NOT_CONNECTED, reason(r));
-        assertEquals(id("b/m2"), r.rejection().get().nodeId());
+        AllocationService.BatchResult result = AllocationService.confirm(g, s, List.of(id("a/m1"), id("b/m2")));
+        assertFalse(result.ok());
+        assertEquals(RejectReason.NOT_CONNECTED, reason(result));
+        assertEquals(id("b/m2"), result.rejection().get().nodeId());
         assertFalse(s.isAllocated(id("a/m1")));
         assertEquals(before, s.availablePoints());
         assertEquals(rev, s.stateRevision());
@@ -114,7 +113,6 @@ class AllocationServiceTest {
 
     @Test
     void sectorPointsNeverCountTheNodeItself() {
-        // a/m1 + a/m2 + a/n1 = 4 points in sector a: not enough for a/sector5 (needs 5 already invested)
         assertEquals(RejectReason.REQUIREMENT_UNMET, reason(AllocationService.validate(g, s,
                 List.of(id("a/m1"), id("a/m2"), id("a/n1"), id("a/sector5")))));
         assertTrue(AllocationService.validate(g, s,
@@ -126,16 +124,16 @@ class AllocationServiceTest {
         assertEquals(RejectReason.EXCLUSIVE_CONFLICT, reason(AllocationService.validate(g, s,
                 List.of(id("a/m1"), id("a/m2"), id("a/k1"), id("a/k2")))));
         assertTrue(AllocationService.confirm(g, s, List.of(id("a/m1"), id("a/m2"), id("a/k1"))).ok());
-        AllocationService.BatchResult r = AllocationService.validate(g, s, List.of(id("a/k2")));
-        assertEquals(RejectReason.EXCLUSIVE_CONFLICT, reason(r));
-        assertEquals(id("a/k1"), r.rejection().get().detail());
+        AllocationService.BatchResult result = AllocationService.validate(g, s, List.of(id("a/k2")));
+        assertEquals(RejectReason.EXCLUSIVE_CONFLICT, reason(result));
+        assertEquals(id("a/k1"), result.rejection().get().detail());
     }
 
     @Test
     void secondRootCostsOnePointThroughTheGraph() {
-        AllocationService.BatchResult r = AllocationService.confirm(g, s,
+        AllocationService.BatchResult result = AllocationService.confirm(g, s,
                 List.of(id("a/m1"), id("a/m3"), id("a/m4"), id("b/m1"), id("b/hub")));
-        assertTrue(r.ok());
+        assertTrue(result.ok());
         assertEquals(1, s.allocations().get(id("b/hub")).paidCost());
         assertEquals(id("a/hub"), s.startingRoot().orElseThrow());
     }
@@ -152,8 +150,9 @@ class AllocationServiceTest {
 
     @Test
     void eligibilityConsidersPendingSelection() {
-        assertNull(AllocationService.eligibility(g, s, List.of(id("a/m1")), id("a/m2")));
-        assertEquals(RejectReason.NOT_CONNECTED, AllocationService.eligibility(g, s, List.of(), id("a/m2")).reason());
+        assertTrue(AllocationService.eligibility(g, s, List.of(id("a/m1")), id("a/m2")).isEmpty());
+        assertEquals(RejectReason.NOT_CONNECTED,
+                AllocationService.eligibility(g, s, List.of(), id("a/m2")).orElseThrow().reason());
     }
 
     @Test
@@ -165,10 +164,10 @@ class AllocationServiceTest {
 
     @Test
     void suggestedRouteIsCheapestAndValidated() {
-        PathFinder.Route r = PathFinder.route(g, s, List.of(), id("b/m1")).orElseThrow();
-        assertEquals(List.of(id("a/m1"), id("a/m3"), id("a/m4"), id("b/m1")), r.newNodes());
-        assertEquals(4, r.cost());
-        assertTrue(r.valid());
+        PathFinder.Route route = PathFinder.route(g, s, List.of(), id("b/m1")).orElseThrow();
+        assertEquals(List.of(id("a/m1"), id("a/m3"), id("a/m4"), id("b/m1")), route.newNodes());
+        assertEquals(4, route.cost());
+        assertTrue(route.valid());
         PathFinder.Route req = PathFinder.route(g, s, List.of(), id("a/req_all")).orElseThrow();
         assertFalse(req.valid(), "route ignoring a/n1 requirement must be flagged as unresolved");
     }

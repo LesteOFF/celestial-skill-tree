@@ -1,13 +1,7 @@
 package dev.nostalgiacraft.skills.client.screen;
 
-/**
- * Graph camera. Tree space (logical units, +Y down) maps to GUI-scaled screen pixels:
- * {@code screen = viewportCentre + (tree - centre) * zoom}. Hit testing uses the exact inverse.
- * Window pixels relate to GUI pixels through Minecraft's GUI scale, which the screen already applies to mouse
- * coordinates, so the camera never needs to know it.
- */
 public final class Camera {
-    public static final double FIT_MIN_ZOOM = 0.08;
+    public static final double FIT_MIN_ZOOM = 0.03;
 
     double cx;
     double cy;
@@ -77,7 +71,6 @@ public final class Camera {
         return sx >= vx0 && sx <= vx1 && sy >= vy0 && sy <= vy1;
     }
 
-    /** Zooms by {@code factor} keeping the tree point under (sx, sy) fixed on screen. */
     public void zoomAt(double sx, double sy, double factor, double min, double max) {
         double tx = toTreeX(sx);
         double ty = toTreeY(sy);
@@ -96,7 +89,6 @@ public final class Camera {
         cy = ty;
     }
 
-    /** Frames the given tree bounds with a margin; may go below the interactive minimum down to FIT_MIN_ZOOM. */
     public void fit(double minX, double minY, double maxX, double maxY, double margin) {
         double w = Math.max(1, maxX - minX + 2 * margin);
         double h = Math.max(1, maxY - minY + 2 * margin);

@@ -5,8 +5,8 @@
   "sector": "berserker",
   "type": "keystone",
   "position": {
-    "x": -334.5,
-    "y": 693.0
+    "x": -1858.5782,
+    "y": -777.348
   },
   "name": "skill.nostalgiaskills.berserker.juggernaut.name",
   "description": "skill.nostalgiaskills.berserker.juggernaut.description",
@@ -44,6 +44,5 @@
     "heavy_weapon",
     "berserker"
   ],
-  "cluster": "berserker:keystone_juggernaut",
-  "exclusive_group": "berserker_oath"
+  "cluster": "berserker:keystone_juggernaut"
 }

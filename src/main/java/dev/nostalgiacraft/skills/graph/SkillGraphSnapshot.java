@@ -14,11 +14,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 
-/**
- * Immutable, validated graph shared by the server's eligibility checks and the client's renderer.
- * The same instance (or its network copy) backs both, so drawn edges and purchasable edges cannot differ.
- */
 public final class SkillGraphSnapshot {
+    private static final int FINGERPRINT_BYTES = 12;
+
     private final String treeId;
     private final Map<String, SkillNodeDefinition> nodes;
     private final List<SkillConnection> connections;
@@ -27,6 +25,7 @@ public final class SkillGraphSnapshot {
     private final List<Sector> sectors;
     private final List<String> roots;
     private final Map<String, ExclusiveGroup> groups;
+    private final Map<String, String> portalTwins;
     private final double minX;
     private final double minY;
     private final double maxX;
@@ -37,61 +36,63 @@ public final class SkillGraphSnapshot {
                               List<Sector> sectors, List<ExclusiveGroup> groups) {
         this.treeId = treeId;
         Map<String, SkillNodeDefinition> sorted = new TreeMap<>();
-        for (SkillNodeDefinition n : nodeDefs) {
-            sorted.put(n.id(), n);
+        for (SkillNodeDefinition node : nodeDefs) {
+            sorted.put(node.id(), node);
         }
         this.nodes = Collections.unmodifiableMap(new LinkedHashMap<>(sorted));
         this.connections = List.copyOf(connections);
-        Map<String, List<String>> access = new HashMap<>();
-        Map<String, List<String>> nb = new HashMap<>();
-        for (SkillConnection c : connections) {
-            access.computeIfAbsent(c.b(), k -> new ArrayList<>()).add(c.a());
-            if (!c.directed()) {
-                access.computeIfAbsent(c.a(), k -> new ArrayList<>()).add(c.b());
-            }
-            nb.computeIfAbsent(c.a(), k -> new ArrayList<>()).add(c.b());
-            nb.computeIfAbsent(c.b(), k -> new ArrayList<>()).add(c.a());
-        }
-        access.replaceAll((k, v) -> List.copyOf(v.stream().sorted().toList()));
-        nb.replaceAll((k, v) -> List.copyOf(v.stream().sorted().toList()));
-        this.accessFrom = Collections.unmodifiableMap(access);
-        this.neighbours = Collections.unmodifiableMap(nb);
+        this.accessFrom = adjacency(connections, false);
+        this.neighbours = adjacency(connections, true);
         this.sectors = List.copyOf(sectors);
         this.roots = nodes.values().stream().filter(SkillNodeDefinition::isRoot).map(SkillNodeDefinition::id).toList();
-        Map<String, ExclusiveGroup> g = new LinkedHashMap<>();
-        for (ExclusiveGroup eg : groups) {
-            g.put(eg.id(), eg);
+        Map<String, ExclusiveGroup> groupsById = new LinkedHashMap<>();
+        for (ExclusiveGroup group : groups) {
+            groupsById.put(group.id(), group);
         }
-        this.groups = Collections.unmodifiableMap(g);
-        double x0 = Double.MAX_VALUE, y0 = Double.MAX_VALUE, x1 = -Double.MAX_VALUE, y1 = -Double.MAX_VALUE;
-        for (SkillNodeDefinition n : nodes.values()) {
-            x0 = Math.min(x0, n.position().x());
-            y0 = Math.min(y0, n.position().y());
-            x1 = Math.max(x1, n.position().x());
-            y1 = Math.max(y1, n.position().y());
-        }
-        if (nodes.isEmpty()) {
-            x0 = y0 = x1 = y1 = 0;
-        }
-        this.minX = x0;
-        this.minY = y0;
-        this.maxX = x1;
-        this.maxY = y1;
+        this.groups = Collections.unmodifiableMap(groupsById);
+        this.portalTwins = portalTwins(connections);
+        this.minX = nodes.values().stream().mapToDouble(node -> node.position().x()).min().orElse(0);
+        this.minY = nodes.values().stream().mapToDouble(node -> node.position().y()).min().orElse(0);
+        this.maxX = nodes.values().stream().mapToDouble(node -> node.position().x()).max().orElse(0);
+        this.maxY = nodes.values().stream().mapToDouble(node -> node.position().y()).max().orElse(0);
         this.fingerprint = computeFingerprint();
     }
 
-    private String computeFingerprint() {
-        StringBuilder sb = new StringBuilder(treeId);
-        for (SkillNodeDefinition n : nodes.values()) {
-            sb.append('|').append(n);
+    private static Map<String, List<String>> adjacency(List<SkillConnection> connections, boolean ignoreDirection) {
+        Map<String, List<String>> adjacent = new HashMap<>();
+        for (SkillConnection connection : connections) {
+            adjacent.computeIfAbsent(connection.b(), id -> new ArrayList<>()).add(connection.a());
+            if (ignoreDirection || !connection.directed()) {
+                adjacent.computeIfAbsent(connection.a(), id -> new ArrayList<>()).add(connection.b());
+            }
         }
-        connections.stream().map(SkillConnection::toString).sorted().forEach(s -> sb.append('|').append(s));
-        groups.values().forEach(gr -> sb.append('|').append(gr));
+        adjacent.replaceAll((id, others) -> others.stream().sorted().toList());
+        return Collections.unmodifiableMap(adjacent);
+    }
+
+    private static Map<String, String> portalTwins(List<SkillConnection> connections) {
+        Map<String, String> twins = new HashMap<>();
+        for (SkillConnection connection : connections) {
+            if (connection.isPortal()) {
+                twins.putIfAbsent(connection.a(), connection.b());
+                twins.putIfAbsent(connection.b(), connection.a());
+            }
+        }
+        return Collections.unmodifiableMap(twins);
+    }
+
+    private String computeFingerprint() {
+        StringBuilder content = new StringBuilder(treeId);
+        for (SkillNodeDefinition node : nodes.values()) {
+            content.append('|').append(node);
+        }
+        connections.stream().map(SkillConnection::toString).sorted().forEach(text -> content.append('|').append(text));
+        groups.values().forEach(group -> content.append('|').append(group));
         try {
-            byte[] d = MessageDigest.getInstance("SHA-256").digest(sb.toString().getBytes(StandardCharsets.UTF_8));
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(content.toString().getBytes(StandardCharsets.UTF_8));
             StringBuilder hex = new StringBuilder();
-            for (int i = 0; i < 12; i++) {
-                hex.append(String.format("%02x", d[i]));
+            for (int i = 0; i < FINGERPRINT_BYTES; i++) {
+                hex.append(String.format("%02x", digest[i]));
             }
             return hex.toString();
         } catch (NoSuchAlgorithmException e) {
@@ -119,12 +120,10 @@ public final class SkillGraphSnapshot {
         return connections;
     }
 
-    /** Nodes whose allocation grants access to {@code id} (undirected edges count both ways). */
     public List<String> accessFrom(String id) {
         return accessFrom.getOrDefault(id, List.of());
     }
 
-    /** All drawn neighbours regardless of direction. */
     public List<String> neighbours(String id) {
         return neighbours.getOrDefault(id, List.of());
     }
@@ -141,12 +140,16 @@ public final class SkillGraphSnapshot {
         return groups;
     }
 
+    public Optional<String> portalDestination(String nodeId) {
+        return Optional.ofNullable(portalTwins.get(nodeId));
+    }
+
     public Optional<ExclusiveGroup> groupOf(String nodeId) {
-        SkillNodeDefinition n = nodes.get(nodeId);
-        if (n == null || n.exclusiveGroup().isEmpty()) {
+        SkillNodeDefinition node = nodes.get(nodeId);
+        if (node == null || node.exclusiveGroup().isEmpty()) {
             return Optional.empty();
         }
-        return Optional.ofNullable(groups.get(n.exclusiveGroup().get()));
+        return Optional.ofNullable(groups.get(node.exclusiveGroup().get()));
     }
 
     public double minX() {
@@ -165,7 +168,6 @@ public final class SkillGraphSnapshot {
         return maxY;
     }
 
-    /** Content hash; identical definitions always give the same fingerprint (used for reconciliation markers). */
     public String fingerprint() {
         return fingerprint;
     }

@@ -5,7 +5,6 @@ import dev.nostalgiacraft.skills.graph.KnownIds;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 
-/** Validates effect references against the live registries. */
 public final class McKnownIds implements KnownIds {
     public static final McKnownIds INSTANCE = new McKnownIds();
 

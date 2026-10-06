@@ -1,35 +1,39 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:duelist/quick_hands_2",
-  "tree": "nostalgiaskills:main",
-  "sector": "duelist",
-  "type": "minor",
-  "position": {
-    "x": -246.5,
-    "y": 14.0
-  },
-  "name": "skill.nostalgiaskills.duelist.quick_hands_2.name",
-  "description": "skill.nostalgiaskills.duelist.quick_hands_2.description",
-  "icon": "nostalgiaskills:textures/skill_icons/attack_speed.png",
-  "frame": "bronze_circle",
-  "cost": 1,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "minecraft:generic.attack_speed",
-      "operation": "add_multiplied_base",
-      "amount": 0.02
-    }
-  ],
-  "tags": [
-    "attack_speed",
-    "duelist"
-  ],
-  "cluster": "duelist:riposte_line"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:duelist/quick_hands_2",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "duelist",
+    "type":  "minor",
+    "position":  {
+                     "x":  -622.3952,
+                     "y":  -174.4657
+                 },
+    "name":  "skill.nostalgiaskills.duelist.quick_hands_2.name",
+    "description":  "skill.nostalgiaskills.duelist.quick_hands_2.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/attack_speed.png",
+    "frame":  "bronze_circle",
+    "cost":  1,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "minecraft:generic.attack_speed",
+                        "operation":  "add_multiplied_base",
+                        "amount":  0.02
+                    }
+                ],
+    "tags":  [
+                 "attack_speed",
+                 "duelist"
+             ],
+    "cluster":  "duelist:riposte_line"
 }

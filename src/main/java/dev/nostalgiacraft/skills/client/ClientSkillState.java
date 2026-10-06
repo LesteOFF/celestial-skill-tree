@@ -5,23 +5,24 @@ import dev.nostalgiacraft.skills.graph.GraphCodec;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.network.Payloads;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
+import dev.nostalgiacraft.skills.progression.XpCurve;
+import dev.nostalgiacraft.skills.progression.XpMath;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
 
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-/**
- * Client mirror of the server's graph and player state. It is only a presentation cache: every purchase, refund
- * or allocation is decided by the server and arrives here through StateSync.
- */
 public final class ClientSkillState {
     private static SkillGraphSnapshot graph;
     private static int graphRevision = -1;
     private static PlayerSkillState state;
     private static int stateGraphRevision = -1;
     private static Payloads.Economy economy = new Payloads.Economy(100, 120, true, true, true, false);
+    private static XpCurve curve = XpCurve.DEFAULT;
+    private static Payloads.WorldRules worldRules = Payloads.WorldRules.NONE;
     private static UUID inFlight;
     private static Consumer<Payloads.TransactionResult> resultListener = r -> { };
     private static Runnable changeListener = () -> { };
@@ -48,7 +49,14 @@ public final class ClientSkillState {
         return economy;
     }
 
-    /** True once both the graph and a state for the same graph revision have arrived. */
+    public static XpCurve curve() {
+        return curve;
+    }
+
+    public static Payloads.WorldRules worldRules() {
+        return worldRules;
+    }
+
     public static boolean ready() {
         return graph != null && state != null && stateGraphRevision == graphRevision;
     }
@@ -71,13 +79,14 @@ public final class ClientSkillState {
         changeListener = () -> { };
     }
 
-    /** Visual-QA fixtures only: installs a local graph/state without any server connection. */
-    public static void loadFixture(SkillGraphSnapshot g, PlayerSkillState s, Payloads.Economy eco, int level, float progress) {
-        graph = g;
+    public static void loadFixture(SkillGraphSnapshot fixtureGraph, PlayerSkillState fixtureState, Payloads.Economy fixtureEconomy, int level, float progress) {
+        graph = fixtureGraph;
         graphRevision = 1;
-        state = s;
+        state = fixtureState;
         stateGraphRevision = 1;
-        economy = eco;
+        economy = fixtureEconomy;
+        curve = XpCurve.DEFAULT;
+        worldRules = Payloads.WorldRules.NONE;
         inFlight = null;
         fixture = true;
         fixtureLevel = level;
@@ -89,13 +98,12 @@ public final class ClientSkillState {
         return fixture;
     }
 
-    /** Raw XP balance shown by the UI: the local player's, or the fixture's when no world is loaded. */
     public static long xpBalance() {
-        net.minecraft.world.entity.player.Player p = Minecraft.getInstance().player;
-        if (p != null) {
-            return dev.nostalgiacraft.skills.progression.XpMath.balance(p.experienceLevel, p.experienceProgress);
+        Player player = Minecraft.getInstance().player;
+        if (player != null) {
+            return XpMath.balance(player.experienceLevel, player.experienceProgress);
         }
-        return fixture ? dev.nostalgiacraft.skills.progression.XpMath.balance(fixtureLevel, fixtureProgress) : 0;
+        return fixture ? XpMath.balance(fixtureLevel, fixtureProgress) : 0;
     }
 
     public static void reset() {
@@ -106,34 +114,36 @@ public final class ClientSkillState {
         inFlight = null;
     }
 
-    public static void onGraph(Payloads.GraphSync msg) {
+    public static void onGraph(Payloads.GraphSync graphSync) {
         try {
-            graph = GraphCodec.decode(msg.data());
-            graphRevision = msg.revision();
+            graph = GraphCodec.decode(graphSync.data());
+            graphRevision = graphSync.revision();
             changeListener.run();
         } catch (Exception e) {
             NostalgiaSkills.LOGGER.error("Rejected malformed skill graph from server", e);
         }
     }
 
-    public static void onState(Payloads.StateSync msg) {
-        state = msg.state();
-        stateGraphRevision = msg.graphRevision();
-        economy = msg.economy();
+    public static void onState(Payloads.StateSync stateSync) {
+        state = stateSync.state();
+        stateGraphRevision = stateSync.graphRevision();
+        economy = stateSync.economy();
+        curve = stateSync.curve();
+        worldRules = stateSync.worldRules();
         changeListener.run();
     }
 
-    public static void onResult(Payloads.TransactionResult msg) {
-        if (msg.requestId().equals(inFlight)) {
+    public static void onResult(Payloads.TransactionResult result) {
+        if (result.requestId().equals(inFlight)) {
             inFlight = null;
         }
-        resultListener.accept(msg);
-        if (!msg.ok() && Minecraft.getInstance().screen == null && Minecraft.getInstance().player != null) {
-            Minecraft.getInstance().player.displayClientMessage(Component.translatable(msg.messageKey()), true);
+        resultListener.accept(result);
+        if (!result.ok() && Minecraft.getInstance().screen == null && Minecraft.getInstance().player != null) {
+            Minecraft.getInstance().player.displayClientMessage(Component.translatable(result.messageKey()), true);
         }
     }
 
-    public static void onOpen(Payloads.OpenScreen msg) {
-        ClientScreens.open(msg.resetMode());
+    public static void onOpen(Payloads.OpenScreen openScreen) {
+        ClientScreens.open(openScreen.resetMode());
     }
 }

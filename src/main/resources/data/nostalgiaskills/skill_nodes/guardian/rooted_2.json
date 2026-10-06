@@ -1,36 +1,40 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:guardian/rooted_2",
-  "tree": "nostalgiaskills:main",
-  "sector": "guardian",
-  "type": "minor",
-  "position": {
-    "x": -31.0,
-    "y": -365.0
-  },
-  "name": "skill.nostalgiaskills.guardian.rooted_2.name",
-  "description": "skill.nostalgiaskills.guardian.rooted_2.description",
-  "icon": "nostalgiaskills:textures/skill_icons/knockback.png",
-  "frame": "bronze_circle",
-  "cost": 1,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "minecraft:generic.knockback_resistance",
-      "operation": "add_value",
-      "amount": 0.02
-    }
-  ],
-  "tags": [
-    "knockback",
-    "defense",
-    "guardian"
-  ],
-  "cluster": "guardian:west_buttress"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:guardian/rooted_2",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "guardian",
+    "type":  "minor",
+    "position":  {
+                     "x":  585.9638,
+                     "y":  -759.191
+                 },
+    "name":  "skill.nostalgiaskills.guardian.rooted_2.name",
+    "description":  "skill.nostalgiaskills.guardian.rooted_2.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/knockback.png",
+    "frame":  "bronze_circle",
+    "cost":  1,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "minecraft:generic.knockback_resistance",
+                        "operation":  "add_value",
+                        "amount":  0.02
+                    }
+                ],
+    "tags":  [
+                 "knockback",
+                 "defense",
+                 "guardian"
+             ],
+    "cluster":  "guardian:west_buttress"
 }

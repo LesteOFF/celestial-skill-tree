@@ -5,8 +5,8 @@
   "sector": "marksman",
   "type": "keystone",
   "position": {
-    "x": 810.0,
-    "y": 0.0
+    "x": 0,
+    "y": 2120.6075
   },
   "name": "skill.nostalgiaskills.marksman.patient_aim.name",
   "description": "skill.nostalgiaskills.marksman.patient_aim.description",
@@ -46,6 +46,5 @@
     "range",
     "marksman"
   ],
-  "cluster": "marksman:keystone_patient",
-  "exclusive_group": "marksman_discipline"
+  "cluster": "marksman:keystone_patient"
 }

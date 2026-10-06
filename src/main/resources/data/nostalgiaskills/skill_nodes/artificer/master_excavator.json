@@ -5,8 +5,8 @@
   "sector": "artificer",
   "type": "keystone",
   "position": {
-    "x": 390.0,
-    "y": 675.5
+    "x": -1726.8757,
+    "y": 1089.9256
   },
   "name": "skill.nostalgiaskills.artificer.master_excavator.name",
   "description": "skill.nostalgiaskills.artificer.master_excavator.description",
@@ -38,6 +38,5 @@
     "mining",
     "artificer"
   ],
-  "cluster": "artificer:keystone_excavator",
-  "exclusive_group": "artificer_craft"
+  "cluster": "artificer:keystone_excavator"
 }

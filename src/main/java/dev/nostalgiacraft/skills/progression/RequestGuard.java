@@ -5,10 +5,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Per-player duplicate protection and revision checks for mutating requests. Remembers the last
- * {@link #CAPACITY} request ids (and their outcome) so a replayed packet can never be applied twice.
- */
 public final class RequestGuard {
     public static final int CAPACITY = 64;
 
@@ -19,7 +15,6 @@ public final class RequestGuard {
         }
     };
 
-    /** Returns a rejection if the request must not run; otherwise records it as in-flight/processed. */
     public synchronized Optional<RejectReason> admit(UUID requestId, long expectedStateRevision, long stateRevision,
                                                      long expectedGraphRevision, long graphRevision,
                                                      boolean graphDependent) {

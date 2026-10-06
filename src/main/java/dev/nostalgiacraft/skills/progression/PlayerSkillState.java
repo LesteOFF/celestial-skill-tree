@@ -3,6 +3,7 @@ package dev.nostalgiacraft.skills.progression;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.LinkedHashMap;
@@ -12,10 +13,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
-/**
- * Authoritative per-player progression state (persisted as a data attachment).
- * Ledger invariant: {@code availablePoints + activeSpentPoints() == purchasedPoints + netGrantedPoints}.
- */
 public final class PlayerSkillState {
     public static final int SCHEMA_VERSION = 1;
     public static final int MAX_AUDIT = 32;
@@ -31,48 +28,67 @@ public final class PlayerSkillState {
     private long lifetimeRefunded;
     private long stateRevision;
     private String reconciledFingerprint = "";
+    private String sign;
+    private final Set<String> discoveries = new TreeSet<>();
     private final Set<String> migrationMarkers = new TreeSet<>();
     private final Deque<String> audit = new ArrayDeque<>();
 
     public PlayerSkillState() {
     }
 
-    /** Full restore used by deserialisation; validates the ledger before accepting the data. */
     public static PlayerSkillState restore(String treeId, String startingRoot, Collection<Allocation> allocations,
                                            long nextAcquisition, int purchased, int netGranted, int available,
                                            long lifetimeSpent, long lifetimeRefunded, long revision,
                                            String fingerprint, Collection<String> markers, Collection<String> audit) {
-        PlayerSkillState s = new PlayerSkillState();
-        s.treeId = treeId;
-        s.startingRoot = startingRoot;
+        PlayerSkillState state = new PlayerSkillState();
+        state.treeId = treeId;
+        state.startingRoot = startingRoot;
         allocations.stream().sorted(Comparator.comparingLong(Allocation::acquisitionIndex))
-                .forEach(a -> s.allocations.put(a.nodeId(), a));
-        s.nextAcquisition = Math.max(nextAcquisition,
+                .forEach(a -> state.allocations.put(a.nodeId(), a));
+        state.nextAcquisition = Math.max(nextAcquisition,
                 allocations.stream().mapToLong(Allocation::acquisitionIndex).max().orElse(-1) + 1);
-        s.purchasedPoints = purchased;
-        s.netGrantedPoints = netGranted;
-        s.availablePoints = available;
-        s.lifetimeSpent = lifetimeSpent;
-        s.lifetimeRefunded = lifetimeRefunded;
-        s.stateRevision = revision;
-        s.reconciledFingerprint = fingerprint == null ? "" : fingerprint;
-        s.migrationMarkers.addAll(markers);
-        audit.forEach(s.audit::addLast);
-        if (!s.ledgerHolds()) {
-            // Repair by treating the discrepancy as an administrative adjustment, never by touching purchases.
-            s.netGrantedPoints = s.availablePoints + s.activeSpentPoints() - s.purchasedPoints;
-            s.log("ledger repaired on load");
+        state.purchasedPoints = purchased;
+        state.netGrantedPoints = netGranted;
+        state.availablePoints = available;
+        state.lifetimeSpent = lifetimeSpent;
+        state.lifetimeRefunded = lifetimeRefunded;
+        state.stateRevision = revision;
+        state.reconciledFingerprint = fingerprint == null ? "" : fingerprint;
+        state.migrationMarkers.addAll(markers);
+        audit.forEach(state.audit::addLast);
+        if (!state.ledgerHolds()) {
+            state.netGrantedPoints = state.availablePoints + state.activeSpentPoints() - state.purchasedPoints;
+            state.log("ledger repaired on load");
         }
-        return s;
+        return state;
     }
 
     public PlayerSkillState copy() {
-        return restore(treeId, startingRoot, allocations.values(), nextAcquisition, purchasedPoints,
+        PlayerSkillState copy = restore(treeId, startingRoot, allocations.values(), nextAcquisition, purchasedPoints,
                 netGrantedPoints, availablePoints, lifetimeSpent, lifetimeRefunded, stateRevision,
                 reconciledFingerprint, migrationMarkers, audit);
+        copy.sign = sign;
+        copy.discoveries.addAll(discoveries);
+        return copy;
     }
 
-    // ------------------------------------------------------------ queries
+    public PlayerSkillState withRestoredSign(Optional<String> restoredSign) {
+        sign = restoredSign.orElse(null);
+        return this;
+    }
+
+    public Optional<String> sign() {
+        return Optional.ofNullable(sign);
+    }
+
+    public PlayerSkillState withRestoredDiscoveries(Collection<String> restoredDiscoveries) {
+        discoveries.addAll(restoredDiscoveries);
+        return this;
+    }
+
+    public Set<String> discoveries() {
+        return Collections.unmodifiableSet(discoveries);
+    }
 
     public String treeId() {
         return treeId;
@@ -83,14 +99,13 @@ public final class PlayerSkillState {
     }
 
     public Map<String, Allocation> allocations() {
-        return java.util.Collections.unmodifiableMap(allocations);
+        return Collections.unmodifiableMap(allocations);
     }
 
     public boolean isAllocated(String id) {
         return allocations.containsKey(id);
     }
 
-    /** Allocations ordered by acquisition (oldest first), ties broken by id. */
     public List<Allocation> orderedAllocations() {
         List<Allocation> l = new ArrayList<>(allocations.values());
         l.sort(Comparator.comparingLong(Allocation::acquisitionIndex).thenComparing(Allocation::nodeId));
@@ -138,7 +153,7 @@ public final class PlayerSkillState {
     }
 
     public Set<String> migrationMarkers() {
-        return java.util.Collections.unmodifiableSet(migrationMarkers);
+        return Collections.unmodifiableSet(migrationMarkers);
     }
 
     public List<String> audit() {
@@ -149,32 +164,41 @@ public final class PlayerSkillState {
         return availablePoints >= 0 && availablePoints + activeSpentPoints() == purchasedPoints + netGrantedPoints;
     }
 
-    // ------------------------------------------------------------ mutations (package-private: services only)
-
     void allocate(String id, int paidCost) {
         allocations.put(id, new Allocation(id, 1, paidCost, nextAcquisition++));
         availablePoints -= paidCost;
         lifetimeSpent += paidCost;
     }
 
-    /** Removes an allocation and refunds exactly its recorded paid cost. */
     int refund(String id) {
-        Allocation a = allocations.remove(id);
-        if (a == null) {
+        Allocation allocation = allocations.remove(id);
+        if (allocation == null) {
             return 0;
         }
-        availablePoints += a.paidCost();
-        lifetimeRefunded += a.paidCost();
+        availablePoints += allocation.paidCost();
+        lifetimeRefunded += allocation.paidCost();
         if (id.equals(startingRoot)) {
             startingRoot = null;
         }
-        return a.paidCost();
+        return allocation.paidCost();
+    }
+
+    void forfeit(String id) {
+        Allocation forfeited = allocations.remove(id);
+        if (forfeited != null) {
+            netGrantedPoints -= forfeited.paidCost();
+        }
+    }
+
+    void reclaim(String id, int paidCost) {
+        allocations.put(id, new Allocation(id, 1, paidCost, nextAcquisition++));
+        netGrantedPoints += paidCost;
     }
 
     void rename(String from, String to) {
-        Allocation a = allocations.remove(from);
-        if (a != null) {
-            allocations.put(to, new Allocation(to, a.rank(), a.paidCost(), a.acquisitionIndex()));
+        Allocation allocation = allocations.remove(from);
+        if (allocation != null) {
+            allocations.put(to, new Allocation(to, allocation.rank(), allocation.paidCost(), allocation.acquisitionIndex()));
             if (from.equals(startingRoot)) {
                 startingRoot = to;
             }
@@ -193,6 +217,14 @@ public final class PlayerSkillState {
     void adjustGranted(int delta) {
         netGrantedPoints += delta;
         availablePoints += delta;
+    }
+
+    boolean discover(String key) {
+        return discoveries.add(key);
+    }
+
+    void setSign(String signId) {
+        sign = signId;
     }
 
     void bumpRevision() {

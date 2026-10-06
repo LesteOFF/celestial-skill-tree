@@ -10,47 +10,54 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-/** Recomputes attribute values the way vanilla does, to show the tree's share and before/after previews. */
 public final class AttributeMath {
     private AttributeMath() {
     }
 
     public static double compute(Holder<Attribute> attr, double base, Collection<AttributeModifier> mods) {
         double v = base;
-        for (AttributeModifier m : mods) {
-            if (m.operation() == AttributeModifier.Operation.ADD_VALUE) {
-                v += m.amount();
+        for (AttributeModifier modifier : mods) {
+            if (modifier.operation() == AttributeModifier.Operation.ADD_VALUE) {
+                v += modifier.amount();
             }
         }
         double r = v;
-        for (AttributeModifier m : mods) {
-            if (m.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE) {
-                r += v * m.amount();
+        for (AttributeModifier modifier : mods) {
+            if (modifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE) {
+                r += v * modifier.amount();
             }
         }
-        for (AttributeModifier m : mods) {
-            if (m.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL) {
-                r *= 1.0 + m.amount();
+        for (AttributeModifier modifier : mods) {
+            if (modifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL) {
+                r *= 1.0 + modifier.amount();
             }
         }
         return attr.value().sanitizeValue(r);
     }
 
-    /** Final value without this mod's modifiers (equipment, effects and other mods kept). */
-    public static double withoutTree(AttributeInstance inst) {
+    public static double withoutTree(AttributeInstance instance) {
         List<AttributeModifier> keep = new ArrayList<>();
-        for (AttributeModifier m : inst.getModifiers()) {
-            if (!m.id().getNamespace().equals(NostalgiaSkills.MODID)) {
-                keep.add(m);
+        for (AttributeModifier modifier : instance.getModifiers()) {
+            if (!modifier.id().getNamespace().equals(NostalgiaSkills.MODID)) {
+                keep.add(modifier);
             }
         }
-        return compute(inst.getAttribute(), inst.getBaseValue(), keep);
+        return compute(instance.getAttribute(), instance.getBaseValue(), keep);
     }
 
-    /** Final value after adding hypothetical extra modifiers. */
-    public static double withExtra(AttributeInstance inst, Collection<AttributeModifier> extra) {
-        List<AttributeModifier> all = new ArrayList<>(inst.getModifiers());
+    public static double withExtra(AttributeInstance instance, Collection<AttributeModifier> extra) {
+        List<AttributeModifier> all = new ArrayList<>(instance.getModifiers());
         all.addAll(extra);
-        return compute(inst.getAttribute(), inst.getBaseValue(), all);
+        return compute(instance.getAttribute(), instance.getBaseValue(), all);
+    }
+
+    public static double withReplaced(AttributeInstance instance, Collection<AttributeModifier> replacements) {
+        List<AttributeModifier> all = new ArrayList<>(replacements);
+        for (AttributeModifier modifier : instance.getModifiers()) {
+            if (replacements.stream().noneMatch(r -> r.id().equals(modifier.id()))) {
+                all.add(modifier);
+            }
+        }
+        return compute(instance.getAttribute(), instance.getBaseValue(), all);
     }
 }

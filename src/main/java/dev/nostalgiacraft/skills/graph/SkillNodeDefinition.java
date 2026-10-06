@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-/** Immutable definition of one node, exactly as validated from data. */
 public record SkillNodeDefinition(
         String id,
         String tree,
@@ -21,9 +20,14 @@ public record SkillNodeDefinition(
         List<SkillEffect> effects,
         Set<String> tags,
         String cluster,
-        Optional<String> exclusiveGroup) {
-
+        Optional<String> exclusiveGroup,
+        NodeTraits traits) {
     public boolean isRoot() {
         return type == NodeType.ROOT;
+    }
+
+    public SkillNodeDefinition withCost(int newCost) {
+        return new SkillNodeDefinition(id, tree, sector, type, position, nameKey, descriptionKey, icon, frame, newCost, maxRank,
+                requirements, effects, tags, cluster, exclusiveGroup, traits);
     }
 }

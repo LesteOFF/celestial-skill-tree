@@ -10,11 +10,6 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import java.util.function.Supplier;
 
-/**
- * Player data attachments. The skill state is deliberately NOT copyOnDeath: death copying is done once in the
- * clone event according to the keepOnDeath setting (NeoForge copies non-death clones, e.g. leaving the End,
- * automatically), so the two mechanisms never both run.
- */
 public final class ModAttachments {
     public static final DeferredRegister<AttachmentType<?>> TYPES =
             DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, NostalgiaSkills.MODID);
@@ -32,15 +27,15 @@ public final class ModAttachments {
         TYPES.register(modBus);
     }
 
-    public static PlayerSkillState state(Player p) {
-        return p.getData(SKILLS);
+    public static PlayerSkillState state(Player player) {
+        return player.getData(SKILLS);
     }
 
-    public static void setState(Player p, PlayerSkillState s) {
-        p.setData(SKILLS, s);
+    public static void setState(Player player, PlayerSkillState state) {
+        player.setData(SKILLS, state);
     }
 
-    public static SkillCooldowns cooldowns(Player p) {
-        return p.getData(COOLDOWNS);
+    public static SkillCooldowns cooldowns(Player player) {
+        return player.getData(COOLDOWNS);
     }
 }

@@ -1,41 +1,45 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:arcanist/philosophers_eye",
-  "tree": "nostalgiaskills:main",
-  "sector": "arcanist",
-  "type": "notable",
-  "position": {
-    "x": 216.0,
-    "y": -331.0
-  },
-  "name": "skill.nostalgiaskills.arcanist.philosophers_eye.name",
-  "description": "skill.nostalgiaskills.arcanist.philosophers_eye.description",
-  "icon": "nostalgiaskills:textures/skill_icons/luck.png",
-  "frame": "violet_facet",
-  "cost": 2,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "minecraft:generic.luck",
-      "operation": "add_value",
-      "amount": 1.0
-    },
-    {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:healing_received",
-      "operation": "add_value",
-      "amount": 0.05
-    }
-  ],
-  "tags": [
-    "luck",
-    "arcanist"
-  ],
-  "cluster": "arcanist:great_spiral"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:arcanist/philosophers_eye",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "arcanist",
+    "type":  "notable",
+    "position":  {
+                     "x":  1019.6352,
+                     "y":  -176.2705
+                 },
+    "name":  "skill.nostalgiaskills.arcanist.philosophers_eye.name",
+    "description":  "skill.nostalgiaskills.arcanist.philosophers_eye.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/luck.png",
+    "frame":  "violet_facet",
+    "cost":  2,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "minecraft:generic.luck",
+                        "operation":  "add_value",
+                        "amount":  1.0
+                    },
+                    {
+                        "type":  "attribute",
+                        "attribute":  "nostalgiaskills:healing_received",
+                        "operation":  "add_value",
+                        "amount":  0.05
+                    }
+                ],
+    "tags":  [
+                 "luck",
+                 "arcanist"
+             ],
+    "cluster":  "arcanist:great_spiral"
 }

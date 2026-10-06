@@ -482,7 +482,11 @@
     "marksman/taut_string",
     "marksman/upper_limb",
     "marksman/volley_doctrine",
-    "marksman/windreader"
+    "marksman/windreader",
+    "portal/east",
+    "portal/north",
+    "portal/south",
+    "portal/west"
   ],
   "skill_connections": [
     "main"

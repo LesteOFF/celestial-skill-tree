@@ -1,35 +1,39 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:berserker/momentum_6",
-  "tree": "nostalgiaskills:main",
-  "sector": "berserker",
-  "type": "minor",
-  "position": {
-    "x": -407.0,
-    "y": 363.0
-  },
-  "name": "skill.nostalgiaskills.berserker.momentum_6.name",
-  "description": "skill.nostalgiaskills.berserker.momentum_6.description",
-  "icon": "nostalgiaskills:textures/skill_icons/melee.png",
-  "frame": "bronze_circle",
-  "cost": 1,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "minecraft:generic.attack_knockback",
-      "operation": "add_value",
-      "amount": 0.05
-    }
-  ],
-  "tags": [
-    "melee",
-    "berserker"
-  ],
-  "cluster": "berserker:bloodied_steps"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:berserker/momentum_6",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "berserker",
+    "type":  "minor",
+    "position":  {
+                     "x":  -1298.1862,
+                     "y":  -594.3449
+                 },
+    "name":  "skill.nostalgiaskills.berserker.momentum_6.name",
+    "description":  "skill.nostalgiaskills.berserker.momentum_6.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/melee.png",
+    "frame":  "bronze_circle",
+    "cost":  1,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "minecraft:generic.attack_knockback",
+                        "operation":  "add_value",
+                        "amount":  0.05
+                    }
+                ],
+    "tags":  [
+                 "melee",
+                 "berserker"
+             ],
+    "cluster":  "berserker:bloodied_steps"
 }

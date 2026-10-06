@@ -5,8 +5,8 @@
   "sector": "guardian",
   "type": "keystone",
   "position": {
-    "x": -397.0,
-    "y": -687.5
+    "x": 1777.7011,
+    "y": -1076.8849
   },
   "name": "skill.nostalgiaskills.guardian.bastion.name",
   "description": "skill.nostalgiaskills.guardian.bastion.description",
@@ -38,6 +38,5 @@
     "health",
     "guardian"
   ],
-  "cluster": "guardian:keystone_bastion",
-  "exclusive_group": "guardian_vow"
+  "cluster": "guardian:keystone_bastion"
 }

@@ -8,44 +8,39 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 
-/**
- * Executes trigger effects. Actions only heal or apply mob effects, never deal damage, so a trigger can never
- * cause another damage event that re-fires it (no recursion). Each effect has its own persisted cooldown.
- */
 public final class Triggers {
     private Triggers() {
     }
 
-    public static void fire(ServerPlayer p, String trigger, LivingEntity target) {
-        CompiledBuild cb = EffectEngine.build(p);
-        if (cb.triggers().isEmpty()) {
+    public static void fire(ServerPlayer player, String trigger, LivingEntity target) {
+        CompiledBuild build = EffectEngine.build(player);
+        if (build.triggers().isEmpty()) {
             return;
         }
-        long now = p.serverLevel().getGameTime();
-        for (CompiledBuild.Keyed<SkillEffect.Trigger> k : cb.triggers()) {
-            SkillEffect.Trigger t = k.effect();
-            if (!t.trigger().equals(trigger)) {
-                continue;
+        long now = player.serverLevel().getGameTime();
+        for (CompiledBuild.Keyed<SkillEffect.Trigger> keyed : build.triggers()) {
+            SkillEffect.Trigger candidate = keyed.effect();
+            boolean targetMissing = candidate.action().type().equals("target_effect") && (target == null || !target.isAlive());
+            boolean fires = candidate.trigger().equals(trigger) && !targetMissing
+                    && ModAttachments.cooldowns(player).tryUse(keyed.key(), now, candidate.cooldownTicks());
+            if (fires) {
+                run(player, candidate.action(), target);
             }
-            if (t.action().type().equals("target_effect") && (target == null || !target.isAlive())) {
-                continue;
-            }
-            if (!ModAttachments.cooldowns(p).tryUse(k.key(), now, t.cooldownTicks())) {
-                continue;
-            }
-            run(p, t.action(), target);
         }
     }
 
-    private static void run(ServerPlayer p, SkillEffect.Action a, LivingEntity target) {
-        switch (a.type()) {
-            case "heal" -> p.heal((float) a.amount());
-            case "self_effect" -> BuiltInRegistries.MOB_EFFECT.getHolder(ResourceLocation.parse(a.effect()))
-                    .ifPresent(h -> p.addEffect(new MobEffectInstance(h, a.durationTicks(), a.amplifier()), p));
-            case "target_effect" -> BuiltInRegistries.MOB_EFFECT.getHolder(ResourceLocation.parse(a.effect()))
-                    .ifPresent(h -> target.addEffect(new MobEffectInstance(h, a.durationTicks(), a.amplifier()), p));
+    private static void run(ServerPlayer player, SkillEffect.Action action, LivingEntity target) {
+        switch (action.type()) {
+            case "heal" -> player.heal((float) action.amount());
+            case "self_effect" -> applyMobEffect(player, action, player);
+            case "target_effect" -> applyMobEffect(player, action, target);
             default -> {
             }
         }
+    }
+
+    private static void applyMobEffect(ServerPlayer player, SkillEffect.Action action, LivingEntity receiver) {
+        BuiltInRegistries.MOB_EFFECT.getHolder(ResourceLocation.parse(action.effect())).ifPresent(mobEffect ->
+                receiver.addEffect(new MobEffectInstance(mobEffect, action.durationTicks(), action.amplifier()), player));
     }
 }

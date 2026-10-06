@@ -13,7 +13,6 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import org.slf4j.Logger;
 
-/** Common entry point. Client-only setup lives in {@code client.ClientSetup} (Dist.CLIENT subscriber). */
 @Mod(NostalgiaSkills.MODID)
 public final class NostalgiaSkills {
     public static final String MODID = "nostalgiaskills";

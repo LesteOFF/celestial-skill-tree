@@ -4,6 +4,7 @@ import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.graph.GraphCodec;
 import dev.nostalgiacraft.skills.progression.AllocationService;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
+import dev.nostalgiacraft.skills.progression.XpCurve;
 import dev.nostalgiacraft.skills.registry.StateCodecs;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.UUIDUtil;
@@ -16,7 +17,6 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.List;
 import java.util.UUID;
 
-/** All mod payloads. Client-to-server payloads carry intents only; the server decides everything. */
 public final class Payloads {
     private Payloads() {
     }
@@ -27,9 +27,6 @@ public final class Payloads {
 
     static final StreamCodec<ByteBuf, String> NODE_ID = ByteBufCodecs.stringUtf8(64);
 
-    // ------------------------------------------------------------------ client -> server
-
-    /** Sent when the screen opens; the graph is only resent when the client's fingerprint is outdated. */
     public record RequestSync(String knownFingerprint) implements CustomPacketPayload {
         public static final Type<RequestSync> TYPE = typeOf("request_sync");
         public static final StreamCodec<ByteBuf, RequestSync> CODEC = StreamCodec.composite(
@@ -40,13 +37,24 @@ public final class Payloads {
         }
     }
 
-    public record BuyPoint(UUID requestId, long expectedStateRevision) implements CustomPacketPayload {
+    public record BuyPoint(UUID requestId, long expectedStateRevision, int count) implements CustomPacketPayload {
         public static final Type<BuyPoint> TYPE = typeOf("buy_point");
         public static final StreamCodec<ByteBuf, BuyPoint> CODEC = StreamCodec.composite(
                 UUIDUtil.STREAM_CODEC, BuyPoint::requestId, ByteBufCodecs.VAR_LONG, BuyPoint::expectedStateRevision,
-                BuyPoint::new);
+                ByteBufCodecs.VAR_INT, BuyPoint::count, BuyPoint::new);
 
         public Type<BuyPoint> type() {
+            return TYPE;
+        }
+    }
+
+    public record DonateXp(UUID requestId, long expectedStateRevision, int amount) implements CustomPacketPayload {
+        public static final Type<DonateXp> TYPE = typeOf("donate_xp");
+        public static final StreamCodec<ByteBuf, DonateXp> CODEC = StreamCodec.composite(
+                UUIDUtil.STREAM_CODEC, DonateXp::requestId, ByteBufCodecs.VAR_LONG, DonateXp::expectedStateRevision,
+                ByteBufCodecs.VAR_INT, DonateXp::amount, DonateXp::new);
+
+        public Type<DonateXp> type() {
             return TYPE;
         }
     }
@@ -78,7 +86,6 @@ public final class Payloads {
         }
     }
 
-    /** Intent to refund one allocated skill; the server decides which dependent allocations go with it. */
     public record RequestRefund(UUID requestId, long expectedStateRevision, int expectedGraphRevision, String nodeId)
             implements CustomPacketPayload {
         public static final Type<RequestRefund> TYPE = typeOf("request_refund");
@@ -93,8 +100,6 @@ public final class Payloads {
         }
     }
 
-    // ------------------------------------------------------------------ server -> client
-
     public record GraphSync(int revision, byte[] data) implements CustomPacketPayload {
         public static final Type<GraphSync> TYPE = typeOf("graph_sync");
         public static final StreamCodec<ByteBuf, GraphSync> CODEC = StreamCodec.composite(
@@ -106,7 +111,6 @@ public final class Payloads {
         }
     }
 
-    /** Economy values the client needs to present (never to decide). */
     public record Economy(int nextPointCost, int pointLimit, boolean xpPurchaseEnabled, boolean orbRequired,
                           boolean nodeRefundsEnabled, boolean orbRequiredForNodeRefund) {
         public static final StreamCodec<ByteBuf, Economy> CODEC = StreamCodec.composite(
@@ -116,12 +120,37 @@ public final class Payloads {
                 Economy::new);
     }
 
-    public record StateSync(int graphRevision, PlayerSkillState state, Economy economy) implements CustomPacketPayload {
+    static final StreamCodec<ByteBuf, XpCurve> CURVE = StreamCodec.composite(
+            ByteBufCodecs.VAR_INT, XpCurve::base, ByteBufCodecs.VAR_INT, XpCurve::linear,
+            ByteBufCodecs.VAR_INT, XpCurve::quadratic, ByteBufCodecs.DOUBLE, XpCurve::discount, XpCurve::new);
+
+    public record TierInfo(String id, long xpRequired) {
+        public static final StreamCodec<ByteBuf, TierInfo> CODEC = StreamCodec.composite(
+                NODE_ID, TierInfo::id, ByteBufCodecs.VAR_LONG, TierInfo::xpRequired, TierInfo::new);
+    }
+
+    public record WorldRules(boolean eclipseActive, long communityXp, List<TierInfo> communityTiers, List<String> signIds) {
+        public static final int MAX_TIERS = 64;
+        public static final int MAX_SIGNS = 64;
+        public static final WorldRules NONE = new WorldRules(false, 0, List.of(), List.of());
+        public static final StreamCodec<ByteBuf, WorldRules> CODEC = StreamCodec.composite(
+                ByteBufCodecs.BOOL, WorldRules::eclipseActive, ByteBufCodecs.VAR_LONG, WorldRules::communityXp,
+                TierInfo.CODEC.apply(ByteBufCodecs.list(MAX_TIERS)), WorldRules::communityTiers,
+                NODE_ID.apply(ByteBufCodecs.list(MAX_SIGNS)), WorldRules::signIds, WorldRules::new);
+
+        public List<Long> thresholds() {
+            return communityTiers.stream().map(TierInfo::xpRequired).toList();
+        }
+    }
+
+    public record StateSync(int graphRevision, PlayerSkillState state, Economy economy, XpCurve curve,
+                            WorldRules worldRules) implements CustomPacketPayload {
         public static final Type<StateSync> TYPE = typeOf("state_sync");
         public static final StreamCodec<RegistryFriendlyByteBuf, StateSync> CODEC = StreamCodec.composite(
                 ByteBufCodecs.VAR_INT, StateSync::graphRevision,
                 ByteBufCodecs.fromCodec(StateCodecs.STATE), StateSync::state,
-                Economy.CODEC, StateSync::economy, StateSync::new);
+                Economy.CODEC, StateSync::economy, CURVE, StateSync::curve,
+                WorldRules.CODEC, StateSync::worldRules, StateSync::new);
 
         public Type<StateSync> type() {
             return TYPE;
@@ -141,7 +170,6 @@ public final class Payloads {
         }
     }
 
-    /** Asks the client to open the tree screen (command) or the reset confirmation (orb use). */
     public record OpenScreen(boolean resetMode) implements CustomPacketPayload {
         public static final Type<OpenScreen> TYPE = typeOf("open_screen");
         public static final StreamCodec<ByteBuf, OpenScreen> CODEC = StreamCodec.composite(

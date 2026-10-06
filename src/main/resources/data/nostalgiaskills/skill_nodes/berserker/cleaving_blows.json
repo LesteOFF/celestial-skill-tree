@@ -1,35 +1,39 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:berserker/cleaving_blows",
-  "tree": "nostalgiaskills:main",
-  "sector": "berserker",
-  "type": "notable",
-  "position": {
-    "x": -52.0,
-    "y": 242.5
-  },
-  "name": "skill.nostalgiaskills.berserker.cleaving_blows.name",
-  "description": "skill.nostalgiaskills.berserker.cleaving_blows.description",
-  "icon": "nostalgiaskills:textures/skill_icons/melee.png",
-  "frame": "violet_facet",
-  "cost": 2,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "minecraft:player.sweeping_damage_ratio",
-      "operation": "add_value",
-      "amount": 0.25
-    }
-  ],
-  "tags": [
-    "melee",
-    "berserker"
-  ],
-  "cluster": "berserker:iron_trail"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:berserker/cleaving_blows",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "berserker",
+    "type":  "notable",
+    "position":  {
+                     "x":  -337.1528,
+                     "y":  554.9104
+                 },
+    "name":  "skill.nostalgiaskills.berserker.cleaving_blows.name",
+    "description":  "skill.nostalgiaskills.berserker.cleaving_blows.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/melee.png",
+    "frame":  "violet_facet",
+    "cost":  2,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "minecraft:player.sweeping_damage_ratio",
+                        "operation":  "add_value",
+                        "amount":  0.25
+                    }
+                ],
+    "tags":  [
+                 "melee",
+                 "berserker"
+             ],
+    "cluster":  "berserker:iron_trail"
 }

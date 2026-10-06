@@ -1,36 +1,40 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:berserker/fury_2",
-  "tree": "nostalgiaskills:main",
-  "sector": "berserker",
-  "type": "minor",
-  "position": {
-    "x": -287.0,
-    "y": 281.0
-  },
-  "name": "skill.nostalgiaskills.berserker.fury_2.name",
-  "description": "skill.nostalgiaskills.berserker.fury_2.description",
-  "icon": "nostalgiaskills:textures/skill_icons/damage.png",
-  "frame": "bronze_circle",
-  "cost": 1,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:low_health_damage",
-      "operation": "add_value",
-      "amount": 0.03
-    }
-  ],
-  "tags": [
-    "damage",
-    "risk",
-    "berserker"
-  ],
-  "cluster": "berserker:rage_star"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:berserker/fury_2",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "berserker",
+    "type":  "minor",
+    "position":  {
+                     "x":  -1049.4433,
+                     "y":  -66.6408
+                 },
+    "name":  "skill.nostalgiaskills.berserker.fury_2.name",
+    "description":  "skill.nostalgiaskills.berserker.fury_2.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/damage.png",
+    "frame":  "bronze_circle",
+    "cost":  1,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "nostalgiaskills:low_health_damage",
+                        "operation":  "add_value",
+                        "amount":  0.03
+                    }
+                ],
+    "tags":  [
+                 "damage",
+                 "risk",
+                 "berserker"
+             ],
+    "cluster":  "berserker:rage_star"
 }

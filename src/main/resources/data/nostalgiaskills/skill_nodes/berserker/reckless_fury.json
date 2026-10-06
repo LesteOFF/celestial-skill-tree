@@ -5,8 +5,8 @@
   "sector": "berserker",
   "type": "keystone",
   "position": {
-    "x": -397.0,
-    "y": 687.5
+    "x": -1821.3036,
+    "y": -1001.3767
   },
   "name": "skill.nostalgiaskills.berserker.reckless_fury.name",
   "description": "skill.nostalgiaskills.berserker.reckless_fury.description",
@@ -38,6 +38,5 @@
     "risk",
     "berserker"
   ],
-  "cluster": "berserker:keystone_fury",
-  "exclusive_group": "berserker_oath"
+  "cluster": "berserker:keystone_fury"
 }

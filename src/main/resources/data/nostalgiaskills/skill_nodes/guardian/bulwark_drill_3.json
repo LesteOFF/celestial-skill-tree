@@ -1,35 +1,39 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:guardian/bulwark_drill_3",
-  "tree": "nostalgiaskills:main",
-  "sector": "guardian",
-  "type": "minor",
-  "position": {
-    "x": -343.0,
-    "y": -414.0
-  },
-  "name": "skill.nostalgiaskills.guardian.bulwark_drill_3.name",
-  "description": "skill.nostalgiaskills.guardian.bulwark_drill_3.description",
-  "icon": "nostalgiaskills:textures/skill_icons/defense.png",
-  "frame": "bronze_circle",
-  "cost": 1,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:damage_reduction",
-      "operation": "add_value",
-      "amount": 0.005
-    }
-  ],
-  "tags": [
-    "defense",
-    "guardian"
-  ],
-  "cluster": "guardian:armoury"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:guardian/bulwark_drill_3",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "guardian",
+    "type":  "minor",
+    "position":  {
+                     "x":  613.3291,
+                     "y":  -1266.8746
+                 },
+    "name":  "skill.nostalgiaskills.guardian.bulwark_drill_3.name",
+    "description":  "skill.nostalgiaskills.guardian.bulwark_drill_3.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/defense.png",
+    "frame":  "bronze_circle",
+    "cost":  1,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "nostalgiaskills:damage_reduction",
+                        "operation":  "add_value",
+                        "amount":  0.005
+                    }
+                ],
+    "tags":  [
+                 "defense",
+                 "guardian"
+             ],
+    "cluster":  "guardian:armoury"
 }

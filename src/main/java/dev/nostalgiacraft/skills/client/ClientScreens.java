@@ -8,9 +8,9 @@ public final class ClientScreens {
     }
 
     public static void open(boolean resetMode) {
-        Minecraft mc = Minecraft.getInstance();
+        Minecraft minecraft = Minecraft.getInstance();
         SkillTreeScreen screen = new SkillTreeScreen();
-        mc.setScreen(screen);
+        minecraft.setScreen(screen);
         if (resetMode) {
             screen.openResetPanel();
         }

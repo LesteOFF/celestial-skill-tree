@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/** Errors block a snapshot from becoming active; warnings are authoring diagnostics only. */
 public final class ValidationReport {
     public enum Severity { ERROR, WARNING }
 

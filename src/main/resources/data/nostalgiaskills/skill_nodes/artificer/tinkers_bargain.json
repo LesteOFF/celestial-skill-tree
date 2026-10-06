@@ -5,8 +5,8 @@
   "sector": "artificer",
   "type": "keystone",
   "position": {
-    "x": 530.0,
-    "y": 518.5
+    "x": -1223.7004,
+    "y": 1506.8333
   },
   "name": "skill.nostalgiaskills.artificer.tinkers_bargain.name",
   "description": "skill.nostalgiaskills.artificer.tinkers_bargain.description",
@@ -38,6 +38,5 @@
     "tools",
     "artificer"
   ],
-  "cluster": "artificer:keystone_tinker",
-  "exclusive_group": "artificer_craft"
+  "cluster": "artificer:keystone_tinker"
 }

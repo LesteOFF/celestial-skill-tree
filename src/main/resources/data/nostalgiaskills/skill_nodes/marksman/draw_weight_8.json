@@ -1,36 +1,40 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:marksman/draw_weight_8",
-  "tree": "nostalgiaskills:main",
-  "sector": "marksman",
-  "type": "minor",
-  "position": {
-    "x": 656.0,
-    "y": -259.5
-  },
-  "name": "skill.nostalgiaskills.marksman.draw_weight_8.name",
-  "description": "skill.nostalgiaskills.marksman.draw_weight_8.description",
-  "icon": "nostalgiaskills:textures/skill_icons/bow.png",
-  "frame": "bronze_circle",
-  "cost": 1,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:charged_shot_damage",
-      "operation": "add_value",
-      "amount": 0.03
-    }
-  ],
-  "tags": [
-    "bow",
-    "damage",
-    "marksman"
-  ],
-  "cluster": "marksman:rangefinder"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:marksman/draw_weight_8",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "marksman",
+    "type":  "minor",
+    "position":  {
+                     "x":  919.303,
+                     "y":  1601.8757
+                 },
+    "name":  "skill.nostalgiaskills.marksman.draw_weight_8.name",
+    "description":  "skill.nostalgiaskills.marksman.draw_weight_8.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/bow.png",
+    "frame":  "bronze_circle",
+    "cost":  1,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "nostalgiaskills:charged_shot_damage",
+                        "operation":  "add_value",
+                        "amount":  0.03
+                    }
+                ],
+    "tags":  [
+                 "bow",
+                 "damage",
+                 "marksman"
+             ],
+    "cluster":  "marksman:rangefinder"
 }

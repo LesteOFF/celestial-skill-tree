@@ -14,10 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * The verified tree shipped inside the mod jar, read straight from the classpath (bypassing datapacks) using the
- * index written by tools/layout/export.py. Used only when the datapack-assembled tree fails on initial load.
- */
 public final class BundledTree {
     public static final String INDEX = "/nostalgiaskills_bundled_index.json";
 
@@ -37,19 +33,19 @@ public final class BundledTree {
 
     private static void fill(JsonElement index, String dir, Map<String, JsonElement> out) throws IOException {
         List<JsonElement> paths = index.getAsJsonObject().getAsJsonArray(dir).asList();
-        for (JsonElement p : paths) {
-            String path = p.getAsString();
+        for (JsonElement element : paths) {
+            String path = element.getAsString();
             out.put(NostalgiaSkills.MODID + ":" + path, read("/data/" + NostalgiaSkills.MODID + "/" + dir + "/" + path + ".json"));
         }
     }
 
     private static JsonElement read(String resource) throws IOException {
-        try (InputStream in = BundledTree.class.getResourceAsStream(resource)) {
-            if (in == null) {
+        try (InputStream inputStream = BundledTree.class.getResourceAsStream(resource)) {
+            if (inputStream == null) {
                 throw new IOException("missing bundled resource " + resource);
             }
-            try (Reader r = new InputStreamReader(in, StandardCharsets.UTF_8)) {
-                return JsonParser.parseReader(r);
+            try (Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
+                return JsonParser.parseReader(reader);
             }
         }
     }

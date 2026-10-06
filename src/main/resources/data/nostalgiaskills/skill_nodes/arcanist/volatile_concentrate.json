@@ -5,8 +5,8 @@
   "sector": "arcanist",
   "type": "keystone",
   "position": {
-    "x": 185.5,
-    "y": -450.5
+    "x": 1262.9625,
+    "y": -178.3784
   },
   "name": "skill.nostalgiaskills.arcanist.volatile_concentrate.name",
   "description": "skill.nostalgiaskills.arcanist.volatile_concentrate.description",
@@ -38,6 +38,5 @@
     "potion",
     "arcanist"
   ],
-  "cluster": "arcanist:keystone_concentrate",
-  "exclusive_group": "arcanist_formula"
+  "cluster": "arcanist:keystone_concentrate"
 }

@@ -1,36 +1,40 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:guardian/vitality_12",
-  "tree": "nostalgiaskills:main",
-  "sector": "guardian",
-  "type": "minor",
-  "position": {
-    "x": -497.5,
-    "y": -382.5
-  },
-  "name": "skill.nostalgiaskills.guardian.vitality_12.name",
-  "description": "skill.nostalgiaskills.guardian.vitality_12.description",
-  "icon": "nostalgiaskills:textures/skill_icons/health.png",
-  "frame": "bronze_circle",
-  "cost": 1,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "minecraft:generic.max_health",
-      "operation": "add_value",
-      "amount": 1.0
-    }
-  ],
-  "tags": [
-    "health",
-    "defense",
-    "guardian"
-  ],
-  "cluster": "guardian:east_tower"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:guardian/vitality_12",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "guardian",
+    "type":  "minor",
+    "position":  {
+                     "x":  622.9713,
+                     "y":  -1520.2427
+                 },
+    "name":  "skill.nostalgiaskills.guardian.vitality_12.name",
+    "description":  "skill.nostalgiaskills.guardian.vitality_12.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/health.png",
+    "frame":  "bronze_circle",
+    "cost":  1,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "minecraft:generic.max_health",
+                        "operation":  "add_value",
+                        "amount":  1.0
+                    }
+                ],
+    "tags":  [
+                 "health",
+                 "defense",
+                 "guardian"
+             ],
+    "cluster":  "guardian:east_tower"
 }

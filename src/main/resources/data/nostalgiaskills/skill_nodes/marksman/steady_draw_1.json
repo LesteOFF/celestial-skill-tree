@@ -1,36 +1,40 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:marksman/steady_draw_1",
-  "tree": "nostalgiaskills:main",
-  "sector": "marksman",
-  "type": "minor",
-  "position": {
-    "x": 583.5,
-    "y": 36.5
-  },
-  "name": "skill.nostalgiaskills.marksman.steady_draw_1.name",
-  "description": "skill.nostalgiaskills.marksman.steady_draw_1.description",
-  "icon": "nostalgiaskills:textures/skill_icons/projectile.png",
-  "frame": "bronze_circle",
-  "cost": 1,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:long_range_damage",
-      "operation": "add_value",
-      "amount": 0.03
-    }
-  ],
-  "tags": [
-    "projectile",
-    "range",
-    "marksman"
-  ],
-  "cluster": "marksman:bow_limb"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:marksman/steady_draw_1",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "marksman",
+    "type":  "minor",
+    "position":  {
+                     "x":  420.0901,
+                     "y":  1471.8312
+                 },
+    "name":  "skill.nostalgiaskills.marksman.steady_draw_1.name",
+    "description":  "skill.nostalgiaskills.marksman.steady_draw_1.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/projectile.png",
+    "frame":  "bronze_circle",
+    "cost":  1,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "nostalgiaskills:long_range_damage",
+                        "operation":  "add_value",
+                        "amount":  0.03
+                    }
+                ],
+    "tags":  [
+                 "projectile",
+                 "range",
+                 "marksman"
+             ],
+    "cluster":  "marksman:bow_limb"
 }

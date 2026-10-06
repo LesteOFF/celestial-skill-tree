@@ -25,12 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * Development-only visual QA harness. Active only when the JVM is started with -Dnostalgiaskills.visualqa=true
- * (gradle: -Pvisualqa). It renders the real SkillTreeScreen with fixture builds (no server involved; nothing is
- * purchased) at the resolutions and GUI scales required by the design, saves screenshots to
- * run/screenshots/nostalgiaskills_qa_*.png, then closes the client.
- */
 @EventBusSubscriber(modid = NostalgiaSkills.MODID, value = Dist.CLIENT)
 public final class VisualQa {
     private static final boolean ENABLED = Boolean.getBoolean("nostalgiaskills.visualqa");
@@ -53,9 +47,9 @@ public final class VisualQa {
         if (!ENABLED || done) {
             return;
         }
-        Minecraft mc = Minecraft.getInstance();
+        Minecraft minecraft = Minecraft.getInstance();
         if (shots == null) {
-            if (mc.getOverlay() != null || !(mc.screen instanceof TitleScreen || mc.screen != null)) {
+            if (minecraft.getOverlay() != null || !(minecraft.screen instanceof TitleScreen || minecraft.screen != null)) {
                 return;
             }
             try {
@@ -68,25 +62,25 @@ public final class VisualQa {
             }
             shots = plan();
             NostalgiaSkills.LOGGER.info("Visual QA: {} shots planned", shots.size());
-            next(mc);
+            next(minecraft);
             return;
         }
         if (--wait > 0) {
-            if (wait == SETTLE_TICKS - 4 && mc.screen instanceof SkillTreeScreen sc) {
-                shots.get(index).setup().accept(sc);   // after the window resize has settled
+            if (wait == SETTLE_TICKS - 4 && minecraft.screen instanceof SkillTreeScreen screen) {
+                shots.get(index).setup().accept(screen);
             }
             return;
         }
         Shot s = shots.get(index);
         String file = "nostalgiaskills_qa_" + s.name() + ".png";
-        Screenshot.grab(mc.gameDirectory, file, mc.getMainRenderTarget(), msg -> { });
+        Screenshot.grab(minecraft.gameDirectory, file, minecraft.getMainRenderTarget(), msg -> { });
         NostalgiaSkills.LOGGER.info("Visual QA: captured {} ({}x{} window, gui scale {}, framebuffer {}x{}, gui {}x{}, {} fps)",
-                file, s.w(), s.h(), s.gui(), mc.getWindow().getWidth(), mc.getWindow().getHeight(),
-                mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight(), mc.getFps());
-        next(mc);
+                file, s.w(), s.h(), s.gui(), minecraft.getWindow().getWidth(), minecraft.getWindow().getHeight(),
+                minecraft.getWindow().getGuiScaledWidth(), minecraft.getWindow().getGuiScaledHeight(), minecraft.getFps());
+        next(minecraft);
     }
 
-    private static void next(Minecraft mc) {
+    private static void next(Minecraft minecraft) {
         index++;
         if (index >= shots.size()) {
             NostalgiaSkills.LOGGER.info("Visual QA: fixture shots finished; starting in-world scenario");
@@ -95,39 +89,37 @@ public final class VisualQa {
             return;
         }
         Shot s = shots.get(index);
-        if (mc.getWindow().getWidth() != s.w() || mc.getWindow().getHeight() != s.h()) {
-            mc.getWindow().setWindowed(s.w(), s.h());
+        if (minecraft.getWindow().getWidth() != s.w() || minecraft.getWindow().getHeight() != s.h()) {
+            minecraft.getWindow().setWindowed(s.w(), s.h());
         }
-        mc.options.guiScale().set(s.gui());
-        mc.resizeDisplay();
+        minecraft.options.guiScale().set(s.gui());
+        minecraft.resizeDisplay();
         ClientConfig.REDUCED_MOTION.set(s.name().contains("reduced_motion"));
         ClientConfig.HIGH_CONTRAST.set(s.name().contains("high_contrast"));
         loadFixture(s.fixture());
-        mc.setScreen(new SkillTreeScreen());
+        minecraft.setScreen(new SkillTreeScreen());
         wait = SETTLE_TICKS;
     }
-
-    // ------------------------------------------------------------------ fixtures (test scenarios, never real progression)
 
     private static String id(String path) {
         return NostalgiaSkills.MODID + ":" + path;
     }
 
     private static PlayerSkillState build(int points, String start, String... targets) {
-        PlayerSkillState s = new PlayerSkillState();
-        LedgerService.grant(s, points, 10_000, true);
+        PlayerSkillState state = new PlayerSkillState();
+        LedgerService.grant(state, points, 10_000, true);
         if (start != null) {
-            AllocationService.confirm(graph, s, List.of(id(start)));
+            AllocationService.confirm(graph, state, List.of(id(start)));
         }
         for (String t : targets) {
-            PathFinder.route(graph, s, List.of(), id(t)).filter(PathFinder.Route::valid)
-                    .ifPresent(r -> AllocationService.confirm(graph, s, r.newNodes()));
+            PathFinder.route(graph, state, List.of(), id(t)).filter(PathFinder.Route::valid)
+                    .ifPresent(r -> AllocationService.confirm(graph, state, r.newNodes()));
         }
-        return s;
+        return state;
     }
 
     private static void loadFixture(String name) {
-        PlayerSkillState s = switch (name) {
+        PlayerSkillState state = switch (name) {
             case "fresh" -> build(0, null);
             case "focused" -> build(60, "guardian/hub", "guardian/bastion", "guardian/warden", "guardian/gatekeeper",
                     "guardian/shield_drill");
@@ -138,12 +130,12 @@ public final class VisualQa {
             default -> build(0, null);
         };
         int level = name.equals("insufficient") ? 3 : 24;
-        Payloads.Economy eco = new Payloads.Economy(100 + 20 * 0, 120, true, true, true, false);
-        ClientSkillState.loadFixture(graph, s, eco, level, 0.4f);
+        Payloads.Economy economy = new Payloads.Economy(100 + 20 * 0, 120, true, true, true, false);
+        ClientSkillState.loadFixture(graph, state, economy, level, 0.4f);
     }
 
-    private static List<String> routeTo(String fixtureTarget, PlayerSkillState s) {
-        return PathFinder.route(graph, s, List.of(), id(fixtureTarget)).map(PathFinder.Route::newNodes).orElse(List.of());
+    private static List<String> routeTo(String fixtureTarget, PlayerSkillState state) {
+        return PathFinder.route(graph, state, List.of(), id(fixtureTarget)).map(PathFinder.Route::newNodes).orElse(List.of());
     }
 
     private static List<Shot> plan() {
@@ -159,8 +151,8 @@ public final class VisualQa {
         l.add(new Shot("focused_guardian_1280x720", 1280, 720, 2, "focused", sc -> sc.qaZoom(1.1, "guardian/hub")));
         l.add(new Shot("hybrid_closeup_1280x720", 1280, 720, 2, "hybrid", sc -> sc.qaZoom(1.0, "duelist/hub")));
         l.add(new Shot("pending_changes_1280x720", 1280, 720, 2, "hybrid", sc -> {
-            PlayerSkillState s = ClientSkillState.state().orElseThrow();
-            sc.qaSetup(routeTo("berserker/frenzy", s), false, false);
+            PlayerSkillState state = ClientSkillState.state().orElseThrow();
+            sc.qaSetup(routeTo("berserker/frenzy", state), false, false);
             sc.qaZoom(0.9, "berserker/frenzy");
         }));
         l.add(new Shot("route_preview_tooltip_1280x720", 1280, 720, 2, "hybrid", sc -> {
@@ -172,8 +164,8 @@ public final class VisualQa {
             sc.qaHover(id("duelist/thousand_cuts"));
         }));
         l.add(new Shot("insufficient_points_1280x720", 1280, 720, 2, "insufficient", sc -> {
-            PlayerSkillState s = ClientSkillState.state().orElseThrow();
-            sc.qaSetup(routeTo("marksman/long_shot", s), false, false);
+            PlayerSkillState state = ClientSkillState.state().orElseThrow();
+            sc.qaSetup(routeTo("marksman/long_shot", state), false, false);
             sc.qaZoom(1.2, "marksman/nocking_point");
             sc.qaHover(id("marksman/nocking_point"));
         }));
@@ -181,13 +173,17 @@ public final class VisualQa {
             sc.qaFit();
             sc.qaSetup(List.of(), true, false);
         }));
+        l.add(new Shot("portal_tooltip_1280x720", 1280, 720, 2, "hybrid", sc -> {
+            sc.qaZoom(0.6, "portal/east");
+            sc.qaHover(id("portal/east"));
+        }));
         l.add(new Shot("reset_panel_1280x720", 1280, 720, 2, "hybrid", sc -> {
             sc.qaFit();
             sc.qaSetup(List.of(), false, true);
         }));
         l.add(new Shot("refund_panel_1280x720", 1280, 720, 2, "focused", sc -> {
-            PlayerSkillState s = ClientSkillState.state().orElseThrow();
-            String target = s.orderedAllocations().get(1).nodeId();
+            PlayerSkillState state = ClientSkillState.state().orElseThrow();
+            String target = state.orderedAllocations().get(1).nodeId();
             sc.qaZoom(1.1, target);
             sc.qaRefund(target);
         }));

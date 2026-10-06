@@ -13,71 +13,65 @@ import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
-/**
- * Player lifecycle: every path that creates or reloads a player entity ends in reconcile + effect refresh + sync,
- * so the persisted attachment is always the single source of confirmed allocations.
- */
 @EventBusSubscriber(modid = NostalgiaSkills.MODID)
 public final class LifecycleEvents {
     private LifecycleEvents() {
     }
 
-    @SubscribeEvent
-    public static void onAddReloadListeners(AddReloadListenerEvent e) {
-        e.addListener(new SkillTreeReloadListener());
+    private static void reconcileAndSync(ServerPlayer player) {
+        SkillService.reconcileAndRefresh(player);
+        SkillService.sendState(player);
     }
 
-    /** Fires after /reload (all players) and for each joining player. */
     @SubscribeEvent
-    public static void onDatapackSync(OnDatapackSyncEvent e) {
-        e.getRelevantPlayers().forEach(p -> {
-            SkillService.reconcileAndRefresh(p);
-            SkillService.sendGraph(p);
-            SkillService.sendState(p);
+    public static void onAddReloadListeners(AddReloadListenerEvent event) {
+        event.addListener(new SkillTreeReloadListener());
+    }
+
+    @SubscribeEvent
+    public static void onDatapackSync(OnDatapackSyncEvent event) {
+        event.getRelevantPlayers().forEach(player -> {
+            SkillService.reconcileAndRefresh(player);
+            SkillService.sendGraph(player);
+            SkillService.sendState(player);
         });
     }
 
     @SubscribeEvent
-    public static void onLogin(PlayerEvent.PlayerLoggedInEvent e) {
-        if (e.getEntity() instanceof ServerPlayer p) {
-            SkillService.reconcileAndRefresh(p);
-            SkillService.sendState(p);
+    public static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            reconcileAndSync(player);
         }
     }
 
     @SubscribeEvent
-    public static void onLogout(PlayerEvent.PlayerLoggedOutEvent e) {
-        if (e.getEntity() instanceof ServerPlayer p) {
-            SkillService.forget(p);
-            EffectEngine.forget(p);
-            GameplayEvents.forget(p.getUUID());
-        }
-    }
-
-    /**
-     * Death: copy the state exactly once here when keepOnDeath is enabled (the attachment is not copyOnDeath).
-     * Non-death clones (returning from the End) are copied by NeoForge itself.
-     */
-    @SubscribeEvent
-    public static void onClone(PlayerEvent.Clone e) {
-        if (e.isWasDeath() && ServerConfig.KEEP_ON_DEATH.get()) {
-            ModAttachments.setState(e.getEntity(), ModAttachments.state(e.getOriginal()).copy());
+    public static void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            SkillService.forget(player);
+            EffectEngine.forget(player);
+            GameplayEvents.forget(player.getUUID());
         }
     }
 
     @SubscribeEvent
-    public static void onRespawn(PlayerEvent.PlayerRespawnEvent e) {
-        if (e.getEntity() instanceof ServerPlayer p) {
-            SkillService.reconcileAndRefresh(p);
-            SkillService.sendState(p);
+    public static void onClone(PlayerEvent.Clone event) {
+        if (event.isWasDeath() && ServerConfig.KEEP_ON_DEATH.get()) {
+            ModAttachments.setState(event.getEntity(), ModAttachments.state(event.getOriginal()).copy());
         }
     }
 
     @SubscribeEvent
-    public static void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent e) {
-        if (e.getEntity() instanceof ServerPlayer p) {
-            EffectEngine.refresh(p);
-            SkillService.sendState(p);
+    public static void onRespawn(PlayerEvent.PlayerRespawnEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            reconcileAndSync(player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            EffectEngine.refresh(player);
+            SkillService.sendState(player);
         }
     }
 }

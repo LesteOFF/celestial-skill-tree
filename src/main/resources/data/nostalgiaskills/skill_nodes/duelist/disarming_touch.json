@@ -1,40 +1,44 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:duelist/disarming_touch",
-  "tree": "nostalgiaskills:main",
-  "sector": "duelist",
-  "type": "notable",
-  "position": {
-    "x": -420.0,
-    "y": 132.0
-  },
-  "name": "skill.nostalgiaskills.duelist.disarming_touch.name",
-  "description": "skill.nostalgiaskills.duelist.disarming_touch.description",
-  "icon": "nostalgiaskills:textures/skill_icons/critical.png",
-  "frame": "violet_facet",
-  "cost": 2,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "trigger",
-      "trigger": "on_crit",
-      "action": {
-        "type": "target_effect",
-        "effect": "minecraft:weakness",
-        "duration_ticks": 60,
-        "amplifier": 0
-      },
-      "cooldown_ticks": 100
-    }
-  ],
-  "tags": [
-    "critical",
-    "duelist"
-  ],
-  "cluster": "duelist:disarm"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:duelist/disarming_touch",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "duelist",
+    "type":  "notable",
+    "position":  {
+                     "x":  -931.6325,
+                     "y":  -678.6385
+                 },
+    "name":  "skill.nostalgiaskills.duelist.disarming_touch.name",
+    "description":  "skill.nostalgiaskills.duelist.disarming_touch.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/critical.png",
+    "frame":  "violet_facet",
+    "cost":  2,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "trigger",
+                        "trigger":  "on_crit",
+                        "action":  {
+                                       "type":  "target_effect",
+                                       "effect":  "minecraft:weakness",
+                                       "duration_ticks":  60,
+                                       "amplifier":  0
+                                   },
+                        "cooldown_ticks":  100
+                    }
+                ],
+    "tags":  [
+                 "critical",
+                 "duelist"
+             ],
+    "cluster":  "duelist:disarm"
 }

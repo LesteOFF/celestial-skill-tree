@@ -1,36 +1,40 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:marksman/hub",
-  "tree": "nostalgiaskills:main",
-  "sector": "marksman",
-  "type": "root",
-  "position": {
-    "x": 180.0,
-    "y": 0.0
-  },
-  "name": "skill.nostalgiaskills.marksman.hub.name",
-  "description": "skill.nostalgiaskills.marksman.hub.description",
-  "icon": "nostalgiaskills:textures/skill_icons/hub_marksman.png",
-  "frame": "stone_medallion",
-  "cost": 1,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:projectile_damage",
-      "operation": "add_value",
-      "amount": 0.03
-    }
-  ],
-  "tags": [
-    "hub",
-    "marksman"
-  ],
-  "cluster": "marksman:hub",
-  "root": true
+    "schema_version":  1,
+    "id":  "nostalgiaskills:marksman/hub",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "marksman",
+    "type":  "root",
+    "position":  {
+                     "x":  471.2461,
+                     "y":  0
+                 },
+    "name":  "skill.nostalgiaskills.marksman.hub.name",
+    "description":  "skill.nostalgiaskills.marksman.hub.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/hub_marksman.png",
+    "frame":  "stone_medallion",
+    "cost":  1,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "nostalgiaskills:projectile_damage",
+                        "operation":  "add_value",
+                        "amount":  0.03
+                    }
+                ],
+    "tags":  [
+                 "hub",
+                 "marksman"
+             ],
+    "cluster":  "marksman:hub",
+    "root":  true
 }

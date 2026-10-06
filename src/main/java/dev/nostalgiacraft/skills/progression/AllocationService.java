@@ -7,21 +7,16 @@ import dev.nostalgiacraft.skills.graph.SkillNodeDefinition;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Predicate;
 
-/**
- * Batch allocation rules shared by the server (authoritative) and the client (preview only).
- * A batch is accepted when some purchase order exists: starting from the confirmed build, eligible nodes are
- * accepted repeatedly until nothing changes. Any node left over rejects the whole batch.
- */
 public final class AllocationService {
-    public static final int MAX_BATCH = 400; // keeps a worst-case request below the 32 KiB client-to-server limit
+    public static final int MAX_BATCH = 400;
 
     public record Accepted(String nodeId, int cost, boolean startingRoot) {
     }
@@ -29,183 +24,209 @@ public final class AllocationService {
     public record Rejection(RejectReason reason, String nodeId, String detail) {
     }
 
-    /** Outcome of an expansion; {@code rejected} lists nodes that could not be placed, with their reasons. */
     public record Expansion(List<Accepted> accepted, Map<String, Rejection> rejected) {
         public int totalCost() {
             return accepted.stream().mapToInt(Accepted::cost).sum();
+        }
+
+        public boolean choosesStartingRoot() {
+            return accepted.stream().anyMatch(Accepted::startingRoot);
         }
     }
 
     public record BatchResult(boolean ok, List<Accepted> accepted, int totalCost, Optional<Rejection> rejection) {
         static BatchResult reject(RejectReason reason, String nodeId, String detail) {
-            return new BatchResult(false, List.of(), 0, Optional.of(new Rejection(reason, nodeId, detail)));
+            return reject(new Rejection(reason, nodeId, detail));
+        }
+
+        static BatchResult reject(Rejection rejection) {
+            return new BatchResult(false, List.of(), 0, Optional.of(rejection));
         }
     }
 
     private AllocationService() {
     }
 
-    /** Validates a full batch including costs. Does not mutate the state. */
-    public static BatchResult validate(SkillGraphSnapshot g, PlayerSkillState state, Collection<String> request) {
-        if (request.isEmpty()) {
-            return BatchResult.reject(RejectReason.EMPTY_REQUEST, "", "");
-        }
-        if (request.size() > MAX_BATCH) {
-            return BatchResult.reject(RejectReason.REQUEST_TOO_LARGE, "", String.valueOf(request.size()));
-        }
+    public static BatchResult validate(SkillGraphSnapshot graph, PlayerSkillState state, Collection<String> request) {
         Set<String> ids = new TreeSet<>(request);
-        for (String id : ids) {
-            if (!g.contains(id)) {
-                return BatchResult.reject(RejectReason.UNKNOWN_NODE, id, "");
-            }
-            if (state.isAllocated(id)) {
-                return BatchResult.reject(RejectReason.ALREADY_ALLOCATED, id, "");
-            }
+        Optional<Rejection> malformed = malformedRequest(graph, state, request, ids);
+        if (malformed.isPresent()) {
+            return BatchResult.reject(malformed.get());
         }
-        if (state.startingRoot().isEmpty()) {
-            long roots = ids.stream().filter(id -> g.nodes().get(id).isRoot()).count();
-            if (roots == 0) {
-                return BatchResult.reject(RejectReason.STARTING_ROOT_REQUIRED, ids.iterator().next(), "");
-            }
-            if (roots > 1) {
-                return BatchResult.reject(RejectReason.MULTIPLE_STARTING_ROOTS, "", String.valueOf(roots));
-            }
+        Expansion expansion = expand(graph, state, ids);
+        if (!expansion.rejected().isEmpty()) {
+            return BatchResult.reject(expansion.rejected().values().iterator().next());
         }
-        Expansion ex = expand(g, state, ids);
-        if (!ex.rejected().isEmpty()) {
-            Rejection first = ex.rejected().values().iterator().next();
-            return new BatchResult(false, List.of(), 0, Optional.of(first));
-        }
-        int total = ex.totalCost();
+        int total = expansion.totalCost();
         if (total > state.availablePoints()) {
             return BatchResult.reject(RejectReason.INSUFFICIENT_POINTS, "", total + "/" + state.availablePoints());
         }
-        return new BatchResult(true, ex.accepted(), total, Optional.empty());
+        return new BatchResult(true, expansion.accepted(), total, Optional.empty());
     }
 
-    /**
-     * Applies a previously validated batch atomically: debit, allocations with recorded prices, revision bump.
-     * Re-validates first so a stale result can never be applied.
-     */
-    public static BatchResult confirm(SkillGraphSnapshot g, PlayerSkillState state, Collection<String> request) {
-        BatchResult r = validate(g, state, request);
-        if (!r.ok()) {
-            return r;
+    private static Optional<Rejection> malformedRequest(SkillGraphSnapshot graph, PlayerSkillState state,
+                                                        Collection<String> request, Set<String> ids) {
+        if (request.isEmpty()) {
+            return Optional.of(new Rejection(RejectReason.EMPTY_REQUEST, "", ""));
         }
-        for (Accepted a : r.accepted()) {
-            if (a.startingRoot()) {
-                state.setStartingRoot(a.nodeId());
+        if (request.size() > MAX_BATCH) {
+            return Optional.of(new Rejection(RejectReason.REQUEST_TOO_LARGE, "", String.valueOf(request.size())));
+        }
+        for (String id : ids) {
+            if (!graph.contains(id)) {
+                return Optional.of(new Rejection(RejectReason.UNKNOWN_NODE, id, ""));
             }
-            state.allocate(a.nodeId(), a.cost());
+            if (state.isAllocated(id)) {
+                return Optional.of(new Rejection(RejectReason.ALREADY_ALLOCATED, id, ""));
+            }
+        }
+        return state.startingRoot().isPresent() ? Optional.empty() : startingRootProblem(graph, ids);
+    }
+
+    private static Optional<Rejection> startingRootProblem(SkillGraphSnapshot graph, Set<String> ids) {
+        long roots = ids.stream().filter(id -> graph.nodes().get(id).isRoot()).count();
+        if (roots == 0) {
+            return Optional.of(new Rejection(RejectReason.STARTING_ROOT_REQUIRED, ids.iterator().next(), ""));
+        }
+        if (roots > 1) {
+            return Optional.of(new Rejection(RejectReason.MULTIPLE_STARTING_ROOTS, "", String.valueOf(roots)));
+        }
+        return Optional.empty();
+    }
+
+    public static BatchResult confirm(SkillGraphSnapshot graph, PlayerSkillState state, Collection<String> request) {
+        BatchResult result = validate(graph, state, request);
+        if (!result.ok()) {
+            return result;
+        }
+        for (Accepted accepted : result.accepted()) {
+            if (accepted.startingRoot()) {
+                state.setStartingRoot(accepted.nodeId());
+            }
+            state.allocate(accepted.nodeId(), accepted.cost());
         }
         state.bumpRevision();
-        state.log("allocated " + r.accepted().size() + " node(s) for " + r.totalCost() + " point(s)");
-        return r;
+        state.log("allocated " + result.accepted().size() + " node(s) for " + result.totalCost() + " point(s)");
+        return result;
     }
 
-    /** Places as many requested nodes as possible in a valid order, ignoring point costs. */
-    public static Expansion expand(SkillGraphSnapshot g, PlayerSkillState state, Collection<String> request) {
-        Set<String> held = new LinkedHashSet<>(state.allocations().keySet());
-        Map<String, Integer> sectorPoints = new HashMap<>();
-        for (Allocation a : state.allocations().values()) {
-            g.node(a.nodeId()).ifPresent(n -> sectorPoints.merge(n.sector(), a.paidCost(), Integer::sum));
-        }
-        boolean needStart = state.startingRoot().isEmpty();
-        Set<String> remaining = new TreeSet<>(request);
-        remaining.removeAll(held);
-        List<Accepted> accepted = new ArrayList<>();
-        boolean progress = true;
-        while (progress && !remaining.isEmpty()) {
-            progress = false;
-            for (String id : List.copyOf(remaining)) {
-                SkillNodeDefinition n = g.nodes().get(id);
-                if (n == null) {
-                    continue;
-                }
-                boolean asStart = needStart && n.isRoot();
-                if (asStart || reason(g, n, held, sectorPoints) == null) {
-                    int cost = asStart ? 0 : n.cost();
-                    accepted.add(new Accepted(id, cost, asStart));
-                    held.add(id);
-                    sectorPoints.merge(n.sector(), cost, Integer::sum);
-                    remaining.remove(id);
-                    if (asStart) {
-                        needStart = false;
-                    }
-                    progress = true;
-                }
-            }
-        }
-        Map<String, Rejection> rejected = new java.util.LinkedHashMap<>();
-        for (String id : remaining) {
-            SkillNodeDefinition n = g.nodes().get(id);
-            if (n == null) {
-                rejected.put(id, new Rejection(RejectReason.UNKNOWN_NODE, id, ""));
-            } else {
-                Rejection why = reason(g, n, held, sectorPoints);
-                rejected.put(id, why != null ? why : new Rejection(RejectReason.NOT_CONNECTED, id, ""));
-            }
-        }
-        return new Expansion(List.copyOf(accepted), rejected);
+    public static Expansion expand(SkillGraphSnapshot graph, PlayerSkillState state, Collection<String> request) {
+        return new Placement(graph, state, request).placeAll();
     }
 
-    /** Why {@code n} cannot be allocated on top of {@code held}; null when it can. Cost is not considered. */
-    public static Rejection reason(SkillGraphSnapshot g, SkillNodeDefinition n, Set<String> held,
-                                   Map<String, Integer> sectorPoints) {
-        Optional<ExclusiveGroup> group = g.groupOf(n.id());
+    public static int priceOf(SkillGraphSnapshot graph, SkillNodeDefinition node, Predicate<String> held) {
+        return graph.portalDestination(node.id()).filter(held).isPresent() ? 0 : node.cost();
+    }
+
+    public static Holdings holdingsAfter(SkillGraphSnapshot graph, PlayerSkillState state, Expansion expansion) {
+        Holdings holdings = Holdings.of(graph, state);
+        expansion.accepted().forEach(accepted -> holdings.add(accepted.nodeId(), accepted.cost()));
+        return holdings;
+    }
+
+    public static Optional<Rejection> rejectionOf(SkillGraphSnapshot graph, SkillNodeDefinition node, Holdings holdings) {
+        if (!holdings.hasDiscovered(node)) {
+            return Optional.of(new Rejection(RejectReason.UNDISCOVERED, node.id(), node.traits().hiddenUntil().orElse("")));
+        }
+        Optional<String> sealer = holdings.amplifierSealing(node.id());
+        if (sealer.isPresent()) {
+            return Optional.of(new Rejection(RejectReason.CONSUMED, node.id(), sealer.get()));
+        }
+        Optional<ExclusiveGroup> group = graph.groupOf(node.id());
         if (group.isPresent()) {
-            List<String> active = group.get().members().stream().filter(held::contains).toList();
+            List<String> active = group.get().members().stream().filter(holdings::contains).toList();
             if (active.size() >= group.get().maxActive()) {
-                return new Rejection(RejectReason.EXCLUSIVE_CONFLICT, n.id(), active.get(0));
+                return Optional.of(new Rejection(RejectReason.EXCLUSIVE_CONFLICT, node.id(), active.get(0)));
             }
         }
-        boolean connected = g.accessFrom(n.id()).stream().anyMatch(held::contains);
-        if (!connected) {
-            return new Rejection(RejectReason.NOT_CONNECTED, n.id(), "");
+        if (graph.accessFrom(node.id()).stream().noneMatch(holdings::contains)) {
+            return Optional.of(new Rejection(RejectReason.NOT_CONNECTED, node.id(), ""));
         }
-        String unmet = RequirementCheck.firstUnmet(g, n, held, sectorPoints.getOrDefault(n.sector(), 0));
-        if (unmet != null) {
-            return new Rejection(RejectReason.REQUIREMENT_UNMET, n.id(), unmet);
-        }
-        return null;
+        String unmet = RequirementCheck.firstUnmet(graph, node, holdings.nodeIds(), holdings.pointsIn(node.sector()));
+        return Optional.ofNullable(unmet).map(term -> new Rejection(RejectReason.REQUIREMENT_UNMET, node.id(), term));
     }
 
-    /** Convenience for UI state: may this node be added on top of confirmed + pending? (no cost check) */
-    public static Rejection eligibility(SkillGraphSnapshot g, PlayerSkillState state, Collection<String> pending,
-                                        String id) {
-        SkillNodeDefinition n = g.nodes().get(id);
-        if (n == null) {
-            return new Rejection(RejectReason.UNKNOWN_NODE, id, "");
+    public static Optional<Rejection> eligibility(SkillGraphSnapshot graph, PlayerSkillState state,
+                                                  Collection<String> pending, String id) {
+        SkillNodeDefinition node = graph.nodes().get(id);
+        if (node == null) {
+            return Optional.of(new Rejection(RejectReason.UNKNOWN_NODE, id, ""));
         }
         if (state.isAllocated(id)) {
-            return new Rejection(RejectReason.ALREADY_ALLOCATED, id, "");
+            return Optional.of(new Rejection(RejectReason.ALREADY_ALLOCATED, id, ""));
         }
-        Expansion ex = expand(g, state, pending);
-        boolean startTaken = state.startingRoot().isPresent() || ex.accepted().stream().anyMatch(Accepted::startingRoot);
-        if (!startTaken) {
-            return n.isRoot() ? null : new Rejection(RejectReason.STARTING_ROOT_REQUIRED, id, "");
+        Set<String> otherPending = new TreeSet<>(pending);
+        otherPending.remove(id);
+        Expansion expansion = expand(graph, state, otherPending);
+        if (state.startingRoot().isEmpty() && !expansion.choosesStartingRoot()) {
+            return node.isRoot() ? Optional.empty() : Optional.of(new Rejection(RejectReason.STARTING_ROOT_REQUIRED, id, ""));
         }
-        Set<String> held = new LinkedHashSet<>(state.allocations().keySet());
-        Map<String, Integer> sectorPoints = new HashMap<>();
-        for (Allocation a : state.allocations().values()) {
-            g.node(a.nodeId()).ifPresent(d -> sectorPoints.merge(d.sector(), a.paidCost(), Integer::sum));
-        }
-        for (Accepted a : ex.accepted()) {
-            held.add(a.nodeId());
-            sectorPoints.merge(g.nodes().get(a.nodeId()).sector(), a.cost(), Integer::sum);
-        }
-        held.remove(id);
-        return reason(g, n, held, sectorPoints);
+        return rejectionOf(graph, node, holdingsAfter(graph, state, expansion));
     }
 
-    /**
-     * Pending nodes that stop being placeable when {@code removed} leaves the pending selection
-     * (the "dependent chain" offered for removal together with it).
-     */
-    public static Set<String> dependentsOfPendingRemoval(SkillGraphSnapshot g, PlayerSkillState state,
+    public static Set<String> dependentsOfPendingRemoval(SkillGraphSnapshot graph, PlayerSkillState state,
                                                         Collection<String> pending, String removed) {
         Set<String> rest = new TreeSet<>(pending);
         rest.remove(removed);
-        return new TreeSet<>(expand(g, state, rest).rejected().keySet());
+        return new TreeSet<>(expand(graph, state, rest).rejected().keySet());
+    }
+
+    private static final class Placement {
+        private final SkillGraphSnapshot graph;
+        private final Holdings holdings;
+        private final Set<String> remaining;
+        private final List<Accepted> accepted = new ArrayList<>();
+        private boolean needsStartingRoot;
+
+        Placement(SkillGraphSnapshot graph, PlayerSkillState state, Collection<String> request) {
+            this.graph = graph;
+            this.holdings = Holdings.of(graph, state);
+            this.needsStartingRoot = state.startingRoot().isEmpty();
+            this.remaining = new TreeSet<>(request);
+            this.remaining.removeAll(holdings.nodeIds());
+        }
+
+        Expansion placeAll() {
+            boolean progressed = true;
+            while (progressed && !remaining.isEmpty()) {
+                progressed = false;
+                for (String id : List.copyOf(remaining)) {
+                    progressed |= tryPlace(id);
+                }
+            }
+            return new Expansion(List.copyOf(accepted), rejections());
+        }
+
+        private boolean tryPlace(String id) {
+            SkillNodeDefinition node = graph.nodes().get(id);
+            if (node == null || holdings.contains(id)) {
+                return false;
+            }
+            boolean asStartingRoot = needsStartingRoot && node.isRoot();
+            if (!asStartingRoot && rejectionOf(graph, node, holdings).isPresent()) {
+                return false;
+            }
+            accept(id, asStartingRoot ? 0 : priceOf(graph, node, holdings::contains), asStartingRoot);
+            graph.portalDestination(id).filter(twin -> !holdings.contains(twin)).ifPresent(twin -> accept(twin, 0, false));
+            needsStartingRoot &= !asStartingRoot;
+            return true;
+        }
+
+        private void accept(String id, int cost, boolean asStartingRoot) {
+            accepted.add(new Accepted(id, cost, asStartingRoot));
+            holdings.add(id, cost);
+            remaining.remove(id);
+        }
+
+        private Map<String, Rejection> rejections() {
+            Map<String, Rejection> rejected = new LinkedHashMap<>();
+            for (String id : remaining) {
+                Rejection rejection = graph.node(id)
+                        .map(node -> rejectionOf(graph, node, holdings).orElse(new Rejection(RejectReason.NOT_CONNECTED, id, "")))
+                        .orElse(new Rejection(RejectReason.UNKNOWN_NODE, id, ""));
+                rejected.put(id, rejection);
+            }
+            return rejected;
+        }
     }
 }

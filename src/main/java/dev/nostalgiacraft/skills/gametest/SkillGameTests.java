@@ -1,40 +1,60 @@
 package dev.nostalgiacraft.skills.gametest;
 
 import dev.nostalgiacraft.skills.NostalgiaSkills;
+import dev.nostalgiacraft.skills.config.ServerConfig;
 import dev.nostalgiacraft.skills.data.SkillTreeManager;
+import dev.nostalgiacraft.skills.data.WorldSkillData;
 import dev.nostalgiacraft.skills.effects.EffectEngine;
+import dev.nostalgiacraft.skills.effects.EliteMobs;
+import dev.nostalgiacraft.skills.graph.CommunityTier;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.progression.AllocationService;
+import dev.nostalgiacraft.skills.progression.CommunityProgress;
 import dev.nostalgiacraft.skills.progression.LedgerService;
 import dev.nostalgiacraft.skills.progression.PathFinder;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.progression.ProgressionService;
 import dev.nostalgiacraft.skills.progression.RefundService;
+import dev.nostalgiacraft.skills.progression.RejectReason;
 import dev.nostalgiacraft.skills.progression.RespecService;
 import dev.nostalgiacraft.skills.progression.XpCurve;
 import dev.nostalgiacraft.skills.progression.XpMath;
+import dev.nostalgiacraft.skills.registry.FallenStarItem;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
 import dev.nostalgiacraft.skills.registry.ModAttributes;
+import dev.nostalgiacraft.skills.registry.ModItems;
+import dev.nostalgiacraft.skills.registry.StarFragmentItem;
+import dev.nostalgiacraft.skills.registry.StateCodecs;
+import dev.nostalgiacraft.skills.server.CommunityTree;
+import dev.nostalgiacraft.skills.server.Eclipse;
+import dev.nostalgiacraft.skills.server.FallenStars;
+import dev.nostalgiacraft.skills.server.ShootingStars;
 import dev.nostalgiacraft.skills.server.SkillService;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Cow;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameType;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
-/**
- * In-game tests run by {@code ./gradlew runGameTestServer} on a real server with mock players. They exercise the
- * Minecraft-facing layer (attachments, attribute modifiers, damage events, XP fields) on top of the unit-tested domain.
- */
 @GameTestHolder(NostalgiaSkills.MODID)
 @PrefixGameTestTemplate(false)
 public final class SkillGameTests {
@@ -47,19 +67,18 @@ public final class SkillGameTests {
         return SkillTreeManager.graph().orElseThrow(() -> new IllegalStateException("no skill tree loaded"));
     }
 
-    /** Gives points administratively and allocates hub + cheapest routes to the targets. */
-    private static PlayerSkillState build(GameTestHelper h, ServerPlayer p, String hub, String... targets) {
+    private static PlayerSkillState build(GameTestHelper h, ServerPlayer player, String hub, String... targets) {
         SkillGraphSnapshot g = graph(h);
-        PlayerSkillState s = ModAttachments.state(p);
-        LedgerService.grant(s, 60, 120, false);
-        h.assertTrue(AllocationService.confirm(g, s, List.of(NS + hub)).ok(), "hub " + hub);
+        PlayerSkillState state = ModAttachments.state(player);
+        LedgerService.grant(state, 60, 120, false);
+        h.assertTrue(AllocationService.confirm(g, state, List.of(NS + hub)).ok(), "hub " + hub);
         for (String t : targets) {
-            PathFinder.Route r = PathFinder.route(g, s, List.of(), NS + t).orElseThrow();
-            h.assertTrue(r.valid(), "route to " + t);
-            h.assertTrue(AllocationService.confirm(g, s, r.newNodes()).ok(), "confirm " + t);
+            PathFinder.Route route = PathFinder.route(g, state, List.of(), NS + t).orElseThrow();
+            h.assertTrue(route.valid(), "route to " + t);
+            h.assertTrue(AllocationService.confirm(g, state, route.newNodes()).ok(), "confirm " + t);
         }
-        EffectEngine.refresh(p);
-        return s;
+        EffectEngine.refresh(player);
+        return state;
     }
 
     private static void near(GameTestHelper h, double expected, double actual, String what) {
@@ -68,44 +87,43 @@ public final class SkillGameTests {
 
     @GameTest(template = "empty")
     public static void twoPlayersHaveIndependentBalancesAndBuilds(GameTestHelper h) {
-        ServerPlayer a = h.makeMockServerPlayerInLevel();
+        ServerPlayer player = h.makeMockServerPlayerInLevel();
         ServerPlayer b = h.makeMockServerPlayerInLevel();
-        SkillService.setExperience(a, 1395);
-        ProgressionService.PurchaseResult r = ProgressionService.purchasePoint(ModAttachments.state(a),
-                XpMath.balance(a.experienceLevel, a.experienceProgress), ProgressionService.Settings.DEFAULT);
-        h.assertTrue(r.ok(), "purchase");
-        SkillService.setExperience(a, r.newXpTotal());
-        build(h, a, "guardian/hub", "guardian/gatekeeper");
-        near(h, 29.0, a.getAttributeValue(Attributes.MAX_HEALTH), "player A max health");
+        SkillService.setExperience(player, 1395);
+        ProgressionService.PurchaseResult result = ProgressionService.purchasePoint(ModAttachments.state(player),
+                XpMath.balance(player.experienceLevel, player.experienceProgress), ProgressionService.Settings.DEFAULT);
+        h.assertTrue(result.ok(), "purchase");
+        SkillService.setExperience(player, result.newXpTotal());
+        build(h, player, "guardian/hub", "guardian/gatekeeper");
+        near(h, 29.0, player.getAttributeValue(Attributes.MAX_HEALTH), "player A max health");
         near(h, 20.0, b.getAttributeValue(Attributes.MAX_HEALTH), "player B max health");
         h.assertTrue(ModAttachments.state(b).allocations().isEmpty(), "player B has no allocations");
         h.assertTrue(ModAttachments.state(b).purchasedPoints() == 0, "player B bought nothing");
-        h.assertTrue(ModAttachments.state(a).purchasedPoints() == 1, "player A bought one point");
+        h.assertTrue(ModAttachments.state(player).purchasedPoints() == 1, "player A bought one point");
         h.succeed();
     }
 
     @GameTest(template = "empty")
     public static void xpDebitKeepsLevelBarAndTotalConsistent(GameTestHelper h) {
-        ServerPlayer p = h.makeMockServerPlayerInLevel();
+        ServerPlayer player = h.makeMockServerPlayerInLevel();
         for (long start : new long[]{100, 352, 1507, 5000}) {
-            SkillService.setExperience(p, start);
-            long balance = XpMath.balance(p.experienceLevel, p.experienceProgress);
+            SkillService.setExperience(player, start);
+            long balance = XpMath.balance(player.experienceLevel, player.experienceProgress);
             h.assertTrue(balance == start, "balance " + balance + " != " + start);
-            PlayerSkillState s = new PlayerSkillState();
-            ProgressionService.PurchaseResult r = ProgressionService.purchasePoint(s, balance, ProgressionService.Settings.DEFAULT);
-            h.assertTrue(r.ok(), "purchase from " + start);
-            SkillService.setExperience(p, r.newXpTotal());
-            long after = XpMath.balance(p.experienceLevel, p.experienceProgress);
-            h.assertTrue(after == start - 100 && p.totalExperience == start - 100,
-                    "after debit: balance " + after + ", total " + p.totalExperience + ", expected " + (start - 100));
+            PlayerSkillState state = new PlayerSkillState();
+            ProgressionService.PurchaseResult result = ProgressionService.purchasePoint(state, balance, ProgressionService.Settings.DEFAULT);
+            h.assertTrue(result.ok(), "purchase from " + start);
+            SkillService.setExperience(player, result.newXpTotal());
+            long after = XpMath.balance(player.experienceLevel, player.experienceProgress);
+            h.assertTrue(after == start - 100 && player.totalExperience == start - 100,
+                    "after debit: balance " + after + ", total " + player.totalExperience + ", expected " + (start - 100));
         }
-        SkillService.setExperience(p, 99);
-        h.assertFalse(ProgressionService.purchasePoint(new PlayerSkillState(), XpMath.balance(p.experienceLevel, p.experienceProgress),
+        SkillService.setExperience(player, 99);
+        h.assertFalse(ProgressionService.purchasePoint(new PlayerSkillState(), XpMath.balance(player.experienceLevel, player.experienceProgress),
                 ProgressionService.Settings.DEFAULT).ok(), "99 XP must not buy a point");
         h.succeed();
     }
 
-    /** At least one real, measurable effect per sector (hub + first notable or keystone). */
     @GameTest(template = "empty")
     public static void everySectorAppliesRealEffects(GameTestHelper h) {
         record Case(String hub, String target, Holder<Attribute> attr, double expected) {
@@ -119,10 +137,9 @@ public final class SkillGameTests {
                 new Case("berserker/hub", "berserker/skull_splitter", ModAttributes.HEAVY_WEAPON_DAMAGE, 0.10));
         List<String> failures = new ArrayList<>();
         for (Case c : cases) {
-            ServerPlayer p = h.makeMockServerPlayerInLevel();
-            build(h, p, c.hub(), c.target());
-            double v = p.getAttributeValue(c.attr());
-            // at least the hub + target contribution (route minors may add more of the same stat)
+            ServerPlayer player = h.makeMockServerPlayerInLevel();
+            build(h, player, c.hub(), c.target());
+            double v = player.getAttributeValue(c.attr());
             if (c.expected() < 0 ? v <= 0.10 : v < c.expected() - 0.001) {
                 failures.add(c.hub() + " -> " + c.target() + ": " + v);
             }
@@ -133,122 +150,218 @@ public final class SkillGameTests {
 
     @GameTest(template = "empty")
     public static void recklessFuryChangesDealtAndTakenDamage(GameTestHelper h) {
-        ServerPlayer p = h.makeMockServerPlayerInLevel();
+        ServerPlayer player = h.makeMockServerPlayerInLevel();
         Cow baseline = h.spawn(EntityType.COW, 1, 1, 1);
-        baseline.hurt(p.damageSources().playerAttack(p), 4f);
+        baseline.hurt(player.damageSources().playerAttack(player), 4f);
         float baseLoss = baseline.getMaxHealth() - baseline.getHealth();
-        build(h, p, "berserker/hub", "berserker/reckless_fury");
-        h.assertTrue(ModAttachments.state(p).isAllocated(NS + "berserker/reckless_fury"), "keystone allocated");
+        build(h, player, "berserker/hub", "berserker/reckless_fury");
+        h.assertTrue(ModAttachments.state(player).isAllocated(NS + "berserker/reckless_fury"), "keystone allocated");
         Cow target = h.spawn(EntityType.COW, 1, 1, 1);
-        target.hurt(p.damageSources().playerAttack(p), 4f);
+        target.hurt(player.damageSources().playerAttack(player), 4f);
         float loss = target.getMaxHealth() - target.getHealth();
-        // +20% from the keystone plus any melee/weapon bonuses on the route (none apply to an unarmed hit)
         h.assertTrue(loss > baseLoss * 1.15f && loss < baseLoss * 1.6f, "dealt " + loss + " vs baseline " + baseLoss);
-        p.getAbilities().invulnerable = false;   // mock players are creative; the drawback must be observable
-        p.invulnerableTime = 0;
-        float before = p.getHealth();
-        p.hurt(h.getLevel().damageSources().fellOutOfWorld(), 4f);   // bypasses spawn invulnerability
-        float taken = before - p.getHealth();
+        player.getAbilities().invulnerable = false;
+        player.invulnerableTime = 0;
+        float before = player.getHealth();
+        player.hurt(h.getLevel().damageSources().fellOutOfWorld(), 4f);
+        float taken = before - player.getHealth();
         h.assertTrue(Math.abs(taken - 4.4f) < 0.05f, "taken " + taken + " (expected 4.4 = 4 x 1.10)");
         h.succeed();
     }
 
     @GameTest(template = "empty")
     public static void refreshIsIdempotentAndResetRemovesEverything(GameTestHelper h) {
-        ServerPlayer p = h.makeMockServerPlayerInLevel();
-        build(h, p, "guardian/hub", "guardian/bastion");
-        double hp = p.getAttributeValue(Attributes.MAX_HEALTH);
-        int owned = ownedModifiers(p);
+        ServerPlayer player = h.makeMockServerPlayerInLevel();
+        SkillService.reconcileAndRefresh(player);
+        int signModifiers = ownedModifiers(player);
+        build(h, player, "guardian/hub", "guardian/bastion");
+        double hp = player.getAttributeValue(Attributes.MAX_HEALTH);
+        int owned = ownedModifiers(player);
         for (int i = 0; i < 5; i++) {
-            EffectEngine.refresh(p);
+            EffectEngine.refresh(player);
         }
-        near(h, hp, p.getAttributeValue(Attributes.MAX_HEALTH), "max health after repeated refresh");
-        h.assertTrue(ownedModifiers(p) == owned, "modifier count changed after refresh: " + ownedModifiers(p) + " vs " + owned);
-        p.setHealth(p.getMaxHealth());
-        PlayerSkillState s = ModAttachments.state(p);
-        int spent = s.activeSpentPoints();
-        int available = s.availablePoints();
-        RespecService.Preview pv = RespecService.resetAll(s);
-        EffectEngine.refresh(p);
-        h.assertTrue(pv.refund() == spent && s.availablePoints() == available + spent, "refund exact recorded cost");
-        h.assertTrue(ownedModifiers(p) == 0, "no tree modifiers after reset");
-        near(h, 20.0, p.getMaxHealth(), "max health after reset");
-        h.assertTrue(p.getHealth() <= p.getMaxHealth(), "health clamped, not above new maximum");
-        h.assertTrue(s.ledgerHolds(), "ledger invariant");
-        h.assertTrue(XpCurve.DEFAULT.cost(s.purchasedPoints()) == XpCurve.DEFAULT.cost(0), "curve unchanged by reset");
+        near(h, hp, player.getAttributeValue(Attributes.MAX_HEALTH), "max health after repeated refresh");
+        h.assertTrue(ownedModifiers(player) == owned, "modifier count changed after refresh: " + ownedModifiers(player) + " vs " + owned);
+        player.setHealth(player.getMaxHealth());
+        PlayerSkillState state = ModAttachments.state(player);
+        int spent = state.activeSpentPoints();
+        int available = state.availablePoints();
+        RespecService.Preview preview = RespecService.resetAll(state);
+        EffectEngine.refresh(player);
+        h.assertTrue(preview.refund() == spent && state.availablePoints() == available + spent, "refund exact recorded cost");
+        h.assertTrue(ownedModifiers(player) == signModifiers, "only the birth sign's modifiers remain after reset");
+        h.assertTrue(state.sign().isPresent(), "the birth sign survives a reset");
+        near(h, 20.0, player.getMaxHealth(), "max health after reset");
+        h.assertTrue(player.getHealth() <= player.getMaxHealth(), "health clamped, not above new maximum");
+        h.assertTrue(state.ledgerHolds(), "ledger invariant");
+        h.assertTrue(XpCurve.DEFAULT.cost(state.purchasedPoints()) == XpCurve.DEFAULT.cost(0), "curve unchanged by reset");
         h.succeed();
     }
 
-    /** Single-skill refunds on a real player: a leaf alone, then a hub-adjacent node with its dependent chain. */
     @GameTest(template = "empty")
     public static void singleSkillRefundRemovesItsEffectsAndItsChain(GameTestHelper h) {
-        ServerPlayer p = h.makeMockServerPlayerInLevel();
-        PlayerSkillState s = build(h, p, "guardian/hub", "guardian/bastion");
-        h.assertTrue(s.allocations().size() >= 3, "fixture route is long enough: " + s.allocations().size());
-        double full = p.getAttributeValue(Attributes.MAX_HEALTH);
-        int allocated = s.allocations().size();
-        int available = s.availablePoints();
-        int spent = s.activeSpentPoints();
-        List<String> order = s.orderedAllocations().stream().map(a -> a.nodeId()).toList();
+        ServerPlayer player = h.makeMockServerPlayerInLevel();
+        PlayerSkillState state = build(h, player, "guardian/hub", "guardian/bastion");
+        h.assertTrue(state.allocations().size() >= 3, "fixture route is long enough: " + state.allocations().size());
+        double full = player.getAttributeValue(Attributes.MAX_HEALTH);
+        int allocated = state.allocations().size();
+        int available = state.availablePoints();
+        int spent = state.activeSpentPoints();
+        List<String> order = state.orderedAllocations().stream().map(a -> a.nodeId()).toList();
         String hub = order.get(0);
         String neighbour = order.get(1);
         String leaf = order.get(order.size() - 1);
-        int leafCost = s.allocations().get(leaf).paidCost();
+        int leafCost = state.allocations().get(leaf).paidCost();
 
-        RefundService.Plan one = RefundService.apply(graph(h), s, leaf, true);
-        EffectEngine.refresh(p);
+        RefundService.Plan one = RefundService.apply(graph(h), state, leaf, true);
+        EffectEngine.refresh(player);
         h.assertTrue(one.ok() && one.removed().equals(List.of(leaf)), "the last node of the route goes alone: " + one.removed());
         h.assertTrue(one.refund() == leafCost, "refund " + one.refund() + " != recorded cost " + leafCost);
-        h.assertTrue(s.allocations().size() == allocated - 1 && s.availablePoints() == available + leafCost,
+        h.assertTrue(state.allocations().size() == allocated - 1 && state.availablePoints() == available + leafCost,
                 "one allocation removed and exactly its points returned");
-        h.assertTrue(p.getAttributeValue(Attributes.MAX_HEALTH) <= full, "its contribution is gone: "
-                + p.getAttributeValue(Attributes.MAX_HEALTH) + " vs " + full);
-        h.assertTrue(s.ledgerHolds(), "ledger invariant after a single refund");
+        h.assertTrue(player.getAttributeValue(Attributes.MAX_HEALTH) <= full, "its contribution is gone: "
+                + player.getAttributeValue(Attributes.MAX_HEALTH) + " vs " + full);
+        h.assertTrue(state.ledgerHolds(), "ledger invariant after a single refund");
 
-        p.setHealth(p.getMaxHealth());
-        RefundService.Plan chain = RefundService.apply(graph(h), s, neighbour, true);
-        EffectEngine.refresh(p);
+        player.setHealth(player.getMaxHealth());
+        RefundService.Plan chain = RefundService.apply(graph(h), state, neighbour, true);
+        EffectEngine.refresh(player);
         h.assertTrue(chain.ok() && chain.chained(), "the hub-adjacent node takes the rest of the branch");
-        h.assertTrue(s.allocations().keySet().equals(java.util.Set.of(hub)), "only the free hub is left: "
-                + s.allocations().keySet());
-        h.assertTrue(s.availablePoints() == available + spent, "every paid point is back: " + s.availablePoints()
+        h.assertTrue(state.allocations().keySet().equals(Set.of(hub)), "only the free hub is left: "
+                + state.allocations().keySet());
+        h.assertTrue(state.availablePoints() == available + spent, "every paid point is back: " + state.availablePoints()
                 + " expected " + (available + spent));
-        h.assertTrue(s.startingRoot().filter(hub::equals).isPresent(), "the starting hub is kept");
+        h.assertTrue(state.startingRoot().filter(hub::equals).isPresent(), "the starting hub is kept");
         ServerPlayer hubOnly = h.makeMockServerPlayerInLevel();
         build(h, hubOnly, "guardian/hub");
-        h.assertTrue(ownedModifiers(p) == ownedModifiers(hubOnly), "only the hub's modifiers are left: "
-                + ownedModifiers(p) + " vs " + ownedModifiers(hubOnly));
-        near(h, hubOnly.getMaxHealth(), p.getMaxHealth(), "max health back to the hub-only value");
-        h.assertTrue(p.getHealth() <= p.getMaxHealth(), "health clamped, not above new maximum");
-        h.assertTrue(s.ledgerHolds(), "ledger invariant after a chained refund");
-        h.assertFalse(RefundService.apply(graph(h), s, leaf, true).ok(), "a replayed refund credits nothing");
-        h.assertTrue(s.availablePoints() == available + spent, "balance unchanged by the replay");
+        h.assertTrue(ownedModifiers(player) == ownedModifiers(hubOnly), "only the hub's modifiers are left: "
+                + ownedModifiers(player) + " vs " + ownedModifiers(hubOnly));
+        near(h, hubOnly.getMaxHealth(), player.getMaxHealth(), "max health back to the hub-only value");
+        h.assertTrue(player.getHealth() <= player.getMaxHealth(), "health clamped, not above new maximum");
+        h.assertTrue(state.ledgerHolds(), "ledger invariant after a chained refund");
+        h.assertFalse(RefundService.apply(graph(h), state, leaf, true).ok(), "a replayed refund credits nothing");
+        h.assertTrue(state.availablePoints() == available + spent, "balance unchanged by the replay");
         h.succeed();
     }
 
     @GameTest(template = "empty")
     public static void statePersistsThroughSerialisation(GameTestHelper h) {
-        ServerPlayer p = h.makeMockServerPlayerInLevel();
-        PlayerSkillState s = build(h, p, "marksman/hub", "marksman/patient_aim");
-        var tag = dev.nostalgiacraft.skills.registry.StateCodecs.STATE.encodeStart(net.minecraft.nbt.NbtOps.INSTANCE, s)
+        ServerPlayer player = h.makeMockServerPlayerInLevel();
+        PlayerSkillState state = build(h, player, "marksman/hub", "marksman/patient_aim");
+        var tag = StateCodecs.STATE.encodeStart(NbtOps.INSTANCE, state)
                 .getOrThrow();
-        PlayerSkillState back = dev.nostalgiacraft.skills.registry.StateCodecs.STATE.parse(net.minecraft.nbt.NbtOps.INSTANCE, tag)
+        PlayerSkillState back = StateCodecs.STATE.parse(NbtOps.INSTANCE, tag)
                 .getOrThrow();
-        h.assertTrue(back.allocations().equals(s.allocations()), "allocations survive NBT round trip");
-        h.assertTrue(back.availablePoints() == s.availablePoints() && back.stateRevision() == s.stateRevision()
-                && back.startingRoot().equals(s.startingRoot()), "ledger fields survive NBT round trip");
+        h.assertTrue(back.allocations().equals(state.allocations()), "allocations survive NBT round trip");
+        h.assertTrue(back.availablePoints() == state.availablePoints() && back.stateRevision() == state.stateRevision()
+                && back.startingRoot().equals(state.startingRoot()), "ledger fields survive NBT round trip");
         h.succeed();
     }
 
-    private static int ownedModifiers(ServerPlayer p) {
+    @GameTest(template = "empty")
+    public static void starFragmentGrantsOnePointUpToTheLimit(GameTestHelper helper) {
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        player.setGameMode(GameType.SURVIVAL);
+        PlayerSkillState state = ModAttachments.state(player);
+        int limit = ServerConfig.POINT_LIMIT.get();
+        ItemStack fragments = new ItemStack(ModItems.STAR_FRAGMENT.get(), 2);
+        helper.assertTrue(StarFragmentItem.redeem(player, fragments), "first fragment is redeemed");
+        helper.assertTrue(state.availablePoints() == 1 && fragments.getCount() == 1 && state.ledgerHolds(),
+                "one point for one fragment: available " + state.availablePoints() + ", left " + fragments.getCount());
+        LedgerService.grant(state, limit - state.totalPoints(), limit, false);
+        helper.assertFalse(StarFragmentItem.redeem(player, fragments), "no fragment is redeemed at the point limit");
+        helper.assertTrue(state.totalPoints() == limit && fragments.getCount() == 1, "nothing consumed at the limit");
+        ItemEntity star = ShootingStars.spawnNear(player).orElseThrow();
+        helper.assertTrue(star.getItem().is(ModItems.STAR_FRAGMENT.get()) && star.hasGlowingTag(), "a glowing fragment falls");
+        star.discard();
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty")
+    public static void constellatedMonsterIsStrongerAndMarked(GameTestHelper helper) {
+        Zombie zombie = helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 1));
+        double baseHealth = zombie.getMaxHealth();
+        double baseDamage = zombie.getAttributeValue(Attributes.ATTACK_DAMAGE);
+        helper.assertFalse(EliteMobs.isElite(zombie), "an ordinary zombie is not elite");
+        helper.assertTrue(EliteMobs.empower(zombie, RandomSource.create(42), 8), "empowered");
+        helper.assertTrue(EliteMobs.isElite(zombie) && zombie.hasCustomName(), "marked and named");
+        helper.assertTrue(zombie.getMaxHealth() >= baseHealth * 1.5 - 1e-4, "at least +50% max health: " + zombie.getMaxHealth());
+        helper.assertTrue(zombie.getAttributeValue(Attributes.ATTACK_DAMAGE) >= baseDamage * 1.25 - 1e-4, "at least +25% damage");
+        near(helper, zombie.getMaxHealth(), zombie.getHealth(), "healed to the new maximum");
+        zombie.discard();
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty")
+    public static void eclipseWaivesTheOrbAndEndsCleanly(GameTestHelper helper) {
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        PlayerSkillState state = ModAttachments.state(player);
+        boolean orbConfigured = ServerConfig.ORB_REQUIRED_FOR_RESET.get();
+        Eclipse.force(helper.getLevel().getServer(), true);
+        helper.assertTrue(Eclipse.isActive(), "forced eclipse is active");
+        helper.assertFalse(SkillService.economy(state).orbRequired(), "no orb is asked for during an eclipse");
+        Eclipse.force(helper.getLevel().getServer(), false);
+        helper.assertFalse(Eclipse.isActive(), "eclipse stopped");
+        helper.assertTrue(SkillService.economy(state).orbRequired() == orbConfigured, "the orb rule returns after the eclipse");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty")
+    public static void fallenStarReturnsToItsOwnerOrPaysAThief(GameTestHelper helper) {
+        ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        ServerPlayer thief = helper.makeMockServerPlayerInLevel();
+        PlayerSkillState ownerState = build(helper, owner, "guardian/hub", "guardian/gatekeeper");
+        int learned = ownerState.allocations().size();
+        int available = ownerState.availablePoints();
+        ItemEntity first = FallenStars.drop(owner).orElseThrow();
+        helper.assertTrue(ownerState.allocations().size() == learned - 1 && ownerState.availablePoints() == available
+                && ownerState.ledgerHolds(), "the skill is lost without a refund and the ledger still holds");
+        helper.assertTrue(FallenStarItem.redeem(owner, first.getItem()), "the owner takes the star back");
+        helper.assertTrue(ownerState.allocations().size() == learned && ownerState.ledgerHolds(), "the skill is learned again");
+        first.discard();
+        ItemEntity second = FallenStars.drop(owner).orElseThrow();
+        int paid = FallenStarItem.contents(second.getItem()).orElseThrow().paidCost();
+        PlayerSkillState thiefState = ModAttachments.state(thief);
+        helper.assertTrue(FallenStarItem.redeem(thief, second.getItem()), "another player claims the star");
+        helper.assertTrue(thiefState.availablePoints() == paid && thiefState.ledgerHolds() && second.getItem().isEmpty(),
+                "the thief gains exactly the paid points: " + thiefState.availablePoints() + " vs " + paid);
+        second.discard();
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty")
+    public static void donationsFillTheSharedConstellationAndRewardEveryone(GameTestHelper helper) {
+        MinecraftServer server = helper.getLevel().getServer();
+        ServerPlayer donor = helper.makeMockServerPlayerInLevel();
+        ServerPlayer bystander = helper.makeMockServerPlayerInLevel();
+        SkillService.reconcileAndRefresh(bystander);
+        double healthBefore = bystander.getMaxHealth();
+        long firstTier = SkillTreeManager.communityTiers().get(0).xpRequired();
+        CommunityTree.setProgress(server, firstTier - 50);
+        SkillService.setExperience(donor, 300);
+        CommunityProgress.Donation donation = CommunityTree.donate(donor, 120);
+        long left = XpMath.balance(donor.experienceLevel, donor.experienceProgress);
+        helper.assertTrue(donation.ok() && donation.accepted() == 120 && left == 180, "120 XP donated exactly, left " + left);
+        helper.assertTrue(WorldSkillData.of(server).communityXp() == firstTier + 70, "progress recorded");
+        near(helper, healthBefore + 1, bystander.getMaxHealth(), "the first tier rewards a player who did not donate");
+        CommunityTree.setProgress(server, CommunityProgress.goal(SkillTreeManager.communityTiers().stream()
+                .map(CommunityTier::xpRequired).toList()));
+        helper.assertTrue(CommunityTree.donate(donor, 10).reason().orElseThrow() == RejectReason.COMMUNITY_COMPLETE,
+                "nothing is taken once the constellation is complete");
+        CommunityTree.setProgress(server, 0);
+        near(helper, healthBefore, bystander.getMaxHealth(), "bonuses leave when progress is reset");
+        helper.succeed();
+    }
+
+    private static int ownedModifiers(ServerPlayer player) {
         int n = 0;
-        for (var holder : net.minecraft.core.registries.BuiltInRegistries.ATTRIBUTE.holders().toList()) {
-            var inst = p.getAttribute(holder);
+        for (var holder : BuiltInRegistries.ATTRIBUTE.holders().toList()) {
+            var inst = player.getAttribute(holder);
             if (inst == null) {
                 continue;
             }
-            for (AttributeModifier m : inst.getModifiers()) {
-                if (m.id().getNamespace().equals(NostalgiaSkills.MODID)) {
+            for (AttributeModifier modifier : inst.getModifiers()) {
+                if (modifier.id().getNamespace().equals(NostalgiaSkills.MODID)) {
                     n++;
                 }
             }

@@ -1,39 +1,43 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:berserker/heavy_handed",
-  "tree": "nostalgiaskills:main",
-  "sector": "berserker",
-  "type": "notable",
-  "position": {
-    "x": -82.5,
-    "y": 443.0
-  },
-  "name": "skill.nostalgiaskills.berserker.heavy_handed.name",
-  "description": "skill.nostalgiaskills.berserker.heavy_handed.description",
-  "icon": "nostalgiaskills:textures/skill_icons/heavy_weapon.png",
-  "frame": "violet_facet",
-  "cost": 2,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "conditional_attribute",
-      "attribute": "minecraft:generic.attack_speed",
-      "operation": "add_multiplied_base",
-      "amount": 0.1,
-      "condition": {
-        "type": "holding",
-        "tag": "nostalgiaskills:heavy_weapons"
-      }
-    }
-  ],
-  "tags": [
-    "heavy_weapon",
-    "berserker"
-  ],
-  "cluster": "berserker:cleavers_line"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:berserker/heavy_handed",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "berserker",
+    "type":  "notable",
+    "position":  {
+                     "x":  -1073.1636,
+                     "y":  489.981
+                 },
+    "name":  "skill.nostalgiaskills.berserker.heavy_handed.name",
+    "description":  "skill.nostalgiaskills.berserker.heavy_handed.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/heavy_weapon.png",
+    "frame":  "violet_facet",
+    "cost":  2,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "conditional_attribute",
+                        "attribute":  "minecraft:generic.attack_speed",
+                        "operation":  "add_multiplied_base",
+                        "amount":  0.1,
+                        "condition":  {
+                                          "type":  "holding",
+                                          "tag":  "nostalgiaskills:heavy_weapons"
+                                      }
+                    }
+                ],
+    "tags":  [
+                 "heavy_weapon",
+                 "berserker"
+             ],
+    "cluster":  "berserker:cleavers_line"
 }

@@ -5,8 +5,8 @@
   "sector": "arcanist",
   "type": "keystone",
   "position": {
-    "x": 513.0,
-    "y": -363.0
+    "x": 1268.9822,
+    "y": 1047.2008
   },
   "name": "skill.nostalgiaskills.arcanist.elixir_of_ages.name",
   "description": "skill.nostalgiaskills.arcanist.elixir_of_ages.description",
@@ -38,6 +38,5 @@
     "healing",
     "arcanist"
   ],
-  "cluster": "arcanist:keystone_elixir",
-  "exclusive_group": "arcanist_formula"
+  "cluster": "arcanist:keystone_elixir"
 }

@@ -1,22 +1,22 @@
 package dev.nostalgiacraft.skills.data;
 
+import dev.nostalgiacraft.skills.graph.CommunityTier;
 import dev.nostalgiacraft.skills.graph.GraphParser;
 import dev.nostalgiacraft.skills.graph.NodeType;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.graph.SkillNodeDefinition;
+import dev.nostalgiacraft.skills.graph.SkillSign;
 import dev.nostalgiacraft.skills.graph.ValidationReport;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
+import java.util.function.Supplier;
 
-/**
- * Holds the server's active, immutable graph snapshot. A new snapshot replaces the old one only after it fully
- * validated; otherwise the last valid snapshot stays active for the session and the errors are kept for
- * {@code /nostalgiaskills validate}.
- */
 public final class SkillTreeManager {
     public static final String TREE_ID = "nostalgiaskills:main";
+    private static final int NO_OVERRIDE = -1;
 
     public enum LoadResult { APPLIED, KEPT_PREVIOUS, FALLBACK_BUNDLED, FAILED }
 
@@ -26,6 +26,8 @@ public final class SkillTreeManager {
     private static volatile Map<String, String> migrations = Map.of();
     private static volatile LoadResult lastResult = LoadResult.FAILED;
     private static volatile List<String> readErrors = List.of();
+    private static volatile Map<String, SkillSign> signs = Map.of();
+    private static volatile List<CommunityTier> communityTiers = List.of();
 
     private SkillTreeManager() {
     }
@@ -34,7 +36,6 @@ public final class SkillTreeManager {
         return Optional.ofNullable(active);
     }
 
-    /** Increments on every successful replacement during this server session. */
     public static int revision() {
         return revision;
     }
@@ -51,61 +52,82 @@ public final class SkillTreeManager {
         return lastResult;
     }
 
+    public static List<CommunityTier> communityTiers() {
+        return communityTiers;
+    }
+
+    static void installCommunityTiers(List<CommunityTier> loaded) {
+        communityTiers = List.copyOf(loaded);
+    }
+
+    public static Optional<SkillSign> sign(String signId) {
+        return Optional.ofNullable(signs.get(signId));
+    }
+
+    public static List<String> sortedSignIds() {
+        return signs.keySet().stream().sorted().toList();
+    }
+
+    static void installSigns(List<SkillSign> loaded) {
+        Map<String, SkillSign> byId = new TreeMap<>();
+        loaded.forEach(sign -> byId.put(sign.id(), sign));
+        signs = Map.copyOf(byId);
+    }
+
     public static Map<String, String> migrations() {
         return migrations;
     }
 
     static synchronized LoadResult install(GraphParser.Outcome outcome, List<String> fileErrors,
-                                           Map<String, String> newMigrations,
-                                           java.util.function.Supplier<GraphParser.Outcome> bundled) {
+                                           Map<String, String> newMigrations, Supplier<GraphParser.Outcome> bundled) {
         readErrors = List.copyOf(fileErrors);
         lastReport = outcome.report();
         if (outcome.snapshot().isPresent() && fileErrors.isEmpty()) {
-            set(outcome.snapshot().get());
-            migrations = Map.copyOf(newMigrations);
+            activate(outcome.snapshot().get(), newMigrations);
             lastResult = LoadResult.APPLIED;
         } else if (active != null) {
             lastResult = LoadResult.KEPT_PREVIOUS;
         } else {
-            GraphParser.Outcome fb = bundled.get();
-            if (fb.snapshot().isPresent()) {
-                set(fb.snapshot().get());
-                migrations = Map.copyOf(newMigrations);
-                lastResult = LoadResult.FALLBACK_BUNDLED;
-            } else {
-                lastReport.addAll(fb.report());
-                lastResult = LoadResult.FAILED;
-            }
+            lastResult = installBundled(bundled.get(), newMigrations);
         }
         return lastResult;
     }
 
-    private static void set(SkillGraphSnapshot g) {
-        if (active == null || !active.fingerprint().equals(g.fingerprint())) {
+    private static LoadResult installBundled(GraphParser.Outcome bundled, Map<String, String> newMigrations) {
+        if (bundled.snapshot().isEmpty()) {
+            lastReport.addAll(bundled.report());
+            return LoadResult.FAILED;
+        }
+        activate(bundled.snapshot().get(), newMigrations);
+        return LoadResult.FALLBACK_BUNDLED;
+    }
+
+    private static void activate(SkillGraphSnapshot graph, Map<String, String> newMigrations) {
+        set(graph);
+        migrations = Map.copyOf(newMigrations);
+    }
+
+    private static void set(SkillGraphSnapshot graph) {
+        if (active == null || !active.fingerprint().equals(graph.fingerprint())) {
             revision++;
         }
-        active = g;
+        active = graph;
     }
 
-    /** Applies the server's per-type cost settings (-1 = keep data cost). */
-    public static SkillGraphSnapshot withCostOverrides(SkillGraphSnapshot g, Map<NodeType, Integer> overrides) {
-        if (overrides.values().stream().allMatch(v -> v < 0)) {
-            return g;
+    public static SkillGraphSnapshot withCostOverrides(SkillGraphSnapshot graph, Map<NodeType, Integer> overrides) {
+        if (overrides.values().stream().allMatch(cost -> cost < 0)) {
+            return graph;
         }
-        List<SkillNodeDefinition> nodes = g.nodes().values().stream().map(n -> {
-            Integer o = overrides.get(n.type());
-            if (o == null || o < 0 || o == n.cost()) {
-                return n;
-            }
-            return new SkillNodeDefinition(n.id(), n.tree(), n.sector(), n.type(), n.position(), n.nameKey(),
-                    n.descriptionKey(), n.icon(), n.frame(), o, n.maxRank(), n.requirements(), n.effects(), n.tags(),
-                    n.cluster(), n.exclusiveGroup());
-        }).toList();
-        return new SkillGraphSnapshot(g.treeId(), nodes, g.connections(), g.sectors(),
-                List.copyOf(g.exclusiveGroups().values()));
+        List<SkillNodeDefinition> nodes = graph.nodes().values().stream()
+                .map(node -> withCost(node, overrides.getOrDefault(node.type(), NO_OVERRIDE))).toList();
+        return new SkillGraphSnapshot(graph.treeId(), nodes, graph.connections(), graph.sectors(),
+                List.copyOf(graph.exclusiveGroups().values()));
     }
 
-    /** Clears state between integrated-server sessions. */
+    private static SkillNodeDefinition withCost(SkillNodeDefinition node, int cost) {
+        return cost < 0 || cost == node.cost() ? node : node.withCost(cost);
+    }
+
     public static synchronized void reset() {
         active = null;
         lastReport = new ValidationReport();

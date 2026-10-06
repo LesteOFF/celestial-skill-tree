@@ -7,7 +7,6 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.item.Item;
 
-/** Classification tags (configurable through datapacks; items are never classified by display name). */
 public final class ModTags {
     public static final TagKey<Item> LIGHT_WEAPONS = item("light_weapons");
     public static final TagKey<Item> HEAVY_WEAPONS = item("heavy_weapons");

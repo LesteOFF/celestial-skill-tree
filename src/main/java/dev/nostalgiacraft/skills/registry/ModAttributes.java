@@ -14,16 +14,11 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * Namespaced attributes for mechanics vanilla does not model (there is no vanilla critical-chance attribute).
- * All are synced so the client stats panel shows server-authoritative values. Fractions: 0.05 = 5%.
- */
 public final class ModAttributes {
     public static final DeferredRegister<Attribute> ATTRIBUTES = DeferredRegister.create(Registries.ATTRIBUTE, NostalgiaSkills.MODID);
     public static final Map<String, DeferredHolder<Attribute, Attribute>> ALL = new LinkedHashMap<>();
 
     public static final DeferredHolder<Attribute, Attribute> CRIT_CHANCE = reg("crit_chance", 0.0, 0.0, 1.0);
-    /** Bonus damage of the mod's own critical hits; base 0.5 means a critical hit deals 150%. */
     public static final DeferredHolder<Attribute, Attribute> CRIT_DAMAGE = reg("crit_damage", 0.5, 0.0, 5.0);
     public static final DeferredHolder<Attribute, Attribute> DODGE_CHANCE = reg("dodge_chance", 0.0, 0.0, 1.0);
     public static final DeferredHolder<Attribute, Attribute> LIGHT_WEAPON_DAMAGE = reg("light_weapon_damage", 0.0, -1.0, 10.0);
@@ -33,7 +28,6 @@ public final class ModAttributes {
     public static final DeferredHolder<Attribute, Attribute> CROSSBOW_DAMAGE = reg("crossbow_damage", 0.0, -1.0, 10.0);
     public static final DeferredHolder<Attribute, Attribute> CHARGED_SHOT_DAMAGE = reg("charged_shot_damage", 0.0, -1.0, 10.0);
     public static final DeferredHolder<Attribute, Attribute> MINING_SPEED = reg("mining_speed", 0.0, -0.9, 10.0);
-    /** Positive: chance to cancel mining wear. Negative: chance to add one extra point of mining wear. */
     public static final DeferredHolder<Attribute, Attribute> TOOL_PRESERVATION = reg("tool_preservation", 0.0, -1.0, 0.9);
     public static final DeferredHolder<Attribute, Attribute> POTION_DURATION = reg("potion_duration", 0.0, -0.9, 5.0);
     public static final DeferredHolder<Attribute, Attribute> MAGIC_RESISTANCE = reg("magic_resistance", 0.0, -1.0, 0.9);

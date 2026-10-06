@@ -1,35 +1,39 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:duelist/sidestep",
-  "tree": "nostalgiaskills:main",
-  "sector": "duelist",
-  "type": "notable",
-  "position": {
-    "x": -515.0,
-    "y": 218.0
-  },
-  "name": "skill.nostalgiaskills.duelist.sidestep.name",
-  "description": "skill.nostalgiaskills.duelist.sidestep.description",
-  "icon": "nostalgiaskills:textures/skill_icons/dodge.png",
-  "frame": "violet_facet",
-  "cost": 2,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:dodge_chance",
-      "operation": "add_value",
-      "amount": 0.025
-    }
-  ],
-  "tags": [
-    "dodge",
-    "duelist"
-  ],
-  "cluster": "duelist:evasion_diamond"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:duelist/sidestep",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "duelist",
+    "type":  "notable",
+    "position":  {
+                     "x":  -1037.2685,
+                     "y":  -1033.2897
+                 },
+    "name":  "skill.nostalgiaskills.duelist.sidestep.name",
+    "description":  "skill.nostalgiaskills.duelist.sidestep.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/dodge.png",
+    "frame":  "violet_facet",
+    "cost":  2,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "nostalgiaskills:dodge_chance",
+                        "operation":  "add_value",
+                        "amount":  0.025
+                    }
+                ],
+    "tags":  [
+                 "dodge",
+                 "duelist"
+             ],
+    "cluster":  "duelist:evasion_diamond"
 }

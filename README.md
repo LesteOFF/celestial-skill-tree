@@ -1,6 +1,6 @@
 # Nostalgia Skills
 
-A NeoForge mod for **Minecraft Java 1.21.1** that adds a 480-node passive skill tree, presented as a constellation
+A NeoForge mod for **Minecraft Java 1.21.1** that adds a 484-node passive skill tree, presented as a constellation
 chart inside **The Astral Observatory**. Buy skill points with vanilla experience, plan a route across six
 specialisations, confirm it in one batch, and reshape your build with the Orb of Reconfiguration.
 
@@ -24,9 +24,9 @@ optional integrations in this version.
 ## Building
 
 ```bash
-./gradlew build            # Windows: gradlew.bat build  → build/libs/nostalgiaskills-0.1.0.jar
-./gradlew test             # 56 domain unit tests, including validation of the full 480-node dataset
-./gradlew runGameTestServer  # 6 in-game tests on a real server with mock players
+./gradlew build            # Windows: gradlew.bat build  → build/libs/nostalgiaskills-0.4.0.jar
+./gradlew test             # 91 domain unit tests, including validation of the full 484-node dataset
+./gradlew runGameTestServer  # 12 in-game tests on a real server with mock players
 ./gradlew runClient / runServer
 ```
 
@@ -38,18 +38,52 @@ Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256
 2. Click a **root hub** to choose your free starting point.
 3. Earn XP normally, then press **Buy Skill Point**. The first point costs 100 raw XP; each further point costs
    `100 + 20p + 2p²` (p = points already bought). The tooltip shows the cost, your XP and what remains.
+   **Shift-click** buys as many points as your XP pays for in one go (the tooltip shows the count and the total XP
+   first).
 4. Click glowing (available) nodes to add them to a **pending** selection — nothing is applied yet. Pending nodes
    can chain into routes. **Shift-click** a distant node to add the cheapest valid route (its point cost is shown
    first).
 5. **Confirm** (or Enter) sends the whole batch to the server, which accepts all of it or none of it.
    **Cancel** clears the pending selection.
 6. **Show Stats** lists your final attributes, the tree's share, conditional effects, active keystones, and points.
+   With a pending selection it also shows each affected attribute before → after, caps included.
 7. To unlearn **one** skill, click it in the tree: the confirmation lists exactly how many points come back (the
    price you actually paid, not the current one) and every learned skill that has to go with it, because the rest of
    your build must stay connected to your starting hub. Your starting hub itself can only be changed by a full reset.
 8. To respec everything, use an **Orb of Reconfiguration** (crafted from 4 amethyst shards, an eye of ender and a
    gold ingot): all spent points are refunded and you may pick a new free starting hub. XP is not refunded and point
    prices do not restart. The orb is consumed only if the reset succeeds.
+
+### Gates and freedom of choice
+
+- **Gates.** Four portal skills sit halfway out on each side of the tree: the Eastern and Western Gates are linked to
+  each other, and so are the Northern and Southern Gates. A gate costs 3 points, grants no bonus of its own and is drawn larger than a starting hub;
+  learning one opens its twin on the far side at no extra cost, so the skills around both ends become available, and
+  unlearning either end closes both. Hovering a gate lights up its twin; while the pair is selected or learned, two lanes
+  of arrows flow both ways between them. The tooltip names the destination.
+- **No caps, no exclusive choices.** Nothing in the shipped tree excludes anything else and the default point limit is
+  10,000, so one character can eventually learn all 484 skills (593 points). Each skill must still connect to one you
+  already own. The XP price of a point keeps rising with every point bought (`100 + 20p + 2p²`); lower
+  `curveQuadratic` in the server config if the whole tree should be a realistic goal.
+
+### World features
+
+- **Birth sign.** On your first login the world day decides one of twelve signs. Its small passive bonus is permanent,
+  survives resets and is listed in **Show Stats**. The **Birth Sign** button (bottom left) opens your birth chart: a
+  wheel of the twelve constellations with yours at the top; hover any sign to read its bonus.
+- **Star fragments and shooting stars.** At night a glowing Star Fragment occasionally falls near a player in the
+  Overworld. Using a fragment grants 1 skill point, never beyond the server's point limit.
+- **Constellated monsters.** Rarely a monster spawns Constellated: +50% health, +25% damage and the attribute bonuses of
+  a small random constellation. It drops a Star Fragment.
+- **Eclipse.** Some nights are announced as an eclipse. Until dawn, resets and single-skill refunds need no Orb of
+  Reconfiguration.
+- **Shared constellation.** The **Community** button (bottom left) opens a path of stars, one per tier, that lights
+  up as the server donates XP. Donate 100, 1,000 or everything you can; each tier reached gives every player a bonus.
+  Donated XP is never returned.
+- **Fallen Star** (off by default). If the server enables it, dying drops your newest stand-alone skill as a Fallen
+  Star. Using your own star teaches the skill again (or returns its points if it no longer fits); anyone else gains its
+  points instead.
+- **Black hole skills and hidden constellations** are available to data packs (see below); the shipped tree has none.
 
 ### Controls
 
@@ -58,7 +92,7 @@ Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256
 | Left-click node | pending node: add / remove (removing a node others depend on offers to remove the chain); learned node: open the unlearn confirmation |
 | Shift + click | add the cheapest route to that node |
 | Drag (left on empty space, or middle button) | pan |
-| Mouse wheel | zoom around the cursor (0.2×–3×; **Fit** may go lower) |
+| Mouse wheel | zoom around the cursor (0.08×–3×; **Fit** may go lower) |
 | Home / **Home** button | recentre on your starting hub |
 | F / **Fit** button | frame the whole tree |
 | Ctrl+F, then Enter | search names, descriptions, effects and tags; Enter jumps to the next result |
@@ -67,7 +101,8 @@ Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256
 | Esc | close (asks to discard or keep editing when changes are pending) |
 
 Node states: locked (dim, padlock), available (bright rim), allocated (gold halo, lit route), pending (rotating dashed
-cyan ring), conflicting (red ✕, an exclusive keystone is already chosen). The screen does not pause the game.
+cyan ring), conflicting (red ✕; only data packs that add exclusive groups or black holes produce it). The screen
+does not pause the game.
 
 ## Commands
 
@@ -80,6 +115,9 @@ cyan ring), conflicting (red ✕, an exclusive keystone is already chosen). The 
 | `/nostalgiaskills unlock <player> <node_id> [grant_cost]` | level 2 — prerequisites and connectivity always apply; `grant_cost` first grants exactly the node's price |
 | `/nostalgiaskills reset <player>` | level 2 (no orb needed) |
 | `/nostalgiaskills validate` | level 2 — load result, revision, and the first errors with file/field/reason |
+| `/nostalgiaskills star <player>` | level 2 — a star fragment falls near the player |
+| `/nostalgiaskills eclipse start\|stop` | level 2 — force or end an eclipse |
+| `/nostalgiaskills community set <xp>` | level 2 — set the shared constellation's donated XP |
 
 `points set` changes the available balance and books the difference as a net administrative grant; purchased points
 and recorded prices are untouched (`available + spent = purchased + granted` always holds). Going above the point
@@ -88,23 +126,37 @@ limit requires the explicit `true` override argument.
 ## Configuration
 
 - **Server** (`world/serverconfig/nostalgiaskills-server.toml`, synced to clients): XP purchase on/off, point limit
-  (120), curve coefficients and discount, per-type cost overrides, keep progression on death, orb requirement,
+  (10,000, effectively none), curve coefficients and discount, per-type cost overrides, keep progression on death, orb requirement,
   caps (crit 50%, dodge 30%, lifesteal 10%, damage reduction 40%, magic resistance 60%, movement +50%), lifesteal
-  cooldown, weapon/tool classification tags, request rate and batch-size limits.
+  cooldown, weapon/tool classification tags, request rate and batch-size limits. Section `[events]`: shooting stars
+  (on, one per ~30 minutes of night per player), Constellated monster chance (2%) and size (8 skills), eclipses (on,
+  every ~20 days), `dropStarOnDeath` (`OFF`, `PVP_ONLY`, `ALWAYS`) and the shared constellation (on).
 - **Client** (`config/nostalgiaskills-client.toml`): frame scale, zoom limits, glow intensity, background decoration,
   reduced motion, detailed tooltips, high contrast. Client settings never affect costs, rules or bonuses.
 
 ## Data packs
 
 The tree is ordinary data: `data/<namespace>/skill_trees`, `skill_nodes`, `skill_connections`, `skill_migrations`.
+Birth signs live in `skill_signs` (`effects` only) and shared-constellation tiers in `skill_community` (`xp_required`
+plus `effects`); both use the same effect vocabulary as nodes and take their texts from `sign.<ns>.<id>.name` /
+`.description` and `community.<ns>.<id>.name` / `.description`. A node may also carry `"neighbour_multiplier": 2.0`
+(a black hole: adjacent skills you own count that many times, adjacent skills you do not own are sealed while it is
+active) or `"hidden_until": "<advancement id>"` (the node is invisible until the player earns that advancement).
 Override a node by shipping the same path in a higher-priority pack, then `/reload`. Invalid data is rejected with
 file, field and reason and the last valid tree stays active. Examples:
 
 - `examples/datapacks/nostalgiaskills_example_tweaks/` — makes *Keen Edge I* stronger and shows a migration entry.
 - `examples/datapacks/nostalgiaskills_invalid_test/` — deliberately broken, for testing rejection.
+- `examples/datapacks/nostalgiaskills_black_hole/` — turns the Death Wish keystone into a black hole.
+- `examples/datapacks/nostalgiaskills_hidden_keystone/` — hides Arcane Ward until you brew a potion.
 
 Tools: `python3 tools/layout/export.py` regenerates all node/connection data, translations and the layout manifest
-from the authored blueprints; `python3 tools/layout/builds.py` recomputes the example builds.
+from the authored blueprints. The shipped tree uses the Fibonacci layout from `docs/layout/fibonacci/` (the blueprint
+positions expanded by φ² with a logarithmic twist; same nodes, edges and costs). Running `export.py` writes the
+blueprint positions back, and `gerar_fibonacci.ps1` reads its input from the shipped data, so run it only right
+after `export.py` and then copy `resource_override/data` over `src/main/resources/data` again. Afterwards
+`python tools/layout/portals.py` places the four gates in free space and links them, and the exclusive groups have
+to be removed again (the blueprints still declare them).
 
 ## Known limitations
 
@@ -119,7 +171,7 @@ from the authored blueprints; `python3 tools/layout/builds.py` recomputes the ex
 
 ## Documentation
 
-- [TREE_DESIGN.md](TREE_DESIGN.md) — sectors, effects, caps, example builds
+- [TREE_DESIGN.md](TREE_DESIGN.md) — sectors, effects, caps
 - [ARCHITECTURE.md](ARCHITECTURE.md) — persistence, networking, transactions, effects, reloading
 - [LAYOUT_MANIFEST.md](LAYOUT_MANIFEST.md) — every node and edge, coordinates, validation results
 - [ART_DIRECTION.md](ART_DIRECTION.md) — backdrop composition, palette, sprites, asset pipeline

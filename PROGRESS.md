@@ -93,7 +93,7 @@ Work branch: `claude/nostalgiaskills`. The Gradle project lives at the repositor
   Log: `docs/verification/reload_scenario_run2.log`.
 - `./gradlew build` SUCCESS, `./gradlew test --rerun` 56/56; jar `build/libs/nostalgiaskills-0.1.0.jar` (not committed;
   build output).
-- Docs written: README.md, ARCHITECTURE.md, TREE_DESIGN.md (+ generated example builds, `docs/builds.json`),
+- Docs written: README.md, ARCHITECTURE.md, TREE_DESIGN.md,
   ART_DIRECTION.md; example datapacks in `examples/datapacks/`.
 
 ### Run 3 (2026-10-06, commit 3be2ac4 — PROGRESS.md was not updated by that run; recorded here by run 4)

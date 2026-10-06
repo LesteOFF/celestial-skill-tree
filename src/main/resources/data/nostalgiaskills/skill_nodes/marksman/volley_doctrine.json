@@ -5,8 +5,8 @@
   "sector": "marksman",
   "type": "keystone",
   "position": {
-    "x": 765.0,
-    "y": -134.5
+    "x": 439.4762,
+    "y": 1985.4584
   },
   "name": "skill.nostalgiaskills.marksman.volley_doctrine.name",
   "description": "skill.nostalgiaskills.marksman.volley_doctrine.description",
@@ -38,6 +38,5 @@
     "projectile",
     "marksman"
   ],
-  "cluster": "marksman:keystone_volley",
-  "exclusive_group": "marksman_discipline"
+  "cluster": "marksman:keystone_volley"
 }

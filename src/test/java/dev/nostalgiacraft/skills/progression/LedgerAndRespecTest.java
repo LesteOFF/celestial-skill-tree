@@ -17,61 +17,61 @@ class LedgerAndRespecTest {
 
     @Test
     void invariantHoldsThroughPurchasesAllocationsResetsAndAdminOps() {
-        PlayerSkillState s = new PlayerSkillState();
+        PlayerSkillState state = new PlayerSkillState();
         for (int i = 0; i < 5; i++) {
-            ProgressionService.purchasePoint(s, 1_000_000, ProgressionService.Settings.DEFAULT);
-            assertTrue(s.ledgerHolds());
+            ProgressionService.purchasePoint(state, 1_000_000, ProgressionService.Settings.DEFAULT);
+            assertTrue(state.ledgerHolds());
         }
-        AllocationService.confirm(g, s, List.of(id("a/hub"), id("a/m1"), id("a/m2"), id("a/n1")));
-        assertTrue(s.ledgerHolds());
-        assertEquals(4, s.activeSpentPoints());
-        assertEquals(1, s.availablePoints());
-        LedgerService.grant(s, 3, 120, false);
-        assertTrue(s.ledgerHolds());
-        LedgerService.setAvailable(s, 0, 120, false);
-        assertTrue(s.ledgerHolds());
-        assertEquals(5, s.purchasedPoints(), "admin operations never touch the purchase counter");
-        RespecService.Preview p = RespecService.resetAll(s);
-        assertEquals(4, p.refund());
-        assertEquals(4, s.availablePoints());
-        assertTrue(s.ledgerHolds());
-        assertTrue(s.allocations().isEmpty());
-        assertTrue(s.startingRoot().isEmpty(), "a new free root may be chosen");
+        AllocationService.confirm(g, state, List.of(id("a/hub"), id("a/m1"), id("a/m2"), id("a/n1")));
+        assertTrue(state.ledgerHolds());
+        assertEquals(4, state.activeSpentPoints());
+        assertEquals(1, state.availablePoints());
+        LedgerService.grant(state, 3, 120, false);
+        assertTrue(state.ledgerHolds());
+        LedgerService.setAvailable(state, 0, 120, false);
+        assertTrue(state.ledgerHolds());
+        assertEquals(5, state.purchasedPoints(), "admin operations never touch the purchase counter");
+        RespecService.Preview preview = RespecService.resetAll(state);
+        assertEquals(4, preview.refund());
+        assertEquals(4, state.availablePoints());
+        assertTrue(state.ledgerHolds());
+        assertTrue(state.allocations().isEmpty());
+        assertTrue(state.startingRoot().isEmpty(), "a new free root may be chosen");
     }
 
     @Test
     void resetCannotMultiplyPoints() {
-        PlayerSkillState s = new PlayerSkillState();
-        LedgerService.grant(s, 10, 120, false);
-        AllocationService.confirm(g, s, List.of(id("a/hub"), id("a/m1"), id("a/m2")));
-        RespecService.resetAll(s);
-        RespecService.resetAll(s);
-        assertEquals(10, s.availablePoints());
-        AllocationService.confirm(g, s, List.of(id("b/hub"), id("b/m2")));
-        assertEquals(0, s.allocations().get(id("b/hub")).paidCost(), "new starting root is free again");
-        assertEquals(9, s.availablePoints());
-        assertTrue(s.ledgerHolds());
+        PlayerSkillState state = new PlayerSkillState();
+        LedgerService.grant(state, 10, 120, false);
+        AllocationService.confirm(g, state, List.of(id("a/hub"), id("a/m1"), id("a/m2")));
+        RespecService.resetAll(state);
+        RespecService.resetAll(state);
+        assertEquals(10, state.availablePoints());
+        AllocationService.confirm(g, state, List.of(id("b/hub"), id("b/m2")));
+        assertEquals(0, state.allocations().get(id("b/hub")).paidCost(), "new starting root is free again");
+        assertEquals(9, state.availablePoints());
+        assertTrue(state.ledgerHolds());
     }
 
     @Test
     void grantsAboveTheLimitNeedAnExplicitOverride() {
-        PlayerSkillState s = new PlayerSkillState();
-        assertEquals(RejectReason.OVER_LIMIT_NEEDS_OVERRIDE, LedgerService.grant(s, 121, 120, false).reason().orElseThrow());
-        assertTrue(LedgerService.grant(s, 121, 120, true).ok());
-        assertEquals(RejectReason.INVALID_AMOUNT, LedgerService.setAvailable(s, -1, 120, true).reason().orElseThrow());
-        assertEquals(RejectReason.INVALID_AMOUNT, LedgerService.grant(s, -500, 120, true).reason().orElseThrow());
+        PlayerSkillState state = new PlayerSkillState();
+        assertEquals(RejectReason.OVER_LIMIT_NEEDS_OVERRIDE, LedgerService.grant(state, 121, 120, false).reason().orElseThrow());
+        assertTrue(LedgerService.grant(state, 121, 120, true).ok());
+        assertEquals(RejectReason.INVALID_AMOUNT, LedgerService.setAvailable(state, -1, 120, true).reason().orElseThrow());
+        assertEquals(RejectReason.INVALID_AMOUNT, LedgerService.grant(state, -500, 120, true).reason().orElseThrow());
     }
 
     @Test
     void setAvailablePreservesRecordedPurchaseCosts() {
-        PlayerSkillState s = new PlayerSkillState();
-        LedgerService.grant(s, 5, 120, false);
-        AllocationService.confirm(g, s, List.of(id("a/hub"), id("a/m1"), id("a/m2")));
-        LedgerService.setAvailable(s, 10, 120, false);
-        assertEquals(10, s.availablePoints());
-        assertEquals(2, s.activeSpentPoints());
-        assertEquals(12, s.netGrantedPoints());
-        assertTrue(s.ledgerHolds());
+        PlayerSkillState state = new PlayerSkillState();
+        LedgerService.grant(state, 5, 120, false);
+        AllocationService.confirm(g, state, List.of(id("a/hub"), id("a/m1"), id("a/m2")));
+        LedgerService.setAvailable(state, 10, 120, false);
+        assertEquals(10, state.availablePoints());
+        assertEquals(2, state.activeSpentPoints());
+        assertEquals(12, state.netGrantedPoints());
+        assertTrue(state.ledgerHolds());
     }
 
     @Test
@@ -87,14 +87,14 @@ class LedgerAndRespecTest {
 
     @Test
     void stateCopyAndRestorePreserveEverything() {
-        PlayerSkillState s = new PlayerSkillState();
-        LedgerService.grant(s, 6, 120, false);
-        AllocationService.confirm(g, s, List.of(id("a/hub"), id("a/m1"), id("a/m2"), id("a/n1")));
-        PlayerSkillState c = s.copy();
-        assertEquals(s.allocations(), c.allocations());
-        assertEquals(s.availablePoints(), c.availablePoints());
-        assertEquals(s.stateRevision(), c.stateRevision());
-        assertEquals(s.startingRoot(), c.startingRoot());
+        PlayerSkillState state = new PlayerSkillState();
+        LedgerService.grant(state, 6, 120, false);
+        AllocationService.confirm(g, state, List.of(id("a/hub"), id("a/m1"), id("a/m2"), id("a/n1")));
+        PlayerSkillState c = state.copy();
+        assertEquals(state.allocations(), c.allocations());
+        assertEquals(state.availablePoints(), c.availablePoints());
+        assertEquals(state.stateRevision(), c.stateRevision());
+        assertEquals(state.startingRoot(), c.startingRoot());
         assertFalse(c.allocations().isEmpty());
     }
 }

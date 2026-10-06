@@ -13,9 +13,7 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import org.lwjgl.glfw.GLFW;
 
-/** Client-only wiring (never loaded on a dedicated server). */
 public final class ClientSetup {
-    /** Default O; rebindable in Controls, conflict context limited to in-game so other mods' GUI keys don't clash. */
     public static final KeyMapping OPEN_KEY = new KeyMapping("key.nostalgiaskills.open", KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_O, "key.categories.nostalgiaskills");
 
@@ -40,9 +38,9 @@ public final class ClientSetup {
 
         @SubscribeEvent
         public static void tick(ClientTickEvent.Post e) {
-            Minecraft mc = Minecraft.getInstance();
+            Minecraft minecraft = Minecraft.getInstance();
             while (OPEN_KEY.consumeClick()) {
-                if (mc.player != null && mc.screen == null) {
+                if (minecraft.player != null && minecraft.screen == null) {
                     ClientScreens.open(false);
                 }
             }

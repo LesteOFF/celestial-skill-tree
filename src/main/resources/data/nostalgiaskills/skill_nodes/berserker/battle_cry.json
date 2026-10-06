@@ -1,40 +1,44 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:berserker/battle_cry",
-  "tree": "nostalgiaskills:main",
-  "sector": "berserker",
-  "type": "notable",
-  "position": {
-    "x": -135.0,
-    "y": 234.0
-  },
-  "name": "skill.nostalgiaskills.berserker.battle_cry.name",
-  "description": "skill.nostalgiaskills.berserker.battle_cry.description",
-  "icon": "nostalgiaskills:textures/skill_icons/melee.png",
-  "frame": "violet_facet",
-  "cost": 2,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "trigger",
-      "trigger": "on_kill",
-      "action": {
-        "type": "self_effect",
-        "effect": "minecraft:strength",
-        "duration_ticks": 100,
-        "amplifier": 0
-      },
-      "cooldown_ticks": 300
-    }
-  ],
-  "tags": [
-    "melee",
-    "berserker"
-  ],
-  "cluster": "berserker:war_path"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:berserker/battle_cry",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "berserker",
+    "type":  "notable",
+    "position":  {
+                     "x":  -574.1886,
+                     "y":  412.9487
+                 },
+    "name":  "skill.nostalgiaskills.berserker.battle_cry.name",
+    "description":  "skill.nostalgiaskills.berserker.battle_cry.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/melee.png",
+    "frame":  "violet_facet",
+    "cost":  2,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "trigger",
+                        "trigger":  "on_kill",
+                        "action":  {
+                                       "type":  "self_effect",
+                                       "effect":  "minecraft:strength",
+                                       "duration_ticks":  100,
+                                       "amplifier":  0
+                                   },
+                        "cooldown_ticks":  300
+                    }
+                ],
+    "tags":  [
+                 "melee",
+                 "berserker"
+             ],
+    "cluster":  "berserker:war_path"
 }

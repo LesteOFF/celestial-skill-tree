@@ -1,36 +1,40 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:berserker/heavy_swing_11",
-  "tree": "nostalgiaskills:main",
-  "sector": "berserker",
-  "type": "minor",
-  "position": {
-    "x": -69.5,
-    "y": 520.0
-  },
-  "name": "skill.nostalgiaskills.berserker.heavy_swing_11.name",
-  "description": "skill.nostalgiaskills.berserker.heavy_swing_11.description",
-  "icon": "nostalgiaskills:textures/skill_icons/heavy_weapon.png",
-  "frame": "bronze_circle",
-  "cost": 1,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:heavy_weapon_damage",
-      "operation": "add_value",
-      "amount": 0.03
-    }
-  ],
-  "tags": [
-    "heavy_weapon",
-    "damage",
-    "berserker"
-  ],
-  "cluster": "berserker:cleavers_line"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:berserker/heavy_swing_11",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "berserker",
+    "type":  "minor",
+    "position":  {
+                     "x":  -1303.433,
+                     "y":  433.0341
+                 },
+    "name":  "skill.nostalgiaskills.berserker.heavy_swing_11.name",
+    "description":  "skill.nostalgiaskills.berserker.heavy_swing_11.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/heavy_weapon.png",
+    "frame":  "bronze_circle",
+    "cost":  1,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "nostalgiaskills:heavy_weapon_damage",
+                        "operation":  "add_value",
+                        "amount":  0.03
+                    }
+                ],
+    "tags":  [
+                 "heavy_weapon",
+                 "damage",
+                 "berserker"
+             ],
+    "cluster":  "berserker:cleavers_line"
 }

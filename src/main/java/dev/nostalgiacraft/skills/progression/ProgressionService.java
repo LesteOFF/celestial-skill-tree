@@ -2,17 +2,36 @@ package dev.nostalgiacraft.skills.progression;
 
 import java.util.Optional;
 
-/** Buying skill points with raw vanilla XP. Pure logic; the game layer applies the returned XP total. */
 public final class ProgressionService {
     public record Settings(boolean xpPurchaseEnabled, int pointLimit, XpCurve curve) {
         public static final Settings DEFAULT = new Settings(true, 120, XpCurve.DEFAULT);
     }
 
-    /** On success {@code newXpTotal} is the exact raw XP the player must be left with. */
     public record PurchaseResult(boolean ok, Optional<RejectReason> reason, int cost, long xpBefore, long newXpTotal) {
     }
 
+    public record BulkPurchaseResult(int bought, Optional<RejectReason> reason, long totalCost, long newXpTotal) {
+        public boolean ok() {
+            return bought > 0;
+        }
+    }
+
     private ProgressionService() {
+    }
+
+    public static BulkPurchaseResult purchasePoints(PlayerSkillState state, long xpBalance, Settings settings, int count) {
+        int bought = 0;
+        long balance = xpBalance;
+        Optional<RejectReason> reason = Optional.empty();
+        while (bought < count && reason.isEmpty()) {
+            PurchaseResult result = purchasePoint(state, balance, settings);
+            reason = result.reason();
+            if (result.ok()) {
+                bought++;
+                balance = result.newXpTotal();
+            }
+        }
+        return new BulkPurchaseResult(bought, bought > 0 ? Optional.empty() : reason, xpBalance - balance, balance);
     }
 
     public static PurchaseResult purchasePoint(PlayerSkillState state, long xpBalance, Settings settings) {

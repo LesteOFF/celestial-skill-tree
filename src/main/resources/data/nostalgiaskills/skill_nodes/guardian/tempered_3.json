@@ -1,36 +1,40 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:guardian/tempered_3",
-  "tree": "nostalgiaskills:main",
-  "sector": "guardian",
-  "type": "minor",
-  "position": {
-    "x": -119.5,
-    "y": -407.0
-  },
-  "name": "skill.nostalgiaskills.guardian.tempered_3.name",
-  "description": "skill.nostalgiaskills.guardian.tempered_3.description",
-  "icon": "nostalgiaskills:textures/skill_icons/armor.png",
-  "frame": "bronze_circle",
-  "cost": 1,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "minecraft:generic.armor_toughness",
-      "operation": "add_value",
-      "amount": 0.5
-    }
-  ],
-  "tags": [
-    "armor",
-    "defense",
-    "guardian"
-  ],
-  "cluster": "guardian:middle_wall"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:guardian/tempered_3",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "guardian",
+    "type":  "minor",
+    "position":  {
+                     "x":  635.8539,
+                     "y":  -910.4632
+                 },
+    "name":  "skill.nostalgiaskills.guardian.tempered_3.name",
+    "description":  "skill.nostalgiaskills.guardian.tempered_3.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/armor.png",
+    "frame":  "bronze_circle",
+    "cost":  1,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "minecraft:generic.armor_toughness",
+                        "operation":  "add_value",
+                        "amount":  0.5
+                    }
+                ],
+    "tags":  [
+                 "armor",
+                 "defense",
+                 "guardian"
+             ],
+    "cluster":  "guardian:middle_wall"
 }

@@ -3,8 +3,9 @@
 NeoForge 21.1.256 for Minecraft 1.21.1, Java 21, ModDevGradle 2.0.148. Package root `dev.nostalgiacraft.skills`.
 
 ```text
-graph/        pure Java: node/edge/effect model, GraphParser (JSON), GraphValidator, SkillGraphSnapshot, GraphCodec
-progression/  pure Java: PlayerSkillState (ledger), AllocationService, PathFinder, XpMath, XpCurve,
+graph/        pure Java: node/edge/effect model, GraphParser (JSON; split into NodeParser, EffectParser,
+              ConnectionParser over JsonFields), GraphValidator, SkillGraphSnapshot, GraphCodec
+progression/  pure Java: PlayerSkillState (ledger), AllocationService, Holdings, PathFinder, XpMath, XpCurve,
               ProgressionService, LedgerService, RespecService, RefundService, Reconciler, RequestGuard,
               RejectReason
 data/         server resource loading: SkillTreeReloadListener, SkillTreeManager, BundledTree, McKnownIds
@@ -17,7 +18,7 @@ config/       ServerConfig (gameplay, synced), ClientConfig (presentation only)
 client/       ClientSkillState, ClientSetup (key mapping), screen/, render/, VisualQa + InWorldQa (dev harness)
 ```
 
-`graph` and `progression` contain no Minecraft classes; they are unit-tested directly (`./gradlew test`, 64 tests,
+`graph` and `progression` contain no Minecraft classes; they are unit-tested directly (`./gradlew test`, 88 tests,
 including validation of the full bundled 480-node dataset). The same classes run on the server (authoritative) and
 on the client (previews only), so the client shows exactly the rules the server enforces.
 
@@ -81,15 +82,16 @@ Clients send intents only (`network/Payloads.java`):
 | Client → server | Fields |
 |---|---|
 | `request_sync` | known graph fingerprint (graph resent only if different) |
-| `buy_point` | request UUID, expected state revision |
+| `buy_point` | request UUID, expected state revision, point count (clamped by the server to 1..point limit) |
 | `confirm_allocation` | request UUID, expected state revision, expected graph revision, ≤400 node ids (≤64 chars; worst case < 32 KiB) |
 | `request_reset` | request UUID, expected state revision, expected graph revision |
 | `request_refund` | request UUID, expected state revision, expected graph revision, one node id (≤64 chars) |
+| `donate_xp` | request UUID, expected state revision, amount |
 
 | Server → client | Fields |
 |---|---|
 | `graph_sync` | graph revision + deflated binary snapshot (`GraphCodec`; 25 KB for the shipped tree, cap 900 KB < 1 MiB) |
-| `state_sync` | graph revision, full player state, economy values for display (next cost, limit, flags) |
+| `state_sync` | graph revision, full player state, economy values for display (next cost, limit, flags), XP curve coefficients, world rules (eclipse active, shared-constellation XP and tier thresholds) |
 | `transaction_result` | request UUID, ok flag, translatable message key, detail |
 | `open_screen` | opens the tree or the reset confirmation |
 
@@ -101,6 +103,9 @@ applied before validation passes.
 - **Buy point:** balance = exact raw XP derived from level + bar progress (`XpMath`, matching vanilla
   `getXpNeededForNextLevel`, bar rounded down); cost from `XpCurve`; on success level, progress and
   `totalExperience` are rewritten together from one exact integer, so the XP bar, level and balance never disagree.
+  A request may ask for several points: `ProgressionService.purchasePoints` buys them one by one along the curve
+  until the count, the XP or the point limit runs out, and the XP is rewritten once for the whole purchase. Buying
+  fewer than asked is a success; buying none is a rejection with the first reason.
 - **Confirm batch:** `AllocationService` repeatedly accepts eligible nodes starting from the confirmed build, so a
   valid batch is accepted in any order; any leftover node rejects the whole batch with its reason. Each allocation
   records its actual price and acquisition order.
@@ -159,7 +164,8 @@ Offline players go through the same path on their next login, before effects are
 
 ## Client
 
-`SkillTreeScreen` (no pause, no container) keeps a local pending set, previews it with `AllocationService`, and
+`SkillTreeScreen` (no pause, no container; node states in `NodeStates`, panels in `PanelContents` and
+`PanelRenderer`, the XP bar in `ProgressBar`) keeps a local pending set, previews it with `AllocationService`, and
 recomputes node states only when the state or pending set changes. Hit testing applies the inverse camera transform
 with a 2 GUI-pixel margin and picks the nearest node; controls and panels take precedence. Drag threshold is 4
 window pixels converted through the GUI scale. Draw order: backdrop layers → motes → inactive edges → lit routes →
@@ -167,6 +173,29 @@ node frames/icons → state marks and focus → controls and progress bar → pa
 its viewport and rendering state (blend, shader colour) is restored. Client-only classes are referenced from common
 code only through `ClientHandlers` (invoked solely for client-bound payloads) and `@EventBusSubscriber(value =
 Dist.CLIENT)` classes, which is why the dedicated server starts without loading graphical classes (verified).
+
+## World features
+
+- **Extra effect sources** (`effects/ExtraEffects`): `CompiledBuild.compile` takes extra named effect lists beside the
+  allocated nodes. The player's birth sign and every reached shared-constellation tier are such sources, so
+  `EffectEngine`, `GameplayEvents` and `Triggers` need no special cases.
+- **Birth sign**: `SignParser` reads `skill_signs`; `SignService.assignIfMissing` picks by world day on login; the id is
+  stored in `PlayerSkillState.sign` (optional codec field, old saves load unchanged).
+- **World data** (`data/WorldSkillData`, a `SavedData` on the Overworld): next eclipse day, forced-eclipse flag and
+  donated XP. `server/Eclipse` re-evaluates once a second; while active `SkillService` asks for no orb and the synced
+  economy says so. `server/CommunityTree` applies donations (pure rules in `CommunityProgress`) and refreshes everyone
+  when a tier is reached.
+- **Star fragments**: `StarFragmentItem.redeem` grants one point through `LedgerService.grant` (limit respected).
+  `server/ShootingStars` drops one as a glowing `ItemEntity` near a player at night; `effects/EliteMobs` marks a fresh
+  monster once (persistent data), adds permanent modifiers from a random constellation and adds the fragment to its drops.
+- **Fallen Star**: `FallenStarService.dropNewest` forfeits the newest allocation whose refund plan is not chained,
+  taking its paid points out of the ledger (`available + spent = purchased + granted` still holds). The item carries
+  owner, node and paid cost in `CUSTOM_DATA`; the owner re-learns it, anyone else is granted the points.
+- **Node traits** (`graph/NodeTraits`): `neighbour_multiplier` and `hidden_until` travel through `NodeParser`,
+  `GraphCodec` (format 2) and `GraphValidator`. `Holdings` answers both rules for `AllocationService.rejectionOf`
+  (`UNDISCOVERED`, `CONSUMED`); `Reconciler` replays with everything discovered so learned skills are never lost.
+  `server/Discoveries` records advancements as they are earned and on login; the client hides `NodeState.HIDDEN` nodes
+  and their edges.
 
 ## Development harness (not part of gameplay)
 

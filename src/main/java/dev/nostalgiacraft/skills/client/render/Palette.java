@@ -1,6 +1,5 @@
 package dev.nostalgiacraft.skills.client.render;
 
-/** Authored interface colours (ART_DIRECTION.md). ARGB. */
 public final class Palette {
     public static final int DEEP_SPACE = 0xFF050C10;
     public static final int NEBULA_SHADOW = 0xFF12323F;

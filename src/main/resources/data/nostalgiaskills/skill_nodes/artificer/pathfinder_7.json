@@ -1,36 +1,40 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:artificer/pathfinder_7",
-  "tree": "nostalgiaskills:main",
-  "sector": "artificer",
-  "type": "minor",
-  "position": {
-    "x": 55.0,
-    "y": 453.0
-  },
-  "name": "skill.nostalgiaskills.artificer.pathfinder_7.name",
-  "description": "skill.nostalgiaskills.artificer.pathfinder_7.description",
-  "icon": "nostalgiaskills:textures/skill_icons/mobility.png",
-  "frame": "bronze_circle",
-  "cost": 1,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "minecraft:generic.movement_speed",
-      "operation": "add_multiplied_base",
-      "amount": 0.01
-    }
-  ],
-  "tags": [
-    "mobility",
-    "exploration",
-    "artificer"
-  ],
-  "cluster": "artificer:winze"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:artificer/pathfinder_7",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "artificer",
+    "type":  "minor",
+    "position":  {
+                     "x":  -898.0867,
+                     "y":  787.8435
+                 },
+    "name":  "skill.nostalgiaskills.artificer.pathfinder_7.name",
+    "description":  "skill.nostalgiaskills.artificer.pathfinder_7.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/mobility.png",
+    "frame":  "bronze_circle",
+    "cost":  1,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "minecraft:generic.movement_speed",
+                        "operation":  "add_multiplied_base",
+                        "amount":  0.01
+                    }
+                ],
+    "tags":  [
+                 "mobility",
+                 "exploration",
+                 "artificer"
+             ],
+    "cluster":  "artificer:winze"
 }

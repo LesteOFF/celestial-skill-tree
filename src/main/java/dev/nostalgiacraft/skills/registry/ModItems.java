@@ -27,6 +27,12 @@ public final class ModItems {
     public static final DeferredItem<Item> ORB_OF_RECONFIGURATION = ITEMS.registerItem("orb_of_reconfiguration",
             OrbOfReconfiguration::new, new Item.Properties().stacksTo(16).rarity(Rarity.RARE));
 
+    public static final DeferredItem<Item> STAR_FRAGMENT = ITEMS.registerItem("star_fragment", StarFragmentItem::new,
+            new Item.Properties().rarity(Rarity.UNCOMMON));
+
+    public static final DeferredItem<Item> FALLEN_STAR = ITEMS.registerItem("fallen_star", FallenStarItem::new,
+            new Item.Properties().stacksTo(1).rarity(Rarity.EPIC).fireResistant());
+
     private ModItems() {
     }
 
@@ -35,16 +41,13 @@ public final class ModItems {
         modBus.addListener(ModItems::creativeTab);
     }
 
-    private static void creativeTab(BuildCreativeModeTabContentsEvent e) {
-        if (e.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
-            e.accept(ORB_OF_RECONFIGURATION);
+    private static void creativeTab(BuildCreativeModeTabContentsEvent event) {
+        if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
+            event.accept(ORB_OF_RECONFIGURATION);
+            event.accept(STAR_FRAGMENT);
         }
     }
 
-    /**
-     * Using the orb only opens the reset confirmation. The orb is consumed by the server when (and only when)
-     * the confirmed reset succeeds.
-     */
     public static final class OrbOfReconfiguration extends Item {
         public OrbOfReconfiguration(Properties props) {
             super(props);
@@ -52,14 +55,14 @@ public final class ModItems {
 
         @Override
         public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
-            if (player instanceof ServerPlayer sp) {
-                PacketDistributor.sendToPlayer(sp, new Payloads.OpenScreen(true));
+            if (player instanceof ServerPlayer serverPlayer) {
+                PacketDistributor.sendToPlayer(serverPlayer, new Payloads.OpenScreen(true));
             }
             return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), level.isClientSide());
         }
 
         @Override
-        public void appendHoverText(ItemStack stack, TooltipContext ctx, List<Component> lines, TooltipFlag flag) {
+        public void appendHoverText(ItemStack stack, TooltipContext tooltipContext, List<Component> lines, TooltipFlag flag) {
             lines.add(Component.translatable("item.nostalgiaskills.orb_of_reconfiguration.tooltip"));
         }
 

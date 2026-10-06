@@ -1,250 +1,278 @@
 package dev.nostalgiacraft.skills.graph;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
-/** Structural validation of a parsed snapshot (design section 10.4). */
 public final class GraphValidator {
-    /** Logical frame radii used for overlap diagnostics (warnings only). */
-    public static double radius(NodeType t) {
-        return switch (t) {
+    private static final double OVERLAP_MARGIN = 2;
+
+    public static double radius(NodeType nodeType) {
+        return switch (nodeType) {
             case MINOR -> 6.5;
             case NOTABLE -> 8.5;
             case KEYSTONE -> 12.0;
             case ROOT -> 15.0;
+            case PORTAL -> 30.0;
         };
     }
 
-    public ValidationReport validate(SkillGraphSnapshot g) {
-        ValidationReport r = new ValidationReport();
-        if (g.nodes().isEmpty()) {
-            r.error(g.treeId(), "", "tree has no nodes");
-            return r;
+    public ValidationReport validate(SkillGraphSnapshot graph) {
+        ValidationReport report = new ValidationReport();
+        if (graph.nodes().isEmpty()) {
+            report.error(graph.treeId(), "", "tree has no nodes");
+            return report;
         }
-        checkSectors(g, r);
-        checkConnections(g, r);
-        checkGroups(g, r);
-        checkRequirementReferences(g, r);
-        if (r.hasErrors()) {
-            return r;
+        checkSectors(graph, report);
+        checkConnections(graph, report);
+        checkGroups(graph, report);
+        checkRequirementReferences(graph, report);
+        if (report.hasErrors()) {
+            return report;
         }
-        checkReachability(g, r);
-        checkExclusiveBlockade(g, r);
-        checkSatisfiable(g, r);
-        overlapDiagnostics(g, r);
-        return r;
+        checkReachability(graph, report);
+        checkExclusiveBlockade(graph, report);
+        checkTraits(graph, report);
+        checkSatisfiable(graph, report);
+        overlapDiagnostics(graph, report);
+        return report;
     }
 
-    private static void checkSectors(SkillGraphSnapshot g, ValidationReport r) {
+    private static void checkSectors(SkillGraphSnapshot graph, ValidationReport report) {
+        String source = "skill_trees/" + graph.treeId();
         Set<String> ids = new HashSet<>();
-        for (Sector s : g.sectors()) {
-            if (!ids.add(s.id())) {
-                r.error("skill_trees/" + g.treeId(), "sectors", "duplicate sector '" + s.id() + "'");
+        for (Sector sector : graph.sectors()) {
+            if (!ids.add(sector.id())) {
+                report.error(source, "sectors", "duplicate sector '" + sector.id() + "'");
             }
-            SkillNodeDefinition root = g.nodes().get(s.root());
+            String rootField = "sectors." + sector.id() + ".root";
+            SkillNodeDefinition root = graph.nodes().get(sector.root());
             if (root == null) {
-                r.error("skill_trees/" + g.treeId(), "sectors." + s.id() + ".root", "root node '" + s.root() + "' does not exist");
+                report.error(source, rootField, "root node '" + sector.root() + "' does not exist");
             } else if (!root.isRoot()) {
-                r.error("skill_trees/" + g.treeId(), "sectors." + s.id() + ".root", "'" + s.root() + "' is not of type root");
+                report.error(source, rootField, "'" + sector.root() + "' is not of type root");
             }
         }
-        if (g.roots().isEmpty()) {
-            r.error("skill_trees/" + g.treeId(), "sectors", "tree has no root nodes");
+        if (graph.roots().isEmpty()) {
+            report.error(source, "sectors", "tree has no root nodes");
         }
-        for (SkillNodeDefinition n : g.nodes().values()) {
-            if (!ids.contains(n.sector())) {
-                r.error("skill_nodes/" + n.id(), "sector", "unknown sector '" + n.sector() + "'");
+        for (SkillNodeDefinition node : graph.nodes().values()) {
+            if (!ids.contains(node.sector())) {
+                report.error("skill_nodes/" + node.id(), "sector", "unknown sector '" + node.sector() + "'");
             }
-            if (n.isRoot() && g.sectors().stream().noneMatch(s -> s.root().equals(n.id()))) {
-                r.error("skill_nodes/" + n.id(), "type", "root node is not the root of any sector");
+            if (node.isRoot() && graph.sectors().stream().noneMatch(sector -> sector.root().equals(node.id()))) {
+                report.error("skill_nodes/" + node.id(), "type", "root node is not the root of any sector");
             }
         }
     }
 
-    private static void checkConnections(SkillGraphSnapshot g, ValidationReport r) {
+    private static void checkConnections(SkillGraphSnapshot graph, ValidationReport report) {
         Set<String> ids = new HashSet<>();
         Set<String> pairs = new HashSet<>();
-        for (SkillConnection c : g.connections()) {
-            String src = "skill_connections/" + c.id();
-            if (!ids.add(c.id())) {
-                r.error(src, "id", "duplicate connection id");
+        for (SkillConnection connection : graph.connections()) {
+            String source = "skill_connections/" + connection.id();
+            if (!ids.add(connection.id())) {
+                report.error(source, "id", "duplicate connection id");
             }
-            if (c.a().equals(c.b())) {
-                r.error(src, "b", "self edge on '" + c.a() + "'");
+            if (connection.a().equals(connection.b())) {
+                report.error(source, "b", "self edge on '" + connection.a() + "'");
             }
-            if (!g.contains(c.a())) {
-                r.error(src, "a", "unknown node '" + c.a() + "'");
+            if (!graph.contains(connection.a())) {
+                report.error(source, "a", "unknown node '" + connection.a() + "'");
             }
-            if (!g.contains(c.b())) {
-                r.error(src, "b", "unknown node '" + c.b() + "'");
+            if (!graph.contains(connection.b())) {
+                report.error(source, "b", "unknown node '" + connection.b() + "'");
             }
-            String key = c.a().compareTo(c.b()) < 0 ? c.a() + "|" + c.b() : c.b() + "|" + c.a();
-            if (!pairs.add(key)) {
-                r.error(src, "", "duplicate edge between '" + c.a() + "' and '" + c.b() + "'");
+            if (!pairs.add(unorderedPair(connection.a(), connection.b()))) {
+                report.error(source, "", "duplicate edge between '" + connection.a() + "' and '" + connection.b() + "'");
             }
-            if (g.contains(c.a()) && g.contains(c.b())) {
-                boolean crossSector = !g.nodes().get(c.a()).sector().equals(g.nodes().get(c.b()).sector());
-                if (crossSector != c.bridge()) {
-                    r.warn(src, "bridge", crossSector ? "connects two sectors but is not marked as a bridge"
+            if (graph.contains(connection.a()) && graph.contains(connection.b())) {
+                String sectorA = graph.nodes().get(connection.a()).sector();
+                boolean crossSector = !sectorA.equals(graph.nodes().get(connection.b()).sector());
+                if (crossSector != connection.bridge()) {
+                    report.warn(source, "bridge", crossSector ? "connects two sectors but is not marked as a bridge"
                             : "marked as a bridge but stays inside one sector");
                 }
             }
         }
     }
 
-    private static void checkGroups(SkillGraphSnapshot g, ValidationReport r) {
+    private static String unorderedPair(String a, String b) {
+        return a.compareTo(b) < 0 ? a + "|" + b : b + "|" + a;
+    }
+
+    private static void checkGroups(SkillGraphSnapshot graph, ValidationReport report) {
         Map<String, String> memberOf = new HashMap<>();
-        for (ExclusiveGroup eg : g.exclusiveGroups().values()) {
-            for (String m : eg.members()) {
-                SkillNodeDefinition n = g.nodes().get(m);
-                String src = "skill_trees/" + g.treeId();
-                if (n == null) {
-                    r.error(src, "exclusive_groups." + eg.id(), "unknown member '" + m + "'");
+        for (ExclusiveGroup group : graph.exclusiveGroups().values()) {
+            String groupField = "exclusive_groups." + group.id();
+            for (String member : group.members()) {
+                SkillNodeDefinition node = graph.nodes().get(member);
+                String source = "skill_trees/" + graph.treeId();
+                if (node == null) {
+                    report.error(source, groupField, "unknown member '" + member + "'");
                     continue;
                 }
-                if (memberOf.put(m, eg.id()) != null) {
-                    r.error(src, "exclusive_groups." + eg.id(), "'" + m + "' belongs to more than one group");
+                if (memberOf.put(member, group.id()) != null) {
+                    report.error(source, groupField, "'" + member + "' belongs to more than one group");
                 }
-                if (!n.exclusiveGroup().equals(java.util.Optional.of(eg.id()))) {
-                    r.error("skill_nodes/" + m, "exclusive_group", "node does not declare group '" + eg.id() + "'");
+                if (!node.exclusiveGroup().equals(Optional.of(group.id()))) {
+                    report.error("skill_nodes/" + member, "exclusive_group", "node does not declare group '" + group.id() + "'");
                 }
-                if (n.isRoot()) {
-                    r.error("skill_nodes/" + m, "exclusive_group", "roots cannot be exclusive");
+                if (node.isRoot()) {
+                    report.error("skill_nodes/" + member, "exclusive_group", "roots cannot be exclusive");
                 }
             }
         }
-        for (SkillNodeDefinition n : g.nodes().values()) {
-            n.exclusiveGroup().ifPresent(gid -> {
-                if (!g.exclusiveGroups().containsKey(gid)) {
-                    r.error("skill_nodes/" + n.id(), "exclusive_group", "unknown group '" + gid + "'");
-                } else if (!gid.equals(memberOf.get(n.id()))) {
-                    r.error("skill_nodes/" + n.id(), "exclusive_group", "node is not listed in group '" + gid + "'");
+        for (SkillNodeDefinition node : graph.nodes().values()) {
+            node.exclusiveGroup().ifPresent(groupId -> {
+                if (!graph.exclusiveGroups().containsKey(groupId)) {
+                    report.error("skill_nodes/" + node.id(), "exclusive_group", "unknown group '" + groupId + "'");
+                } else if (!groupId.equals(memberOf.get(node.id()))) {
+                    report.error("skill_nodes/" + node.id(), "exclusive_group", "node is not listed in group '" + groupId + "'");
                 }
             });
         }
     }
 
-    private static void checkRequirementReferences(SkillGraphSnapshot g, ValidationReport r) {
-        for (SkillNodeDefinition n : g.nodes().values()) {
-            for (List<String> terms : List.of(n.requirements().allOf(), n.requirements().anyOf())) {
-                for (String t : terms) {
-                    if (!t.startsWith("#") && !g.contains(t)) {
-                        r.error("skill_nodes/" + n.id(), "requirements", "unknown node '" + t + "'");
+    private static void checkRequirementReferences(SkillGraphSnapshot graph, ValidationReport report) {
+        for (SkillNodeDefinition node : graph.nodes().values()) {
+            for (List<String> terms : List.of(node.requirements().allOf(), node.requirements().anyOf())) {
+                for (String term : terms) {
+                    if (!term.startsWith("#") && !graph.contains(term)) {
+                        report.error("skill_nodes/" + node.id(), "requirements", "unknown node '" + term + "'");
                     }
-                    if (t.equals(n.id())) {
-                        r.error("skill_nodes/" + n.id(), "requirements", "node requires itself");
+                    if (term.equals(node.id())) {
+                        report.error("skill_nodes/" + node.id(), "requirements", "node requires itself");
                     }
                 }
             }
         }
     }
 
-    /** Every node must be reachable from every root through access edges (exclusivity ignored here). */
-    private static void checkReachability(SkillGraphSnapshot g, ValidationReport r) {
-        for (String root : g.roots()) {
-            Set<String> seen = reach(g, root, Set.of());
-            for (String id : g.ids()) {
+    private static void checkReachability(SkillGraphSnapshot graph, ValidationReport report) {
+        for (String root : graph.roots()) {
+            Set<String> seen = reach(graph, root, Set.of());
+            for (String id : graph.ids()) {
                 if (!seen.contains(id)) {
-                    r.error("skill_nodes/" + id, "", "not reachable from root '" + root + "'");
+                    report.error("skill_nodes/" + id, "", "not reachable from root '" + root + "'");
                     return;
                 }
             }
         }
     }
 
-    /**
-     * Exclusive choices must never block a route: with every exclusive member removed, all other nodes must still
-     * be reachable from every root.
-     */
-    private static void checkExclusiveBlockade(SkillGraphSnapshot g, ValidationReport r) {
+    private static void checkExclusiveBlockade(SkillGraphSnapshot graph, ValidationReport report) {
         Set<String> exclusive = new HashSet<>();
-        g.exclusiveGroups().values().forEach(eg -> exclusive.addAll(eg.members()));
+        graph.exclusiveGroups().values().forEach(group -> exclusive.addAll(group.members()));
         if (exclusive.isEmpty()) {
             return;
         }
-        for (String root : g.roots()) {
-            Set<String> seen = reach(g, root, exclusive);
-            for (String id : g.ids()) {
+        for (String root : graph.roots()) {
+            Set<String> seen = reach(graph, root, exclusive);
+            for (String id : graph.ids()) {
                 if (!exclusive.contains(id) && !seen.contains(id)) {
-                    r.error("skill_nodes/" + id, "", "only reachable through an exclusive choice (from '" + root + "')");
+                    report.error("skill_nodes/" + id, "", "only reachable through an exclusive choice (from '" + root + "')");
                     return;
                 }
             }
         }
     }
 
-    static Set<String> reach(SkillGraphSnapshot g, String start, Set<String> blocked) {
+    private static void checkTraits(SkillGraphSnapshot graph, ValidationReport report) {
+        Set<String> hidden = new HashSet<>();
+        for (SkillNodeDefinition node : graph.nodes().values()) {
+            boolean special = node.traits().hiddenUntil().isPresent() || node.traits().amplifiesNeighbours();
+            if (node.isRoot() && special) {
+                report.error("skill_nodes/" + node.id(), "type", "roots cannot be hidden or amplify their neighbours");
+            }
+            if (node.traits().hiddenUntil().isPresent()) {
+                hidden.add(node.id());
+            }
+        }
+        if (hidden.isEmpty()) {
+            return;
+        }
+        for (String root : graph.roots()) {
+            Set<String> seen = reach(graph, root, hidden);
+            for (String id : graph.ids()) {
+                if (!hidden.contains(id) && !seen.contains(id)) {
+                    report.error("skill_nodes/" + id, "", "only reachable through a hidden skill (from '" + root + "')");
+                    return;
+                }
+            }
+        }
+    }
+
+    static Set<String> reach(SkillGraphSnapshot graph, String start, Set<String> blocked) {
         Map<String, List<String>> forward = new HashMap<>();
-        for (SkillConnection c : g.connections()) {
-            forward.computeIfAbsent(c.a(), k -> new java.util.ArrayList<>()).add(c.b());
-            if (!c.directed()) {
-                forward.computeIfAbsent(c.b(), k -> new java.util.ArrayList<>()).add(c.a());
+        for (SkillConnection connection : graph.connections()) {
+            forward.computeIfAbsent(connection.a(), from -> new ArrayList<>()).add(connection.b());
+            if (!connection.directed()) {
+                forward.computeIfAbsent(connection.b(), from -> new ArrayList<>()).add(connection.a());
             }
         }
         Set<String> seen = new HashSet<>();
-        Deque<String> q = new ArrayDeque<>();
+        Deque<String> frontier = new ArrayDeque<>();
         seen.add(start);
-        q.add(start);
-        while (!q.isEmpty()) {
-            String k = q.poll();
-            if (blocked.contains(k) && !k.equals(start)) {
+        frontier.add(start);
+        while (!frontier.isEmpty()) {
+            String current = frontier.poll();
+            if (blocked.contains(current) && !current.equals(start)) {
                 continue;
             }
-            for (String m : forward.getOrDefault(k, List.of())) {
-                if (seen.add(m)) {
-                    q.add(m);
+            for (String next : forward.getOrDefault(current, List.of())) {
+                if (seen.add(next)) {
+                    frontier.add(next);
                 }
             }
         }
         return seen;
     }
 
-    /**
-     * Fixed point over "achievable" nodes starting from all roots, honouring adjacency and requirements but not
-     * exclusivity or point budgets. Anything never achievable has impossible (e.g. cyclic) mandatory prerequisites.
-     */
-    private static void checkSatisfiable(SkillGraphSnapshot g, ValidationReport r) {
-        Set<String> got = new HashSet<>(g.roots());
+    private static void checkSatisfiable(SkillGraphSnapshot graph, ValidationReport report) {
+        Set<String> obtainable = new HashSet<>(graph.roots());
         Map<String, Integer> sectorCost = new HashMap<>();
-        for (String root : g.roots()) {
-            sectorCost.merge(g.nodes().get(root).sector(), g.nodes().get(root).cost(), Integer::sum);
+        for (String root : graph.roots()) {
+            sectorCost.merge(graph.nodes().get(root).sector(), graph.nodes().get(root).cost(), Integer::sum);
         }
         boolean changed = true;
         while (changed) {
             changed = false;
-            for (SkillNodeDefinition n : g.nodes().values()) {
-                if (got.contains(n.id())) {
+            for (SkillNodeDefinition node : graph.nodes().values()) {
+                if (obtainable.contains(node.id())) {
                     continue;
                 }
-                boolean adjacent = g.accessFrom(n.id()).stream().anyMatch(got::contains);
-                if (adjacent && RequirementCheck.satisfied(g, n, got, sectorCost.getOrDefault(n.sector(), 0))) {
-                    got.add(n.id());
-                    sectorCost.merge(n.sector(), n.cost(), Integer::sum);
+                boolean adjacent = graph.accessFrom(node.id()).stream().anyMatch(obtainable::contains);
+                int sectorPoints = sectorCost.getOrDefault(node.sector(), 0);
+                if (adjacent && RequirementCheck.satisfied(graph, node, obtainable, sectorPoints)) {
+                    obtainable.add(node.id());
+                    sectorCost.merge(node.sector(), node.cost(), Integer::sum);
                     changed = true;
                 }
             }
         }
-        for (String id : g.ids()) {
-            if (!got.contains(id)) {
-                r.error("skill_nodes/" + id, "requirements", "requirements can never be satisfied (cyclic or impossible)");
+        for (String id : graph.ids()) {
+            if (!obtainable.contains(id)) {
+                report.error("skill_nodes/" + id, "requirements", "requirements can never be satisfied (cyclic or impossible)");
             }
         }
     }
 
-    private static void overlapDiagnostics(SkillGraphSnapshot g, ValidationReport r) {
-        List<SkillNodeDefinition> list = List.copyOf(g.nodes().values());
-        for (int i = 0; i < list.size(); i++) {
-            for (int j = i + 1; j < list.size(); j++) {
-                SkillNodeDefinition a = list.get(i);
-                SkillNodeDefinition b = list.get(j);
-                double need = radius(a.type()) + radius(b.type()) + 2;
-                if (a.position().distanceTo(b.position()) < need) {
-                    r.warn("skill_nodes/" + a.id(), "position", "visually overlaps '" + b.id() + "'");
+    private static void overlapDiagnostics(SkillGraphSnapshot graph, ValidationReport report) {
+        List<SkillNodeDefinition> nodes = List.copyOf(graph.nodes().values());
+        for (int i = 0; i < nodes.size(); i++) {
+            for (int j = i + 1; j < nodes.size(); j++) {
+                SkillNodeDefinition node = nodes.get(i);
+                SkillNodeDefinition other = nodes.get(j);
+                double clearance = radius(node.type()) + radius(other.type()) + OVERLAP_MARGIN;
+                if (node.position().distanceTo(other.position()) < clearance) {
+                    report.warn("skill_nodes/" + node.id(), "position", "visually overlaps '" + other.id() + "'");
                 }
             }
         }

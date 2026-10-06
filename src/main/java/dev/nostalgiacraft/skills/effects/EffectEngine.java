@@ -3,8 +3,11 @@ package dev.nostalgiacraft.skills.effects;
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.config.ServerConfig;
 import dev.nostalgiacraft.skills.data.SkillTreeManager;
+import dev.nostalgiacraft.skills.data.WorldSkillData;
 import dev.nostalgiacraft.skills.graph.Condition;
 import dev.nostalgiacraft.skills.graph.SkillEffect;
+import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
+import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
 import dev.nostalgiacraft.skills.registry.ModTags;
 import net.minecraft.core.Holder;
@@ -24,162 +27,157 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 
-/**
- * Applies the confirmed build as transient attribute modifiers rebuilt from the persisted attachment.
- * Strategy: every refresh removes all modifiers this system owns (namespace nostalgiaskills, path "tree/" or
- * "cond/") and re-adds one aggregated modifier per (attribute, operation). Calling it any number of times yields
- * the same result, and nothing is saved with the entity, so bonuses can never duplicate after death, login or
- * reload. Base values and modifiers from equipment or other mods are never touched.
- */
 public final class EffectEngine {
+    private static final String TREE_KIND = "tree";
+    private static final String CONDITIONAL_KIND = "cond";
     private static final Map<UUID, CompiledBuild> BUILDS = new HashMap<>();
     private static final Map<UUID, Set<String>> ACTIVE_CONDITIONALS = new HashMap<>();
-    private static final Map<String, String> CAPPED = Map.of(
-            "nostalgiaskills:crit_chance", "crit", "nostalgiaskills:dodge_chance", "dodge",
-            "nostalgiaskills:lifesteal", "lifesteal", "nostalgiaskills:damage_reduction", "reduction",
-            "nostalgiaskills:magic_resistance", "magic");
+    private static final Map<String, Supplier<Double>> ADDITIVE_CAPS = Map.of(
+            "nostalgiaskills:crit_chance", ServerConfig.CAP_CRIT_CHANCE,
+            "nostalgiaskills:dodge_chance", ServerConfig.CAP_DODGE_CHANCE,
+            "nostalgiaskills:lifesteal", ServerConfig.CAP_LIFESTEAL,
+            "nostalgiaskills:damage_reduction", ServerConfig.CAP_DAMAGE_REDUCTION,
+            "nostalgiaskills:magic_resistance", ServerConfig.CAP_MAGIC_RESISTANCE);
+
+    public record DamageContext(LivingEntity target, double shotDistance) {
+        boolean hasShot() {
+            return shotDistance >= 0;
+        }
+    }
 
     private EffectEngine() {
     }
 
-    public static CompiledBuild build(Player p) {
-        return BUILDS.getOrDefault(p.getUUID(), CompiledBuild.EMPTY);
+    public static CompiledBuild build(Player player) {
+        return BUILDS.getOrDefault(player.getUUID(), CompiledBuild.EMPTY);
     }
 
-    public static void forget(Player p) {
-        BUILDS.remove(p.getUUID());
-        ACTIVE_CONDITIONALS.remove(p.getUUID());
+    public static void forget(Player player) {
+        BUILDS.remove(player.getUUID());
+        ACTIVE_CONDITIONALS.remove(player.getUUID());
     }
 
-    static ResourceLocation modifierId(String kind, String key) {
+    public static ResourceLocation modifierId(String kind, String key) {
         String path = kind + "/" + key.replace(':', '.').replace('|', '.').replace('#', '.');
         return ResourceLocation.fromNamespaceAndPath(NostalgiaSkills.MODID, path);
     }
 
-    public static void refresh(ServerPlayer p) {
-        CompiledBuild cb = SkillTreeManager.graph()
-                .map(g -> CompiledBuild.compile(g, ModAttachments.state(p))).orElse(CompiledBuild.EMPTY);
-        BUILDS.put(p.getUUID(), cb);
-        removeOwned(p, "tree/");
-        removeOwned(p, "cond/");
-        ACTIVE_CONDITIONALS.remove(p.getUUID());
-        for (Map.Entry<String, Double> e : cb.attributeSums().entrySet()) {
-            String[] parts = e.getKey().split("\\|");
-            double amount = capped(parts[0], parts[1], e.getValue());
-            if (amount == 0) {
-                continue;
-            }
-            attribute(parts[0]).ifPresent(h -> {
-                AttributeInstance inst = p.getAttribute(h);
-                if (inst != null) {
-                    inst.addTransientModifier(new AttributeModifier(modifierId("tree", e.getKey()), amount, op(parts[1])));
-                }
-            });
-        }
-        updateConditionals(p);
-        if (p.getHealth() > p.getMaxHealth()) {
-            p.setHealth(p.getMaxHealth()); // never leave health above a lowered maximum; never heals
-        }
+    public static void refresh(ServerPlayer player) {
+        CompiledBuild build = SkillTreeManager.graph()
+                .map(graph -> compile(graph, player)).orElse(CompiledBuild.EMPTY);
+        BUILDS.put(player.getUUID(), build);
+        removeOwnedModifiers(player);
+        ACTIVE_CONDITIONALS.remove(player.getUUID());
+        build.attributeSums().forEach((sumKey, sum) -> applyPermanent(player, sumKey, sum));
+        updateConditionals(player);
+        clampHealth(player);
     }
 
-    /** Caps limit only this mod's contribution (the summed modifier), never equipment or other mods. */
-    static double capped(String attribute, String op, double amount) {
-        if (attribute.equals("minecraft:generic.movement_speed") && op.equals("add_multiplied_base")) {
-            return Math.min(amount, ServerConfig.CAP_MOVEMENT_SPEED.get());
-        }
-        String cap = CAPPED.get(attribute);
-        if (cap == null || !op.equals("add_value")) {
-            return amount;
-        }
-        double max = switch (cap) {
-            case "crit" -> ServerConfig.CAP_CRIT_CHANCE.get();
-            case "dodge" -> ServerConfig.CAP_DODGE_CHANCE.get();
-            case "lifesteal" -> ServerConfig.CAP_LIFESTEAL.get();
-            case "reduction" -> ServerConfig.CAP_DAMAGE_REDUCTION.get();
-            default -> ServerConfig.CAP_MAGIC_RESISTANCE.get();
-        };
-        return Math.min(amount, max);
+    private static CompiledBuild compile(SkillGraphSnapshot graph, ServerPlayer player) {
+        PlayerSkillState state = ModAttachments.state(player);
+        long communityXp = WorldSkillData.of(player.server).communityXp();
+        return CompiledBuild.compile(graph, state, ExtraEffects.of(state, communityXp));
     }
 
-    /** Re-evaluates conditional modifiers; cheap and only does work for players whose build has any. */
-    public static void updateConditionals(ServerPlayer p) {
-        CompiledBuild cb = build(p);
-        if (cb.conditional().isEmpty()) {
+    private static void applyPermanent(ServerPlayer player, String sumKey, double sum) {
+        String[] attributeAndOperation = sumKey.split("\\|");
+        double amount = capped(attributeAndOperation[0], attributeAndOperation[1], sum);
+        if (amount == 0) {
             return;
         }
-        Set<String> active = ACTIVE_CONDITIONALS.computeIfAbsent(p.getUUID(), k -> new HashSet<>());
-        for (CompiledBuild.Keyed<SkillEffect.ConditionalAttribute> k : cb.conditional()) {
-            boolean on = holds(p, k.effect().condition(), null);
-            boolean was = active.contains(k.key());
-            if (on == was) {
-                continue;
-            }
-            Optional<Holder<Attribute>> h = attribute(k.effect().attribute());
-            AttributeInstance inst = h.map(p::getAttribute).orElse(null);
-            if (inst == null) {
-                continue;
-            }
-            ResourceLocation id = modifierId("cond", k.key());
-            if (on) {
-                inst.addOrUpdateTransientModifier(new AttributeModifier(id, k.effect().amount(), op(k.effect().operation())));
-                active.add(k.key());
-            } else {
-                inst.removeModifier(id);
-                active.remove(k.key());
+        instance(player, attributeAndOperation[0]).ifPresent(instance -> instance.addTransientModifier(
+                new AttributeModifier(modifierId(TREE_KIND, sumKey), amount, op(attributeAndOperation[1]))));
+    }
+
+    public static double capped(String attribute, String operation, double amount) {
+        if (attribute.equals("minecraft:generic.movement_speed") && operation.equals("add_multiplied_base")) {
+            return Math.min(amount, ServerConfig.CAP_MOVEMENT_SPEED.get());
+        }
+        Supplier<Double> cap = ADDITIVE_CAPS.get(attribute);
+        return cap == null || !operation.equals("add_value") ? amount : Math.min(amount, cap.get());
+    }
+
+    public static void updateConditionals(ServerPlayer player) {
+        CompiledBuild build = build(player);
+        if (build.conditional().isEmpty()) {
+            return;
+        }
+        Set<String> active = ACTIVE_CONDITIONALS.computeIfAbsent(player.getUUID(), id -> new HashSet<>());
+        for (CompiledBuild.Keyed<SkillEffect.ConditionalAttribute> keyed : build.conditional()) {
+            boolean holds = holds(player, keyed.effect().condition(), null);
+            if (holds != active.contains(keyed.key())) {
+                instance(player, keyed.effect().attribute())
+                        .ifPresent(instance -> toggleConditional(instance, keyed, holds, active));
             }
         }
-        if (p.getHealth() > p.getMaxHealth()) {
-            p.setHealth(p.getMaxHealth());
+        clampHealth(player);
+    }
+
+    private static void toggleConditional(AttributeInstance instance, CompiledBuild.Keyed<SkillEffect.ConditionalAttribute> keyed,
+                                          boolean enable, Set<String> active) {
+        ResourceLocation id = modifierId(CONDITIONAL_KIND, keyed.key());
+        if (enable) {
+            SkillEffect.ConditionalAttribute effect = keyed.effect();
+            instance.addOrUpdateTransientModifier(new AttributeModifier(id, effect.amount(), op(effect.operation())));
+            active.add(keyed.key());
+        } else {
+            instance.removeModifier(id);
+            active.remove(keyed.key());
         }
     }
 
-    private static void removeOwned(ServerPlayer p, String prefix) {
-        for (Holder<Attribute> h : BuiltInRegistries.ATTRIBUTE.holders().toList()) {
-            AttributeInstance inst = p.getAttribute(h);
-            if (inst == null) {
+    private static void clampHealth(ServerPlayer player) {
+        if (player.getHealth() > player.getMaxHealth()) {
+            player.setHealth(player.getMaxHealth());
+        }
+    }
+
+    private static void removeOwnedModifiers(ServerPlayer player) {
+        for (Holder<Attribute> attribute : BuiltInRegistries.ATTRIBUTE.holders().toList()) {
+            AttributeInstance instance = player.getAttribute(attribute);
+            if (instance == null) {
                 continue;
             }
-            for (AttributeModifier m : List.copyOf(inst.getModifiers())) {
-                if (m.id().getNamespace().equals(NostalgiaSkills.MODID) && m.id().getPath().startsWith(prefix)) {
-                    inst.removeModifier(m.id());
+            for (AttributeModifier modifier : List.copyOf(instance.getModifiers())) {
+                if (isOwned(modifier.id())) {
+                    instance.removeModifier(modifier.id());
                 }
             }
         }
     }
 
-    static Optional<Holder<Attribute>> attribute(String id) {
-        return BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.parse(id)).map(h -> (Holder<Attribute>) h);
+    private static boolean isOwned(ResourceLocation modifierId) {
+        return modifierId.getNamespace().equals(NostalgiaSkills.MODID)
+                && (modifierId.getPath().startsWith(TREE_KIND + "/") || modifierId.getPath().startsWith(CONDITIONAL_KIND + "/"));
     }
 
-    static AttributeModifier.Operation op(String op) {
-        return switch (op) {
+    private static Optional<AttributeInstance> instance(ServerPlayer player, String attributeId) {
+        return BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.parse(attributeId)).map(player::getAttribute);
+    }
+
+    public static AttributeModifier.Operation op(String operation) {
+        return switch (operation) {
             case "add_multiplied_base" -> AttributeModifier.Operation.ADD_MULTIPLIED_BASE;
             case "add_multiplied_total" -> AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL;
             default -> AttributeModifier.Operation.ADD_VALUE;
         };
     }
 
-    /**
-     * Evaluates a condition for {@code p}. {@code ctx} carries damage context (target, shot distance) when the
-     * condition is checked inside a damage event; contextual conditions are false without it.
-     */
-    public static boolean holds(Player p, Condition c, DamageContext ctx) {
-        return switch (c.type()) {
-            case "holding" -> p.getMainHandItem().is(ModTags.itemTag(c.string("tag")));
-            case "sprinting" -> p.isSprinting();
-            case "sneaking" -> p.isShiftKeyDown();
-            case "blocking" -> p.isBlocking();
-            case "below_y" -> p.getY() < c.number("y");
-            case "health_below" -> p.getHealth() < p.getMaxHealth() * c.number("fraction");
-            case "target_health_above" -> ctx != null && ctx.target() != null
-                    && ctx.target().getHealth() > ctx.target().getMaxHealth() * c.number("fraction");
-            case "shot_distance_over" -> ctx != null && ctx.shotDistance() >= 0 && ctx.shotDistance() > c.number("blocks");
-            case "shot_distance_under" -> ctx != null && ctx.shotDistance() >= 0 && ctx.shotDistance() <= c.number("blocks");
+    public static boolean holds(Player player, Condition condition, DamageContext context) {
+        return switch (condition.type()) {
+            case "holding" -> player.getMainHandItem().is(ModTags.itemTag(condition.string("tag")));
+            case "sprinting" -> player.isSprinting();
+            case "sneaking" -> player.isShiftKeyDown();
+            case "blocking" -> player.isBlocking();
+            case "below_y" -> player.getY() < condition.number("y");
+            case "health_below" -> player.getHealth() < player.getMaxHealth() * condition.number("fraction");
+            case "target_health_above" -> context != null && context.target() != null
+                    && context.target().getHealth() > context.target().getMaxHealth() * condition.number("fraction");
+            case "shot_distance_over" -> context != null && context.hasShot() && context.shotDistance() > condition.number("blocks");
+            case "shot_distance_under" -> context != null && context.hasShot() && context.shotDistance() <= condition.number("blocks");
             default -> false;
         };
-    }
-
-    public record DamageContext(LivingEntity target, double shotDistance) {
     }
 }

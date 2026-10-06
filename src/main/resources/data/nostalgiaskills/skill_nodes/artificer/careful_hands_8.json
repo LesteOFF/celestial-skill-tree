@@ -1,35 +1,39 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:artificer/careful_hands_8",
-  "tree": "nostalgiaskills:main",
-  "sector": "artificer",
-  "type": "minor",
-  "position": {
-    "x": 156.5,
-    "y": 480.5
-  },
-  "name": "skill.nostalgiaskills.artificer.careful_hands_8.name",
-  "description": "skill.nostalgiaskills.artificer.careful_hands_8.description",
-  "icon": "nostalgiaskills:textures/skill_icons/tools.png",
-  "frame": "bronze_circle",
-  "cost": 1,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:tool_preservation",
-      "operation": "add_value",
-      "amount": 0.02
-    }
-  ],
-  "tags": [
-    "tools",
-    "artificer"
-  ],
-  "cluster": "artificer:east_raise"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:artificer/careful_hands_8",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "artificer",
+    "type":  "minor",
+    "position":  {
+                     "x":  -914.5181,
+                     "y":  956.0365
+                 },
+    "name":  "skill.nostalgiaskills.artificer.careful_hands_8.name",
+    "description":  "skill.nostalgiaskills.artificer.careful_hands_8.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/tools.png",
+    "frame":  "bronze_circle",
+    "cost":  1,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "nostalgiaskills:tool_preservation",
+                        "operation":  "add_value",
+                        "amount":  0.02
+                    }
+                ],
+    "tags":  [
+                 "tools",
+                 "artificer"
+             ],
+    "cluster":  "artificer:east_raise"
 }

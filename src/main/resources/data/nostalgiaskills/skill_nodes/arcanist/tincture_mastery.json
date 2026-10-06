@@ -1,44 +1,48 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:arcanist/tincture_mastery",
-  "tree": "nostalgiaskills:main",
-  "sector": "arcanist",
-  "type": "notable",
-  "position": {
-    "x": 100.5,
-    "y": -733.5
-  },
-  "name": "skill.nostalgiaskills.arcanist.tincture_mastery.name",
-  "description": "skill.nostalgiaskills.arcanist.tincture_mastery.description",
-  "icon": "nostalgiaskills:textures/skill_icons/potion.png",
-  "frame": "violet_facet",
-  "cost": 2,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:potion_duration",
-      "operation": "add_value",
-      "amount": 0.12
-    },
-    {
-      "type": "trigger",
-      "trigger": "on_potion",
-      "action": {
-        "type": "heal",
-        "amount": 1.0
-      },
-      "cooldown_ticks": 100
-    }
-  ],
-  "tags": [
-    "potion",
-    "arcanist"
-  ],
-  "cluster": "arcanist:west_flask"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:arcanist/tincture_mastery",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "arcanist",
+    "type":  "notable",
+    "position":  {
+                     "x":  1936.5378,
+                     "y":  81.9083
+                 },
+    "name":  "skill.nostalgiaskills.arcanist.tincture_mastery.name",
+    "description":  "skill.nostalgiaskills.arcanist.tincture_mastery.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/potion.png",
+    "frame":  "violet_facet",
+    "cost":  2,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "nostalgiaskills:potion_duration",
+                        "operation":  "add_value",
+                        "amount":  0.12
+                    },
+                    {
+                        "type":  "trigger",
+                        "trigger":  "on_potion",
+                        "action":  {
+                                       "type":  "heal",
+                                       "amount":  1.0
+                                   },
+                        "cooldown_ticks":  100
+                    }
+                ],
+    "tags":  [
+                 "potion",
+                 "arcanist"
+             ],
+    "cluster":  "arcanist:west_flask"
 }

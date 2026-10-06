@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:projectile_damage",
+      "operation": "add_value",
+      "amount": 0.05
+    }
+  ]
+}

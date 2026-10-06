@@ -1,36 +1,40 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:guardian/vitality_20",
-  "tree": "nostalgiaskills:main",
-  "sector": "guardian",
-  "type": "minor",
-  "position": {
-    "x": -297.0,
-    "y": -615.0
-  },
-  "name": "skill.nostalgiaskills.guardian.vitality_20.name",
-  "description": "skill.nostalgiaskills.guardian.vitality_20.description",
-  "icon": "nostalgiaskills:textures/skill_icons/health.png",
-  "frame": "bronze_circle",
-  "cost": 1,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "minecraft:generic.max_health",
-      "operation": "add_value",
-      "amount": 1.0
-    }
-  ],
-  "tags": [
-    "health",
-    "defense",
-    "guardian"
-  ],
-  "cluster": "guardian:sentinel_post"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:guardian/vitality_20",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "guardian",
+    "type":  "minor",
+    "position":  {
+                     "x":  1446.8016,
+                     "y":  -1050.5957
+                 },
+    "name":  "skill.nostalgiaskills.guardian.vitality_20.name",
+    "description":  "skill.nostalgiaskills.guardian.vitality_20.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/health.png",
+    "frame":  "bronze_circle",
+    "cost":  1,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "minecraft:generic.max_health",
+                        "operation":  "add_value",
+                        "amount":  1.0
+                    }
+                ],
+    "tags":  [
+                 "health",
+                 "defense",
+                 "guardian"
+             ],
+    "cluster":  "guardian:sentinel_post"
 }

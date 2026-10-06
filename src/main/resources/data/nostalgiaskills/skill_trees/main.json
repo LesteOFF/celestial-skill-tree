@@ -34,62 +34,7 @@
       "name": "sector.nostalgiaskills.arcanist"
     }
   ],
-  "exclusive_groups": [
-    {
-      "id": "arcanist_formula",
-      "name": "exclusive_group.nostalgiaskills.arcanist_formula",
-      "max_active": 1,
-      "members": [
-        "nostalgiaskills:arcanist/elixir_of_ages",
-        "nostalgiaskills:arcanist/volatile_concentrate"
-      ]
-    },
-    {
-      "id": "artificer_craft",
-      "name": "exclusive_group.nostalgiaskills.artificer_craft",
-      "max_active": 1,
-      "members": [
-        "nostalgiaskills:artificer/master_excavator",
-        "nostalgiaskills:artificer/tinkers_bargain"
-      ]
-    },
-    {
-      "id": "berserker_oath",
-      "name": "exclusive_group.nostalgiaskills.berserker_oath",
-      "max_active": 1,
-      "members": [
-        "nostalgiaskills:berserker/juggernaut",
-        "nostalgiaskills:berserker/reckless_fury"
-      ]
-    },
-    {
-      "id": "duelist_style",
-      "name": "exclusive_group.nostalgiaskills.duelist_style",
-      "max_active": 1,
-      "members": [
-        "nostalgiaskills:duelist/swift_hands",
-        "nostalgiaskills:duelist/thousand_cuts"
-      ]
-    },
-    {
-      "id": "guardian_vow",
-      "name": "exclusive_group.nostalgiaskills.guardian_vow",
-      "max_active": 1,
-      "members": [
-        "nostalgiaskills:guardian/bastion",
-        "nostalgiaskills:guardian/living_aegis"
-      ]
-    },
-    {
-      "id": "marksman_discipline",
-      "name": "exclusive_group.nostalgiaskills.marksman_discipline",
-      "max_active": 1,
-      "members": [
-        "nostalgiaskills:marksman/patient_aim",
-        "nostalgiaskills:marksman/volley_doctrine"
-      ]
-    }
-  ],
+  "exclusive_groups": [],
   "default_costs": {
     "minor": 1,
     "notable": 2,
@@ -103,5 +48,5 @@
     "max_x": 810.0,
     "max_y": 772.5
   },
-  "expected_node_count": 480
+  "expected_node_count": 484
 }

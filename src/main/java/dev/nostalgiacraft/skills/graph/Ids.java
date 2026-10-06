@@ -2,7 +2,6 @@ package dev.nostalgiacraft.skills.graph;
 
 import java.util.regex.Pattern;
 
-/** Namespaced identifier rules, mirroring Minecraft's ResourceLocation character set. */
 public final class Ids {
     private static final Pattern NAMESPACE = Pattern.compile("[a-z0-9_.-]+");
     private static final Pattern PATH = Pattern.compile("[a-z0-9_./-]+");

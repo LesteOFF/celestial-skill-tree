@@ -1,36 +1,40 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:guardian/plating_1",
-  "tree": "nostalgiaskills:main",
-  "sector": "guardian",
-  "type": "minor",
-  "position": {
-    "x": -128.5,
-    "y": -294.5
-  },
-  "name": "skill.nostalgiaskills.guardian.plating_1.name",
-  "description": "skill.nostalgiaskills.guardian.plating_1.description",
-  "icon": "nostalgiaskills:textures/skill_icons/armor.png",
-  "frame": "bronze_circle",
-  "cost": 1,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "minecraft:generic.armor",
-      "operation": "add_value",
-      "amount": 0.5
-    }
-  ],
-  "tags": [
-    "armor",
-    "defense",
-    "guardian"
-  ],
-  "cluster": "guardian:inner_curtain"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:guardian/plating_1",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "guardian",
+    "type":  "minor",
+    "position":  {
+                     "x":  161.9542,
+                     "y":  -825.4729
+                 },
+    "name":  "skill.nostalgiaskills.guardian.plating_1.name",
+    "description":  "skill.nostalgiaskills.guardian.plating_1.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/armor.png",
+    "frame":  "bronze_circle",
+    "cost":  1,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "minecraft:generic.armor",
+                        "operation":  "add_value",
+                        "amount":  0.5
+                    }
+                ],
+    "tags":  [
+                 "armor",
+                 "defense",
+                 "guardian"
+             ],
+    "cluster":  "guardian:inner_curtain"
 }

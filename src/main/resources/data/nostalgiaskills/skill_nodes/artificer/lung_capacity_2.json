@@ -1,35 +1,39 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:artificer/lung_capacity_2",
-  "tree": "nostalgiaskills:main",
-  "sector": "artificer",
-  "type": "minor",
-  "position": {
-    "x": 54.5,
-    "y": 234.0
-  },
-  "name": "skill.nostalgiaskills.artificer.lung_capacity_2.name",
-  "description": "skill.nostalgiaskills.artificer.lung_capacity_2.description",
-  "icon": "nostalgiaskills:textures/skill_icons/exploration.png",
-  "frame": "bronze_circle",
-  "cost": 1,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "minecraft:generic.oxygen_bonus",
-      "operation": "add_value",
-      "amount": 0.25
-    }
-  ],
-  "tags": [
-    "exploration",
-    "artificer"
-  ],
-  "cluster": "artificer:air_shaft"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:artificer/lung_capacity_2",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "artificer",
+    "type":  "minor",
+    "position":  {
+                     "x":  -45.7268,
+                     "y":  627.3521
+                 },
+    "name":  "skill.nostalgiaskills.artificer.lung_capacity_2.name",
+    "description":  "skill.nostalgiaskills.artificer.lung_capacity_2.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/exploration.png",
+    "frame":  "bronze_circle",
+    "cost":  1,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "minecraft:generic.oxygen_bonus",
+                        "operation":  "add_value",
+                        "amount":  0.25
+                    }
+                ],
+    "tags":  [
+                 "exploration",
+                 "artificer"
+             ],
+    "cluster":  "artificer:air_shaft"
 }

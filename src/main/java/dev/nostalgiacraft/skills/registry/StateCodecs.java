@@ -8,7 +8,6 @@ import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import java.util.List;
 import java.util.Optional;
 
-/** Persistent (NBT) form of player progression. Schema version is stored for future migrations. */
 public final class StateCodecs {
     public static final Codec<Allocation> ALLOCATION = RecordCodecBuilder.create(i -> i.group(
             Codec.STRING.fieldOf("node").forGetter(Allocation::nodeId),
@@ -31,7 +30,9 @@ public final class StateCodecs {
             Codec.LONG.optionalFieldOf("revision", 0L).forGetter(PlayerSkillState::stateRevision),
             Codec.STRING.optionalFieldOf("graph_fingerprint", "").forGetter(PlayerSkillState::reconciledFingerprint),
             Codec.STRING.listOf().optionalFieldOf("migrations", List.of()).forGetter(s -> List.copyOf(s.migrationMarkers())),
-            Codec.STRING.listOf().optionalFieldOf("audit", List.of()).forGetter(PlayerSkillState::audit)
+            Codec.STRING.listOf().optionalFieldOf("audit", List.of()).forGetter(PlayerSkillState::audit),
+            Codec.STRING.optionalFieldOf("sign").forGetter(PlayerSkillState::sign),
+            Codec.STRING.listOf().optionalFieldOf("discoveries", List.of()).forGetter(s -> List.copyOf(s.discoveries()))
     ).apply(i, StateCodecs::restore));
 
     private StateCodecs() {
@@ -41,8 +42,8 @@ public final class StateCodecs {
     private static PlayerSkillState restore(int schema, String tree, Optional<String> root, List<Allocation> allocs,
                                             long next, int purchased, int granted, int available, long spent,
                                             long refunded, long revision, String fp, List<String> markers,
-                                            List<String> audit) {
+                                            List<String> audit, Optional<String> sign, List<String> discoveries) {
         return PlayerSkillState.restore(tree, root.orElse(null), allocs, next, purchased, granted, available, spent,
-                refunded, revision, fp, markers, audit);
+                refunded, revision, fp, markers, audit).withRestoredSign(sign).withRestoredDiscoveries(discoveries);
     }
 }

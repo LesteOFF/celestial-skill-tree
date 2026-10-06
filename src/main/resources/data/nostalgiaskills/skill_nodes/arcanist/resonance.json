@@ -1,35 +1,39 @@
 {
-  "schema_version": 1,
-  "id": "nostalgiaskills:arcanist/resonance",
-  "tree": "nostalgiaskills:main",
-  "sector": "arcanist",
-  "type": "notable",
-  "position": {
-    "x": 157.0,
-    "y": -508.5
-  },
-  "name": "skill.nostalgiaskills.arcanist.resonance.name",
-  "description": "skill.nostalgiaskills.arcanist.resonance.description",
-  "icon": "nostalgiaskills:textures/skill_icons/magic.png",
-  "frame": "violet_facet",
-  "cost": 2,
-  "max_rank": 1,
-  "requirements": {
-    "all_of": [],
-    "any_of": [],
-    "minimum_sector_points": 0
-  },
-  "effects": [
-    {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:magic_resistance",
-      "operation": "add_value",
-      "amount": 0.08
-    }
-  ],
-  "tags": [
-    "magic",
-    "arcanist"
-  ],
-  "cluster": "arcanist:spokes"
+    "schema_version":  1,
+    "id":  "nostalgiaskills:arcanist/resonance",
+    "tree":  "nostalgiaskills:main",
+    "sector":  "arcanist",
+    "type":  "notable",
+    "position":  {
+                     "x":  1379.8009,
+                     "y":  -193.3311
+                 },
+    "name":  "skill.nostalgiaskills.arcanist.resonance.name",
+    "description":  "skill.nostalgiaskills.arcanist.resonance.description",
+    "icon":  "nostalgiaskills:textures/skill_icons/magic.png",
+    "frame":  "violet_facet",
+    "cost":  2,
+    "max_rank":  1,
+    "requirements":  {
+                         "all_of":  [
+
+                                    ],
+                         "any_of":  [
+
+                                    ],
+                         "minimum_sector_points":  0
+                     },
+    "effects":  [
+                    {
+                        "type":  "attribute",
+                        "attribute":  "nostalgiaskills:magic_resistance",
+                        "operation":  "add_value",
+                        "amount":  0.08
+                    }
+                ],
+    "tags":  [
+                 "magic",
+                 "arcanist"
+             ],
+    "cluster":  "arcanist:spokes"
 }
