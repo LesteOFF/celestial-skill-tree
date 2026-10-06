@@ -9,6 +9,7 @@ import dev.nostalgiacraft.skills.progression.LedgerService;
 import dev.nostalgiacraft.skills.progression.PathFinder;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.progression.ProgressionService;
+import dev.nostalgiacraft.skills.progression.RefundService;
 import dev.nostalgiacraft.skills.progression.RespecService;
 import dev.nostalgiacraft.skills.progression.XpCurve;
 import dev.nostalgiacraft.skills.progression.XpMath;
@@ -175,6 +176,53 @@ public final class SkillGameTests {
         h.assertTrue(p.getHealth() <= p.getMaxHealth(), "health clamped, not above new maximum");
         h.assertTrue(s.ledgerHolds(), "ledger invariant");
         h.assertTrue(XpCurve.DEFAULT.cost(s.purchasedPoints()) == XpCurve.DEFAULT.cost(0), "curve unchanged by reset");
+        h.succeed();
+    }
+
+    /** Single-skill refunds on a real player: a leaf alone, then a hub-adjacent node with its dependent chain. */
+    @GameTest(template = "empty")
+    public static void singleSkillRefundRemovesItsEffectsAndItsChain(GameTestHelper h) {
+        ServerPlayer p = h.makeMockServerPlayerInLevel();
+        PlayerSkillState s = build(h, p, "guardian/hub", "guardian/bastion");
+        h.assertTrue(s.allocations().size() >= 3, "fixture route is long enough: " + s.allocations().size());
+        double full = p.getAttributeValue(Attributes.MAX_HEALTH);
+        int allocated = s.allocations().size();
+        int available = s.availablePoints();
+        int spent = s.activeSpentPoints();
+        List<String> order = s.orderedAllocations().stream().map(a -> a.nodeId()).toList();
+        String hub = order.get(0);
+        String neighbour = order.get(1);
+        String leaf = order.get(order.size() - 1);
+        int leafCost = s.allocations().get(leaf).paidCost();
+
+        RefundService.Plan one = RefundService.apply(graph(h), s, leaf, true);
+        EffectEngine.refresh(p);
+        h.assertTrue(one.ok() && one.removed().equals(List.of(leaf)), "the last node of the route goes alone: " + one.removed());
+        h.assertTrue(one.refund() == leafCost, "refund " + one.refund() + " != recorded cost " + leafCost);
+        h.assertTrue(s.allocations().size() == allocated - 1 && s.availablePoints() == available + leafCost,
+                "one allocation removed and exactly its points returned");
+        h.assertTrue(p.getAttributeValue(Attributes.MAX_HEALTH) <= full, "its contribution is gone: "
+                + p.getAttributeValue(Attributes.MAX_HEALTH) + " vs " + full);
+        h.assertTrue(s.ledgerHolds(), "ledger invariant after a single refund");
+
+        p.setHealth(p.getMaxHealth());
+        RefundService.Plan chain = RefundService.apply(graph(h), s, neighbour, true);
+        EffectEngine.refresh(p);
+        h.assertTrue(chain.ok() && chain.chained(), "the hub-adjacent node takes the rest of the branch");
+        h.assertTrue(s.allocations().keySet().equals(java.util.Set.of(hub)), "only the free hub is left: "
+                + s.allocations().keySet());
+        h.assertTrue(s.availablePoints() == available + spent, "every paid point is back: " + s.availablePoints()
+                + " expected " + (available + spent));
+        h.assertTrue(s.startingRoot().filter(hub::equals).isPresent(), "the starting hub is kept");
+        ServerPlayer hubOnly = h.makeMockServerPlayerInLevel();
+        build(h, hubOnly, "guardian/hub");
+        h.assertTrue(ownedModifiers(p) == ownedModifiers(hubOnly), "only the hub's modifiers are left: "
+                + ownedModifiers(p) + " vs " + ownedModifiers(hubOnly));
+        near(h, hubOnly.getMaxHealth(), p.getMaxHealth(), "max health back to the hub-only value");
+        h.assertTrue(p.getHealth() <= p.getMaxHealth(), "health clamped, not above new maximum");
+        h.assertTrue(s.ledgerHolds(), "ledger invariant after a chained refund");
+        h.assertFalse(RefundService.apply(graph(h), s, leaf, true).ok(), "a replayed refund credits nothing");
+        h.assertTrue(s.availablePoints() == available + spent, "balance unchanged by the replay");
         h.succeed();
     }
 
