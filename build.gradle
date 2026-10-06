@@ -93,3 +93,8 @@ neoForge.ideSyncTask generateModMetadata
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
+
+// Forward the console to the dev server so scripted scenarios (tools/qa/reload_scenario.sh) can type commands.
+tasks.matching { it.name == 'runServer' }.configureEach {
+    standardInput = System.in
+}

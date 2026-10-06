@@ -122,6 +122,10 @@ def condition_text(c, lang):
 
 def attribute_text(e, lang):
     en = lang == "en"
+    if e["attribute"] == "nostalgiaskills:tool_preservation" and e["amount"] < 0:
+        p = _num(-e["amount"] * 100)
+        return (f"{p}% chance of one extra point of tool wear per mined block" if en else
+                f"{p}% de chance de um ponto extra de desgaste da ferramenta por bloco minerado")
     name_en, name_pt, display = ATTRS[e["attribute"]]
     name = name_en if en else name_pt
     amt, op = e["amount"], e["operation"]

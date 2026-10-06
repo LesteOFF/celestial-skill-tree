@@ -10,17 +10,17 @@ Work branch: `claude/nostalgiaskills`. The Gradle project lives at the repositor
 | # | Step | Status |
 |---|------|--------|
 | 1 | Verify target platform, study references/docs | done (versions pinned & verified; API signatures checked in decompiled 21.1.256 sources; docs.neoforged.net not consulted) |
-| 2 | Author layout manifest, art direction, graph design | partial (layout + content + manifest done; ART_DIRECTION.md pending) |
+| 2 | Author layout manifest, art direction, graph design | done (LAYOUT_MANIFEST.md, ART_DIRECTION.md, TREE_DESIGN.md) |
 | 3 | NeoForge project pinned to MC 1.21.1 | done (empty mod builds) |
 | 4 | Model, resource loader, validation, progression domain | done (domain + reload listener + bundled fallback; 56 tests pass) |
-| 5 | Persistence, server authority, transactions, networking | done in code (attachments, payloads, SkillService); not exercised in-game yet |
+| 5 | Persistence, server authority, transactions, networking | done; exercised in a real singleplayer world (client+integrated server) and by GameTests |
 | 6 | Background, icons, frames, item art (+ sources) | done (tools/art generators; 8 backdrop layers, 11 frame/overlay sprites, 51 icons, orb item) |
-| 7 | Rendering, controls, tooltips, previews | done in code (SkillTreeScreen etc.); not yet seen running |
-| 8 | Content and effects in every sector | done in code (EffectEngine, GameplayEvents, Triggers); not exercised in-game yet |
-| 9 | Point purchases, stats, respec, commands, config | done in code (buy/confirm/reset payloads, stats panel, orb item+recipe, 7 commands, server/client config) |
-| 10 | Compile, test client + dedicated server, fix | partial (compiles; dedicated server starts and loads 480 nodes; client not run yet) |
-| 11 | Visual QA vs layout/art spec | pending |
-| 12 | Deliver artifacts and verification evidence | pending |
+| 7 | Rendering, controls, tooltips, previews | done; rendered in the real client under Xvfb (screenshots) |
+| 8 | Content and effects in every sector | done; one effect per sector + Reckless Fury verified by GameTests; max-health route verified in-world |
+| 9 | Point purchases, stats, respec, commands, config | done; XP purchase, stats, orb reset verified in-world; `validate` + reload via console |
+| 10 | Compile, test client + dedicated server, fix | done (build, 56 unit tests, 6 GameTests, dedicated server, client under Xvfb, reload scenario) |
+| 11 | Visual QA vs layout/art spec | partial (23 real-client captures at 1000x563/1280x720/1920x1080/2560x1080, GUI 2/3; reviewed by eye; no human playtest) |
+| 12 | Deliver artifacts and verification evidence | partial (all docs + evidence committed; remaining-limitations list below; some in-game checks not run) |
 
 ## Pinned versions
 
@@ -77,23 +77,44 @@ Work branch: `claude/nostalgiaskills`. The Gradle project lives at the repositor
 - Dedicated server smoke run (ran): `./gradlew runServer -x downloadAssets` → "Skill tree loaded: 480 nodes, revision 1",
   "Done (0.848s)". Log: `docs/verification/dedicated_server_run2.log`.
 
+- Client verified under Xvfb + Mesa (`xvfb-run -a -s "-screen 0 2560x1440x24" ./gradlew runClient -x downloadAssets -Pvisualqa`):
+  dev-only harness `client/VisualQa.java` captured 22 fixture screenshots and `client/InWorldQa.java` ran an in-world
+  scenario: XP 1395 -> 385 after buying 6 points (1010 XP, level 16), pending+cancel applied nothing, confirm of a
+  5-node Guardian route raised max health 20 -> 29, death+respawn kept 5 allocations and 29 max health, orb reset
+  consumed the orb, refunded 5, kept purchased=6 / next cost 292, restored 20 max health and freed the start hub.
+  Evidence: `docs/screenshots/`, `docs/verification/{client_visual_qa_run2.log,ingame_scenario_run2.txt}`.
+  Fixes found by this QA: alpha blending for blitted textures, fit-zoom timing in the harness, short search hint,
+  minimum on-screen node size at low zoom, missing `stats.no_world` key.
+- GameTests (`./gradlew runGameTestServer -x downloadAssets`): 6/6 pass — two independent players, exact XP debit
+  at several balances, a real effect in every sector, Reckless Fury dealt x1.2 / taken x1.1, idempotent refresh +
+  reset clamp, NBT round trip. Log: `docs/verification/gametests_run2.log`.
+- Reload scenario (`tools/qa/reload_scenario.sh`, console commands into the dev server): invalid pack rejected with
+  file/field/reason and previous tree kept; recovery; valid override pack applied as revision 2.
+  Log: `docs/verification/reload_scenario_run2.log`.
+- `./gradlew build` SUCCESS, `./gradlew test --rerun` 56/56; jar `build/libs/nostalgiaskills-0.1.0.jar` (not committed;
+  build output).
+- Docs written: README.md, ARCHITECTURE.md, TREE_DESIGN.md (+ generated example builds, `docs/builds.json`),
+  ART_DIRECTION.md; example datapacks in `examples/datapacks/`.
+
 ## BLOCKED: NETWORK (partial)
 
-- `resources.download.minecraft.net` is still denied (proxy 403 on CONNECT). MDG's `downloadAssets` cannot fetch the
-  3888 asset objects. Workaround used for server runs: write `build/moddev/minecraft_assets.properties` with
-  `asset_index=17` and `assets_root=/root/.gradle/caches/neoformruntime/assets`, then `./gradlew runServer -x downloadAssets`.
-  A client run would lack sounds and non-English languages; owner may allow this host to remove the limitation.
-- `api.minecraftservices.com` denied (only affects Yggdrasil key fetch log noise; offline-mode server works).
+- `resources.download.minecraft.net` is still denied (proxy 403 on CONNECT), so MDG `downloadAssets` cannot fetch the
+  3888 vanilla asset objects (sounds, non-English vanilla languages, panorama). Workaround used for all runs: write
+  `build/moddev/minecraft_assets.properties` with `asset_index=17` and
+  `assets_root=/root/.gradle/caches/neoformruntime/assets`, then run with `-x downloadAssets`. The client therefore ran
+  without vanilla sounds/panorama (mod assets are unaffected). Allowing this host would remove the workaround.
+- `api.minecraftservices.com` / `sessionserver.mojang.com` denied: only Yggdrasil key-fetch log noise; offline dev
+  runs work.
 
 ## Next action
 
-1. Client visual QA under Xvfb (Xvfb + Mesa are installed): add a dev-only harness gated by system property
-   `nostalgiaskills.visualqa` that opens SkillTreeScreen with fixture states and saves screenshots at 1000x563,
-   1280x720, 1920x1080 and two GUI scales into `docs/screenshots/`; guard `PacketDistributor.sendToServer` when there
-   is no connection. Run with `xvfb-run ./gradlew runClient -x downloadAssets`.
-2. NeoForge GameTests (`runGameTestServer`) with mock players: XP purchase, batch confirm, effects per sector,
-   death/respawn persistence, orb reset, two players independent, reload with invalid JSON.
-3. Docs: README.md, ARCHITECTURE.md, TREE_DESIGN.md (example builds via a script), ART_DIRECTION.md; example datapack.
+1. Remaining verification that this environment can still add: two *real* networked clients (only mock players so
+   far), simulated latency / rapid repeated requests against a running server, server restart persistence (save +
+   relaunch the same world), dimension change and End return, offline-player reconciliation after a node removal on a
+   live server, FPS/frame-time measurement with recorded hardware (only llvmpipe software GL is available here).
+2. Optional polish: individual-node refunds are not implemented (full reset only, documented); no optional
+   integrations ship.
+3. When everything above that can run has run, set STATUS: COMPLETE only if nothing required remains unverified.
 
 ## Known failures
 
@@ -104,5 +125,7 @@ Work branch: `claude/nostalgiaskills`. The Gradle project lives at the repositor
 - Run 1: network probes, build (failed, network).
 - Run 2: network probes, `./gradlew build` (scaffold), layout analysis + export (clean), `./gradlew test` (56/56 pass),
   `./gradlew compileJava` (whole mod), dedicated server start (`runServer -x downloadAssets`, success).
-- Not run yet: client, GameTests, in-game behaviour, visual QA, FPS measurements.
+- Run 2 (later): client under Xvfb (visual QA + in-world scenario), GameTests 6/6, reload scenario, full build + tests.
+- Not run: two real networked clients, latency simulation, server restart with an existing world, dimension/End
+  return, FPS measurement on real GPU hardware, human visual review.
 - Not run: any compile, unit test, client, dedicated server, in-game or visual check.

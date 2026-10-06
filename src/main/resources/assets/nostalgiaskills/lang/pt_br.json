@@ -366,7 +366,7 @@
   "skill.nostalgiaskills.artificer.lung_capacity_3.name": "Capacidade Pulmonar III",
   "skill.nostalgiaskills.artificer.lung_capacity_4.description": "+0,25 Bônus de Oxigênio.",
   "skill.nostalgiaskills.artificer.lung_capacity_4.name": "Capacidade Pulmonar IV",
-  "skill.nostalgiaskills.artificer.master_excavator.description": "+20% Velocidade de Mineração com Ferramentas Elegíveis; -15 pontos percentuais de Chance de Preservar Durabilidade.",
+  "skill.nostalgiaskills.artificer.master_excavator.description": "+20% Velocidade de Mineração com Ferramentas Elegíveis; 15% de chance de um ponto extra de desgaste da ferramenta por bloco minerado.",
   "skill.nostalgiaskills.artificer.master_excavator.name": "Mestre Escavador",
   "skill.nostalgiaskills.artificer.pathfinder_1.description": "+1% Velocidade de Movimento (do valor base).",
   "skill.nostalgiaskills.artificer.pathfinder_1.name": "Desbravador I",

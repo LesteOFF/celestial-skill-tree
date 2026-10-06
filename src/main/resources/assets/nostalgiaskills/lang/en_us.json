@@ -366,7 +366,7 @@
   "skill.nostalgiaskills.artificer.lung_capacity_3.name": "Lung Capacity III",
   "skill.nostalgiaskills.artificer.lung_capacity_4.description": "+0.25 Oxygen Bonus.",
   "skill.nostalgiaskills.artificer.lung_capacity_4.name": "Lung Capacity IV",
-  "skill.nostalgiaskills.artificer.master_excavator.description": "+20% Mining Speed with Eligible Tools; -15 percentage points of Tool Durability Preservation Chance.",
+  "skill.nostalgiaskills.artificer.master_excavator.description": "+20% Mining Speed with Eligible Tools; 15% chance of one extra point of tool wear per mined block.",
   "skill.nostalgiaskills.artificer.master_excavator.name": "Master Excavator",
   "skill.nostalgiaskills.artificer.pathfinder_1.description": "+1% Movement Speed (of base value).",
   "skill.nostalgiaskills.artificer.pathfinder_1.name": "Pathfinder I",
