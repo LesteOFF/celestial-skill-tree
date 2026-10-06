@@ -9,16 +9,16 @@ Work branch: `claude/nostalgiaskills`. The Gradle project lives at the repositor
 
 | # | Step | Status |
 |---|------|--------|
-| 1 | Verify target platform, study references/docs | partial |
+| 1 | Verify target platform, study references/docs | done (versions pinned & verified; API signatures checked in decompiled 21.1.256 sources; docs.neoforged.net not consulted) |
 | 2 | Author layout manifest, art direction, graph design | partial (layout + content + manifest done; ART_DIRECTION.md pending) |
 | 3 | NeoForge project pinned to MC 1.21.1 | done (empty mod builds) |
-| 4 | Model, resource loader, validation, progression domain | partial (pure-Java domain + 55 passing tests; Minecraft resource loader pending) |
-| 5 | Persistence, server authority, transactions, networking | pending |
-| 6 | Background, icons, frames, item art (+ sources) | pending |
-| 7 | Rendering, controls, tooltips, previews | pending |
-| 8 | Content and effects in every sector | partial (all 480 nodes have authored effect data; Java effect implementations pending) |
-| 9 | Point purchases, stats, respec, commands, config | pending |
-| 10 | Compile, test client + dedicated server, fix | pending |
+| 4 | Model, resource loader, validation, progression domain | done (domain + reload listener + bundled fallback; 56 tests pass) |
+| 5 | Persistence, server authority, transactions, networking | done in code (attachments, payloads, SkillService); not exercised in-game yet |
+| 6 | Background, icons, frames, item art (+ sources) | done (tools/art generators; 8 backdrop layers, 11 frame/overlay sprites, 51 icons, orb item) |
+| 7 | Rendering, controls, tooltips, previews | done in code (SkillTreeScreen etc.); not yet seen running |
+| 8 | Content and effects in every sector | done in code (EffectEngine, GameplayEvents, Triggers); not exercised in-game yet |
+| 9 | Point purchases, stats, respec, commands, config | done in code (buy/confirm/reset payloads, stats panel, orb item+recipe, 7 commands, server/client config) |
+| 10 | Compile, test client + dedicated server, fix | partial (compiles; dedicated server starts and loads 480 nodes; client not run yet) |
 | 11 | Visual QA vs layout/art spec | pending |
 | 12 | Deliver artifacts and verification evidence | pending |
 
@@ -65,14 +65,35 @@ Work branch: `claude/nostalgiaskills`. The Gradle project lives at the repositor
   Reconciler (migration map, oldest-first replay, exactly-once refunds), RequestGuard (dedup + stale revisions).
 - `./gradlew --no-daemon test`: 55 tests, 0 failures (ran this run), including BundledTreeTest over the real dataset.
 
+- Minecraft layer written and compiling: ModAttributes (17 synced attributes), ModTags + tag JSON, ModAttachments
+  (skills state codec, persisted cooldowns), Server/Client config, SkillTreeReloadListener (+ BundledTree fallback via
+  `nostalgiaskills_bundled_index.json`, skill_migrations), Payloads + NetworkSetup, SkillService (buy/confirm/reset with
+  RequestGuard + rate limit, exact XP rewrite), LifecycleEvents (login/respawn/clone/dimension/datapack sync),
+  EffectEngine (idempotent transient modifiers, caps), GameplayEvents (crit, dodge, damage modifiers, lifesteal,
+  potions, mining speed, tool wear, triggers), SkillCommands, Orb of Reconfiguration (item, model, recipe), client
+  screen (camera, controls, pending batch, dependents, route preview, search, keyboard focus, stats/reset/discard panels,
+  progress bar, background renderer with parallax + reduced motion).
+- Art generators `tools/art/{common,background,sprites,preview_scene}.py` (deterministic seeds) produced all textures.
+- Dedicated server smoke run (ran): `./gradlew runServer -x downloadAssets` → "Skill tree loaded: 480 nodes, revision 1",
+  "Done (0.848s)". Log: `docs/verification/dedicated_server_run2.log`.
+
+## BLOCKED: NETWORK (partial)
+
+- `resources.download.minecraft.net` is still denied (proxy 403 on CONNECT). MDG's `downloadAssets` cannot fetch the
+  3888 asset objects. Workaround used for server runs: write `build/moddev/minecraft_assets.properties` with
+  `asset_index=17` and `assets_root=/root/.gradle/caches/neoformruntime/assets`, then `./gradlew runServer -x downloadAssets`.
+  A client run would lack sounds and non-English languages; owner may allow this host to remove the limitation.
+- `api.minecraftservices.com` denied (only affects Yggdrasil key fetch log noise; offline-mode server works).
+
 ## Next action
 
-Step 4/5 Minecraft layer: `NostalgiaSkills` @Mod class; register custom attributes (17 ids listed above) and add them
-to players (EntityAttributeModificationEvent); item tags `nostalgiaskills:light_weapons|heavy_weapons|bows|crossbows`
-and damage-type tag `nostalgiaskills:magic`; server reload listener (AddReloadListenerEvent) reading
-skill_trees/skill_nodes/skill_connections into GraphParser.Sources, keep last valid snapshot, fallback to bundled
-tree; player data attachment (Codec for PlayerSkillState, copyOnDeath); payloads (RegisterPayloadHandlersEvent);
-then effects engine, commands, config, Orb of Reconfiguration, client screen.
+1. Client visual QA under Xvfb (Xvfb + Mesa are installed): add a dev-only harness gated by system property
+   `nostalgiaskills.visualqa` that opens SkillTreeScreen with fixture states and saves screenshots at 1000x563,
+   1280x720, 1920x1080 and two GUI scales into `docs/screenshots/`; guard `PacketDistributor.sendToServer` when there
+   is no connection. Run with `xvfb-run ./gradlew runClient -x downloadAssets`.
+2. NeoForge GameTests (`runGameTestServer`) with mock players: XP purchase, batch confirm, effects per sector,
+   death/respawn persistence, orb reset, two players independent, reload with invalid JSON.
+3. Docs: README.md, ARCHITECTURE.md, TREE_DESIGN.md (example builds via a script), ART_DIRECTION.md; example datapack.
 
 ## Known failures
 
@@ -81,5 +102,7 @@ then effects engine, commands, config, Orb of Reconfiguration, client screen.
 ## Checks run vs not run
 
 - Run 1: network probes, build (failed, network).
-- Run 2: network probes (all OK), `./gradlew --no-daemon build` (SUCCESS, scaffold only), layout analysis + export (clean), `./gradlew test` (55/55 pass).
+- Run 2: network probes, `./gradlew build` (scaffold), layout analysis + export (clean), `./gradlew test` (56/56 pass),
+  `./gradlew compileJava` (whole mod), dedicated server start (`runServer -x downloadAssets`, success).
+- Not run yet: client, GameTests, in-game behaviour, visual QA, FPS measurements.
 - Not run: any compile, unit test, client, dedicated server, in-game or visual check.
