@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:duelist/swift_hands",
+  "tree": "nostalgiaskills:main",
+  "sector": "duelist",
+  "type": "keystone",
+  "position": {
+    "x": -756.5,
+    "y": -47.5
+  },
+  "name": "skill.nostalgiaskills.duelist.swift_hands.name",
+  "description": "skill.nostalgiaskills.duelist.swift_hands.description",
+  "icon": "nostalgiaskills:textures/skill_icons/keystone_swift_hands.png",
+  "frame": "gold_ornate",
+  "cost": 3,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "conditional_attribute",
+      "attribute": "minecraft:generic.attack_speed",
+      "operation": "add_multiplied_base",
+      "amount": 0.15,
+      "condition": {
+        "type": "holding",
+        "tag": "nostalgiaskills:light_weapons"
+      }
+    },
+    {
+      "type": "damage_modifier",
+      "direction": "dealt",
+      "scope": "melee",
+      "amount": -0.08,
+      "condition": {
+        "type": "holding",
+        "tag": "nostalgiaskills:light_weapons"
+      }
+    }
+  ],
+  "tags": [
+    "keystone",
+    "light_weapon",
+    "duelist"
+  ],
+  "cluster": "duelist:keystone_swift",
+  "exclusive_group": "duelist_style"
+}

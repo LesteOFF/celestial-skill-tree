@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:arcanist/hub",
+  "tree": "nostalgiaskills:main",
+  "sector": "arcanist",
+  "type": "root",
+  "position": {
+    "x": 90.0,
+    "y": -156.0
+  },
+  "name": "skill.nostalgiaskills.arcanist.hub.name",
+  "description": "skill.nostalgiaskills.arcanist.hub.description",
+  "icon": "nostalgiaskills:textures/skill_icons/hub_arcanist.png",
+  "frame": "stone_medallion",
+  "cost": 1,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:potion_duration",
+      "operation": "add_value",
+      "amount": 0.05
+    }
+  ],
+  "tags": [
+    "hub",
+    "arcanist"
+  ],
+  "cluster": "arcanist:hub",
+  "root": true
+}

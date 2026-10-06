@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:guardian/tempered_7",
+  "tree": "nostalgiaskills:main",
+  "sector": "guardian",
+  "type": "minor",
+  "position": {
+    "x": -250.0,
+    "y": -362.0
+  },
+  "name": "skill.nostalgiaskills.guardian.tempered_7.name",
+  "description": "skill.nostalgiaskills.guardian.tempered_7.description",
+  "icon": "nostalgiaskills:textures/skill_icons/armor.png",
+  "frame": "bronze_circle",
+  "cost": 1,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.armor_toughness",
+      "operation": "add_value",
+      "amount": 0.5
+    }
+  ],
+  "tags": [
+    "armor",
+    "defense",
+    "guardian"
+  ],
+  "cluster": "guardian:middle_wall"
+}

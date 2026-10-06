@@ -1,0 +1,4515 @@
+{
+  "schema_version": 1,
+  "tree": "nostalgiaskills:main",
+  "connections": [
+    {
+      "id": "nostalgiaskills:edge/arcanist.arcane_ward--arcanist.clear_mind_3",
+      "a": "nostalgiaskills:arcanist/clear_mind_3",
+      "b": "nostalgiaskills:arcanist/arcane_ward",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.catalyst--arcanist.warding_salts_7",
+      "a": "nostalgiaskills:arcanist/warding_salts_7",
+      "b": "nostalgiaskills:arcanist/catalyst",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.catalyst--arcanist.warding_salts_8",
+      "a": "nostalgiaskills:arcanist/catalyst",
+      "b": "nostalgiaskills:arcanist/warding_salts_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.clear_mind_1--arcanist.sympathetic_link",
+      "a": "nostalgiaskills:arcanist/sympathetic_link",
+      "b": "nostalgiaskills:arcanist/clear_mind_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.clear_mind_1--arcanist.warding_salts_23",
+      "a": "nostalgiaskills:arcanist/clear_mind_1",
+      "b": "nostalgiaskills:arcanist/warding_salts_23",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.clear_mind_2--arcanist.resonance",
+      "a": "nostalgiaskills:arcanist/resonance",
+      "b": "nostalgiaskills:arcanist/clear_mind_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.clear_mind_2--arcanist.warding_salts_23",
+      "a": "nostalgiaskills:arcanist/clear_mind_2",
+      "b": "nostalgiaskills:arcanist/warding_salts_23",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.clear_mind_3--arcanist.warding_salts_12",
+      "a": "nostalgiaskills:arcanist/warding_salts_12",
+      "b": "nostalgiaskills:arcanist/clear_mind_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.clear_mind_4--arcanist.clear_mind_5",
+      "a": "nostalgiaskills:arcanist/clear_mind_4",
+      "b": "nostalgiaskills:arcanist/clear_mind_5",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 396.0,
+          "y": -493.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.clear_mind_4--arcanist.clear_mind_8",
+      "a": "nostalgiaskills:arcanist/clear_mind_8",
+      "b": "nostalgiaskills:arcanist/clear_mind_4",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 413.0,
+          "y": -464.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.clear_mind_4--arcanist.warding_salts_15",
+      "a": "nostalgiaskills:arcanist/warding_salts_15",
+      "b": "nostalgiaskills:arcanist/clear_mind_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.clear_mind_5--arcanist.clear_mind_6",
+      "a": "nostalgiaskills:arcanist/clear_mind_5",
+      "b": "nostalgiaskills:arcanist/clear_mind_6",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 418.5,
+          "y": -518.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.clear_mind_6--arcanist.clear_mind_7",
+      "a": "nostalgiaskills:arcanist/clear_mind_6",
+      "b": "nostalgiaskills:arcanist/clear_mind_7",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 450.0,
+          "y": -505.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.clear_mind_7--arcanist.clear_mind_8",
+      "a": "nostalgiaskills:arcanist/clear_mind_7",
+      "b": "nostalgiaskills:arcanist/clear_mind_8",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 446.5,
+          "y": -471.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.clear_mind_8--arcanist.restorative_brew_12",
+      "a": "nostalgiaskills:arcanist/clear_mind_8",
+      "b": "nostalgiaskills:arcanist/restorative_brew_12",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.distillation_1--arcanist.distillation_2",
+      "a": "nostalgiaskills:arcanist/distillation_1",
+      "b": "nostalgiaskills:arcanist/distillation_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.distillation_1--arcanist.hub",
+      "a": "nostalgiaskills:arcanist/hub",
+      "b": "nostalgiaskills:arcanist/distillation_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.distillation_10--arcanist.distillation_9",
+      "a": "nostalgiaskills:arcanist/distillation_9",
+      "b": "nostalgiaskills:arcanist/distillation_10",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.distillation_10--arcanist.warding_salts_24",
+      "a": "nostalgiaskills:arcanist/distillation_10",
+      "b": "nostalgiaskills:arcanist/warding_salts_24",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.distillation_10--guardian.tempered_6",
+      "a": "nostalgiaskills:guardian/tempered_6",
+      "b": "nostalgiaskills:arcanist/distillation_10",
+      "directed": false,
+      "style": "corridor",
+      "points": [],
+      "bridge": true,
+      "corridor": "nostalgiaskills:corridor/guardian_arcanist"
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.distillation_11--arcanist.distillation_12",
+      "a": "nostalgiaskills:arcanist/distillation_11",
+      "b": "nostalgiaskills:arcanist/distillation_12",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 58.5,
+          "y": -712.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.distillation_11--arcanist.distillation_14",
+      "a": "nostalgiaskills:arcanist/distillation_14",
+      "b": "nostalgiaskills:arcanist/distillation_11",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 74.0,
+          "y": -682.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.distillation_11--arcanist.warding_salts_29",
+      "a": "nostalgiaskills:arcanist/warding_salts_29",
+      "b": "nostalgiaskills:arcanist/distillation_11",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.distillation_12--arcanist.tincture_mastery",
+      "a": "nostalgiaskills:arcanist/distillation_12",
+      "b": "nostalgiaskills:arcanist/tincture_mastery",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 83.0,
+          "y": -736.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.distillation_13--arcanist.distillation_14",
+      "a": "nostalgiaskills:arcanist/distillation_13",
+      "b": "nostalgiaskills:arcanist/distillation_14",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 107.5,
+          "y": -687.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.distillation_13--arcanist.tincture_mastery",
+      "a": "nostalgiaskills:arcanist/tincture_mastery",
+      "b": "nostalgiaskills:arcanist/distillation_13",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 113.0,
+          "y": -721.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.distillation_2--arcanist.distillation_3",
+      "a": "nostalgiaskills:arcanist/distillation_2",
+      "b": "nostalgiaskills:arcanist/distillation_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.distillation_3--arcanist.distillation_4",
+      "a": "nostalgiaskills:arcanist/distillation_3",
+      "b": "nostalgiaskills:arcanist/distillation_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.distillation_4--arcanist.warding_salts_1",
+      "a": "nostalgiaskills:arcanist/distillation_4",
+      "b": "nostalgiaskills:arcanist/warding_salts_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.distillation_5--arcanist.distillation_6",
+      "a": "nostalgiaskills:arcanist/distillation_5",
+      "b": "nostalgiaskills:arcanist/distillation_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.distillation_5--arcanist.hub",
+      "a": "nostalgiaskills:arcanist/hub",
+      "b": "nostalgiaskills:arcanist/distillation_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.distillation_6--arcanist.distillation_7",
+      "a": "nostalgiaskills:arcanist/distillation_6",
+      "b": "nostalgiaskills:arcanist/distillation_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.distillation_7--arcanist.distillers_patience",
+      "a": "nostalgiaskills:arcanist/distillation_7",
+      "b": "nostalgiaskills:arcanist/distillers_patience",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.distillation_8--arcanist.distillation_9",
+      "a": "nostalgiaskills:arcanist/distillation_8",
+      "b": "nostalgiaskills:arcanist/distillation_9",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.distillation_8--arcanist.distillers_patience",
+      "a": "nostalgiaskills:arcanist/distillers_patience",
+      "b": "nostalgiaskills:arcanist/distillation_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.elixir_of_ages--arcanist.restorative_brew_11",
+      "a": "nostalgiaskills:arcanist/restorative_brew_11",
+      "b": "nostalgiaskills:arcanist/elixir_of_ages",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.herbalism--arcanist.restorative_brew_3",
+      "a": "nostalgiaskills:arcanist/restorative_brew_3",
+      "b": "nostalgiaskills:arcanist/herbalism",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.herbalism--arcanist.restorative_brew_4",
+      "a": "nostalgiaskills:arcanist/herbalism",
+      "b": "nostalgiaskills:arcanist/restorative_brew_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.hub--arcanist.restorative_brew_1",
+      "a": "nostalgiaskills:arcanist/hub",
+      "b": "nostalgiaskills:arcanist/restorative_brew_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.panacea--arcanist.restorative_brew_13",
+      "a": "nostalgiaskills:arcanist/restorative_brew_13",
+      "b": "nostalgiaskills:arcanist/panacea",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.panacea--arcanist.restorative_brew_8",
+      "a": "nostalgiaskills:arcanist/restorative_brew_8",
+      "b": "nostalgiaskills:arcanist/panacea",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 423.0,
+          "y": -325.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.panacea--arcanist.restorative_brew_9",
+      "a": "nostalgiaskills:arcanist/panacea",
+      "b": "nostalgiaskills:arcanist/restorative_brew_9",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 456.5,
+          "y": -322.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.philosophers_eye--arcanist.warding_salts_20",
+      "a": "nostalgiaskills:arcanist/warding_salts_20",
+      "b": "nostalgiaskills:arcanist/philosophers_eye",
+      "directed": false,
+      "style": "path",
+      "points": [
+        {
+          "x": 232.5,
+          "y": -324.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.philosophers_eye--arcanist.warding_salts_21",
+      "a": "nostalgiaskills:arcanist/philosophers_eye",
+      "b": "nostalgiaskills:arcanist/warding_salts_21",
+      "directed": false,
+      "style": "path",
+      "points": [
+        {
+          "x": 201.0,
+          "y": -340.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.quintessence--arcanist.warding_salts_16",
+      "a": "nostalgiaskills:arcanist/warding_salts_16",
+      "b": "nostalgiaskills:arcanist/quintessence",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.quintessence--arcanist.warding_salts_17",
+      "a": "nostalgiaskills:arcanist/quintessence",
+      "b": "nostalgiaskills:arcanist/warding_salts_17",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.resonance--arcanist.warding_salts_8",
+      "a": "nostalgiaskills:arcanist/warding_salts_8",
+      "b": "nostalgiaskills:arcanist/resonance",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.restorative_brew_1--arcanist.restorative_brew_2",
+      "a": "nostalgiaskills:arcanist/restorative_brew_1",
+      "b": "nostalgiaskills:arcanist/restorative_brew_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.restorative_brew_10--arcanist.restorative_brew_7",
+      "a": "nostalgiaskills:arcanist/restorative_brew_10",
+      "b": "nostalgiaskills:arcanist/restorative_brew_7",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 435.0,
+          "y": -271.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.restorative_brew_10--arcanist.restorative_brew_9",
+      "a": "nostalgiaskills:arcanist/restorative_brew_9",
+      "b": "nostalgiaskills:arcanist/restorative_brew_10",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 464.0,
+          "y": -289.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.restorative_brew_11--arcanist.restorative_brew_9",
+      "a": "nostalgiaskills:arcanist/restorative_brew_9",
+      "b": "nostalgiaskills:arcanist/restorative_brew_11",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.restorative_brew_12--arcanist.restorative_brew_13",
+      "a": "nostalgiaskills:arcanist/restorative_brew_12",
+      "b": "nostalgiaskills:arcanist/restorative_brew_13",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.restorative_brew_2--arcanist.restorative_brew_3",
+      "a": "nostalgiaskills:arcanist/restorative_brew_2",
+      "b": "nostalgiaskills:arcanist/restorative_brew_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.restorative_brew_4--arcanist.restorative_brew_5",
+      "a": "nostalgiaskills:arcanist/restorative_brew_4",
+      "b": "nostalgiaskills:arcanist/restorative_brew_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.restorative_brew_5--arcanist.restorative_brew_6",
+      "a": "nostalgiaskills:arcanist/restorative_brew_5",
+      "b": "nostalgiaskills:arcanist/restorative_brew_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.restorative_brew_6--arcanist.restorative_brew_7",
+      "a": "nostalgiaskills:arcanist/restorative_brew_6",
+      "b": "nostalgiaskills:arcanist/restorative_brew_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.restorative_brew_6--marksman.bolt_smith_10",
+      "a": "nostalgiaskills:arcanist/restorative_brew_6",
+      "b": "nostalgiaskills:marksman/bolt_smith_10",
+      "directed": false,
+      "style": "corridor",
+      "points": [],
+      "bridge": true,
+      "corridor": "nostalgiaskills:corridor/arcanist_marksman"
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.restorative_brew_7--arcanist.restorative_brew_8",
+      "a": "nostalgiaskills:arcanist/restorative_brew_7",
+      "b": "nostalgiaskills:arcanist/restorative_brew_8",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 409.5,
+          "y": -294.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.steady_hand--arcanist.warding_salts_2",
+      "a": "nostalgiaskills:arcanist/warding_salts_2",
+      "b": "nostalgiaskills:arcanist/steady_hand",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.steady_hand--arcanist.warding_salts_3",
+      "a": "nostalgiaskills:arcanist/steady_hand",
+      "b": "nostalgiaskills:arcanist/warding_salts_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.sympathetic_link--arcanist.warding_salts_5",
+      "a": "nostalgiaskills:arcanist/warding_salts_5",
+      "b": "nostalgiaskills:arcanist/sympathetic_link",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.transmutation--arcanist.warding_salts_11",
+      "a": "nostalgiaskills:arcanist/warding_salts_11",
+      "b": "nostalgiaskills:arcanist/transmutation",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.transmutation--arcanist.warding_salts_12",
+      "a": "nostalgiaskills:arcanist/transmutation",
+      "b": "nostalgiaskills:arcanist/warding_salts_12",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.volatile_concentrate--arcanist.warding_salts_23",
+      "a": "nostalgiaskills:arcanist/warding_salts_23",
+      "b": "nostalgiaskills:arcanist/volatile_concentrate",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warded_path--arcanist.warding_salts_26",
+      "a": "nostalgiaskills:arcanist/warding_salts_26",
+      "b": "nostalgiaskills:arcanist/warded_path",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warded_path--arcanist.warding_salts_27",
+      "a": "nostalgiaskills:arcanist/warded_path",
+      "b": "nostalgiaskills:arcanist/warding_salts_27",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_1--arcanist.warding_salts_2",
+      "a": "nostalgiaskills:arcanist/warding_salts_1",
+      "b": "nostalgiaskills:arcanist/warding_salts_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_10--arcanist.warding_salts_11",
+      "a": "nostalgiaskills:arcanist/warding_salts_10",
+      "b": "nostalgiaskills:arcanist/warding_salts_11",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_10--arcanist.warding_salts_9",
+      "a": "nostalgiaskills:arcanist/warding_salts_9",
+      "b": "nostalgiaskills:arcanist/warding_salts_10",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_12--arcanist.warding_salts_13",
+      "a": "nostalgiaskills:arcanist/warding_salts_12",
+      "b": "nostalgiaskills:arcanist/warding_salts_13",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_13--arcanist.warding_salts_14",
+      "a": "nostalgiaskills:arcanist/warding_salts_13",
+      "b": "nostalgiaskills:arcanist/warding_salts_14",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_14--arcanist.warding_salts_15",
+      "a": "nostalgiaskills:arcanist/warding_salts_14",
+      "b": "nostalgiaskills:arcanist/warding_salts_15",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_15--arcanist.warding_salts_16",
+      "a": "nostalgiaskills:arcanist/warding_salts_15",
+      "b": "nostalgiaskills:arcanist/warding_salts_16",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_17--arcanist.warding_salts_18",
+      "a": "nostalgiaskills:arcanist/warding_salts_17",
+      "b": "nostalgiaskills:arcanist/warding_salts_18",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_18--arcanist.warding_salts_19",
+      "a": "nostalgiaskills:arcanist/warding_salts_18",
+      "b": "nostalgiaskills:arcanist/warding_salts_19",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_19--arcanist.warding_salts_20",
+      "a": "nostalgiaskills:arcanist/warding_salts_19",
+      "b": "nostalgiaskills:arcanist/warding_salts_20",
+      "directed": false,
+      "style": "path",
+      "points": [
+        {
+          "x": 267.0,
+          "y": -321.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_21--arcanist.warding_salts_22",
+      "a": "nostalgiaskills:arcanist/warding_salts_21",
+      "b": "nostalgiaskills:arcanist/warding_salts_22",
+      "directed": false,
+      "style": "path",
+      "points": [
+        {
+          "x": 177.5,
+          "y": -365.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_22--arcanist.warding_salts_23",
+      "a": "nostalgiaskills:arcanist/warding_salts_22",
+      "b": "nostalgiaskills:arcanist/warding_salts_23",
+      "directed": false,
+      "style": "path",
+      "points": [
+        {
+          "x": 166.0,
+          "y": -398.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_24--arcanist.warding_salts_25",
+      "a": "nostalgiaskills:arcanist/warding_salts_24",
+      "b": "nostalgiaskills:arcanist/warding_salts_25",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_25--arcanist.warding_salts_26",
+      "a": "nostalgiaskills:arcanist/warding_salts_25",
+      "b": "nostalgiaskills:arcanist/warding_salts_26",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_27--arcanist.warding_salts_28",
+      "a": "nostalgiaskills:arcanist/warding_salts_27",
+      "b": "nostalgiaskills:arcanist/warding_salts_28",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_28--arcanist.warding_salts_29",
+      "a": "nostalgiaskills:arcanist/warding_salts_28",
+      "b": "nostalgiaskills:arcanist/warding_salts_29",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_29--guardian.rooted_10",
+      "a": "nostalgiaskills:guardian/rooted_10",
+      "b": "nostalgiaskills:arcanist/warding_salts_29",
+      "directed": false,
+      "style": "corridor",
+      "points": [],
+      "bridge": true,
+      "corridor": "nostalgiaskills:corridor/warded_gate"
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_3--arcanist.warding_salts_4",
+      "a": "nostalgiaskills:arcanist/warding_salts_3",
+      "b": "nostalgiaskills:arcanist/warding_salts_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_4--arcanist.warding_salts_5",
+      "a": "nostalgiaskills:arcanist/warding_salts_4",
+      "b": "nostalgiaskills:arcanist/warding_salts_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_5--arcanist.warding_salts_6",
+      "a": "nostalgiaskills:arcanist/warding_salts_5",
+      "b": "nostalgiaskills:arcanist/warding_salts_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_6--arcanist.warding_salts_7",
+      "a": "nostalgiaskills:arcanist/warding_salts_6",
+      "b": "nostalgiaskills:arcanist/warding_salts_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/arcanist.warding_salts_8--arcanist.warding_salts_9",
+      "a": "nostalgiaskills:arcanist/warding_salts_8",
+      "b": "nostalgiaskills:arcanist/warding_salts_9",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.careful_hands_1--artificer.careful_hands_2",
+      "a": "nostalgiaskills:artificer/careful_hands_1",
+      "b": "nostalgiaskills:artificer/careful_hands_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.careful_hands_1--artificer.junction_lamp",
+      "a": "nostalgiaskills:artificer/junction_lamp",
+      "b": "nostalgiaskills:artificer/careful_hands_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.careful_hands_10--artificer.careful_hands_9",
+      "a": "nostalgiaskills:artificer/careful_hands_9",
+      "b": "nostalgiaskills:artificer/careful_hands_10",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.careful_hands_10--artificer.shoring",
+      "a": "nostalgiaskills:artificer/careful_hands_10",
+      "b": "nostalgiaskills:artificer/shoring",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.careful_hands_11--artificer.sure_footing_5",
+      "a": "nostalgiaskills:artificer/sure_footing_5",
+      "b": "nostalgiaskills:artificer/careful_hands_11",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.careful_hands_12--artificer.sure_footing_6",
+      "a": "nostalgiaskills:artificer/sure_footing_6",
+      "b": "nostalgiaskills:artificer/careful_hands_12",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.careful_hands_13--artificer.sure_footing_2",
+      "a": "nostalgiaskills:artificer/sure_footing_2",
+      "b": "nostalgiaskills:artificer/careful_hands_13",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.careful_hands_14--artificer.sure_footing_8",
+      "a": "nostalgiaskills:artificer/sure_footing_8",
+      "b": "nostalgiaskills:artificer/careful_hands_14",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.careful_hands_14--artificer.tinkers_bargain",
+      "a": "nostalgiaskills:artificer/careful_hands_14",
+      "b": "nostalgiaskills:artificer/tinkers_bargain",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.careful_hands_2--artificer.tool_care",
+      "a": "nostalgiaskills:artificer/careful_hands_2",
+      "b": "nostalgiaskills:artificer/tool_care",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.careful_hands_3--artificer.pathfinder_7",
+      "a": "nostalgiaskills:artificer/careful_hands_3",
+      "b": "nostalgiaskills:artificer/pathfinder_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.careful_hands_3--artificer.tool_care",
+      "a": "nostalgiaskills:artificer/tool_care",
+      "b": "nostalgiaskills:artificer/careful_hands_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.careful_hands_4--artificer.careful_hands_5",
+      "a": "nostalgiaskills:artificer/careful_hands_4",
+      "b": "nostalgiaskills:artificer/careful_hands_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.careful_hands_4--artificer.junction_lamp",
+      "a": "nostalgiaskills:artificer/junction_lamp",
+      "b": "nostalgiaskills:artificer/careful_hands_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.careful_hands_5--artificer.careful_hands_6",
+      "a": "nostalgiaskills:artificer/careful_hands_5",
+      "b": "nostalgiaskills:artificer/careful_hands_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.careful_hands_5--artificer.long_reach_4",
+      "a": "nostalgiaskills:artificer/long_reach_4",
+      "b": "nostalgiaskills:artificer/careful_hands_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.careful_hands_6--artificer.careful_hands_9",
+      "a": "nostalgiaskills:artificer/careful_hands_6",
+      "b": "nostalgiaskills:artificer/careful_hands_9",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.careful_hands_6--artificer.sure_footing_9",
+      "a": "nostalgiaskills:artificer/careful_hands_6",
+      "b": "nostalgiaskills:artificer/sure_footing_9",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.careful_hands_7--artificer.careful_hands_8",
+      "a": "nostalgiaskills:artificer/careful_hands_7",
+      "b": "nostalgiaskills:artificer/careful_hands_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.careful_hands_7--artificer.tool_care",
+      "a": "nostalgiaskills:artificer/tool_care",
+      "b": "nostalgiaskills:artificer/careful_hands_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.careful_hands_8--artificer.lantern_post",
+      "a": "nostalgiaskills:artificer/careful_hands_8",
+      "b": "nostalgiaskills:artificer/lantern_post",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.deep_breath--artificer.prospector_3",
+      "a": "nostalgiaskills:artificer/prospector_3",
+      "b": "nostalgiaskills:artificer/deep_breath",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.deep_breath--artificer.prospector_4",
+      "a": "nostalgiaskills:artificer/deep_breath",
+      "b": "nostalgiaskills:artificer/prospector_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.foremans_post--artificer.pathfinder_3",
+      "a": "nostalgiaskills:artificer/foremans_post",
+      "b": "nostalgiaskills:artificer/pathfinder_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.foremans_post--artificer.prospector_14",
+      "a": "nostalgiaskills:artificer/foremans_post",
+      "b": "nostalgiaskills:artificer/prospector_14",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.foremans_post--artificer.rich_seams",
+      "a": "nostalgiaskills:artificer/rich_seams",
+      "b": "nostalgiaskills:artificer/foremans_post",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.foremans_post--artificer.sure_footing_3",
+      "a": "nostalgiaskills:artificer/foremans_post",
+      "b": "nostalgiaskills:artificer/sure_footing_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.fresh_air--artificer.lung_capacity_4",
+      "a": "nostalgiaskills:artificer/lung_capacity_4",
+      "b": "nostalgiaskills:artificer/fresh_air",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.hub--artificer.long_reach_1",
+      "a": "nostalgiaskills:artificer/hub",
+      "b": "nostalgiaskills:artificer/long_reach_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.hub--artificer.lung_capacity_1",
+      "a": "nostalgiaskills:artificer/hub",
+      "b": "nostalgiaskills:artificer/lung_capacity_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.hub--artificer.prospector_1",
+      "a": "nostalgiaskills:artificer/hub",
+      "b": "nostalgiaskills:artificer/prospector_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.junction_lamp--artificer.prospector_6",
+      "a": "nostalgiaskills:artificer/prospector_6",
+      "b": "nostalgiaskills:artificer/junction_lamp",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.junction_lamp--artificer.prospector_7",
+      "a": "nostalgiaskills:artificer/junction_lamp",
+      "b": "nostalgiaskills:artificer/prospector_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.lantern_post--artificer.pathfinder_2",
+      "a": "nostalgiaskills:artificer/pathfinder_2",
+      "b": "nostalgiaskills:artificer/lantern_post",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.long_reach_1--artificer.tinkerer",
+      "a": "nostalgiaskills:artificer/long_reach_1",
+      "b": "nostalgiaskills:artificer/tinkerer",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.long_reach_2--artificer.long_reach_3",
+      "a": "nostalgiaskills:artificer/long_reach_2",
+      "b": "nostalgiaskills:artificer/long_reach_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.long_reach_2--artificer.tinkerer",
+      "a": "nostalgiaskills:artificer/tinkerer",
+      "b": "nostalgiaskills:artificer/long_reach_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.long_reach_3--artificer.long_reach_4",
+      "a": "nostalgiaskills:artificer/long_reach_3",
+      "b": "nostalgiaskills:artificer/long_reach_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.lung_capacity_1--artificer.lung_capacity_2",
+      "a": "nostalgiaskills:artificer/lung_capacity_1",
+      "b": "nostalgiaskills:artificer/lung_capacity_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.lung_capacity_2--artificer.lung_capacity_3",
+      "a": "nostalgiaskills:artificer/lung_capacity_2",
+      "b": "nostalgiaskills:artificer/lung_capacity_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.lung_capacity_3--artificer.lung_capacity_4",
+      "a": "nostalgiaskills:artificer/lung_capacity_3",
+      "b": "nostalgiaskills:artificer/lung_capacity_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.master_excavator--artificer.prospector_16",
+      "a": "nostalgiaskills:artificer/prospector_16",
+      "b": "nostalgiaskills:artificer/master_excavator",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.pathfinder_1--artificer.pathfinder_2",
+      "a": "nostalgiaskills:artificer/pathfinder_1",
+      "b": "nostalgiaskills:artificer/pathfinder_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.pathfinder_1--artificer.prospector_9",
+      "a": "nostalgiaskills:artificer/prospector_9",
+      "b": "nostalgiaskills:artificer/pathfinder_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.pathfinder_10--artificer.pathfinder_11",
+      "a": "nostalgiaskills:artificer/pathfinder_10",
+      "b": "nostalgiaskills:artificer/pathfinder_11",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 192.5,
+          "y": 679.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.pathfinder_10--artificer.pathfinder_12",
+      "a": "nostalgiaskills:artificer/pathfinder_12",
+      "b": "nostalgiaskills:artificer/pathfinder_10",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 158.5,
+          "y": 681.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.pathfinder_10--artificer.pathfinder_6",
+      "a": "nostalgiaskills:artificer/pathfinder_6",
+      "b": "nostalgiaskills:artificer/pathfinder_10",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.pathfinder_11--artificer.prospectors_camp",
+      "a": "nostalgiaskills:artificer/pathfinder_11",
+      "b": "nostalgiaskills:artificer/prospectors_camp",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 194.5,
+          "y": 713.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.pathfinder_12--artificer.prospectors_camp",
+      "a": "nostalgiaskills:artificer/prospectors_camp",
+      "b": "nostalgiaskills:artificer/pathfinder_12",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 160.5,
+          "y": 715.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.pathfinder_12--artificer.wayfinder",
+      "a": "nostalgiaskills:artificer/pathfinder_12",
+      "b": "nostalgiaskills:artificer/wayfinder",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.pathfinder_2--artificer.prospector_13",
+      "a": "nostalgiaskills:artificer/pathfinder_2",
+      "b": "nostalgiaskills:artificer/prospector_13",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.pathfinder_3--artificer.pathfinder_4",
+      "a": "nostalgiaskills:artificer/pathfinder_3",
+      "b": "nostalgiaskills:artificer/pathfinder_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.pathfinder_4--artificer.prospector_11",
+      "a": "nostalgiaskills:artificer/pathfinder_4",
+      "b": "nostalgiaskills:artificer/prospector_11",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.pathfinder_4--artificer.trailblazer",
+      "a": "nostalgiaskills:artificer/pathfinder_4",
+      "b": "nostalgiaskills:artificer/trailblazer",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.pathfinder_5--artificer.pathfinder_6",
+      "a": "nostalgiaskills:artificer/pathfinder_5",
+      "b": "nostalgiaskills:artificer/pathfinder_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.pathfinder_5--artificer.prospector_12",
+      "a": "nostalgiaskills:artificer/pathfinder_5",
+      "b": "nostalgiaskills:artificer/prospector_12",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.pathfinder_5--artificer.trailblazer",
+      "a": "nostalgiaskills:artificer/trailblazer",
+      "b": "nostalgiaskills:artificer/pathfinder_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.pathfinder_7--artificer.pathfinder_8",
+      "a": "nostalgiaskills:artificer/pathfinder_7",
+      "b": "nostalgiaskills:artificer/pathfinder_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.pathfinder_8--artificer.pathfinder_9",
+      "a": "nostalgiaskills:artificer/pathfinder_8",
+      "b": "nostalgiaskills:artificer/pathfinder_9",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.pathfinder_9--berserker.heavy_swing_6",
+      "a": "nostalgiaskills:artificer/pathfinder_9",
+      "b": "nostalgiaskills:berserker/heavy_swing_6",
+      "directed": false,
+      "style": "corridor",
+      "points": [],
+      "bridge": true,
+      "corridor": "nostalgiaskills:corridor/artificer_berserker"
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.prospector_1--artificer.prospector_2",
+      "a": "nostalgiaskills:artificer/prospector_1",
+      "b": "nostalgiaskills:artificer/prospector_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.prospector_10--artificer.prospector_9",
+      "a": "nostalgiaskills:artificer/prospector_9",
+      "b": "nostalgiaskills:artificer/prospector_10",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.prospector_10--artificer.rich_seams",
+      "a": "nostalgiaskills:artificer/prospector_10",
+      "b": "nostalgiaskills:artificer/rich_seams",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.prospector_14--artificer.prospector_15",
+      "a": "nostalgiaskills:artificer/prospector_14",
+      "b": "nostalgiaskills:artificer/prospector_15",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.prospector_15--artificer.prospector_16",
+      "a": "nostalgiaskills:artificer/prospector_15",
+      "b": "nostalgiaskills:artificer/prospector_16",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.prospector_2--artificer.prospector_3",
+      "a": "nostalgiaskills:artificer/prospector_2",
+      "b": "nostalgiaskills:artificer/prospector_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.prospector_4--artificer.prospector_5",
+      "a": "nostalgiaskills:artificer/prospector_4",
+      "b": "nostalgiaskills:artificer/prospector_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.prospector_5--artificer.prospector_6",
+      "a": "nostalgiaskills:artificer/prospector_5",
+      "b": "nostalgiaskills:artificer/prospector_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.prospector_7--artificer.prospector_8",
+      "a": "nostalgiaskills:artificer/prospector_7",
+      "b": "nostalgiaskills:artificer/prospector_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.prospector_8--artificer.prospector_9",
+      "a": "nostalgiaskills:artificer/prospector_8",
+      "b": "nostalgiaskills:artificer/prospector_9",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.prospector_9--artificer.sure_footing_1",
+      "a": "nostalgiaskills:artificer/prospector_9",
+      "b": "nostalgiaskills:artificer/sure_footing_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.reinforced_handles--artificer.sure_footing_5",
+      "a": "nostalgiaskills:artificer/sure_footing_5",
+      "b": "nostalgiaskills:artificer/reinforced_handles",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.reinforced_handles--artificer.sure_footing_6",
+      "a": "nostalgiaskills:artificer/reinforced_handles",
+      "b": "nostalgiaskills:artificer/sure_footing_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.shoring--artificer.sure_footing_2",
+      "a": "nostalgiaskills:artificer/sure_footing_2",
+      "b": "nostalgiaskills:artificer/shoring",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.sure_footing_1--artificer.sure_footing_2",
+      "a": "nostalgiaskills:artificer/sure_footing_1",
+      "b": "nostalgiaskills:artificer/sure_footing_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.sure_footing_10--artificer.sure_footing_11",
+      "a": "nostalgiaskills:artificer/sure_footing_10",
+      "b": "nostalgiaskills:artificer/sure_footing_11",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.sure_footing_10--artificer.sure_footing_9",
+      "a": "nostalgiaskills:artificer/sure_footing_9",
+      "b": "nostalgiaskills:artificer/sure_footing_10",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.sure_footing_11--marksman.hunters_stride_10",
+      "a": "nostalgiaskills:marksman/hunters_stride_10",
+      "b": "nostalgiaskills:artificer/sure_footing_11",
+      "directed": false,
+      "style": "corridor",
+      "points": [],
+      "bridge": true,
+      "corridor": "nostalgiaskills:corridor/marksman_artificer"
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.sure_footing_12--artificer.sure_footing_13",
+      "a": "nostalgiaskills:artificer/sure_footing_12",
+      "b": "nostalgiaskills:artificer/sure_footing_13",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.sure_footing_12--artificer.sure_footing_8",
+      "a": "nostalgiaskills:artificer/sure_footing_8",
+      "b": "nostalgiaskills:artificer/sure_footing_12",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.sure_footing_13--artificer.sure_footing_14",
+      "a": "nostalgiaskills:artificer/sure_footing_13",
+      "b": "nostalgiaskills:artificer/sure_footing_14",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.sure_footing_14--marksman.steady_draw_12",
+      "a": "nostalgiaskills:marksman/steady_draw_12",
+      "b": "nostalgiaskills:artificer/sure_footing_14",
+      "directed": false,
+      "style": "corridor",
+      "points": [],
+      "bridge": true,
+      "corridor": "nostalgiaskills:corridor/far_reaches"
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.sure_footing_3--artificer.sure_footing_4",
+      "a": "nostalgiaskills:artificer/sure_footing_3",
+      "b": "nostalgiaskills:artificer/sure_footing_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.sure_footing_4--artificer.sure_footing_5",
+      "a": "nostalgiaskills:artificer/sure_footing_4",
+      "b": "nostalgiaskills:artificer/sure_footing_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.sure_footing_6--artificer.sure_footing_7",
+      "a": "nostalgiaskills:artificer/sure_footing_6",
+      "b": "nostalgiaskills:artificer/sure_footing_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/artificer.sure_footing_7--artificer.sure_footing_8",
+      "a": "nostalgiaskills:artificer/sure_footing_7",
+      "b": "nostalgiaskills:artificer/sure_footing_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.battle_cry--berserker.brute_force_2",
+      "a": "nostalgiaskills:berserker/brute_force_2",
+      "b": "nostalgiaskills:berserker/battle_cry",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.battle_cry--berserker.brute_force_3",
+      "a": "nostalgiaskills:berserker/battle_cry",
+      "b": "nostalgiaskills:berserker/brute_force_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.berserk--berserker.brute_force_14",
+      "a": "nostalgiaskills:berserker/brute_force_14",
+      "b": "nostalgiaskills:berserker/berserk",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.berserk--berserker.brute_force_15",
+      "a": "nostalgiaskills:berserker/berserk",
+      "b": "nostalgiaskills:berserker/brute_force_15",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.blood_pact--berserker.bloodthirst_4",
+      "a": "nostalgiaskills:berserker/blood_pact",
+      "b": "nostalgiaskills:berserker/bloodthirst_4",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -487.5,
+          "y": 341.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.blood_pact--berserker.bloodthirst_5",
+      "a": "nostalgiaskills:berserker/bloodthirst_5",
+      "b": "nostalgiaskills:berserker/blood_pact",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -464.5,
+          "y": 366.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.bloodletting--berserker.bloodthirst_1",
+      "a": "nostalgiaskills:berserker/bloodthirst_1",
+      "b": "nostalgiaskills:berserker/bloodletting",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.bloodletting--berserker.bloodthirst_2",
+      "a": "nostalgiaskills:berserker/bloodletting",
+      "b": "nostalgiaskills:berserker/bloodthirst_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.bloodletting--berserker.bloodthirst_3",
+      "a": "nostalgiaskills:berserker/bloodletting",
+      "b": "nostalgiaskills:berserker/bloodthirst_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.bloodthirst_1--berserker.brute_force_7",
+      "a": "nostalgiaskills:berserker/brute_force_7",
+      "b": "nostalgiaskills:berserker/bloodthirst_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.bloodthirst_2--berserker.heavy_swing_10",
+      "a": "nostalgiaskills:berserker/bloodthirst_2",
+      "b": "nostalgiaskills:berserker/heavy_swing_10",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.bloodthirst_4--berserker.bloodthirst_5",
+      "a": "nostalgiaskills:berserker/bloodthirst_4",
+      "b": "nostalgiaskills:berserker/bloodthirst_5",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -454.0,
+          "y": 334.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.bloodthirst_4--berserker.momentum_3",
+      "a": "nostalgiaskills:berserker/momentum_3",
+      "b": "nostalgiaskills:berserker/bloodthirst_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.bloodthirst_5--berserker.momentum_6",
+      "a": "nostalgiaskills:berserker/bloodthirst_5",
+      "b": "nostalgiaskills:berserker/momentum_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.brute_force_1--berserker.brute_force_2",
+      "a": "nostalgiaskills:berserker/brute_force_1",
+      "b": "nostalgiaskills:berserker/brute_force_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.brute_force_1--berserker.hub",
+      "a": "nostalgiaskills:berserker/hub",
+      "b": "nostalgiaskills:berserker/brute_force_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.brute_force_10--berserker.brute_force_11",
+      "a": "nostalgiaskills:berserker/brute_force_10",
+      "b": "nostalgiaskills:berserker/brute_force_11",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.brute_force_10--berserker.brute_force_9",
+      "a": "nostalgiaskills:berserker/brute_force_9",
+      "b": "nostalgiaskills:berserker/brute_force_10",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.brute_force_11--berserker.brute_force_12",
+      "a": "nostalgiaskills:berserker/brute_force_11",
+      "b": "nostalgiaskills:berserker/brute_force_12",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.brute_force_12--berserker.brute_force_13",
+      "a": "nostalgiaskills:berserker/brute_force_12",
+      "b": "nostalgiaskills:berserker/brute_force_13",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.brute_force_12--berserker.fury_5",
+      "a": "nostalgiaskills:berserker/brute_force_12",
+      "b": "nostalgiaskills:berserker/fury_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.brute_force_13--berserker.brute_force_14",
+      "a": "nostalgiaskills:berserker/brute_force_13",
+      "b": "nostalgiaskills:berserker/brute_force_14",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.brute_force_15--berserker.brute_force_16",
+      "a": "nostalgiaskills:berserker/brute_force_15",
+      "b": "nostalgiaskills:berserker/brute_force_16",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.brute_force_15--berserker.heavy_swing_15",
+      "a": "nostalgiaskills:berserker/brute_force_15",
+      "b": "nostalgiaskills:berserker/heavy_swing_15",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.brute_force_16--berserker.reckless_fury",
+      "a": "nostalgiaskills:berserker/brute_force_16",
+      "b": "nostalgiaskills:berserker/reckless_fury",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.brute_force_3--berserker.brute_force_4",
+      "a": "nostalgiaskills:berserker/brute_force_3",
+      "b": "nostalgiaskills:berserker/brute_force_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.brute_force_4--berserker.brute_force_5",
+      "a": "nostalgiaskills:berserker/brute_force_4",
+      "b": "nostalgiaskills:berserker/brute_force_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.brute_force_5--berserker.brute_force_6",
+      "a": "nostalgiaskills:berserker/brute_force_5",
+      "b": "nostalgiaskills:berserker/brute_force_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.brute_force_5--berserker.fury_1",
+      "a": "nostalgiaskills:berserker/brute_force_5",
+      "b": "nostalgiaskills:berserker/fury_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.brute_force_6--berserker.brute_force_7",
+      "a": "nostalgiaskills:berserker/brute_force_6",
+      "b": "nostalgiaskills:berserker/brute_force_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.brute_force_7--berserker.brute_force_8",
+      "a": "nostalgiaskills:berserker/brute_force_7",
+      "b": "nostalgiaskills:berserker/brute_force_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.brute_force_8--berserker.skull_splitter",
+      "a": "nostalgiaskills:berserker/brute_force_8",
+      "b": "nostalgiaskills:berserker/skull_splitter",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.brute_force_9--berserker.skull_splitter",
+      "a": "nostalgiaskills:berserker/skull_splitter",
+      "b": "nostalgiaskills:berserker/brute_force_9",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.cleaving_blows--berserker.heavy_swing_2",
+      "a": "nostalgiaskills:berserker/heavy_swing_2",
+      "b": "nostalgiaskills:berserker/cleaving_blows",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.cleaving_blows--berserker.heavy_swing_3",
+      "a": "nostalgiaskills:berserker/cleaving_blows",
+      "b": "nostalgiaskills:berserker/heavy_swing_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.death_wish--berserker.fury_10",
+      "a": "nostalgiaskills:berserker/fury_10",
+      "b": "nostalgiaskills:berserker/death_wish",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.frenzy--berserker.fury_6",
+      "a": "nostalgiaskills:berserker/fury_6",
+      "b": "nostalgiaskills:berserker/frenzy",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.frenzy--berserker.fury_7",
+      "a": "nostalgiaskills:berserker/frenzy",
+      "b": "nostalgiaskills:berserker/fury_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.frenzy--berserker.fury_8",
+      "a": "nostalgiaskills:berserker/frenzy",
+      "b": "nostalgiaskills:berserker/fury_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.frenzy--berserker.fury_9",
+      "a": "nostalgiaskills:berserker/frenzy",
+      "b": "nostalgiaskills:berserker/fury_9",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.fury_1--berserker.fury_2",
+      "a": "nostalgiaskills:berserker/fury_1",
+      "b": "nostalgiaskills:berserker/fury_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.fury_10--berserker.thick_hide_10",
+      "a": "nostalgiaskills:berserker/thick_hide_10",
+      "b": "nostalgiaskills:berserker/fury_10",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.fury_2--berserker.rising_rage",
+      "a": "nostalgiaskills:berserker/fury_2",
+      "b": "nostalgiaskills:berserker/rising_rage",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.fury_3--berserker.rising_rage",
+      "a": "nostalgiaskills:berserker/rising_rage",
+      "b": "nostalgiaskills:berserker/fury_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.fury_4--berserker.rising_rage",
+      "a": "nostalgiaskills:berserker/rising_rage",
+      "b": "nostalgiaskills:berserker/fury_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.fury_4--berserker.thick_hide_8",
+      "a": "nostalgiaskills:berserker/thick_hide_8",
+      "b": "nostalgiaskills:berserker/fury_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.fury_5--berserker.fury_6",
+      "a": "nostalgiaskills:berserker/fury_5",
+      "b": "nostalgiaskills:berserker/fury_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.heavy_handed--berserker.heavy_swing_10",
+      "a": "nostalgiaskills:berserker/heavy_handed",
+      "b": "nostalgiaskills:berserker/heavy_swing_10",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.heavy_handed--berserker.heavy_swing_9",
+      "a": "nostalgiaskills:berserker/heavy_swing_9",
+      "b": "nostalgiaskills:berserker/heavy_handed",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.heavy_swing_1--berserker.heavy_swing_2",
+      "a": "nostalgiaskills:berserker/heavy_swing_1",
+      "b": "nostalgiaskills:berserker/heavy_swing_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.heavy_swing_1--berserker.hub",
+      "a": "nostalgiaskills:berserker/hub",
+      "b": "nostalgiaskills:berserker/heavy_swing_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.heavy_swing_10--berserker.heavy_swing_11",
+      "a": "nostalgiaskills:berserker/heavy_swing_10",
+      "b": "nostalgiaskills:berserker/heavy_swing_11",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.heavy_swing_11--berserker.heavy_swing_12",
+      "a": "nostalgiaskills:berserker/heavy_swing_11",
+      "b": "nostalgiaskills:berserker/heavy_swing_12",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.heavy_swing_12--berserker.heavy_swing_13",
+      "a": "nostalgiaskills:berserker/heavy_swing_12",
+      "b": "nostalgiaskills:berserker/heavy_swing_13",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.heavy_swing_13--berserker.heavy_swing_14",
+      "a": "nostalgiaskills:berserker/heavy_swing_13",
+      "b": "nostalgiaskills:berserker/heavy_swing_14",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.heavy_swing_14--berserker.thick_hide_9",
+      "a": "nostalgiaskills:berserker/heavy_swing_14",
+      "b": "nostalgiaskills:berserker/thick_hide_9",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.heavy_swing_15--berserker.juggernaut",
+      "a": "nostalgiaskills:berserker/heavy_swing_15",
+      "b": "nostalgiaskills:berserker/juggernaut",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.heavy_swing_3--berserker.heavy_swing_4",
+      "a": "nostalgiaskills:berserker/heavy_swing_3",
+      "b": "nostalgiaskills:berserker/heavy_swing_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.heavy_swing_4--berserker.heavy_swing_5",
+      "a": "nostalgiaskills:berserker/heavy_swing_4",
+      "b": "nostalgiaskills:berserker/heavy_swing_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.heavy_swing_4--berserker.heavy_swing_7",
+      "a": "nostalgiaskills:berserker/heavy_swing_4",
+      "b": "nostalgiaskills:berserker/heavy_swing_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.heavy_swing_5--berserker.heavy_swing_6",
+      "a": "nostalgiaskills:berserker/heavy_swing_5",
+      "b": "nostalgiaskills:berserker/heavy_swing_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.heavy_swing_7--berserker.heavy_swing_8",
+      "a": "nostalgiaskills:berserker/heavy_swing_7",
+      "b": "nostalgiaskills:berserker/heavy_swing_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.heavy_swing_8--berserker.heavy_swing_9",
+      "a": "nostalgiaskills:berserker/heavy_swing_8",
+      "b": "nostalgiaskills:berserker/heavy_swing_9",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.hub--berserker.thick_hide_1",
+      "a": "nostalgiaskills:berserker/hub",
+      "b": "nostalgiaskills:berserker/thick_hide_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.momentum_1--berserker.momentum_2",
+      "a": "nostalgiaskills:berserker/momentum_1",
+      "b": "nostalgiaskills:berserker/momentum_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.momentum_1--berserker.thick_hide_8",
+      "a": "nostalgiaskills:berserker/thick_hide_8",
+      "b": "nostalgiaskills:berserker/momentum_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.momentum_2--berserker.momentum_3",
+      "a": "nostalgiaskills:berserker/momentum_2",
+      "b": "nostalgiaskills:berserker/momentum_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.momentum_3--berserker.momentum_4",
+      "a": "nostalgiaskills:berserker/momentum_3",
+      "b": "nostalgiaskills:berserker/momentum_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.momentum_4--berserker.warlords_march",
+      "a": "nostalgiaskills:berserker/momentum_4",
+      "b": "nostalgiaskills:berserker/warlords_march",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.momentum_5--berserker.warlords_march",
+      "a": "nostalgiaskills:berserker/warlords_march",
+      "b": "nostalgiaskills:berserker/momentum_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.momentum_5--duelist.riposte_rhythm",
+      "a": "nostalgiaskills:berserker/momentum_5",
+      "b": "nostalgiaskills:duelist/riposte_rhythm",
+      "directed": false,
+      "style": "corridor",
+      "points": [],
+      "bridge": true,
+      "corridor": "nostalgiaskills:corridor/red_duel"
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.momentum_6--berserker.momentum_7",
+      "a": "nostalgiaskills:berserker/momentum_6",
+      "b": "nostalgiaskills:berserker/momentum_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.momentum_7--berserker.momentum_8",
+      "a": "nostalgiaskills:berserker/momentum_7",
+      "b": "nostalgiaskills:berserker/momentum_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.momentum_8--berserker.skull_splitter",
+      "a": "nostalgiaskills:berserker/momentum_8",
+      "b": "nostalgiaskills:berserker/skull_splitter",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.scar_tissue--berserker.thick_hide_10",
+      "a": "nostalgiaskills:berserker/scar_tissue",
+      "b": "nostalgiaskills:berserker/thick_hide_10",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -77.5,
+          "y": 709.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.scar_tissue--berserker.thick_hide_9",
+      "a": "nostalgiaskills:berserker/thick_hide_9",
+      "b": "nostalgiaskills:berserker/scar_tissue",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -61.0,
+          "y": 679.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.scarred_hide--berserker.thick_hide_3",
+      "a": "nostalgiaskills:berserker/thick_hide_3",
+      "b": "nostalgiaskills:berserker/scarred_hide",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.scarred_hide--berserker.thick_hide_4",
+      "a": "nostalgiaskills:berserker/scarred_hide",
+      "b": "nostalgiaskills:berserker/thick_hide_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.thick_hide_1--berserker.thick_hide_2",
+      "a": "nostalgiaskills:berserker/thick_hide_1",
+      "b": "nostalgiaskills:berserker/thick_hide_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.thick_hide_10--berserker.thick_hide_9",
+      "a": "nostalgiaskills:berserker/thick_hide_10",
+      "b": "nostalgiaskills:berserker/thick_hide_9",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -95.0,
+          "y": 680.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.thick_hide_2--berserker.thick_hide_3",
+      "a": "nostalgiaskills:berserker/thick_hide_2",
+      "b": "nostalgiaskills:berserker/thick_hide_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.thick_hide_4--berserker.thick_hide_5",
+      "a": "nostalgiaskills:berserker/thick_hide_4",
+      "b": "nostalgiaskills:berserker/thick_hide_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.thick_hide_5--berserker.thick_hide_6",
+      "a": "nostalgiaskills:berserker/thick_hide_5",
+      "b": "nostalgiaskills:berserker/thick_hide_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.thick_hide_6--berserker.thick_hide_7",
+      "a": "nostalgiaskills:berserker/thick_hide_6",
+      "b": "nostalgiaskills:berserker/thick_hide_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.thick_hide_7--berserker.thick_hide_8",
+      "a": "nostalgiaskills:berserker/thick_hide_7",
+      "b": "nostalgiaskills:berserker/thick_hide_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/berserker.thick_hide_8--duelist.fencers_poise_8",
+      "a": "nostalgiaskills:berserker/thick_hide_8",
+      "b": "nostalgiaskills:duelist/fencers_poise_8",
+      "directed": false,
+      "style": "corridor",
+      "points": [],
+      "bridge": true,
+      "corridor": "nostalgiaskills:corridor/berserker_duelist"
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.blade_dance--duelist.quick_hands_14",
+      "a": "nostalgiaskills:duelist/blade_dance",
+      "b": "nostalgiaskills:duelist/quick_hands_14",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -542.0,
+          "y": -221.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.blade_dance--duelist.quick_hands_18",
+      "a": "nostalgiaskills:duelist/quick_hands_18",
+      "b": "nostalgiaskills:duelist/blade_dance",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -576.0,
+          "y": -224.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.cutting_remark_1--duelist.cutting_remark_2",
+      "a": "nostalgiaskills:duelist/cutting_remark_1",
+      "b": "nostalgiaskills:duelist/cutting_remark_2",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -498.0,
+          "y": 28.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.cutting_remark_1--duelist.cutting_remark_5",
+      "a": "nostalgiaskills:duelist/cutting_remark_5",
+      "b": "nostalgiaskills:duelist/cutting_remark_1",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -530.5,
+          "y": 17.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.cutting_remark_1--duelist.quick_hands_8",
+      "a": "nostalgiaskills:duelist/quick_hands_8",
+      "b": "nostalgiaskills:duelist/cutting_remark_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.cutting_remark_2--duelist.cutting_remark_3",
+      "a": "nostalgiaskills:duelist/cutting_remark_2",
+      "b": "nostalgiaskills:duelist/cutting_remark_3",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -491.0,
+          "y": 61.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.cutting_remark_3--duelist.opportunist",
+      "a": "nostalgiaskills:duelist/cutting_remark_3",
+      "b": "nostalgiaskills:duelist/opportunist",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -516.5,
+          "y": 84.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.cutting_remark_4--duelist.cutting_remark_5",
+      "a": "nostalgiaskills:duelist/cutting_remark_4",
+      "b": "nostalgiaskills:duelist/cutting_remark_5",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -556.0,
+          "y": 40.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.cutting_remark_4--duelist.opportunist",
+      "a": "nostalgiaskills:duelist/opportunist",
+      "b": "nostalgiaskills:duelist/cutting_remark_4",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -549.0,
+          "y": 73.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.disarming_touch--duelist.fencers_poise_10",
+      "a": "nostalgiaskills:duelist/fencers_poise_10",
+      "b": "nostalgiaskills:duelist/disarming_touch",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.en_garde--duelist.quick_hands_4",
+      "a": "nostalgiaskills:duelist/quick_hands_4",
+      "b": "nostalgiaskills:duelist/en_garde",
+      "directed": false,
+      "style": "path",
+      "points": [
+        {
+          "x": -360.0,
+          "y": -9.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.en_garde--duelist.quick_hands_5",
+      "a": "nostalgiaskills:duelist/en_garde",
+      "b": "nostalgiaskills:duelist/quick_hands_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.fencers_poise_1--duelist.fencers_poise_2",
+      "a": "nostalgiaskills:duelist/fencers_poise_1",
+      "b": "nostalgiaskills:duelist/fencers_poise_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.fencers_poise_1--duelist.hub",
+      "a": "nostalgiaskills:duelist/hub",
+      "b": "nostalgiaskills:duelist/fencers_poise_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.fencers_poise_10--duelist.fencers_poise_9",
+      "a": "nostalgiaskills:duelist/fencers_poise_9",
+      "b": "nostalgiaskills:duelist/fencers_poise_10",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.fencers_poise_11--duelist.lunge_mastery",
+      "a": "nostalgiaskills:duelist/lunge_mastery",
+      "b": "nostalgiaskills:duelist/fencers_poise_11",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.fencers_poise_11--duelist.swift_hands",
+      "a": "nostalgiaskills:duelist/fencers_poise_11",
+      "b": "nostalgiaskills:duelist/swift_hands",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.fencers_poise_2--duelist.fencers_poise_3",
+      "a": "nostalgiaskills:duelist/fencers_poise_2",
+      "b": "nostalgiaskills:duelist/fencers_poise_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.fencers_poise_3--duelist.fencers_poise_4",
+      "a": "nostalgiaskills:duelist/fencers_poise_3",
+      "b": "nostalgiaskills:duelist/fencers_poise_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.fencers_poise_4--duelist.fencers_poise_5",
+      "a": "nostalgiaskills:duelist/fencers_poise_4",
+      "b": "nostalgiaskills:duelist/fencers_poise_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.fencers_poise_4--duelist.fencers_poise_9",
+      "a": "nostalgiaskills:duelist/fencers_poise_4",
+      "b": "nostalgiaskills:duelist/fencers_poise_9",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.fencers_poise_5--duelist.fencers_poise_6",
+      "a": "nostalgiaskills:duelist/fencers_poise_5",
+      "b": "nostalgiaskills:duelist/fencers_poise_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.fencers_poise_6--duelist.fencers_poise_7",
+      "a": "nostalgiaskills:duelist/fencers_poise_6",
+      "b": "nostalgiaskills:duelist/fencers_poise_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.fencers_poise_7--duelist.fencers_poise_8",
+      "a": "nostalgiaskills:duelist/fencers_poise_7",
+      "b": "nostalgiaskills:duelist/fencers_poise_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.fencers_poise_8--duelist.nimble_1",
+      "a": "nostalgiaskills:duelist/fencers_poise_8",
+      "b": "nostalgiaskills:duelist/nimble_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.fleet_footwork--duelist.light_step_13",
+      "a": "nostalgiaskills:duelist/light_step_13",
+      "b": "nostalgiaskills:duelist/fleet_footwork",
+      "directed": false,
+      "style": "path",
+      "points": [
+        {
+          "x": -549.0,
+          "y": -262.5
+        },
+        {
+          "x": -557.5,
+          "y": -276.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.flowing_strikes--duelist.quick_hands_3",
+      "a": "nostalgiaskills:duelist/quick_hands_3",
+      "b": "nostalgiaskills:duelist/flowing_strikes",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.flowing_strikes--duelist.quick_hands_4",
+      "a": "nostalgiaskills:duelist/flowing_strikes",
+      "b": "nostalgiaskills:duelist/quick_hands_4",
+      "directed": false,
+      "style": "path",
+      "points": [
+        {
+          "x": -326.5,
+          "y": -12.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.hub--duelist.light_step_1",
+      "a": "nostalgiaskills:duelist/hub",
+      "b": "nostalgiaskills:duelist/light_step_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.hub--duelist.quick_hands_1",
+      "a": "nostalgiaskills:duelist/hub",
+      "b": "nostalgiaskills:duelist/quick_hands_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.keen_edge_1--duelist.keen_edge_2",
+      "a": "nostalgiaskills:duelist/keen_edge_1",
+      "b": "nostalgiaskills:duelist/keen_edge_2",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -466.0,
+          "y": -24.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.keen_edge_1--duelist.keen_edge_4",
+      "a": "nostalgiaskills:duelist/keen_edge_4",
+      "b": "nostalgiaskills:duelist/keen_edge_1",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -433.5,
+          "y": -32.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.keen_edge_1--duelist.quick_hands_6",
+      "a": "nostalgiaskills:duelist/quick_hands_6",
+      "b": "nostalgiaskills:duelist/keen_edge_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.keen_edge_2--duelist.parry_and_return",
+      "a": "nostalgiaskills:duelist/keen_edge_2",
+      "b": "nostalgiaskills:duelist/parry_and_return",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -484.5,
+          "y": -52.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.keen_edge_3--duelist.keen_edge_4",
+      "a": "nostalgiaskills:duelist/keen_edge_3",
+      "b": "nostalgiaskills:duelist/keen_edge_4",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -431.5,
+          "y": -66.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.keen_edge_3--duelist.parry_and_return",
+      "a": "nostalgiaskills:duelist/parry_and_return",
+      "b": "nostalgiaskills:duelist/keen_edge_3",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -463.5,
+          "y": -78.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.keen_edge_5--duelist.measured_cut",
+      "a": "nostalgiaskills:duelist/keen_edge_5",
+      "b": "nostalgiaskills:duelist/measured_cut",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.keen_edge_5--duelist.quick_hands_3",
+      "a": "nostalgiaskills:duelist/quick_hands_3",
+      "b": "nostalgiaskills:duelist/keen_edge_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.keen_edge_6--duelist.measured_cut",
+      "a": "nostalgiaskills:duelist/measured_cut",
+      "b": "nostalgiaskills:duelist/keen_edge_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.keen_edge_7--duelist.measured_cut",
+      "a": "nostalgiaskills:duelist/measured_cut",
+      "b": "nostalgiaskills:duelist/keen_edge_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.keen_edge_8--duelist.lunge_mastery",
+      "a": "nostalgiaskills:duelist/lunge_mastery",
+      "b": "nostalgiaskills:duelist/keen_edge_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.keen_edge_8--duelist.thousand_cuts",
+      "a": "nostalgiaskills:duelist/keen_edge_8",
+      "b": "nostalgiaskills:duelist/thousand_cuts",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.light_step_1--duelist.light_step_2",
+      "a": "nostalgiaskills:duelist/light_step_1",
+      "b": "nostalgiaskills:duelist/light_step_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.light_step_10--duelist.light_step_9",
+      "a": "nostalgiaskills:duelist/light_step_9",
+      "b": "nostalgiaskills:duelist/light_step_10",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.light_step_10--duelist.quickstep",
+      "a": "nostalgiaskills:duelist/light_step_10",
+      "b": "nostalgiaskills:duelist/quickstep",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.light_step_11--duelist.light_step_12",
+      "a": "nostalgiaskills:duelist/light_step_11",
+      "b": "nostalgiaskills:duelist/light_step_12",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.light_step_11--duelist.light_step_8",
+      "a": "nostalgiaskills:duelist/light_step_8",
+      "b": "nostalgiaskills:duelist/light_step_11",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.light_step_12--duelist.light_step_13",
+      "a": "nostalgiaskills:duelist/light_step_12",
+      "b": "nostalgiaskills:duelist/light_step_13",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.light_step_12--duelist.quick_hands_14",
+      "a": "nostalgiaskills:duelist/light_step_12",
+      "b": "nostalgiaskills:duelist/quick_hands_14",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.light_step_2--duelist.light_step_3",
+      "a": "nostalgiaskills:duelist/light_step_2",
+      "b": "nostalgiaskills:duelist/light_step_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.light_step_3--duelist.light_step_4",
+      "a": "nostalgiaskills:duelist/light_step_3",
+      "b": "nostalgiaskills:duelist/light_step_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.light_step_3--duelist.light_step_9",
+      "a": "nostalgiaskills:duelist/light_step_3",
+      "b": "nostalgiaskills:duelist/light_step_9",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.light_step_4--duelist.light_step_5",
+      "a": "nostalgiaskills:duelist/light_step_4",
+      "b": "nostalgiaskills:duelist/light_step_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.light_step_5--duelist.light_step_6",
+      "a": "nostalgiaskills:duelist/light_step_5",
+      "b": "nostalgiaskills:duelist/light_step_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.light_step_6--duelist.light_step_7",
+      "a": "nostalgiaskills:duelist/light_step_6",
+      "b": "nostalgiaskills:duelist/light_step_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.light_step_7--duelist.light_step_8",
+      "a": "nostalgiaskills:duelist/light_step_7",
+      "b": "nostalgiaskills:duelist/light_step_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.light_step_8--guardian.tempered_12",
+      "a": "nostalgiaskills:duelist/light_step_8",
+      "b": "nostalgiaskills:guardian/tempered_12",
+      "directed": false,
+      "style": "corridor",
+      "points": [],
+      "bridge": true,
+      "corridor": "nostalgiaskills:corridor/duelist_guardian"
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.lunge_mastery--duelist.quick_hands_13",
+      "a": "nostalgiaskills:duelist/quick_hands_13",
+      "b": "nostalgiaskills:duelist/lunge_mastery",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.nimble_1--duelist.nimble_2",
+      "a": "nostalgiaskills:duelist/nimble_1",
+      "b": "nostalgiaskills:duelist/nimble_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.nimble_1--duelist.nimble_3",
+      "a": "nostalgiaskills:duelist/nimble_1",
+      "b": "nostalgiaskills:duelist/nimble_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.nimble_2--duelist.sidestep",
+      "a": "nostalgiaskills:duelist/nimble_2",
+      "b": "nostalgiaskills:duelist/sidestep",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.nimble_3--duelist.sidestep",
+      "a": "nostalgiaskills:duelist/nimble_3",
+      "b": "nostalgiaskills:duelist/sidestep",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.nimble_4--duelist.nimble_5",
+      "a": "nostalgiaskills:duelist/nimble_4",
+      "b": "nostalgiaskills:duelist/nimble_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.nimble_4--duelist.sidestep",
+      "a": "nostalgiaskills:duelist/sidestep",
+      "b": "nostalgiaskills:duelist/nimble_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.nimble_5--duelist.nimble_6",
+      "a": "nostalgiaskills:duelist/nimble_5",
+      "b": "nostalgiaskills:duelist/nimble_6",
+      "directed": false,
+      "style": "path",
+      "points": [
+        {
+          "x": -599.5,
+          "y": 261.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.nimble_6--duelist.riposte_rhythm",
+      "a": "nostalgiaskills:duelist/nimble_6",
+      "b": "nostalgiaskills:duelist/riposte_rhythm",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.nimble_7--duelist.opportunist",
+      "a": "nostalgiaskills:duelist/opportunist",
+      "b": "nostalgiaskills:duelist/nimble_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.nimble_7--duelist.wind_dancer",
+      "a": "nostalgiaskills:duelist/nimble_7",
+      "b": "nostalgiaskills:duelist/wind_dancer",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.quick_hands_1--duelist.quick_hands_2",
+      "a": "nostalgiaskills:duelist/quick_hands_1",
+      "b": "nostalgiaskills:duelist/quick_hands_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.quick_hands_10--duelist.quick_hands_11",
+      "a": "nostalgiaskills:duelist/quick_hands_10",
+      "b": "nostalgiaskills:duelist/quick_hands_11",
+      "directed": false,
+      "style": "path",
+      "points": [
+        {
+          "x": -583.5,
+          "y": 10.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.quick_hands_10--duelist.quick_hands_9",
+      "a": "nostalgiaskills:duelist/quick_hands_9",
+      "b": "nostalgiaskills:duelist/quick_hands_10",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.quick_hands_11--duelist.quick_hands_12",
+      "a": "nostalgiaskills:duelist/quick_hands_11",
+      "b": "nostalgiaskills:duelist/quick_hands_12",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.quick_hands_12--duelist.quick_hands_13",
+      "a": "nostalgiaskills:duelist/quick_hands_12",
+      "b": "nostalgiaskills:duelist/quick_hands_13",
+      "directed": false,
+      "style": "path",
+      "points": [
+        {
+          "x": -649.5,
+          "y": -6.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.quick_hands_12--duelist.quick_hands_20",
+      "a": "nostalgiaskills:duelist/quick_hands_20",
+      "b": "nostalgiaskills:duelist/quick_hands_12",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.quick_hands_14--duelist.quick_hands_15",
+      "a": "nostalgiaskills:duelist/quick_hands_14",
+      "b": "nostalgiaskills:duelist/quick_hands_15",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -527.5,
+          "y": -190.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.quick_hands_15--duelist.quick_hands_16",
+      "a": "nostalgiaskills:duelist/quick_hands_15",
+      "b": "nostalgiaskills:duelist/quick_hands_16",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -547.0,
+          "y": -162.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.quick_hands_16--duelist.quick_hands_17",
+      "a": "nostalgiaskills:duelist/quick_hands_16",
+      "b": "nostalgiaskills:duelist/quick_hands_17",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -581.0,
+          "y": -165.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.quick_hands_16--duelist.quick_hands_19",
+      "a": "nostalgiaskills:duelist/quick_hands_16",
+      "b": "nostalgiaskills:duelist/quick_hands_19",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.quick_hands_17--duelist.quick_hands_18",
+      "a": "nostalgiaskills:duelist/quick_hands_17",
+      "b": "nostalgiaskills:duelist/quick_hands_18",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -595.5,
+          "y": -196.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.quick_hands_19--duelist.quick_hands_20",
+      "a": "nostalgiaskills:duelist/quick_hands_19",
+      "b": "nostalgiaskills:duelist/quick_hands_20",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.quick_hands_2--duelist.quick_hands_3",
+      "a": "nostalgiaskills:duelist/quick_hands_2",
+      "b": "nostalgiaskills:duelist/quick_hands_3",
+      "directed": false,
+      "style": "path",
+      "points": [
+        {
+          "x": -263.5,
+          "y": 13.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.quick_hands_5--duelist.quick_hands_6",
+      "a": "nostalgiaskills:duelist/quick_hands_5",
+      "b": "nostalgiaskills:duelist/quick_hands_6",
+      "directed": false,
+      "style": "path",
+      "points": [
+        {
+          "x": -423.0,
+          "y": 14.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.quick_hands_6--duelist.quick_hands_7",
+      "a": "nostalgiaskills:duelist/quick_hands_6",
+      "b": "nostalgiaskills:duelist/quick_hands_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.quick_hands_7--duelist.quick_hands_8",
+      "a": "nostalgiaskills:duelist/quick_hands_7",
+      "b": "nostalgiaskills:duelist/quick_hands_8",
+      "directed": false,
+      "style": "path",
+      "points": [
+        {
+          "x": -485.5,
+          "y": -11.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/duelist.quick_hands_8--duelist.quick_hands_9",
+      "a": "nostalgiaskills:duelist/quick_hands_8",
+      "b": "nostalgiaskills:duelist/quick_hands_9",
+      "directed": false,
+      "style": "path",
+      "points": [
+        {
+          "x": -519.0,
+          "y": -11.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.bastion--guardian.vitality_23",
+      "a": "nostalgiaskills:guardian/vitality_23",
+      "b": "nostalgiaskills:guardian/bastion",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.beacon_keep--guardian.vitality_13",
+      "a": "nostalgiaskills:guardian/vitality_13",
+      "b": "nostalgiaskills:guardian/beacon_keep",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -541.5,
+          "y": -388.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.beacon_keep--guardian.vitality_14",
+      "a": "nostalgiaskills:guardian/beacon_keep",
+      "b": "nostalgiaskills:guardian/vitality_14",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -524.5,
+          "y": -417.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.bulwark_drill_1--guardian.bulwark_drill_2",
+      "a": "nostalgiaskills:guardian/bulwark_drill_1",
+      "b": "nostalgiaskills:guardian/bulwark_drill_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.bulwark_drill_1--guardian.bulwark_drill_3",
+      "a": "nostalgiaskills:guardian/bulwark_drill_1",
+      "b": "nostalgiaskills:guardian/bulwark_drill_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.bulwark_drill_1--guardian.tempered_9",
+      "a": "nostalgiaskills:guardian/tempered_9",
+      "b": "nostalgiaskills:guardian/bulwark_drill_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.bulwark_drill_2--guardian.shield_drill",
+      "a": "nostalgiaskills:guardian/bulwark_drill_2",
+      "b": "nostalgiaskills:guardian/shield_drill",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.bulwark_drill_3--guardian.shield_drill",
+      "a": "nostalgiaskills:guardian/bulwark_drill_3",
+      "b": "nostalgiaskills:guardian/shield_drill",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.bulwark_drill_4--guardian.living_aegis",
+      "a": "nostalgiaskills:guardian/bulwark_drill_4",
+      "b": "nostalgiaskills:guardian/living_aegis",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.bulwark_drill_4--guardian.vitality_14",
+      "a": "nostalgiaskills:guardian/vitality_14",
+      "b": "nostalgiaskills:guardian/bulwark_drill_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.gatekeeper--guardian.plating_1",
+      "a": "nostalgiaskills:guardian/gatekeeper",
+      "b": "nostalgiaskills:guardian/plating_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.gatekeeper--guardian.plating_4",
+      "a": "nostalgiaskills:guardian/gatekeeper",
+      "b": "nostalgiaskills:guardian/plating_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.gatekeeper--guardian.vitality_3",
+      "a": "nostalgiaskills:guardian/vitality_3",
+      "b": "nostalgiaskills:guardian/gatekeeper",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.gatekeeper--guardian.vitality_4",
+      "a": "nostalgiaskills:guardian/gatekeeper",
+      "b": "nostalgiaskills:guardian/vitality_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.hub--guardian.vitality_1",
+      "a": "nostalgiaskills:guardian/hub",
+      "b": "nostalgiaskills:guardian/vitality_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.inner_sanctum--guardian.tempered_1",
+      "a": "nostalgiaskills:guardian/inner_sanctum",
+      "b": "nostalgiaskills:guardian/tempered_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.inner_sanctum--guardian.tempered_7",
+      "a": "nostalgiaskills:guardian/inner_sanctum",
+      "b": "nostalgiaskills:guardian/tempered_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.inner_sanctum--guardian.vitality_5",
+      "a": "nostalgiaskills:guardian/vitality_5",
+      "b": "nostalgiaskills:guardian/inner_sanctum",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.inner_sanctum--guardian.vitality_6",
+      "a": "nostalgiaskills:guardian/inner_sanctum",
+      "b": "nostalgiaskills:guardian/vitality_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.iron_will--guardian.vitality_6",
+      "a": "nostalgiaskills:guardian/vitality_6",
+      "b": "nostalgiaskills:guardian/iron_will",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.iron_will--guardian.vitality_7",
+      "a": "nostalgiaskills:guardian/iron_will",
+      "b": "nostalgiaskills:guardian/vitality_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.oathbound--guardian.tempered_15",
+      "a": "nostalgiaskills:guardian/tempered_15",
+      "b": "nostalgiaskills:guardian/oathbound",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.oathbound--guardian.tempered_16",
+      "a": "nostalgiaskills:guardian/oathbound",
+      "b": "nostalgiaskills:guardian/tempered_16",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.plating_1--guardian.plating_2",
+      "a": "nostalgiaskills:guardian/plating_1",
+      "b": "nostalgiaskills:guardian/plating_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.plating_2--guardian.plating_3",
+      "a": "nostalgiaskills:guardian/plating_2",
+      "b": "nostalgiaskills:guardian/plating_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.plating_3--guardian.rooted_1",
+      "a": "nostalgiaskills:guardian/plating_3",
+      "b": "nostalgiaskills:guardian/rooted_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.plating_3--guardian.shield_wall",
+      "a": "nostalgiaskills:guardian/plating_3",
+      "b": "nostalgiaskills:guardian/shield_wall",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.plating_4--guardian.plating_5",
+      "a": "nostalgiaskills:guardian/plating_4",
+      "b": "nostalgiaskills:guardian/plating_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.plating_5--guardian.plating_6",
+      "a": "nostalgiaskills:guardian/plating_5",
+      "b": "nostalgiaskills:guardian/plating_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.plating_6--guardian.rooted_3",
+      "a": "nostalgiaskills:guardian/plating_6",
+      "b": "nostalgiaskills:guardian/rooted_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.plating_6--guardian.stalwart",
+      "a": "nostalgiaskills:guardian/plating_6",
+      "b": "nostalgiaskills:guardian/stalwart",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.rooted_1--guardian.rooted_2",
+      "a": "nostalgiaskills:guardian/rooted_1",
+      "b": "nostalgiaskills:guardian/rooted_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.rooted_10--guardian.rooted_9",
+      "a": "nostalgiaskills:guardian/rooted_9",
+      "b": "nostalgiaskills:guardian/rooted_10",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.rooted_11--guardian.rooted_12",
+      "a": "nostalgiaskills:guardian/rooted_11",
+      "b": "nostalgiaskills:guardian/rooted_12",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.rooted_11--guardian.tempered_11",
+      "a": "nostalgiaskills:guardian/tempered_11",
+      "b": "nostalgiaskills:guardian/rooted_11",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.rooted_12--guardian.rooted_13",
+      "a": "nostalgiaskills:guardian/rooted_12",
+      "b": "nostalgiaskills:guardian/rooted_13",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.rooted_13--guardian.tempered_18",
+      "a": "nostalgiaskills:guardian/rooted_13",
+      "b": "nostalgiaskills:guardian/tempered_18",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.rooted_2--guardian.tempered_6",
+      "a": "nostalgiaskills:guardian/rooted_2",
+      "b": "nostalgiaskills:guardian/tempered_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.rooted_3--guardian.rooted_4",
+      "a": "nostalgiaskills:guardian/rooted_3",
+      "b": "nostalgiaskills:guardian/rooted_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.rooted_4--guardian.tempered_10",
+      "a": "nostalgiaskills:guardian/rooted_4",
+      "b": "nostalgiaskills:guardian/tempered_10",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.rooted_5--guardian.rooted_6",
+      "a": "nostalgiaskills:guardian/rooted_5",
+      "b": "nostalgiaskills:guardian/rooted_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.rooted_5--guardian.tempered_6",
+      "a": "nostalgiaskills:guardian/tempered_6",
+      "b": "nostalgiaskills:guardian/rooted_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.rooted_6--guardian.rooted_7",
+      "a": "nostalgiaskills:guardian/rooted_6",
+      "b": "nostalgiaskills:guardian/rooted_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.rooted_7--guardian.watchtower",
+      "a": "nostalgiaskills:guardian/rooted_7",
+      "b": "nostalgiaskills:guardian/watchtower",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.rooted_8--guardian.rooted_9",
+      "a": "nostalgiaskills:guardian/rooted_8",
+      "b": "nostalgiaskills:guardian/rooted_9",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.rooted_8--guardian.watchtower",
+      "a": "nostalgiaskills:guardian/watchtower",
+      "b": "nostalgiaskills:guardian/rooted_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.rooted_stance--guardian.vitality_16",
+      "a": "nostalgiaskills:guardian/vitality_16",
+      "b": "nostalgiaskills:guardian/rooted_stance",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.sentinel--guardian.vitality_20",
+      "a": "nostalgiaskills:guardian/vitality_20",
+      "b": "nostalgiaskills:guardian/sentinel",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -282.5,
+          "y": -625.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.sentinel--guardian.vitality_21",
+      "a": "nostalgiaskills:guardian/sentinel",
+      "b": "nostalgiaskills:guardian/vitality_21",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -250.0,
+          "y": -615.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.tempered_1--guardian.tempered_2",
+      "a": "nostalgiaskills:guardian/tempered_1",
+      "b": "nostalgiaskills:guardian/tempered_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.tempered_10--guardian.tempered_11",
+      "a": "nostalgiaskills:guardian/tempered_10",
+      "b": "nostalgiaskills:guardian/tempered_11",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.tempered_10--guardian.tempered_9",
+      "a": "nostalgiaskills:guardian/tempered_9",
+      "b": "nostalgiaskills:guardian/tempered_10",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.tempered_11--guardian.tempered_12",
+      "a": "nostalgiaskills:guardian/tempered_11",
+      "b": "nostalgiaskills:guardian/tempered_12",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.tempered_13--guardian.tempered_14",
+      "a": "nostalgiaskills:guardian/tempered_13",
+      "b": "nostalgiaskills:guardian/tempered_14",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.tempered_13--guardian.unbroken",
+      "a": "nostalgiaskills:guardian/unbroken",
+      "b": "nostalgiaskills:guardian/tempered_13",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.tempered_14--guardian.tempered_15",
+      "a": "nostalgiaskills:guardian/tempered_14",
+      "b": "nostalgiaskills:guardian/tempered_15",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.tempered_16--guardian.tempered_17",
+      "a": "nostalgiaskills:guardian/tempered_16",
+      "b": "nostalgiaskills:guardian/tempered_17",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.tempered_17--guardian.tempered_18",
+      "a": "nostalgiaskills:guardian/tempered_17",
+      "b": "nostalgiaskills:guardian/tempered_18",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.tempered_18--guardian.vitality_12",
+      "a": "nostalgiaskills:guardian/tempered_18",
+      "b": "nostalgiaskills:guardian/vitality_12",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.tempered_2--guardian.tempered_3",
+      "a": "nostalgiaskills:guardian/tempered_2",
+      "b": "nostalgiaskills:guardian/tempered_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.tempered_3--guardian.tempered_4",
+      "a": "nostalgiaskills:guardian/tempered_3",
+      "b": "nostalgiaskills:guardian/tempered_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.tempered_3--guardian.vitality_15",
+      "a": "nostalgiaskills:guardian/tempered_3",
+      "b": "nostalgiaskills:guardian/vitality_15",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.tempered_4--guardian.tempered_5",
+      "a": "nostalgiaskills:guardian/tempered_4",
+      "b": "nostalgiaskills:guardian/tempered_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.tempered_5--guardian.tempered_6",
+      "a": "nostalgiaskills:guardian/tempered_5",
+      "b": "nostalgiaskills:guardian/tempered_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.tempered_7--guardian.tempered_8",
+      "a": "nostalgiaskills:guardian/tempered_7",
+      "b": "nostalgiaskills:guardian/tempered_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.tempered_8--guardian.tempered_9",
+      "a": "nostalgiaskills:guardian/tempered_8",
+      "b": "nostalgiaskills:guardian/tempered_9",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.unbroken--guardian.vitality_8",
+      "a": "nostalgiaskills:guardian/vitality_8",
+      "b": "nostalgiaskills:guardian/unbroken",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.unbroken--guardian.vitality_9",
+      "a": "nostalgiaskills:guardian/unbroken",
+      "b": "nostalgiaskills:guardian/vitality_9",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.vitality_1--guardian.vitality_2",
+      "a": "nostalgiaskills:guardian/vitality_1",
+      "b": "nostalgiaskills:guardian/vitality_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.vitality_10--guardian.vitality_11",
+      "a": "nostalgiaskills:guardian/vitality_10",
+      "b": "nostalgiaskills:guardian/vitality_11",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.vitality_10--guardian.vitality_9",
+      "a": "nostalgiaskills:guardian/vitality_9",
+      "b": "nostalgiaskills:guardian/vitality_10",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.vitality_11--guardian.vitality_23",
+      "a": "nostalgiaskills:guardian/vitality_11",
+      "b": "nostalgiaskills:guardian/vitality_23",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.vitality_12--guardian.vitality_13",
+      "a": "nostalgiaskills:guardian/vitality_12",
+      "b": "nostalgiaskills:guardian/vitality_13",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -512.0,
+          "y": -371.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.vitality_12--guardian.vitality_14",
+      "a": "nostalgiaskills:guardian/vitality_14",
+      "b": "nostalgiaskills:guardian/vitality_12",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -495.0,
+          "y": -400.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.vitality_15--guardian.warden",
+      "a": "nostalgiaskills:guardian/vitality_15",
+      "b": "nostalgiaskills:guardian/warden",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.vitality_16--guardian.warden",
+      "a": "nostalgiaskills:guardian/warden",
+      "b": "nostalgiaskills:guardian/vitality_16",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.vitality_17--guardian.warden",
+      "a": "nostalgiaskills:guardian/warden",
+      "b": "nostalgiaskills:guardian/vitality_17",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.vitality_18--guardian.warden",
+      "a": "nostalgiaskills:guardian/warden",
+      "b": "nostalgiaskills:guardian/vitality_18",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.vitality_19--guardian.vitality_20",
+      "a": "nostalgiaskills:guardian/vitality_19",
+      "b": "nostalgiaskills:guardian/vitality_20",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -302.0,
+          "y": -598.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.vitality_19--guardian.vitality_22",
+      "a": "nostalgiaskills:guardian/vitality_22",
+      "b": "nostalgiaskills:guardian/vitality_19",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -282.0,
+          "y": -570.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.vitality_19--guardian.vitality_9",
+      "a": "nostalgiaskills:guardian/vitality_9",
+      "b": "nostalgiaskills:guardian/vitality_19",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.vitality_2--guardian.vitality_3",
+      "a": "nostalgiaskills:guardian/vitality_2",
+      "b": "nostalgiaskills:guardian/vitality_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.vitality_21--guardian.vitality_22",
+      "a": "nostalgiaskills:guardian/vitality_21",
+      "b": "nostalgiaskills:guardian/vitality_22",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": -250.0,
+          "y": -581.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.vitality_4--guardian.vitality_5",
+      "a": "nostalgiaskills:guardian/vitality_4",
+      "b": "nostalgiaskills:guardian/vitality_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/guardian.vitality_7--guardian.vitality_8",
+      "a": "nostalgiaskills:guardian/vitality_7",
+      "b": "nostalgiaskills:guardian/vitality_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.bolt_smith_1--marksman.bolt_smith_2",
+      "a": "nostalgiaskills:marksman/bolt_smith_1",
+      "b": "nostalgiaskills:marksman/bolt_smith_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.bolt_smith_1--marksman.hub",
+      "a": "nostalgiaskills:marksman/hub",
+      "b": "nostalgiaskills:marksman/bolt_smith_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.bolt_smith_10--marksman.bolt_smith_9",
+      "a": "nostalgiaskills:marksman/bolt_smith_9",
+      "b": "nostalgiaskills:marksman/bolt_smith_10",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.bolt_smith_11--marksman.bolt_smith_4",
+      "a": "nostalgiaskills:marksman/bolt_smith_4",
+      "b": "nostalgiaskills:marksman/bolt_smith_11",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.bolt_smith_11--marksman.bolt_workshop",
+      "a": "nostalgiaskills:marksman/bolt_smith_11",
+      "b": "nostalgiaskills:marksman/bolt_workshop",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.bolt_smith_12--marksman.bolt_workshop",
+      "a": "nostalgiaskills:marksman/bolt_workshop",
+      "b": "nostalgiaskills:marksman/bolt_smith_12",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.bolt_smith_13--marksman.bolt_workshop",
+      "a": "nostalgiaskills:marksman/bolt_workshop",
+      "b": "nostalgiaskills:marksman/bolt_smith_13",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.bolt_smith_2--marksman.bolt_smith_3",
+      "a": "nostalgiaskills:marksman/bolt_smith_2",
+      "b": "nostalgiaskills:marksman/bolt_smith_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.bolt_smith_3--marksman.crossbow_drill",
+      "a": "nostalgiaskills:marksman/bolt_smith_3",
+      "b": "nostalgiaskills:marksman/crossbow_drill",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.bolt_smith_4--marksman.bolt_smith_5",
+      "a": "nostalgiaskills:marksman/bolt_smith_4",
+      "b": "nostalgiaskills:marksman/bolt_smith_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.bolt_smith_4--marksman.crossbow_drill",
+      "a": "nostalgiaskills:marksman/crossbow_drill",
+      "b": "nostalgiaskills:marksman/bolt_smith_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.bolt_smith_5--marksman.bolt_smith_6",
+      "a": "nostalgiaskills:marksman/bolt_smith_5",
+      "b": "nostalgiaskills:marksman/bolt_smith_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.bolt_smith_6--marksman.bolt_smith_7",
+      "a": "nostalgiaskills:marksman/bolt_smith_6",
+      "b": "nostalgiaskills:marksman/bolt_smith_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.bolt_smith_6--marksman.bolt_smith_9",
+      "a": "nostalgiaskills:marksman/bolt_smith_6",
+      "b": "nostalgiaskills:marksman/bolt_smith_9",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.bolt_smith_7--marksman.bolt_smith_8",
+      "a": "nostalgiaskills:marksman/bolt_smith_7",
+      "b": "nostalgiaskills:marksman/bolt_smith_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.bolt_smith_8--marksman.steady_draw_8",
+      "a": "nostalgiaskills:marksman/bolt_smith_8",
+      "b": "nostalgiaskills:marksman/steady_draw_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.draw_weight_1--marksman.draw_weight_2",
+      "a": "nostalgiaskills:marksman/draw_weight_1",
+      "b": "nostalgiaskills:marksman/draw_weight_2",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 677.0,
+          "y": -38.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.draw_weight_1--marksman.draw_weight_4",
+      "a": "nostalgiaskills:marksman/draw_weight_4",
+      "b": "nostalgiaskills:marksman/draw_weight_1",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 711.0,
+          "y": -40.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.draw_weight_1--marksman.fletching_11",
+      "a": "nostalgiaskills:marksman/fletching_11",
+      "b": "nostalgiaskills:marksman/draw_weight_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.draw_weight_2--marksman.full_quiver",
+      "a": "nostalgiaskills:marksman/draw_weight_2",
+      "b": "nostalgiaskills:marksman/full_quiver",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 664.5,
+          "y": -70.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.draw_weight_3--marksman.draw_weight_4",
+      "a": "nostalgiaskills:marksman/draw_weight_3",
+      "b": "nostalgiaskills:marksman/draw_weight_4",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 719.5,
+          "y": -73.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.draw_weight_3--marksman.draw_weight_5",
+      "a": "nostalgiaskills:marksman/draw_weight_3",
+      "b": "nostalgiaskills:marksman/draw_weight_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.draw_weight_3--marksman.full_quiver",
+      "a": "nostalgiaskills:marksman/full_quiver",
+      "b": "nostalgiaskills:marksman/draw_weight_3",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 691.0,
+          "y": -91.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.draw_weight_5--marksman.volley_doctrine",
+      "a": "nostalgiaskills:marksman/draw_weight_5",
+      "b": "nostalgiaskills:marksman/volley_doctrine",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.draw_weight_6--marksman.draw_weight_7",
+      "a": "nostalgiaskills:marksman/draw_weight_6",
+      "b": "nostalgiaskills:marksman/draw_weight_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.draw_weight_6--marksman.steady_draw_8",
+      "a": "nostalgiaskills:marksman/steady_draw_8",
+      "b": "nostalgiaskills:marksman/draw_weight_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.draw_weight_7--marksman.draw_weight_8",
+      "a": "nostalgiaskills:marksman/draw_weight_7",
+      "b": "nostalgiaskills:marksman/draw_weight_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.draw_weight_8--marksman.rangefinder",
+      "a": "nostalgiaskills:marksman/draw_weight_8",
+      "b": "nostalgiaskills:marksman/rangefinder",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.eagle_eye--marksman.fletching_4",
+      "a": "nostalgiaskills:marksman/fletching_4",
+      "b": "nostalgiaskills:marksman/eagle_eye",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.eagle_eye--marksman.fletching_5",
+      "a": "nostalgiaskills:marksman/eagle_eye",
+      "b": "nostalgiaskills:marksman/fletching_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.fletching_1--marksman.fletching_2",
+      "a": "nostalgiaskills:marksman/fletching_1",
+      "b": "nostalgiaskills:marksman/fletching_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.fletching_1--marksman.hub",
+      "a": "nostalgiaskills:marksman/hub",
+      "b": "nostalgiaskills:marksman/fletching_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.fletching_10--marksman.fletching_11",
+      "a": "nostalgiaskills:marksman/fletching_10",
+      "b": "nostalgiaskills:marksman/fletching_11",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.fletching_10--marksman.fletching_9",
+      "a": "nostalgiaskills:marksman/fletching_9",
+      "b": "nostalgiaskills:marksman/fletching_10",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.fletching_11--marksman.fletching_12",
+      "a": "nostalgiaskills:marksman/fletching_11",
+      "b": "nostalgiaskills:marksman/fletching_12",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.fletching_12--marksman.fletching_13",
+      "a": "nostalgiaskills:marksman/fletching_12",
+      "b": "nostalgiaskills:marksman/fletching_13",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.fletching_13--marksman.fletching_14",
+      "a": "nostalgiaskills:marksman/fletching_13",
+      "b": "nostalgiaskills:marksman/fletching_14",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.fletching_13--marksman.fletching_15",
+      "a": "nostalgiaskills:marksman/fletching_13",
+      "b": "nostalgiaskills:marksman/fletching_15",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.fletching_13--marksman.patient_aim",
+      "a": "nostalgiaskills:marksman/fletching_13",
+      "b": "nostalgiaskills:marksman/patient_aim",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.fletching_2--marksman.fletching_3",
+      "a": "nostalgiaskills:marksman/fletching_2",
+      "b": "nostalgiaskills:marksman/fletching_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.fletching_3--marksman.fletching_4",
+      "a": "nostalgiaskills:marksman/fletching_3",
+      "b": "nostalgiaskills:marksman/fletching_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.fletching_5--marksman.fletching_6",
+      "a": "nostalgiaskills:marksman/fletching_5",
+      "b": "nostalgiaskills:marksman/fletching_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.fletching_6--marksman.long_shot",
+      "a": "nostalgiaskills:marksman/fletching_6",
+      "b": "nostalgiaskills:marksman/long_shot",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.fletching_7--marksman.fletching_8",
+      "a": "nostalgiaskills:marksman/fletching_7",
+      "b": "nostalgiaskills:marksman/fletching_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.fletching_7--marksman.long_shot",
+      "a": "nostalgiaskills:marksman/long_shot",
+      "b": "nostalgiaskills:marksman/fletching_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.fletching_8--marksman.nocking_point",
+      "a": "nostalgiaskills:marksman/fletching_8",
+      "b": "nostalgiaskills:marksman/nocking_point",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.fletching_9--marksman.nocking_point",
+      "a": "nostalgiaskills:marksman/nocking_point",
+      "b": "nostalgiaskills:marksman/fletching_9",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.heavy_bolts--marksman.rangefinder",
+      "a": "nostalgiaskills:marksman/rangefinder",
+      "b": "nostalgiaskills:marksman/heavy_bolts",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.hub--marksman.hunters_stride_1",
+      "a": "nostalgiaskills:marksman/hub",
+      "b": "nostalgiaskills:marksman/hunters_stride_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.hunters_blind--marksman.hunters_stride_12",
+      "a": "nostalgiaskills:marksman/hunters_stride_12",
+      "b": "nostalgiaskills:marksman/hunters_blind",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.hunters_blind--marksman.hunters_stride_13",
+      "a": "nostalgiaskills:marksman/hunters_stride_13",
+      "b": "nostalgiaskills:marksman/hunters_blind",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.hunters_stride_1--marksman.hunters_stride_2",
+      "a": "nostalgiaskills:marksman/hunters_stride_1",
+      "b": "nostalgiaskills:marksman/hunters_stride_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.hunters_stride_10--marksman.hunters_stride_9",
+      "a": "nostalgiaskills:marksman/hunters_stride_9",
+      "b": "nostalgiaskills:marksman/hunters_stride_10",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.hunters_stride_11--marksman.hunters_stride_12",
+      "a": "nostalgiaskills:marksman/hunters_stride_11",
+      "b": "nostalgiaskills:marksman/hunters_stride_12",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.hunters_stride_11--marksman.hunters_stride_13",
+      "a": "nostalgiaskills:marksman/hunters_stride_11",
+      "b": "nostalgiaskills:marksman/hunters_stride_13",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.hunters_stride_11--marksman.hunters_stride_5",
+      "a": "nostalgiaskills:marksman/hunters_stride_5",
+      "b": "nostalgiaskills:marksman/hunters_stride_11",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.hunters_stride_2--marksman.hunters_stride_3",
+      "a": "nostalgiaskills:marksman/hunters_stride_2",
+      "b": "nostalgiaskills:marksman/hunters_stride_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.hunters_stride_3--marksman.taut_string",
+      "a": "nostalgiaskills:marksman/hunters_stride_3",
+      "b": "nostalgiaskills:marksman/taut_string",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.hunters_stride_4--marksman.hunters_stride_5",
+      "a": "nostalgiaskills:marksman/hunters_stride_4",
+      "b": "nostalgiaskills:marksman/hunters_stride_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.hunters_stride_4--marksman.taut_string",
+      "a": "nostalgiaskills:marksman/taut_string",
+      "b": "nostalgiaskills:marksman/hunters_stride_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.hunters_stride_5--marksman.hunters_stride_6",
+      "a": "nostalgiaskills:marksman/hunters_stride_5",
+      "b": "nostalgiaskills:marksman/hunters_stride_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.hunters_stride_5--marksman.hunters_stride_9",
+      "a": "nostalgiaskills:marksman/hunters_stride_5",
+      "b": "nostalgiaskills:marksman/hunters_stride_9",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.hunters_stride_6--marksman.hunters_stride_7",
+      "a": "nostalgiaskills:marksman/hunters_stride_6",
+      "b": "nostalgiaskills:marksman/hunters_stride_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.hunters_stride_7--marksman.hunters_stride_8",
+      "a": "nostalgiaskills:marksman/hunters_stride_7",
+      "b": "nostalgiaskills:marksman/hunters_stride_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.hunters_stride_8--marksman.steady_draw_4",
+      "a": "nostalgiaskills:marksman/hunters_stride_8",
+      "b": "nostalgiaskills:marksman/steady_draw_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.lower_limb--marksman.steady_draw_6",
+      "a": "nostalgiaskills:marksman/steady_draw_6",
+      "b": "nostalgiaskills:marksman/lower_limb",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.lower_limb--marksman.steady_draw_7",
+      "a": "nostalgiaskills:marksman/lower_limb",
+      "b": "nostalgiaskills:marksman/steady_draw_7",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.nocking_point--marksman.steady_draw_1",
+      "a": "nostalgiaskills:marksman/nocking_point",
+      "b": "nostalgiaskills:marksman/steady_draw_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.nocking_point--marksman.steady_draw_5",
+      "a": "nostalgiaskills:marksman/nocking_point",
+      "b": "nostalgiaskills:marksman/steady_draw_5",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.steady_draw_1--marksman.steady_draw_2",
+      "a": "nostalgiaskills:marksman/steady_draw_1",
+      "b": "nostalgiaskills:marksman/steady_draw_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.steady_draw_10--marksman.steady_draw_11",
+      "a": "nostalgiaskills:marksman/steady_draw_10",
+      "b": "nostalgiaskills:marksman/steady_draw_11",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.steady_draw_10--marksman.steady_draw_9",
+      "a": "nostalgiaskills:marksman/steady_draw_9",
+      "b": "nostalgiaskills:marksman/steady_draw_10",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.steady_draw_11--marksman.steady_draw_12",
+      "a": "nostalgiaskills:marksman/steady_draw_11",
+      "b": "nostalgiaskills:marksman/steady_draw_12",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.steady_draw_12--marksman.steady_draw_13",
+      "a": "nostalgiaskills:marksman/steady_draw_12",
+      "b": "nostalgiaskills:marksman/steady_draw_13",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.steady_draw_13--marksman.steady_draw_14",
+      "a": "nostalgiaskills:marksman/steady_draw_13",
+      "b": "nostalgiaskills:marksman/steady_draw_14",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 640.5,
+          "y": 281.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.steady_draw_13--marksman.steady_draw_15",
+      "a": "nostalgiaskills:marksman/steady_draw_15",
+      "b": "nostalgiaskills:marksman/steady_draw_13",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 663.0,
+          "y": 307.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.steady_draw_14--marksman.windreader",
+      "a": "nostalgiaskills:marksman/steady_draw_14",
+      "b": "nostalgiaskills:marksman/windreader",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 665.5,
+          "y": 258.5
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.steady_draw_15--marksman.windreader",
+      "a": "nostalgiaskills:marksman/windreader",
+      "b": "nostalgiaskills:marksman/steady_draw_15",
+      "directed": false,
+      "style": "ring",
+      "points": [
+        {
+          "x": 688.5,
+          "y": 284.0
+        }
+      ]
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.steady_draw_2--marksman.upper_limb",
+      "a": "nostalgiaskills:marksman/steady_draw_2",
+      "b": "nostalgiaskills:marksman/upper_limb",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.steady_draw_3--marksman.steady_draw_4",
+      "a": "nostalgiaskills:marksman/steady_draw_3",
+      "b": "nostalgiaskills:marksman/steady_draw_4",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.steady_draw_3--marksman.upper_limb",
+      "a": "nostalgiaskills:marksman/upper_limb",
+      "b": "nostalgiaskills:marksman/steady_draw_3",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.steady_draw_4--marksman.steady_draw_9",
+      "a": "nostalgiaskills:marksman/steady_draw_4",
+      "b": "nostalgiaskills:marksman/steady_draw_9",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.steady_draw_5--marksman.steady_draw_6",
+      "a": "nostalgiaskills:marksman/steady_draw_5",
+      "b": "nostalgiaskills:marksman/steady_draw_6",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/marksman.steady_draw_7--marksman.steady_draw_8",
+      "a": "nostalgiaskills:marksman/steady_draw_7",
+      "b": "nostalgiaskills:marksman/steady_draw_8",
+      "directed": false,
+      "style": "path",
+      "points": []
+    }
+  ]
+}

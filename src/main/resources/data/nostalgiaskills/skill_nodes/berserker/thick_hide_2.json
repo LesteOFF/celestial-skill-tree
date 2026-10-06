@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:berserker/thick_hide_2",
+  "tree": "nostalgiaskills:main",
+  "sector": "berserker",
+  "type": "minor",
+  "position": {
+    "x": -162.0,
+    "y": 133.5
+  },
+  "name": "skill.nostalgiaskills.berserker.thick_hide_2.name",
+  "description": "skill.nostalgiaskills.berserker.thick_hide_2.description",
+  "icon": "nostalgiaskills:textures/skill_icons/health.png",
+  "frame": "bronze_circle",
+  "cost": 1,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.max_health",
+      "operation": "add_value",
+      "amount": 1.0
+    }
+  ],
+  "tags": [
+    "health",
+    "berserker"
+  ],
+  "cluster": "berserker:red_trail"
+}

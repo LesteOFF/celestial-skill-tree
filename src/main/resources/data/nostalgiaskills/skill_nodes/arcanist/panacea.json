@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:arcanist/panacea",
+  "tree": "nostalgiaskills:main",
+  "sector": "arcanist",
+  "type": "notable",
+  "position": {
+    "x": 440.0,
+    "y": -329.0
+  },
+  "name": "skill.nostalgiaskills.arcanist.panacea.name",
+  "description": "skill.nostalgiaskills.arcanist.panacea.description",
+  "icon": "nostalgiaskills:textures/skill_icons/fire.png",
+  "frame": "violet_facet",
+  "cost": 2,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "damage_modifier",
+      "direction": "taken",
+      "scope": "fire",
+      "amount": -0.25
+    }
+  ],
+  "tags": [
+    "fire",
+    "defense",
+    "arcanist"
+  ],
+  "cluster": "arcanist:east_flask"
+}

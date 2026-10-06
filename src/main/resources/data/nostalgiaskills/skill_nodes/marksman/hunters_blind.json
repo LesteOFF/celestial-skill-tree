@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:marksman/hunters_blind",
+  "tree": "nostalgiaskills:main",
+  "sector": "marksman",
+  "type": "notable",
+  "position": {
+    "x": 492.0,
+    "y": 76.0
+  },
+  "name": "skill.nostalgiaskills.marksman.hunters_blind.name",
+  "description": "skill.nostalgiaskills.marksman.hunters_blind.description",
+  "icon": "nostalgiaskills:textures/skill_icons/projectile.png",
+  "frame": "violet_facet",
+  "cost": 2,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "damage_modifier",
+      "direction": "dealt",
+      "scope": "projectile",
+      "amount": 0.1,
+      "condition": {
+        "type": "sneaking"
+      }
+    }
+  ],
+  "tags": [
+    "projectile",
+    "marksman"
+  ],
+  "cluster": "marksman:hunters_blind"
+}

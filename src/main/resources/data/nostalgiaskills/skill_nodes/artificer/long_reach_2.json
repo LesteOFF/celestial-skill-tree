@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:artificer/long_reach_2",
+  "tree": "nostalgiaskills:main",
+  "sector": "artificer",
+  "type": "minor",
+  "position": {
+    "x": 196.0,
+    "y": 216.0
+  },
+  "name": "skill.nostalgiaskills.artificer.long_reach_2.name",
+  "description": "skill.nostalgiaskills.artificer.long_reach_2.description",
+  "icon": "nostalgiaskills:textures/skill_icons/tools.png",
+  "frame": "bronze_circle",
+  "cost": 1,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:player.block_interaction_range",
+      "operation": "add_value",
+      "amount": 0.1
+    }
+  ],
+  "tags": [
+    "tools",
+    "artificer"
+  ],
+  "cluster": "artificer:tool_rack"
+}

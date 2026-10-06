@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:berserker/rising_rage",
+  "tree": "nostalgiaskills:main",
+  "sector": "berserker",
+  "type": "notable",
+  "position": {
+    "x": -321.0,
+    "y": 276.5
+  },
+  "name": "skill.nostalgiaskills.berserker.rising_rage.name",
+  "description": "skill.nostalgiaskills.berserker.rising_rage.description",
+  "icon": "nostalgiaskills:textures/skill_icons/risk.png",
+  "frame": "violet_facet",
+  "cost": 2,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_hurt",
+      "action": {
+        "type": "self_effect",
+        "effect": "minecraft:strength",
+        "duration_ticks": 60,
+        "amplifier": 0
+      },
+      "cooldown_ticks": 200
+    }
+  ],
+  "tags": [
+    "risk",
+    "berserker"
+  ],
+  "cluster": "berserker:rage_star"
+}

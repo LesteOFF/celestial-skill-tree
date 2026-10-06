@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:artificer/tinkerer",
+  "tree": "nostalgiaskills:main",
+  "sector": "artificer",
+  "type": "notable",
+  "position": {
+    "x": 173.5,
+    "y": 177.0
+  },
+  "name": "skill.nostalgiaskills.artificer.tinkerer.name",
+  "description": "skill.nostalgiaskills.artificer.tinkerer.description",
+  "icon": "nostalgiaskills:textures/skill_icons/tools.png",
+  "frame": "violet_facet",
+  "cost": 2,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:player.block_interaction_range",
+      "operation": "add_value",
+      "amount": 0.5
+    }
+  ],
+  "tags": [
+    "tools",
+    "artificer"
+  ],
+  "cluster": "artificer:tool_rack"
+}

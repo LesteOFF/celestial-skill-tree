@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:artificer/prospector_16",
+  "tree": "nostalgiaskills:main",
+  "sector": "artificer",
+  "type": "minor",
+  "position": {
+    "x": 370.0,
+    "y": 641.0
+  },
+  "name": "skill.nostalgiaskills.artificer.prospector_16.name",
+  "description": "skill.nostalgiaskills.artificer.prospector_16.description",
+  "icon": "nostalgiaskills:textures/skill_icons/mining.png",
+  "frame": "bronze_circle",
+  "cost": 1,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:mining_speed",
+      "operation": "add_value",
+      "amount": 0.03
+    }
+  ],
+  "tags": [
+    "mining",
+    "artificer"
+  ],
+  "cluster": "artificer:deep_shaft"
+}

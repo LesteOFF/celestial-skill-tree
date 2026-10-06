@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:marksman/bolt_workshop",
+  "tree": "nostalgiaskills:main",
+  "sector": "marksman",
+  "type": "notable",
+  "position": {
+    "x": 395.0,
+    "y": -70.0
+  },
+  "name": "skill.nostalgiaskills.marksman.bolt_workshop.name",
+  "description": "skill.nostalgiaskills.marksman.bolt_workshop.description",
+  "icon": "nostalgiaskills:textures/skill_icons/crossbow.png",
+  "frame": "violet_facet",
+  "cost": 2,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:crossbow_damage",
+      "operation": "add_value",
+      "amount": 0.05
+    },
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:projectile_damage",
+      "operation": "add_value",
+      "amount": 0.05
+    }
+  ],
+  "tags": [
+    "crossbow",
+    "marksman"
+  ],
+  "cluster": "marksman:bolt_workshop"
+}

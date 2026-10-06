@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:guardian/unbroken",
+  "tree": "nostalgiaskills:main",
+  "sector": "guardian",
+  "type": "notable",
+  "position": {
+    "x": -306.0,
+    "y": -530.0
+  },
+  "name": "skill.nostalgiaskills.guardian.unbroken.name",
+  "description": "skill.nostalgiaskills.guardian.unbroken.description",
+  "icon": "nostalgiaskills:textures/skill_icons/defense.png",
+  "frame": "violet_facet",
+  "cost": 2,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.knockback_resistance",
+      "operation": "add_value",
+      "amount": 0.1
+    },
+    {
+      "type": "trigger",
+      "trigger": "on_low_health",
+      "action": {
+        "type": "self_effect",
+        "effect": "minecraft:resistance",
+        "duration_ticks": 100,
+        "amplifier": 1
+      },
+      "cooldown_ticks": 1200
+    }
+  ],
+  "tags": [
+    "defense",
+    "guardian"
+  ],
+  "cluster": "guardian:keep_road"
+}

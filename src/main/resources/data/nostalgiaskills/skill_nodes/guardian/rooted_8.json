@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:guardian/rooted_8",
+  "tree": "nostalgiaskills:main",
+  "sector": "guardian",
+  "type": "minor",
+  "position": {
+    "x": -45.0,
+    "y": -598.5
+  },
+  "name": "skill.nostalgiaskills.guardian.rooted_8.name",
+  "description": "skill.nostalgiaskills.guardian.rooted_8.description",
+  "icon": "nostalgiaskills:textures/skill_icons/knockback.png",
+  "frame": "bronze_circle",
+  "cost": 1,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.knockback_resistance",
+      "operation": "add_value",
+      "amount": 0.02
+    }
+  ],
+  "tags": [
+    "knockback",
+    "defense",
+    "guardian"
+  ],
+  "cluster": "guardian:watch_road"
+}

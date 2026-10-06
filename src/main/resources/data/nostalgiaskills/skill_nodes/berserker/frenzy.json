@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:berserker/frenzy",
+  "tree": "nostalgiaskills:main",
+  "sector": "berserker",
+  "type": "notable",
+  "position": {
+    "x": -445.0,
+    "y": 470.5
+  },
+  "name": "skill.nostalgiaskills.berserker.frenzy.name",
+  "description": "skill.nostalgiaskills.berserker.frenzy.description",
+  "icon": "nostalgiaskills:textures/skill_icons/mobility.png",
+  "frame": "violet_facet",
+  "cost": 2,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_kill",
+      "action": {
+        "type": "self_effect",
+        "effect": "minecraft:speed",
+        "duration_ticks": 60,
+        "amplifier": 1
+      },
+      "cooldown_ticks": 200
+    }
+  ],
+  "tags": [
+    "mobility",
+    "berserker"
+  ],
+  "cluster": "berserker:frenzy_star"
+}

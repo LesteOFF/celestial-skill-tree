@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:arcanist/warding_salts_17",
+  "tree": "nostalgiaskills:main",
+  "sector": "arcanist",
+  "type": "minor",
+  "position": {
+    "x": 343.5,
+    "y": -360.0
+  },
+  "name": "skill.nostalgiaskills.arcanist.warding_salts_17.name",
+  "description": "skill.nostalgiaskills.arcanist.warding_salts_17.description",
+  "icon": "nostalgiaskills:textures/skill_icons/magic.png",
+  "frame": "bronze_circle",
+  "cost": 1,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:magic_resistance",
+      "operation": "add_value",
+      "amount": 0.02
+    }
+  ],
+  "tags": [
+    "magic",
+    "defense",
+    "arcanist"
+  ],
+  "cluster": "arcanist:great_spiral"
+}

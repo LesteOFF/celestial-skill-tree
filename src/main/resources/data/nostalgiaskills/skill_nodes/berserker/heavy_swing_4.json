@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:berserker/heavy_swing_4",
+  "tree": "nostalgiaskills:main",
+  "sector": "berserker",
+  "type": "minor",
+  "position": {
+    "x": -61.5,
+    "y": 306.5
+  },
+  "name": "skill.nostalgiaskills.berserker.heavy_swing_4.name",
+  "description": "skill.nostalgiaskills.berserker.heavy_swing_4.description",
+  "icon": "nostalgiaskills:textures/skill_icons/heavy_weapon.png",
+  "frame": "bronze_circle",
+  "cost": 1,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:heavy_weapon_damage",
+      "operation": "add_value",
+      "amount": 0.03
+    }
+  ],
+  "tags": [
+    "heavy_weapon",
+    "damage",
+    "berserker"
+  ],
+  "cluster": "berserker:iron_trail"
+}

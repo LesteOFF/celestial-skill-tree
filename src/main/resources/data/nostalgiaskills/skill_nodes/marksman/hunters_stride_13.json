@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:marksman/hunters_stride_13",
+  "tree": "nostalgiaskills:main",
+  "sector": "marksman",
+  "type": "minor",
+  "position": {
+    "x": 460.0,
+    "y": 110.0
+  },
+  "name": "skill.nostalgiaskills.marksman.hunters_stride_13.name",
+  "description": "skill.nostalgiaskills.marksman.hunters_stride_13.description",
+  "icon": "nostalgiaskills:textures/skill_icons/mobility.png",
+  "frame": "bronze_circle",
+  "cost": 1,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.movement_speed",
+      "operation": "add_multiplied_base",
+      "amount": 0.01
+    }
+  ],
+  "tags": [
+    "mobility",
+    "marksman"
+  ],
+  "cluster": "marksman:hunters_blind"
+}

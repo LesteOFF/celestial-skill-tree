@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:berserker/brute_force_15",
+  "tree": "nostalgiaskills:main",
+  "sector": "berserker",
+  "type": "minor",
+  "position": {
+    "x": -360.0,
+    "y": 623.5
+  },
+  "name": "skill.nostalgiaskills.berserker.brute_force_15.name",
+  "description": "skill.nostalgiaskills.berserker.brute_force_15.description",
+  "icon": "nostalgiaskills:textures/skill_icons/damage.png",
+  "frame": "bronze_circle",
+  "cost": 1,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.attack_damage",
+      "operation": "add_multiplied_base",
+      "amount": 0.02
+    }
+  ],
+  "tags": [
+    "damage",
+    "melee",
+    "berserker"
+  ],
+  "cluster": "berserker:war_path"
+}

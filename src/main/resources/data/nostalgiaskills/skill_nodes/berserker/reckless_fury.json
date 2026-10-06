@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:berserker/reckless_fury",
+  "tree": "nostalgiaskills:main",
+  "sector": "berserker",
+  "type": "keystone",
+  "position": {
+    "x": -397.0,
+    "y": 687.5
+  },
+  "name": "skill.nostalgiaskills.berserker.reckless_fury.name",
+  "description": "skill.nostalgiaskills.berserker.reckless_fury.description",
+  "icon": "nostalgiaskills:textures/skill_icons/keystone_reckless_fury.png",
+  "frame": "gold_ornate",
+  "cost": 3,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "damage_modifier",
+      "direction": "dealt",
+      "scope": "melee",
+      "amount": 0.2
+    },
+    {
+      "type": "damage_modifier",
+      "direction": "taken",
+      "scope": "all",
+      "amount": 0.1
+    }
+  ],
+  "tags": [
+    "keystone",
+    "risk",
+    "berserker"
+  ],
+  "cluster": "berserker:keystone_fury",
+  "exclusive_group": "berserker_oath"
+}

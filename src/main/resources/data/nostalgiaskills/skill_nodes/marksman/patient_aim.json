@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:marksman/patient_aim",
+  "tree": "nostalgiaskills:main",
+  "sector": "marksman",
+  "type": "keystone",
+  "position": {
+    "x": 810.0,
+    "y": 0.0
+  },
+  "name": "skill.nostalgiaskills.marksman.patient_aim.name",
+  "description": "skill.nostalgiaskills.marksman.patient_aim.description",
+  "icon": "nostalgiaskills:textures/skill_icons/keystone_patient_aim.png",
+  "frame": "gold_ornate",
+  "cost": 3,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "damage_modifier",
+      "direction": "dealt",
+      "scope": "projectile",
+      "amount": 0.2,
+      "condition": {
+        "type": "shot_distance_over",
+        "blocks": 12.0
+      }
+    },
+    {
+      "type": "damage_modifier",
+      "direction": "dealt",
+      "scope": "projectile",
+      "amount": -0.1,
+      "condition": {
+        "type": "shot_distance_under",
+        "blocks": 12.0
+      }
+    }
+  ],
+  "tags": [
+    "keystone",
+    "range",
+    "marksman"
+  ],
+  "cluster": "marksman:keystone_patient",
+  "exclusive_group": "marksman_discipline"
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:guardian/shield_drill",
+  "tree": "nostalgiaskills:main",
+  "sector": "guardian",
+  "type": "notable",
+  "position": {
+    "x": -393.5,
+    "y": -425.5
+  },
+  "name": "skill.nostalgiaskills.guardian.shield_drill.name",
+  "description": "skill.nostalgiaskills.guardian.shield_drill.description",
+  "icon": "nostalgiaskills:textures/skill_icons/shield.png",
+  "frame": "violet_facet",
+  "cost": 2,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "conditional_attribute",
+      "attribute": "minecraft:generic.knockback_resistance",
+      "operation": "add_value",
+      "amount": 0.3,
+      "condition": {
+        "type": "blocking"
+      }
+    }
+  ],
+  "tags": [
+    "shield",
+    "guardian"
+  ],
+  "cluster": "guardian:armoury"
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:duelist/cutting_remark_1",
+  "tree": "nostalgiaskills:main",
+  "sector": "duelist",
+  "type": "minor",
+  "position": {
+    "x": -513.0,
+    "y": 18.5
+  },
+  "name": "skill.nostalgiaskills.duelist.cutting_remark_1.name",
+  "description": "skill.nostalgiaskills.duelist.cutting_remark_1.description",
+  "icon": "nostalgiaskills:textures/skill_icons/critical.png",
+  "frame": "bronze_circle",
+  "cost": 1,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:crit_damage",
+      "operation": "add_value",
+      "amount": 0.05
+    }
+  ],
+  "tags": [
+    "critical",
+    "duelist"
+  ],
+  "cluster": "duelist:counter_circle"
+}

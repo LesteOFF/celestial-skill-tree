@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:guardian/vitality_4",
+  "tree": "nostalgiaskills:main",
+  "sector": "guardian",
+  "type": "minor",
+  "position": {
+    "x": -180.0,
+    "y": -312.0
+  },
+  "name": "skill.nostalgiaskills.guardian.vitality_4.name",
+  "description": "skill.nostalgiaskills.guardian.vitality_4.description",
+  "icon": "nostalgiaskills:textures/skill_icons/health.png",
+  "frame": "bronze_circle",
+  "cost": 1,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.max_health",
+      "operation": "add_value",
+      "amount": 1.0
+    }
+  ],
+  "tags": [
+    "health",
+    "defense",
+    "guardian"
+  ],
+  "cluster": "guardian:keep_road"
+}

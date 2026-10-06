@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:artificer/reinforced_handles",
+  "tree": "nostalgiaskills:main",
+  "sector": "artificer",
+  "type": "notable",
+  "position": {
+    "x": 419.0,
+    "y": 497.0
+  },
+  "name": "skill.nostalgiaskills.artificer.reinforced_handles.name",
+  "description": "skill.nostalgiaskills.artificer.reinforced_handles.description",
+  "icon": "nostalgiaskills:textures/skill_icons/tools.png",
+  "frame": "violet_facet",
+  "cost": 2,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:tool_preservation",
+      "operation": "add_value",
+      "amount": 0.1
+    }
+  ],
+  "tags": [
+    "tools",
+    "artificer"
+  ],
+  "cluster": "artificer:deep_level"
+}

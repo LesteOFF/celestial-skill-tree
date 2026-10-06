@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:artificer/sure_footing_7",
+  "tree": "nostalgiaskills:main",
+  "sector": "artificer",
+  "type": "minor",
+  "position": {
+    "x": 468.5,
+    "y": 468.5
+  },
+  "name": "skill.nostalgiaskills.artificer.sure_footing_7.name",
+  "description": "skill.nostalgiaskills.artificer.sure_footing_7.description",
+  "icon": "nostalgiaskills:textures/skill_icons/exploration.png",
+  "frame": "bronze_circle",
+  "cost": 1,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.safe_fall_distance",
+      "operation": "add_value",
+      "amount": 0.5
+    }
+  ],
+  "tags": [
+    "exploration",
+    "artificer"
+  ],
+  "cluster": "artificer:deep_level"
+}

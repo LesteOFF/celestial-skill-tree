@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:artificer/rich_seams",
+  "tree": "nostalgiaskills:main",
+  "sector": "artificer",
+  "type": "notable",
+  "position": {
+    "x": 301.5,
+    "y": 522.5
+  },
+  "name": "skill.nostalgiaskills.artificer.rich_seams.name",
+  "description": "skill.nostalgiaskills.artificer.rich_seams.description",
+  "icon": "nostalgiaskills:textures/skill_icons/mining.png",
+  "frame": "violet_facet",
+  "cost": 2,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:mining_speed",
+      "operation": "add_value",
+      "amount": 0.1
+    }
+  ],
+  "tags": [
+    "mining",
+    "artificer"
+  ],
+  "cluster": "artificer:deep_shaft"
+}
