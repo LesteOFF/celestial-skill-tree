@@ -1,0 +1,33 @@
+package dev.nostalgiacraft.skills.progression;
+
+import java.util.Locale;
+
+/** Every rejection the server can send; each maps to a translation key "error.nostalgiaskills.<name>". */
+public enum RejectReason {
+    EMPTY_REQUEST,
+    REQUEST_TOO_LARGE,
+    UNKNOWN_NODE,
+    ALREADY_ALLOCATED,
+    NOT_CONNECTED,
+    REQUIREMENT_UNMET,
+    EXCLUSIVE_CONFLICT,
+    STARTING_ROOT_REQUIRED,
+    MULTIPLE_STARTING_ROOTS,
+    INSUFFICIENT_POINTS,
+    INSUFFICIENT_XP,
+    POINT_LIMIT_REACHED,
+    PROGRESSION_DISABLED,
+    STALE_STATE_REVISION,
+    STALE_GRAPH_REVISION,
+    DUPLICATE_REQUEST,
+    NOTHING_TO_RESET,
+    MISSING_RESET_ITEM,
+    RATE_LIMITED,
+    INVALID_AMOUNT,
+    OVER_LIMIT_NEEDS_OVERRIDE,
+    TREE_UNAVAILABLE;
+
+    public String translationKey() {
+        return "error.nostalgiaskills." + name().toLowerCase(Locale.ROOT);
+    }
+}
