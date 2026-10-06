@@ -10,13 +10,13 @@ Work branch: `claude/nostalgiaskills`. The Gradle project lives at the repositor
 | # | Step | Status |
 |---|------|--------|
 | 1 | Verify target platform, study references/docs | partial |
-| 2 | Author layout manifest, art direction, graph design | pending |
+| 2 | Author layout manifest, art direction, graph design | partial (layout + content + manifest done; ART_DIRECTION.md pending) |
 | 3 | NeoForge project pinned to MC 1.21.1 | done (empty mod builds) |
 | 4 | Model, resource loader, validation, progression domain | pending |
 | 5 | Persistence, server authority, transactions, networking | pending |
 | 6 | Background, icons, frames, item art (+ sources) | pending |
 | 7 | Rendering, controls, tooltips, previews | pending |
-| 8 | Content and effects in every sector | pending |
+| 8 | Content and effects in every sector | partial (all 480 nodes have authored effect data; Java effect implementations pending) |
 | 9 | Point purchases, stats, respec, commands, config | pending |
 | 10 | Compile, test client + dedicated server, fix | pending |
 | 11 | Visual QA vs layout/art spec | pending |
@@ -43,12 +43,27 @@ Work branch: `claude/nostalgiaskills`. The Gradle project lives at the repositor
   compiling is available from now on.
 - Bumped NeoForge pin 21.1.172 -> 21.1.256. `./gradlew --no-daemon build` -> BUILD SUCCESSFUL (no sources yet).
 
+- Wrote the deterministic layout pipeline `tools/layout/` (geometry, builder, sector blueprints, analysis, render,
+  content tables, en/pt description generator, exporter). Six hand-authored sectors, each with its own route vocabulary.
+- `python3 tools/layout/export.py` produced: 480 node files under `src/main/resources/data/nostalgiaskills/skill_nodes/`,
+  `skill_connections/main.json` (514 undirected edges, 9 corridor bridges), `skill_trees/main.json`, en_us/pt_br lang files
+  (generated skill strings merged with `tools/lang/ui_*.json`), `docs/layout/layout_manifest.json`,
+  `docs/layout/annotated_layout.png`, and `LAYOUT_MANIFEST.md`.
+- Layout diagnostics (ran): 64/12/3 + root per sector, 0 overlaps, 0 edge-clearance violations, 0 crossings, all nodes reachable,
+  adjacent root routes cost 19–27 paid points (requirement >= 8).
+- Effect vocabulary fixed in data (see `tools/layout/content.py` docstring): attribute, conditional_attribute,
+  damage_modifier, trigger (actions heal / self_effect / target_effect). Custom attributes used: crit_chance, crit_damage,
+  dodge_chance, light_weapon_damage, heavy_weapon_damage, projectile_damage, long_range_damage, crossbow_damage,
+  charged_shot_damage, mining_speed, tool_preservation, potion_duration, magic_resistance, healing_received, lifesteal,
+  damage_reduction, low_health_damage. Item tags referenced: nostalgiaskills:light_weapons, heavy_weapons, bows, crossbows.
+
 ## Next action
 
-Continue step 2: write `tools/layout/generate_tree.py` (deterministic, seeded) that emits the 480-node graph
-(positions, edges with intermediate points, clusters, keystone groups) into
-`src/main/resources/data/nostalgiaskills/...` plus `docs/layout_manifest.json`, then `LAYOUT_MANIFEST.md`
-and `ART_DIRECTION.md`.
+Step 4: Java domain + data loading. Create `dev.nostalgiacraft.skills` main class, register the custom attributes above
+(RangedAttribute, add to player via EntityAttributeModificationEvent), item tags JSON for light/heavy weapons, bows,
+crossbows, mining tools; then pure-Java domain (graph snapshot, node definition parsing with Gson, validation,
+AllocationService batch validation, ProgressionService XP curve, ledger) with JUnit tests that also load the bundled
+480-node dataset (`test` task already sets system property `nostalgiaskills.dataRoot`). Then ART_DIRECTION.md + art scripts.
 
 ## Known failures
 
@@ -57,5 +72,5 @@ and `ART_DIRECTION.md`.
 ## Checks run vs not run
 
 - Run 1: network probes, build (failed, network).
-- Run 2: network probes (all OK), `./gradlew --no-daemon build` (SUCCESS, scaffold only).
+- Run 2: network probes (all OK), `./gradlew --no-daemon build` (SUCCESS, scaffold only), layout analysis + export (clean).
 - Not run: any compile, unit test, client, dedicated server, in-game or visual check.
