@@ -262,7 +262,7 @@ public final class InWorldQa {
         STEPS.add(new Step("rebuild a guardian route", () -> {
             RESULTS.clear();
             ClientSkillState.setListeners(r -> RESULTS.add(r.messageKey() + " " + r.detail()), () -> { });
-            List<String> pending = routeTo("guardian/bastion", "guardian/warden");
+            List<String> pending = routeTo("guardian/vitality_3");
             screen().qaSetup(pending, false, false);
             screen().qaConfirm();
             log("refund test: confirm sent for " + pending.size() + " nodes: " + pending);
@@ -272,10 +272,10 @@ public final class InWorldQa {
                 log("refund test: build ready with " + st().allocations().size() + " allocations, server said " + RESULTS);
                 return true;
             }
-            if (!RESULTS.isEmpty() && !ClientSkillState.requestInFlight()) {
+            if (RESULTS.stream().anyMatch(r -> r.startsWith("error.")) && !ClientSkillState.requestInFlight()) {
                 log("refund test: confirm rejected with " + RESULTS + "; retrying");
                 RESULTS.clear();
-                screen().qaSetup(routeTo("guardian/bastion", "guardian/warden"), false, false);
+                screen().qaSetup(routeTo("guardian/vitality_3"), false, false);
                 screen().qaConfirm();
             }
             return false;

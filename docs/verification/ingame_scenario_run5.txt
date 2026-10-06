@@ -1,0 +1,21 @@
+joined world; graph nodes=480, max health=20.0, available points=0
+xp before purchases: level 30 progress 0.0 (raw 1395)
+after buying: purchased=6, available=6, xp raw 385 (level 16), expected XP spent 100+122+148+178+212+250=1010, next cost=292
+pending selection of 5 nodes created (not confirmed)
+after cancel: allocations=0, available=6, max health=20.0
+confirm sent for [nostalgiaskills:guardian/hub, nostalgiaskills:guardian/vitality_1, nostalgiaskills:guardian/vitality_2, nostalgiaskills:guardian/vitality_3, nostalgiaskills:guardian/gatekeeper]
+after confirm: allocations=5, available=1, spent=5, max health 20.0 -> 29.0 (expected +9: hub +2, 3x Vitality +1, Gatekeeper +4), ledger ok=true
+after death+respawn: allocations 5 -> 5, max health=29.0, available=1
+after moving to the Nether: max health=29.0, allocations=5
+14 rapid buy requests (2 share one request id, all expect the same state revision): results {error.nostalgiaskills.duplicate_request=1, error.nostalgiaskills.rate_limited=4, error.nostalgiaskills.stale_state_revision=8, ok=1}; purchased 6 -> 7 (exactly one purchase expected), ledger ok=true
+after saving, quitting and reloading the world (integrated server restart): allocations 5 -> 5, purchased 7 -> 7, max health=29.0, ledger ok=true
+after /reload with Gatekeeper now requiring Bastion (graph revision 2): allocations 5 -> 4, available 2 -> 4 (recorded price 2 refunded once), max health=25.0 (expected 25), ledger ok=true
+before reset: orbs=1, allocations=4, available=4, purchased=7
+after reset: orbs=0, allocations=0, available=7, purchased=7, next cost=338 (curve not restarted: purchased stays 7), max health=20.0, starting root free again=true, ledger ok=true
+refund test: confirm sent for 4 nodes: [nostalgiaskills:guardian/hub, nostalgiaskills:guardian/vitality_1, nostalgiaskills:guardian/vitality_2, nostalgiaskills:guardian/vitality_3]
+refund test: build ready with 4 allocations, server said [message.nostalgiaskills.allocated 4/3]
+refunding the last-acquired skill nostalgiaskills:guardian/vitality_3 (paid 1); preview says 1 node(s), 1 point(s): [nostalgiaskills:guardian/vitality_3]
+after refunding one skill: allocations 4 -> 3, available 14 -> 15 (recorded cost 1 returned), max health 25.0 -> 24.0, purchased stays 7, ledger ok=true
+refunding nostalgiaskills:guardian/vitality_1 next to the hub; preview says 2 node(s), 2 point(s): [nostalgiaskills:guardian/vitality_1, nostalgiaskills:guardian/vitality_2]
+after refunding the hub-adjacent skill: allocations 3 -> 1 (only the free hub nostalgiaskills:guardian/hub left), available 15 -> 17 (all 2 paid points back), max health=22.0, ledger ok=true
+asking to refund the starting hub nostalgiaskills:guardian/hub: rejected: ROOT_NEEDS_RESET
