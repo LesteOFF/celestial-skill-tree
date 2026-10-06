@@ -160,6 +160,24 @@ public final class SkillTreeScreen extends Screen {
         sendReset();
     }
 
+    /** Opens the single-skill refund confirmation for an allocated node (as a click on it would). */
+    public void qaRefund(String nodeId) {
+        openRefundPanel(nodeId);
+        statesDirty = false; // keep the panel open for the capture even if a sync arrives
+    }
+
+    public void qaConfirmRefund() {
+        sendRefund();
+    }
+
+    /** "<removed count> node(s), <points> point(s)" or "rejected: <reason>" - used by the in-world harness log. */
+    public String qaRefundPreview(String nodeId) {
+        RefundService.Plan p = RefundService.plan(ClientSkillState.graph().orElseThrow(),
+                ClientSkillState.state().orElseThrow(), nodeId, ClientSkillState.economy().nodeRefundsEnabled());
+        return p.ok() ? p.removed().size() + " node(s), " + p.refund() + " point(s): " + p.removed()
+                : "rejected: " + p.reason().orElseThrow();
+    }
+
     public void qaFit() {
         cameraPlaced = true;
         fit();

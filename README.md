@@ -44,15 +44,18 @@ Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256
 5. **Confirm** (or Enter) sends the whole batch to the server, which accepts all of it or none of it.
    **Cancel** clears the pending selection.
 6. **Show Stats** lists your final attributes, the tree's share, conditional effects, active keystones, and points.
-7. To respec, use an **Orb of Reconfiguration** (crafted from 4 amethyst shards, an eye of ender and a gold ingot):
-   all spent points are refunded and you may pick a new free starting hub. XP is not refunded and point prices do
-   not restart. The orb is consumed only if the reset succeeds.
+7. To unlearn **one** skill, click it in the tree: the confirmation lists exactly how many points come back (the
+   price you actually paid, not the current one) and every learned skill that has to go with it, because the rest of
+   your build must stay connected to your starting hub. Your starting hub itself can only be changed by a full reset.
+8. To respec everything, use an **Orb of Reconfiguration** (crafted from 4 amethyst shards, an eye of ender and a
+   gold ingot): all spent points are refunded and you may pick a new free starting hub. XP is not refunded and point
+   prices do not restart. The orb is consumed only if the reset succeeds.
 
 ### Controls
 
 | Input | Action |
 |---|---|
-| Left-click node | add to / remove from pending (removing a node others depend on offers to remove the chain) |
+| Left-click node | pending node: add / remove (removing a node others depend on offers to remove the chain); learned node: open the unlearn confirmation |
 | Shift + click | add the cheapest route to that node |
 | Drag (left on empty space, or middle button) | pan |
 | Mouse wheel | zoom around the cursor (0.2×–3×; **Fit** may go lower) |
@@ -105,7 +108,10 @@ from the authored blueprints; `python3 tools/layout/builds.py` recomputes the ex
 
 ## Known limitations
 
-- Respecialization is a full reset with the Orb of Reconfiguration; refunding a single node is not implemented.
+- Single-skill refunds remove the chosen skill together with every learned skill that depends on it; picking which
+  dependent to keep, or moving a build sideways without paying again, is not offered. Server operators can switch
+  single-skill refunds off (`allowNodeRefunds = false`) or charge an orb for them (`orbRequiredForNodeRefund = true`),
+  leaving the full reset as the only route.
 - No optional integrations ship; compatibility was tested only with NeoForge 21.1.256 and this mod alone.
 - Verified in a cloud container without a GPU: performance on real hardware (FPS, frame time) has not been measured,
   and no human playtest or human visual review has been done. See `docs/verification/VERIFICATION.md` for exactly

@@ -52,6 +52,9 @@ public final class InWorldQa {
     private static int allocatedBeforeDeath;
     private static int purchasedBeforeSpam;
     private static int availableBeforeReload;
+    private static double healthBeforeRefund;
+    private static String refundTarget;
+    private static int refundCost;
     private static final List<String> RESULTS = new ArrayList<>();
 
     private InWorldQa() {
@@ -252,6 +255,66 @@ public final class InWorldQa {
                 + ClientSkillState.economy().nextPointCost() + " (curve not restarted: purchased stays " + purchasedBeforeSpam + "), max health="
                 + mc().player.getAttributeValue(Attributes.MAX_HEALTH) + ", starting root free again=" + st().startingRoot().isEmpty()
                 + ", ledger ok=" + st().ledgerHolds()), () -> true, 5));
+        // ---- single-skill refunds, after the reset, on a fresh build paid for with an administrative grant
+        STEPS.add(new Step("grant points for the refund test",
+                () -> mc().player.connection.sendCommand("nostalgiaskills points add @s 10"),
+                () -> st().availablePoints() >= 10, 200));
+        STEPS.add(new Step("rebuild a guardian route", () -> {
+            RESULTS.clear();
+            ClientSkillState.setListeners(r -> RESULTS.add(r.messageKey() + " " + r.detail()), () -> { });
+            List<String> pending = routeTo("guardian/bastion", "guardian/warden");
+            screen().qaSetup(pending, false, false);
+            screen().qaConfirm();
+            log("refund test: confirm sent for " + pending.size() + " nodes: " + pending);
+        }, () -> {
+            if (st().allocations().size() >= 4) {
+                ClientSkillState.clearListeners();
+                log("refund test: build ready with " + st().allocations().size() + " allocations, server said " + RESULTS);
+                return true;
+            }
+            if (!RESULTS.isEmpty() && !ClientSkillState.requestInFlight()) {
+                log("refund test: confirm rejected with " + RESULTS + "; retrying");
+                RESULTS.clear();
+                screen().qaSetup(routeTo("guardian/bastion", "guardian/warden"), false, false);
+                screen().qaConfirm();
+            }
+            return false;
+        }, 400));
+        STEPS.add(new Step("refund one leaf skill", () -> {
+            availableBeforeReload = st().availablePoints();
+            allocatedBeforeDeath = st().allocations().size();
+            healthBeforeRefund = mc().player.getAttributeValue(Attributes.MAX_HEALTH);
+            refundTarget = st().orderedAllocations().get(allocatedBeforeDeath - 1).nodeId();
+            refundCost = st().allocations().get(refundTarget).paidCost();
+            log("refunding the last-acquired skill " + refundTarget + " (paid " + refundCost + "); preview says "
+                    + screen().qaRefundPreview(refundTarget));
+            screen().qaRefund(refundTarget);
+            screen().qaConfirmRefund();
+        }, () -> !st().isAllocated(refundTarget), 400));
+        STEPS.add(new Step("report leaf refund", () -> log("after refunding one skill: allocations "
+                + allocatedBeforeDeath + " -> " + st().allocations().size() + ", available " + availableBeforeReload
+                + " -> " + st().availablePoints() + " (recorded cost " + refundCost + " returned), max health "
+                + healthBeforeRefund + " -> " + mc().player.getAttributeValue(Attributes.MAX_HEALTH)
+                + ", purchased stays " + st().purchasedPoints() + ", ledger ok=" + st().ledgerHolds()), () -> true, 5));
+        STEPS.add(new Step("refund a skill the rest of the branch depends on", () -> {
+            availableBeforeReload = st().availablePoints();
+            allocatedBeforeDeath = st().allocations().size();
+            refundTarget = st().orderedAllocations().get(1).nodeId();
+            refundCost = st().activeSpentPoints();
+            log("refunding " + refundTarget + " next to the hub; preview says " + screen().qaRefundPreview(refundTarget));
+            screen().qaRefund(refundTarget);
+            screen().qaConfirmRefund();
+        }, () -> st().allocations().size() == 1, 400));
+        STEPS.add(new Step("report chain refund", () -> log("after refunding the hub-adjacent skill: allocations "
+                + allocatedBeforeDeath + " -> " + st().allocations().size() + " (only the free hub "
+                + st().startingRoot().orElse("?") + " left), available " + availableBeforeReload + " -> "
+                + st().availablePoints() + " (all " + refundCost + " paid points back), max health="
+                + mc().player.getAttributeValue(Attributes.MAX_HEALTH) + ", ledger ok=" + st().ledgerHolds()),
+                () -> true, 5));
+        STEPS.add(new Step("the starting hub itself is not refundable", () -> {
+            String hub = st().startingRoot().orElseThrow();
+            log("asking to refund the starting hub " + hub + ": " + screen().qaRefundPreview(hub));
+        }, () -> true, 5));
         STEPS.add(new Step("finish", InWorldQa::finish, () -> true, 5));
         next();
     }
@@ -264,6 +327,27 @@ public final class InWorldQa {
         List<String> out = new ArrayList<>();
         out.add(hub);
         PathFinder.route(g, tmp, List.of(), "nostalgiaskills:guardian/gatekeeper").ifPresent(r -> out.addAll(r.newNodes()));
+        return out;
+    }
+
+    /** Guardian hub plus the cheapest valid routes to each target, skipping any route the rules cannot resolve. */
+    private static List<String> routeTo(String... targets) {
+        SkillGraphSnapshot g = ClientSkillState.graph().orElseThrow();
+        PlayerSkillState tmp = st().copy();
+        String hub = "nostalgiaskills:guardian/hub";
+        List<String> out = new ArrayList<>();
+        if (tmp.startingRoot().isEmpty()) {
+            AllocationService.confirm(g, tmp, List.of(hub));
+            out.add(hub);
+        }
+        for (String target : targets) {
+            PathFinder.route(g, tmp, List.of(), "nostalgiaskills:" + target)
+                    .filter(PathFinder.Route::valid)
+                    .ifPresentOrElse(r -> {
+                        out.addAll(r.newNodes());
+                        AllocationService.confirm(g, tmp, r.newNodes());
+                    }, () -> log("refund test: no valid route to " + target + " (skipped)"));
+        }
         return out;
     }
 

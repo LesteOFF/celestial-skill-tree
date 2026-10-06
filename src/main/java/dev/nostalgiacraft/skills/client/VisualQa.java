@@ -185,6 +185,12 @@ public final class VisualQa {
             sc.qaFit();
             sc.qaSetup(List.of(), false, true);
         }));
+        l.add(new Shot("refund_panel_1280x720", 1280, 720, 2, "focused", sc -> {
+            PlayerSkillState s = ClientSkillState.state().orElseThrow();
+            String target = s.orderedAllocations().get(1).nodeId();
+            sc.qaZoom(1.1, target);
+            sc.qaRefund(target);
+        }));
         String[][] edges = {{"left", "0.03", "0.5"}, {"right", "0.97", "0.5"}, {"top", "0.5", "0.16"}, {"bottom", "0.5", "0.9"}};
         for (String[] e : edges) {
             l.add(new Shot("tooltip_edge_" + e[0] + "_1280x720", 1280, 720, 2, "hybrid", sc -> {

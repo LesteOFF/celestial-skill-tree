@@ -5,7 +5,8 @@ NeoForge 21.1.256 for Minecraft 1.21.1, Java 21, ModDevGradle 2.0.148. Package r
 ```text
 graph/        pure Java: node/edge/effect model, GraphParser (JSON), GraphValidator, SkillGraphSnapshot, GraphCodec
 progression/  pure Java: PlayerSkillState (ledger), AllocationService, PathFinder, XpMath, XpCurve,
-              ProgressionService, LedgerService, RespecService, Reconciler, RequestGuard, RejectReason
+              ProgressionService, LedgerService, RespecService, RefundService, Reconciler, RequestGuard,
+              RejectReason
 data/         server resource loading: SkillTreeReloadListener, SkillTreeManager, BundledTree, McKnownIds
 registry/     attributes, item tags, attachments + codecs, persisted cooldowns, Orb of Reconfiguration
 network/      payload records + registration (client-bound handlers reach client code only through ClientHandlers)
@@ -16,7 +17,7 @@ config/       ServerConfig (gameplay, synced), ClientConfig (presentation only)
 client/       ClientSkillState, ClientSetup (key mapping), screen/, render/, VisualQa + InWorldQa (dev harness)
 ```
 
-`graph` and `progression` contain no Minecraft classes; they are unit-tested directly (`./gradlew test`, 56 tests,
+`graph` and `progression` contain no Minecraft classes; they are unit-tested directly (`./gradlew test`, 64 tests,
 including validation of the full bundled 480-node dataset). The same classes run on the server (authoritative) and
 on the client (previews only), so the client shows exactly the rules the server enforces.
 
@@ -83,6 +84,7 @@ Clients send intents only (`network/Payloads.java`):
 | `buy_point` | request UUID, expected state revision |
 | `confirm_allocation` | request UUID, expected state revision, expected graph revision, ≤400 node ids (≤64 chars; worst case < 32 KiB) |
 | `request_reset` | request UUID, expected state revision, expected graph revision |
+| `request_refund` | request UUID, expected state revision, expected graph revision, one node id (≤64 chars) |
 
 | Server → client | Fields |
 |---|---|
@@ -102,6 +104,13 @@ applied before validation passes.
 - **Confirm batch:** `AllocationService` repeatedly accepts eligible nodes starting from the confirmed build, so a
   valid batch is accepted in any order; any leftover node rejects the whole batch with its reason. Each allocation
   records its actual price and acquisition order.
+- **Single-skill refund** (`RefundService`): the node plus the allocations that would stop being valid without it
+  (computed with `Reconciler.survivors`, the same replay used after a datapack change, so removal and reconciliation
+  can never disagree). Only the recorded paid costs are returned, and `PlayerSkillState.refund` drops the allocation
+  in the same step that credits the points, so a replayed request finds nothing to remove and credits nothing. The
+  starting root is refused (`root_needs_reset`): it is free and the whole build hangs from it. Disabled with
+  `allowNodeRefunds = false`; `orbRequiredForNodeRefund = true` consumes one orb, only if the refund succeeds.
+  The client previews the very same plan (shared code) and recomputes it from every authoritative state sync.
 - **Reset:** requires an Orb of Reconfiguration (unless disabled or creative); refunds the recorded costs, clears
   allocations and the starting root, keeps purchase counters (the XP curve never restarts), then consumes exactly one
   orb — all in the same server-thread step, so two concurrent requests cannot consume one orb twice or refund twice.
@@ -144,7 +153,9 @@ Offline players go through the same path on their next login, before effects are
   `potionDuration × (1 + bonus)` computed from the potion — refreshing never compounds.
 - **Mining:** `PlayerEvent.BreakSpeed` (both sides, synced attribute) for tools in `#nostalgiaskills:mining_tools`
   that are correct for the block. Tool wear is settled once per broken block at the end of the tick.
-- **Respec:** removing allocations and calling `refresh` removes every effect; cooldowns keep running.
+- **Respec and refunds:** removing allocations and calling `refresh` removes every effect of the removed nodes
+  (a single-skill refund rebuilds the whole modifier set, so nothing of the removed branch can linger); cooldowns
+  keep running.
 
 ## Client
 
