@@ -56,6 +56,8 @@ public final class MultiplayerQa {
     private static boolean started;
     private static int counter;
     private static long xpBefore;
+    private static String refundTarget;
+    private static double statBefore;
 
     private MultiplayerQa() {
     }
@@ -184,6 +186,19 @@ public final class MultiplayerQa {
                     && ClientSkillState.ready() && maxHealth() == 25.0;
         }, 2400));
         STEPS.add(note("report End return", () -> log("after End exit portal + credits (End return): " + summary())));
+        STEPS.add(new Step("refund the last learned skill", () -> {
+            counter = st().allocations().size();
+            statBefore = maxHealth();
+            refundTarget = st().orderedAllocations().get(counter - 1).nodeId();
+            UUID id = UUID.randomUUID();
+            ClientSkillState.markInFlight(id);
+            PacketDistributor.sendToServer(new Payloads.RequestRefund(id, st().stateRevision(),
+                    ClientSkillState.graphRevision(), refundTarget));
+            log("refund requested for " + refundTarget + " (paid " + st().allocations().get(refundTarget).paidCost()
+                    + "), max health " + statBefore);
+        }, () -> !st().isAllocated(refundTarget) && maxHealth() < statBefore, 1200));
+        STEPS.add(note("report refund", () -> log("after refunding one skill: allocations " + counter + " -> "
+                + st().allocations().size() + ", max health " + statBefore + " -> " + maxHealth() + "; " + summary())));
     }
 
     private static void beta() {
@@ -229,6 +244,45 @@ public final class MultiplayerQa {
         }));
         STEPS.add(new Step("effects", () -> { }, () -> projectile() > 0.0, 400));
         STEPS.add(note("report build", () -> log("after confirm: " + summary() + " (no guardian nodes expected: builds are per player)")));
+        STEPS.add(new Step("cool down", () -> { }, () -> ticks >= 60, 100));
+        STEPS.add(new Step("refund a mid-branch skill, replayed under latency", () -> {
+            RESULTS.clear();
+            ClientSkillState.setListeners(r -> RESULTS.add(r.ok() ? "ok" : r.messageKey()), () -> { });
+            counter = st().availablePoints();
+            statBefore = projectile();
+            refundTarget = st().orderedAllocations().get(2).nodeId();
+            long rev = st().stateRevision();
+            int graphRev = ClientSkillState.graphRevision();
+            UUID same = UUID.randomUUID();
+            for (int i = 0; i < 2; i++) {
+                PacketDistributor.sendToServer(new Payloads.RequestRefund(same, rev, graphRev, refundTarget));
+            }
+            for (int i = 0; i < 3; i++) {
+                PacketDistributor.sendToServer(new Payloads.RequestRefund(UUID.randomUUID(), rev, graphRev, refundTarget));
+            }
+            log("5 refund requests for " + refundTarget + " (2 share one id, all expect state revision " + rev + ")");
+        }, () -> RESULTS.size() >= 5, 1200));
+        STEPS.add(note("report refund", () -> {
+            Map<String, Integer> counts = new TreeMap<>();
+            RESULTS.forEach(r -> counts.merge(r, 1, Integer::sum));
+            log("refund replay results " + counts + "; available " + counter + " -> " + st().availablePoints()
+                    + ", projectile_damage " + statBefore + " -> " + projectile() + " (" + refundTarget
+                    + " and everything that depended on it removed); " + summary());
+            ClientSkillState.clearListeners();
+        }));
+        STEPS.add(new Step("cool down", () -> { }, () -> ticks >= 60, 100));
+        STEPS.add(new Step("learn the refunded branch again", () -> {
+            SkillGraphSnapshot g = ClientSkillState.graph().orElseThrow();
+            List<String> nodes = PathFinder.route(g, st(), List.of(), MARKSMAN_LAST)
+                    .filter(PathFinder.Route::valid).map(PathFinder.Route::newNodes).orElse(List.of());
+            UUID id = UUID.randomUUID();
+            ClientSkillState.markInFlight(id);
+            PacketDistributor.sendToServer(new Payloads.ConfirmAllocation(id, st().stateRevision(),
+                    ClientSkillState.graphRevision(), nodes));
+            log("learning the refunded branch again: " + nodes);
+        }, () -> st().isAllocated(MARKSMAN_LAST), 1200));
+        STEPS.add(note("report relearn", () -> log("after learning the refunded branch again at the current prices: "
+                + summary())));
     }
 
     private static void finish() {

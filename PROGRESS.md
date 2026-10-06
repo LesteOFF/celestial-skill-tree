@@ -162,6 +162,14 @@ Work branch: `claude/nostalgiaskills`. The Gradle project lives at the repositor
   3 -> 1 (free hub only) and +2 points (health 22), starting hub refused, ledger ok throughout.
 - Evidence: `docs/verification/{gametests_run5.log,ingame_scenario_run5.txt,client_visual_qa_run5.log}`,
   `docs/screenshots/refund_panel_1280x720.png` (+ all captures refreshed). VERIFICATION.md row 10b added.
+- Ran the two-client dedicated-server scenario again with a refund phase added to `client/MultiplayerQa.java`
+  (`tools/qa/multiplayer_scenario.sh build/mpqa5b`, passed on the first attempt, evidence in
+  `docs/verification/multiplayer_run5/`): Alpha refunds its last skill over the network (4 -> 3 allocations,
+  max health 25 -> 24, +1 point); Beta, behind the 150 ms each-way proxy, sends 5 refund requests for one node
+  (2 sharing a request id) -> exactly one applied (duplicate=1, stale=3), the chain removed Fletching II-IV
+  (5 -> 2 allocations, +3 points, projectile_damage 0.11 -> 0.05), then re-learns the branch at current prices;
+  after the server restart both states are intact and the offline `/reload` reconciliation still removes
+  Fletching III + IV and refunds 2 points once.
 - Harness fixes found by these runs (not mod bugs): the in-world scenario must start from a fresh
   `run/saves/nostalgiaskills_qa` (its own reload-test datapack otherwise survives into the next run), and it now
   takes a route only when `PathFinder` marks it valid. One `runClient` attempt hung in the integrated server's
@@ -172,9 +180,9 @@ Work branch: `claude/nostalgiaskills`. The Gradle project lives at the repositor
 1. Everything this environment can execute has run again at this commit (build, 64 unit tests, validateTree,
    7 GameTests, full client QA incl. the new refund flow). What remains cannot run here: FPS/frame-time on real GPU
    hardware and a human playtest/visual review. Keep STATUS: IN PROGRESS for those.
-2. Optional work for a future run: exercise the single-skill refund in the two-client dedicated-server harness
-   (`tools/qa/multiplayer_scenario.sh`, ~8 min; `client/MultiplayerQa.java` would need a refund phase), and any
-   polish a human review asks for. Re-run `./gradlew build` and `tools/qa/multiplayer_scenario.sh` after changes.
+2. Optional work for a future run: only polish a human review asks for; every automated check this environment
+   supports now covers the refund flow as well. Re-run `./gradlew build` and `tools/qa/multiplayer_scenario.sh`
+   after any change.
 
 ## Known failures
 
@@ -190,7 +198,9 @@ Work branch: `claude/nostalgiaskills`. The Gradle project lives at the repositor
   live reload cascading invalidation + exact refund (all in the real client under Xvfb).
 - Run 4: `./gradlew build` (pass, 56/56), `./gradlew validateTree` (VALID).
 - Run 5: `./gradlew build` (pass, 64/64), `validateTree` (VALID), `runGameTestServer` (7/7),
-  `runClient -Pvisualqa` under Xvfb (24 screenshots + in-world scenario incl. single-skill refunds).
+  `runClient -Pvisualqa` under Xvfb (24 screenshots + in-world scenario incl. single-skill refunds),
+  `tools/qa/multiplayer_scenario.sh` (dedicated server + two real clients, refunds incl. latency replay, restart,
+  offline reconcile).
 - Run 4 (later): dedicated server + two real clients scenario (`tools/qa/multiplayer_scenario.sh build/mpqa`):
   independence, latency + rapid requests, logout/login, End return, dedicated-server restart, offline-player
   reconciliation after a live reload — all passed.

@@ -1,0 +1,16 @@
+		Nostalgia Skills 0.1.0 (nostalgiaskills)
+[14:45:22] [main/INFO] [de.no.sk.NostalgiaSkills/]: Skill tree loaded: 480 nodes, revision 1
+[14:45:23] [Server thread/INFO] [minecraft/DedicatedServer]: Starting minecraft server version 1.21.1
+[14:45:23] [Server thread/INFO] [minecraft/DedicatedServer]: Starting Minecraft server on *:25565
+[14:45:24] [Server thread/INFO] [minecraft/DedicatedServer]: Done (0.910s)! For help, type "help"
+[14:45:48] [Server thread/INFO] [minecraft/PlayerList]: Alpha[/127.0.0.1:39318] logged in with entity id 1 at (10.5, -60.0, -3.5)
+[14:46:28] [Server thread/INFO] [minecraft/PlayerList]: Beta[/127.0.0.1:33826] logged in with entity id 52 at (-6.5, -60.0, 4.5)
+[14:46:29] [Server thread/INFO] [minecraft/ServerGamePacketListenerImpl]: Alpha lost connection: Disconnected
+[14:46:29] [Server thread/INFO] [minecraft/MinecraftServer]: Alpha left the game
+[14:46:30] [Server thread/INFO] [minecraft/PlayerList]: Alpha[/127.0.0.1:57766] logged in with entity id 53 at (10.5, -60.0, -3.5)
+[14:46:35] [Server thread/INFO] [minecraft/ServerGamePacketListenerImpl]: Alpha lost connection: Disconnected
+[14:46:35] [Server thread/INFO] [minecraft/MinecraftServer]: Alpha left the game
+[14:46:48] [Server thread/INFO] [minecraft/ServerGamePacketListenerImpl]: Beta lost connection: Disconnected
+[14:46:48] [Server thread/INFO] [minecraft/MinecraftServer]: Beta left the game
+[14:46:49] [Server thread/INFO] [minecraft/MinecraftServer]: Stopping the server
+[14:46:49] [Server thread/INFO] [minecraft/MinecraftServer]: Stopping server
