@@ -1,0 +1,47 @@
+[09:10:35] [main/INFO] [ne.ne.ne.ga.GameTestHooks/]: Enabled Gametest Namespaces: [nostalgiaskills]
+[09:10:36] [main/INFO] [de.no.sk.NostalgiaSkills/]: Skill tree loaded: 480 nodes, revision 1
+[09:10:37] [Server thread/INFO] [minecraft/GameTestServer]: Started game test server
+[09:10:37] [Server thread/INFO] [minecraft/GameTestServer]: 6 tests are now running at position -6132279, -59, -6007237!
+[09:10:37] [Server thread/INFO] [minecraft/GameTestRunner]: Running test batch 'defaultBatch:0' (6 tests)...
+[09:10:38] [Server thread/INFO] [minecraft/GameTestServer]: [      ]
+[09:10:38] [Server thread/INFO] [minecraft/PlayerList]: test-mock-player[embedded] logged in with entity id 1 at (8.5, -60.0, -6.5)
+[09:10:38] [Server thread/INFO] [minecraft/MinecraftServer]: test-mock-player joined the game
+[09:10:38] [Server thread/INFO] [minecraft/PlayerList]: test-mock-player[embedded] logged in with entity id 2 at (-8.5, -60.0, -5.5)
+[09:10:38] [Server thread/INFO] [minecraft/MinecraftServer]: test-mock-player joined the game
+[09:10:38] [Server thread/INFO] [minecraft/PlayerList]: test-mock-player[embedded] logged in with entity id 3 at (-3.5, -60.0, -7.5)
+[09:10:38] [Server thread/INFO] [minecraft/MinecraftServer]: test-mock-player joined the game
+[09:10:38] [Server thread/INFO] [minecraft/PlayerList]: test-mock-player[embedded] logged in with entity id 4 at (-5.5, -60.0, -5.5)
+[09:10:38] [Server thread/INFO] [minecraft/MinecraftServer]: test-mock-player joined the game
+[09:10:38] [Server thread/INFO] [minecraft/PlayerList]: test-mock-player[embedded] logged in with entity id 5 at (-0.5, -60.0, -5.5)
+[09:10:38] [Server thread/INFO] [minecraft/MinecraftServer]: test-mock-player joined the game
+[09:10:38] [Server thread/INFO] [minecraft/PlayerList]: test-mock-player[embedded] logged in with entity id 6 at (1.5, -60.0, -3.5)
+[09:10:38] [Server thread/INFO] [minecraft/MinecraftServer]: test-mock-player joined the game
+[09:10:38] [Server thread/INFO] [minecraft/PlayerList]: test-mock-player[embedded] logged in with entity id 7 at (-7.5, -60.0, -0.5)
+[09:10:38] [Server thread/INFO] [minecraft/MinecraftServer]: test-mock-player joined the game
+[09:10:38] [Server thread/INFO] [minecraft/PlayerList]: test-mock-player[embedded] logged in with entity id 8 at (-3.5, -60.0, 1.5)
+[09:10:38] [Server thread/INFO] [minecraft/MinecraftServer]: test-mock-player joined the game
+[09:10:38] [Server thread/INFO] [minecraft/PlayerList]: test-mock-player[embedded] logged in with entity id 9 at (4.5, -60.0, 3.5)
+[09:10:38] [Server thread/INFO] [minecraft/MinecraftServer]: test-mock-player joined the game
+[09:10:38] [Server thread/INFO] [minecraft/PlayerList]: test-mock-player[embedded] logged in with entity id 12 at (4.5, -60.0, 0.5)
+[09:10:38] [Server thread/INFO] [minecraft/MinecraftServer]: test-mock-player joined the game
+[09:10:38] [Server thread/INFO] [minecraft/PlayerList]: test-mock-player[embedded] logged in with entity id 13 at (9.5, -60.0, 3.5)
+[09:10:38] [Server thread/INFO] [minecraft/MinecraftServer]: test-mock-player joined the game
+[09:10:38] [Server thread/INFO] [minecraft/PlayerList]: test-mock-player[embedded] logged in with entity id 14 at (-9.5, -60.0, -6.5)
+[09:10:38] [Server thread/INFO] [minecraft/MinecraftServer]: test-mock-player joined the game
+[09:10:38] [Server thread/INFO] [minecraft/GameTestServer]: [++++++]
+[09:10:38] [Server thread/INFO] [minecraft/GameTestServer]: ========= 6 GAME TESTS COMPLETE IN 1.240 s ======================
+[09:10:38] [Server thread/INFO] [minecraft/GameTestServer]: All 6 required tests passed :)
+[09:10:38] [Server thread/INFO] [minecraft/GameTestServer]: ====================================================
+[09:10:39] [Server thread/INFO] [minecraft/ServerGamePacketListenerImpl]: test-mock-player lost connection: Server closed
+[09:10:39] [Server thread/INFO] [minecraft/MinecraftServer]: test-mock-player left the game
+[09:10:39] [Server thread/INFO] [minecraft/ServerGamePacketListenerImpl]: test-mock-player lost connection: Server closed
+[09:10:39] [Server thread/INFO] [minecraft/MinecraftServer]: test-mock-player left the game
+[09:10:39] [Server thread/INFO] [minecraft/ServerGamePacketListenerImpl]: test-mock-player lost connection: Server closed
+[09:10:39] [Server thread/INFO] [minecraft/MinecraftServer]: test-mock-player left the game
+[09:10:39] [Server thread/INFO] [minecraft/ServerGamePacketListenerImpl]: test-mock-player lost connection: Server closed
+[09:10:39] [Server thread/INFO] [minecraft/MinecraftServer]: test-mock-player left the game
+[09:10:39] [Server thread/INFO] [minecraft/ServerGamePacketListenerImpl]: test-mock-player lost connection: Server closed
+[09:10:39] [Server thread/INFO] [minecraft/MinecraftServer]: test-mock-player left the game
+[09:10:39] [Server thread/INFO] [minecraft/ServerGamePacketListenerImpl]: test-mock-player lost connection: Server closed
+[09:10:39] [Server thread/INFO] [minecraft/MinecraftServer]: test-mock-player left the game
+[09:10:40] [Server thread/INFO] [minecraft/GameTestServer]: Game test server shutting down

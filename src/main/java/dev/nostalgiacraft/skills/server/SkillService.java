@@ -57,9 +57,16 @@ public final class SkillService {
                 ServerConfig.ORB_REQUIRED_FOR_RESET.get());
     }
 
+    /** Sends only when the client negotiated the channel (mock/test players and foreign clients are skipped). */
+    static void send(ServerPlayer p, net.minecraft.network.protocol.common.custom.CustomPacketPayload payload) {
+        if (p.connection != null && p.connection.hasChannel(payload)) {
+            PacketDistributor.sendToPlayer(p, payload);
+        }
+    }
+
     public static void sendState(ServerPlayer p) {
         PlayerSkillState s = ModAttachments.state(p);
-        PacketDistributor.sendToPlayer(p, new Payloads.StateSync(SkillTreeManager.revision(), s.copy(), economy(s)));
+        send(p, new Payloads.StateSync(SkillTreeManager.revision(), s.copy(), economy(s)));
     }
 
     public static synchronized void sendGraph(ServerPlayer p) {
@@ -71,7 +78,7 @@ public final class SkillService {
             encodedGraph = GraphCodec.encode(g.get());
             encodedFingerprint = g.get().fingerprint();
         }
-        PacketDistributor.sendToPlayer(p, new Payloads.GraphSync(SkillTreeManager.revision(), encodedGraph));
+        send(p, new Payloads.GraphSync(SkillTreeManager.revision(), encodedGraph));
     }
 
     /** Login, respawn, reload: reconcile the saved build against the active graph, then rebuild effects. */
@@ -107,12 +114,12 @@ public final class SkillService {
     // ------------------------------------------------------------------ intents
 
     private static void reply(ServerPlayer p, UUID req, RejectReason reason, String detail) {
-        PacketDistributor.sendToPlayer(p, new Payloads.TransactionResult(req, false, reason.translationKey(), detail));
+        send(p, new Payloads.TransactionResult(req, false, reason.translationKey(), detail));
         sendState(p);
     }
 
     private static void ok(ServerPlayer p, UUID req, String key, String detail) {
-        PacketDistributor.sendToPlayer(p, new Payloads.TransactionResult(req, true, key, detail));
+        send(p, new Payloads.TransactionResult(req, true, key, detail));
         sendState(p);
     }
 
