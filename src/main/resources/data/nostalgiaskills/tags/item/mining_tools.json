@@ -1,3 +1,25 @@
 {
-  "values": ["#minecraft:pickaxes", "#minecraft:shovels", "#minecraft:axes", "#minecraft:hoes", "minecraft:shears"]
+  "values": [
+    "#minecraft:pickaxes",
+    "#minecraft:shovels",
+    "#minecraft:axes",
+    "#minecraft:hoes",
+    "minecraft:shears",
+    {
+      "id": "#miapi:pickaxes",
+      "required": false
+    },
+    {
+      "id": "#miapi:shovels",
+      "required": false
+    },
+    {
+      "id": "#miapi:axes",
+      "required": false
+    },
+    {
+      "id": "#miapi:hoes",
+      "required": false
+    }
+  ]
 }

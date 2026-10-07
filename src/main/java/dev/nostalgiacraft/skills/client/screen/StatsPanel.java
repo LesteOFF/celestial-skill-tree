@@ -1,6 +1,7 @@
 package dev.nostalgiacraft.skills.client.screen;
 
 import dev.nostalgiacraft.skills.NostalgiaSkills;
+import dev.nostalgiacraft.skills.effects.AttributeAliases;
 import dev.nostalgiacraft.skills.effects.CompiledBuild;
 import dev.nostalgiacraft.skills.effects.EffectEngine;
 import dev.nostalgiacraft.skills.graph.NodeType;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 public final class StatsPanel {
@@ -184,16 +186,16 @@ public final class StatsPanel {
             ResourceLocation modifierId = EffectEngine.modifierId("tree", sumKey);
             double total = EffectEngine.capped(attribute, operation, appliedAmount(player, attribute, modifierId) + pendingSum);
             replacements.computeIfAbsent(attribute, key -> new ArrayList<>())
-                    .add(new AttributeModifier(modifierId, total, EffectEngine.op(operation)));
+                    .add(new AttributeModifier(modifierId, total, EffectEngine.operationFor(attribute, operation)));
         });
         List<MutableComponent> lines = new ArrayList<>();
-        replacements.forEach((attribute, modifiers) -> BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.parse(attribute))
+        replacements.forEach((attribute, modifiers) -> holder(attribute)
                 .map(player::getAttribute).ifPresent(instance -> lines.add(beforeAfter(instance, modifiers, attribute.startsWith(MOD_PREFIX)))));
         return lines;
     }
 
     private static double appliedAmount(Player player, String attribute, ResourceLocation modifierId) {
-        return BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.parse(attribute)).map(player::getAttribute)
+        return holder(attribute).map(player::getAttribute)
                 .map(instance -> instance.getModifier(modifierId)).map(AttributeModifier::amount).orElse(0.0);
     }
 
@@ -204,7 +206,27 @@ public final class StatsPanel {
     }
 
     private static double value(Player player, Holder<Attribute> attribute) {
-        return player.getAttributes().hasAttribute(attribute) ? player.getAttributeValue(attribute) : 0;
+        return AttributeAliases.active(attribute.getRegisteredName())
+                .map(alias -> aliasedValue(player, alias))
+                .orElseGet(() -> rawValue(player, Optional.of(attribute)));
+    }
+
+    private static double aliasedValue(Player player, AttributeAliases.Alias alias) {
+        Optional<Holder.Reference<Attribute>> target = holder(alias.target());
+        if (!alias.scalesAnotherValue()) {
+            return rawValue(player, target) - alias.baseOffset();
+        }
+        return target.map(player::getAttribute).map(instance -> instance.getModifiers().stream()
+                .filter(modifier -> modifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
+                .mapToDouble(AttributeModifier::amount).sum()).orElse(0.0);
+    }
+
+    private static double rawValue(Player player, Optional<? extends Holder<Attribute>> attribute) {
+        return attribute.filter(player.getAttributes()::hasAttribute).map(player::getAttributeValue).orElse(0.0);
+    }
+
+    private static Optional<Holder.Reference<Attribute>> holder(String attribute) {
+        return BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.parse(AttributeAliases.resolve(attribute)));
     }
 
     private static String number(double value) {

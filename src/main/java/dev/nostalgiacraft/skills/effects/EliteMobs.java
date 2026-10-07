@@ -16,6 +16,8 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.TickTask;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobSpawnType;
@@ -34,6 +36,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Predicate;
 
 @EventBusSubscriber(modid = NostalgiaSkills.MODID)
 public final class EliteMobs {
@@ -48,8 +52,19 @@ public final class EliteMobs {
     private static final Set<MobSpawnType> WILD_SPAWNS = EnumSet.of(MobSpawnType.NATURAL, MobSpawnType.CHUNK_GENERATION,
             MobSpawnType.STRUCTURE, MobSpawnType.PATROL, MobSpawnType.EVENT, MobSpawnType.REINFORCEMENT,
             MobSpawnType.JOCKEY);
+    private static final Set<MobSpawnType> SPAWNER_SPAWNS = EnumSet.of(MobSpawnType.SPAWNER, MobSpawnType.TRIAL_SPAWNER);
+
+    private static final List<Predicate<Monster>> RIVAL_CLAIMS = new CopyOnWriteArrayList<>();
+
+    public enum Stacking {
+        EXCLUSIVE, STACK
+    }
 
     private EliteMobs() {
+    }
+
+    public static void registerRival(Predicate<Monster> hasClaimed) {
+        RIVAL_CLAIMS.add(hasClaimed);
     }
 
     @SubscribeEvent
@@ -59,13 +74,31 @@ public final class EliteMobs {
             return;
         }
         Monster monster = (Monster) event.getEntity();
-        if (!WILD_SPAWNS.contains(monster.getSpawnType()) || monster.getType().is(ModTags.NEVER_CONSTELLATED)) {
+        if (!mayBeConstellated(monster.getSpawnType()) || monster.getType().is(ModTags.NEVER_CONSTELLATED)) {
             return;
         }
         monster.getPersistentData().putBoolean(ROLLED_KEY, true);
-        if (monster.getRandom().nextDouble() < ServerConfig.ELITE_MOB_CHANCE.get()) {
+        if (monster.getRandom().nextDouble() >= ServerConfig.ELITE_MOB_CHANCE.get()) {
+            return;
+        }
+        MinecraftServer server = monster.getServer();
+        boolean rivalsDecideFirst = !RIVAL_CLAIMS.isEmpty() && ServerConfig.ELITE_STACKING.get() == Stacking.EXCLUSIVE;
+        if (rivalsDecideFirst && server != null) {
+            server.tell(new TickTask(server.getTickCount(), () -> empowerUnlessClaimed(monster)));
+        } else {
             empower(monster, monster.getRandom(), ServerConfig.ELITE_MOB_NODES.get());
         }
+    }
+
+    private static void empowerUnlessClaimed(Monster monster) {
+        boolean claimed = RIVAL_CLAIMS.stream().anyMatch(hasClaimed -> hasClaimed.test(monster));
+        if (monster.isAlive() && !claimed) {
+            empower(monster, monster.getRandom(), ServerConfig.ELITE_MOB_NODES.get());
+        }
+    }
+
+    private static boolean mayBeConstellated(MobSpawnType spawnType) {
+        return WILD_SPAWNS.contains(spawnType) || (SPAWNER_SPAWNS.contains(spawnType) && ServerConfig.ELITE_SPAWNER_MOBS.get());
     }
 
     @SubscribeEvent

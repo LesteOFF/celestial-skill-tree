@@ -1,3 +1,9 @@
 {
-  "values": ["minecraft:crossbow"]
+  "values": [
+    "minecraft:crossbow",
+    {
+      "id": "#miapi:crossbows",
+      "required": false
+    }
+  ]
 }

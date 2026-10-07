@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:compat/ars_nouveau/warding",
+  "requires_mod": "ars_nouveau",
+  "tree": "nostalgiaskills:main",
+  "sector": "arcanist",
+  "type": "minor",
+  "position": {
+    "x": 2230,
+    "y": -240
+  },
+  "name": "skill.nostalgiaskills.compat.ars_nouveau.warding.name",
+  "description": "skill.nostalgiaskills.compat.ars_nouveau.warding.description",
+  "icon": "nostalgiaskills:textures/skill_icons/magic.png",
+  "frame": "bronze_circle",
+  "cost": 1,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "ars_nouveau:ars_nouveau.perk.warding",
+      "operation": "add_value",
+      "amount": 1
+    }
+  ],
+  "tags": [
+    "magic",
+    "arcanist",
+    "compat"
+  ],
+  "cluster": "compat:ars_nouveau"
+}

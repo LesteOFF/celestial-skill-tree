@@ -1,0 +1,52 @@
+{
+  "values": [
+    {
+      "id": "#scguns:antique_gun_tier",
+      "required": false
+    },
+    {
+      "id": "#scguns:copper_gun_tier",
+      "required": false
+    },
+    {
+      "id": "#scguns:iron_gun_tier",
+      "required": false
+    },
+    {
+      "id": "#scguns:treated_brass_gun_tier",
+      "required": false
+    },
+    {
+      "id": "#scguns:diamond_steel_gun_tier",
+      "required": false
+    },
+    {
+      "id": "#scguns:frontier_gun_tier",
+      "required": false
+    },
+    {
+      "id": "#scguns:scorched_gun_tier",
+      "required": false
+    },
+    {
+      "id": "#scguns:piglin_gun_tier",
+      "required": false
+    },
+    {
+      "id": "#scguns:ocean_gun_tier",
+      "required": false
+    },
+    {
+      "id": "#scguns:deep_dark_gun_tier",
+      "required": false
+    },
+    {
+      "id": "#scguns:end_gun_tier",
+      "required": false
+    },
+    {
+      "id": "#scguns:wrecker_gun_tier",
+      "required": false
+    }
+  ]
+}

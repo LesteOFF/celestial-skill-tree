@@ -1,3 +1,23 @@
 {
-  "values": ["#minecraft:axes", "minecraft:mace", "minecraft:trident"]
+  "values": [
+    "#minecraft:axes",
+    "minecraft:mace",
+    "minecraft:trident",
+    {
+      "id": "#malum:scythe",
+      "required": false
+    },
+    {
+      "id": "miapi:modular_greatsword",
+      "required": false
+    },
+    {
+      "id": "miapi:modular_scythe",
+      "required": false
+    },
+    {
+      "id": "miapi:modular_naginata",
+      "required": false
+    }
+  ]
 }

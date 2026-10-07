@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:compat/apothic_attributes/draw_speed",
+  "requires_mod": "apothic_attributes",
+  "tree": "nostalgiaskills:main",
+  "sector": "berserker",
+  "type": "minor",
+  "position": {
+    "x": -2141.2,
+    "y": -1291.4
+  },
+  "name": "skill.nostalgiaskills.compat.apothic_attributes.draw_speed.name",
+  "description": "skill.nostalgiaskills.compat.apothic_attributes.draw_speed.description",
+  "icon": "nostalgiaskills:textures/skill_icons/bow.png",
+  "frame": "bronze_circle",
+  "cost": 1,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "apothic_attributes:draw_speed",
+      "operation": "add_value",
+      "amount": 0.1
+    }
+  ],
+  "tags": [
+    "bow",
+    "berserker",
+    "compat"
+  ],
+  "cluster": "compat:apothic_attributes"
+}

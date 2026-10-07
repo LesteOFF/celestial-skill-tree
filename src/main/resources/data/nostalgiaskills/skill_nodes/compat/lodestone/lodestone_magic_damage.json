@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:compat/lodestone/lodestone_magic_damage",
+  "requires_mod": "lodestone",
+  "tree": "nostalgiaskills:main",
+  "sector": "arcanist",
+  "type": "minor",
+  "position": {
+    "x": 1830,
+    "y": 800
+  },
+  "name": "skill.nostalgiaskills.compat.lodestone.lodestone_magic_damage.name",
+  "description": "skill.nostalgiaskills.compat.lodestone.lodestone_magic_damage.description",
+  "icon": "nostalgiaskills:textures/skill_icons/magic.png",
+  "frame": "bronze_circle",
+  "cost": 1,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "lodestone:magic_damage",
+      "operation": "add_value",
+      "amount": 1
+    }
+  ],
+  "tags": [
+    "magic",
+    "arcanist",
+    "compat"
+  ],
+  "cluster": "compat:lodestone"
+}

@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "requires_mod": "malum",
+  "tree": "nostalgiaskills:main",
+  "connections": [
+    {
+      "id": "nostalgiaskills:edge/arcanist.arcane_ward--compat.malum.soul_ward_capacity",
+      "a": "nostalgiaskills:compat/malum/soul_ward_capacity",
+      "b": "nostalgiaskills:arcanist/arcane_ward",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.malum.scythe_proficiency--compat.malum.soul_ward_capacity",
+      "a": "nostalgiaskills:compat/malum/scythe_proficiency",
+      "b": "nostalgiaskills:compat/malum/soul_ward_capacity",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.malum.arcane_resonance--compat.malum.scythe_proficiency",
+      "a": "nostalgiaskills:compat/malum/arcane_resonance",
+      "b": "nostalgiaskills:compat/malum/scythe_proficiency",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.malum.arcane_resonance--compat.malum.spirit_spoils",
+      "a": "nostalgiaskills:compat/malum/spirit_spoils",
+      "b": "nostalgiaskills:compat/malum/arcane_resonance",
+      "directed": false,
+      "style": "path",
+      "points": []
+    }
+  ]
+}

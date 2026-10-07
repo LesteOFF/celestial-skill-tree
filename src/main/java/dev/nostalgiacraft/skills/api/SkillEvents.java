@@ -4,6 +4,7 @@ import dev.nostalgiacraft.skills.progression.SkyEvent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Monster;
 import net.neoforged.bus.api.Event;
@@ -133,6 +134,25 @@ public final class SkillEvents {
 
         public ItemEntity getFragment() {
             return fragment;
+        }
+    }
+
+    public static final class TreeCriticalHit extends OfPlayer {
+        private final LivingEntity victim;
+        private final float multiplier;
+
+        public TreeCriticalHit(ServerPlayer player, LivingEntity victim, float multiplier) {
+            super(player);
+            this.victim = victim;
+            this.multiplier = multiplier;
+        }
+
+        public LivingEntity getVictim() {
+            return victim;
+        }
+
+        public float getMultiplier() {
+            return multiplier;
         }
     }
 

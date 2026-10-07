@@ -1,3 +1,9 @@
 {
-  "values": ["minecraft:bow"]
+  "values": [
+    "minecraft:bow",
+    {
+      "id": "#miapi:bows",
+      "required": false
+    }
+  ]
 }

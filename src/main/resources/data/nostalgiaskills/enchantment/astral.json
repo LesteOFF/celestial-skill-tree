@@ -1,0 +1,44 @@
+{
+  "description": {
+    "translate": "enchantment.nostalgiaskills.astral"
+  },
+  "supported_items": "#minecraft:enchantable/weapon",
+  "weight": 2,
+  "max_level": 3,
+  "min_cost": {
+    "base": 15,
+    "per_level_above_first": 9
+  },
+  "max_cost": {
+    "base": 65,
+    "per_level_above_first": 9
+  },
+  "anvil_cost": 4,
+  "slots": [
+    "mainhand"
+  ],
+  "effects": {
+    "minecraft:attributes": [
+      {
+        "id": "nostalgiaskills:enchantment.astral.crit_chance",
+        "attribute": "nostalgiaskills:crit_chance",
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 0.02,
+          "per_level_above_first": 0.02
+        },
+        "operation": "add_value"
+      },
+      {
+        "id": "nostalgiaskills:enchantment.astral.potion_duration",
+        "attribute": "nostalgiaskills:potion_duration",
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 0.05,
+          "per_level_above_first": 0.05
+        },
+        "operation": "add_value"
+      }
+    ]
+  }
+}

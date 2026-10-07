@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:compat/apothic_attributes/overheal",
+  "requires_mod": "apothic_attributes",
+  "tree": "nostalgiaskills:main",
+  "sector": "berserker",
+  "type": "minor",
+  "position": {
+    "x": -1878.3,
+    "y": -1146.8
+  },
+  "name": "skill.nostalgiaskills.compat.apothic_attributes.overheal.name",
+  "description": "skill.nostalgiaskills.compat.apothic_attributes.overheal.description",
+  "icon": "nostalgiaskills:textures/skill_icons/healing.png",
+  "frame": "bronze_circle",
+  "cost": 1,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "apothic_attributes:overheal",
+      "operation": "add_value",
+      "amount": 0.1
+    }
+  ],
+  "tags": [
+    "healing",
+    "berserker",
+    "compat"
+  ],
+  "cluster": "compat:apothic_attributes"
+}

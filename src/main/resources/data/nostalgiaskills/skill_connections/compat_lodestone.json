@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "requires_mod": "lodestone",
+  "tree": "nostalgiaskills:main",
+  "connections": [
+    {
+      "id": "nostalgiaskills:edge/arcanist.arcane_ward--compat.lodestone.lodestone_magic_damage",
+      "a": "nostalgiaskills:compat/lodestone/lodestone_magic_damage",
+      "b": "nostalgiaskills:arcanist/arcane_ward",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.lodestone.lodestone_magic_damage--compat.lodestone.lodestone_magic_proficiency",
+      "a": "nostalgiaskills:compat/lodestone/lodestone_magic_proficiency",
+      "b": "nostalgiaskills:compat/lodestone/lodestone_magic_damage",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.lodestone.lodestone_magic_proficiency--compat.lodestone.lodestone_magic_resistance",
+      "a": "nostalgiaskills:compat/lodestone/lodestone_magic_resistance",
+      "b": "nostalgiaskills:compat/lodestone/lodestone_magic_proficiency",
+      "directed": false,
+      "style": "path",
+      "points": []
+    }
+  ]
+}

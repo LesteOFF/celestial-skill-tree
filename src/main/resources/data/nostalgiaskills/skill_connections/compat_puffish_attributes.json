@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "requires_mod": "puffish_attributes",
+  "tree": "nostalgiaskills:main",
+  "connections": [
+    {
+      "id": "nostalgiaskills:edge/artificer.master_excavator--compat.puffish_attributes.stamina",
+      "a": "nostalgiaskills:compat/puffish_attributes/stamina",
+      "b": "nostalgiaskills:artificer/master_excavator",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.puffish_attributes.fortune--compat.puffish_attributes.repair_cost",
+      "a": "nostalgiaskills:compat/puffish_attributes/fortune",
+      "b": "nostalgiaskills:compat/puffish_attributes/repair_cost",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.puffish_attributes.magic_damage--compat.puffish_attributes.melee_resistance",
+      "a": "nostalgiaskills:compat/puffish_attributes/melee_resistance",
+      "b": "nostalgiaskills:compat/puffish_attributes/magic_damage",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.puffish_attributes.magic_damage--compat.puffish_attributes.ranged_damage",
+      "a": "nostalgiaskills:compat/puffish_attributes/magic_damage",
+      "b": "nostalgiaskills:compat/puffish_attributes/ranged_damage",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.puffish_attributes.magic_resistance--compat.puffish_attributes.stamina",
+      "a": "nostalgiaskills:compat/puffish_attributes/magic_resistance",
+      "b": "nostalgiaskills:compat/puffish_attributes/stamina",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.puffish_attributes.magic_resistance--compat.puffish_attributes.tamed_damage",
+      "a": "nostalgiaskills:compat/puffish_attributes/tamed_damage",
+      "b": "nostalgiaskills:compat/puffish_attributes/magic_resistance",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.puffish_attributes.melee_damage--compat.puffish_attributes.ranged_damage",
+      "a": "nostalgiaskills:compat/puffish_attributes/ranged_damage",
+      "b": "nostalgiaskills:compat/puffish_attributes/melee_damage",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.puffish_attributes.melee_damage--compat.puffish_attributes.sprinting_speed",
+      "a": "nostalgiaskills:compat/puffish_attributes/melee_damage",
+      "b": "nostalgiaskills:compat/puffish_attributes/sprinting_speed",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.puffish_attributes.melee_resistance--compat.puffish_attributes.ranged_resistance",
+      "a": "nostalgiaskills:compat/puffish_attributes/ranged_resistance",
+      "b": "nostalgiaskills:compat/puffish_attributes/melee_resistance",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.puffish_attributes.repair_cost--compat.puffish_attributes.tamed_resistance",
+      "a": "nostalgiaskills:compat/puffish_attributes/repair_cost",
+      "b": "nostalgiaskills:compat/puffish_attributes/tamed_resistance",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.puffish_attributes.sprinting_speed--compat.puffish_attributes.stamina",
+      "a": "nostalgiaskills:compat/puffish_attributes/sprinting_speed",
+      "b": "nostalgiaskills:compat/puffish_attributes/stamina",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.puffish_attributes.tamed_damage--compat.puffish_attributes.tamed_resistance",
+      "a": "nostalgiaskills:compat/puffish_attributes/tamed_resistance",
+      "b": "nostalgiaskills:compat/puffish_attributes/tamed_damage",
+      "directed": false,
+      "style": "path",
+      "points": []
+    }
+  ]
+}

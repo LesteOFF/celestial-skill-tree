@@ -5,6 +5,7 @@ import dev.nostalgiacraft.skills.config.ServerConfig;
 import dev.nostalgiacraft.skills.data.SkillTreeManager;
 import dev.nostalgiacraft.skills.data.WorldSkillData;
 import dev.nostalgiacraft.skills.graph.Condition;
+import dev.nostalgiacraft.skills.graph.Ids;
 import dev.nostalgiacraft.skills.graph.SkillEffect;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
@@ -31,6 +32,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 
 public final class EffectEngine {
@@ -44,6 +47,27 @@ public final class EffectEngine {
             "nostalgiaskills:lifesteal", ServerConfig.CAP_LIFESTEAL,
             "nostalgiaskills:damage_reduction", ServerConfig.CAP_DAMAGE_REDUCTION,
             "nostalgiaskills:magic_resistance", ServerConfig.CAP_MAGIC_RESISTANCE);
+
+    private static final Map<String, AttributeTarget> ATTRIBUTE_TARGETS = new ConcurrentHashMap<>();
+    private static final Map<String, BiPredicate<Player, Condition>> EXTRA_CONDITIONS = new ConcurrentHashMap<>();
+
+    public interface AttributeTarget {
+        void apply(ServerPlayer player, String attribute, AttributeModifier modifier);
+
+        void clear(ServerPlayer player);
+    }
+
+    public static void registerAttributeTarget(String namespace, AttributeTarget target) {
+        ATTRIBUTE_TARGETS.put(namespace, target);
+    }
+
+    public static boolean hasAttributeTarget(String attribute) {
+        return ATTRIBUTE_TARGETS.containsKey(Ids.namespace(attribute));
+    }
+
+    public static void registerCondition(String type, BiPredicate<Player, Condition> test) {
+        EXTRA_CONDITIONS.put(type, test);
+    }
 
     public record DamageContext(LivingEntity target, double shotDistance) {
         boolean hasShot() {
@@ -91,8 +115,14 @@ public final class EffectEngine {
         if (amount == 0) {
             return;
         }
-        instance(player, attributeAndOperation[0]).ifPresent(instance -> instance.addTransientModifier(
-                new AttributeModifier(modifierId(TREE_KIND, sumKey), amount, op(attributeAndOperation[1]))));
+        AttributeModifier modifier = new AttributeModifier(modifierId(TREE_KIND, sumKey), amount,
+                operationFor(attributeAndOperation[0], attributeAndOperation[1]));
+        AttributeTarget target = ATTRIBUTE_TARGETS.get(Ids.namespace(attributeAndOperation[0]));
+        if (target != null) {
+            target.apply(player, attributeAndOperation[0], modifier);
+            return;
+        }
+        instance(player, attributeAndOperation[0]).ifPresent(instance -> instance.addTransientModifier(modifier));
     }
 
     public static double capped(String attribute, String operation, double amount) {
@@ -124,7 +154,8 @@ public final class EffectEngine {
         ResourceLocation id = modifierId(CONDITIONAL_KIND, keyed.key());
         if (enable) {
             SkillEffect.ConditionalAttribute effect = keyed.effect();
-            instance.addOrUpdateTransientModifier(new AttributeModifier(id, effect.amount(), op(effect.operation())));
+            instance.addOrUpdateTransientModifier(new AttributeModifier(id, effect.amount(),
+                    operationFor(effect.attribute(), effect.operation())));
             active.add(keyed.key());
         } else {
             instance.removeModifier(id);
@@ -139,6 +170,7 @@ public final class EffectEngine {
     }
 
     private static void removeOwnedModifiers(ServerPlayer player) {
+        ATTRIBUTE_TARGETS.values().forEach(target -> target.clear(player));
         for (Holder<Attribute> attribute : BuiltInRegistries.ATTRIBUTE.holders().toList()) {
             AttributeInstance instance = player.getAttribute(attribute);
             if (instance == null) {
@@ -158,7 +190,12 @@ public final class EffectEngine {
     }
 
     private static Optional<AttributeInstance> instance(ServerPlayer player, String attributeId) {
-        return BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.parse(attributeId)).map(player::getAttribute);
+        return BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.parse(AttributeAliases.resolve(attributeId)))
+                .map(player::getAttribute);
+    }
+
+    public static AttributeModifier.Operation operationFor(String attribute, String operation) {
+        return op(AttributeAliases.operation(attribute, operation));
     }
 
     public static AttributeModifier.Operation op(String operation) {
@@ -194,9 +231,14 @@ public final class EffectEngine {
             case "in_biome_tag" -> player.level().getBiome(player.blockPosition()).is(ModTags.biomeTag(condition.string("tag")));
             case "sky_event" -> SkyEvents.current().id().equals(condition.string("event"));
             case "wearing" -> wears(player, ModTags.itemTag(condition.string("tag")));
+            case "dual_wielding" -> isWeapon(player.getMainHandItem()) && isWeapon(player.getOffhandItem());
             case "attribute_at_least" -> BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.parse(condition.string("attribute")))
                     .filter(attribute -> GameplayEvents.attributeValue(player, attribute) >= condition.number("value")).isPresent();
-            default -> false;
+            default -> EXTRA_CONDITIONS.getOrDefault(condition.type(), (anyPlayer, anyCondition) -> false).test(player, condition);
         };
+    }
+
+    private static boolean isWeapon(ItemStack stack) {
+        return stack.is(ModTags.itemTag(ServerConfig.LIGHT_WEAPON_TAG.get())) || stack.is(ModTags.itemTag(ServerConfig.HEAVY_WEAPON_TAG.get()));
     }
 }

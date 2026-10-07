@@ -135,6 +135,31 @@ class GraphParserTest {
     }
 
     @Test
+    void acceptsManaRestoreOnSpellTriggersAndRejectsAnEmptyAmount() {
+        GraphParser.Outcome valid = withEffects(
+                "{'type':'trigger','trigger':'nostalgiaskills:on_mana_empty','cooldown_ticks':600,"
+                        + "'action':{'type':'restore_mana','amount':50}}");
+        assertTrue(valid.snapshot().isPresent(), () -> valid.report().errors().toString());
+        GraphParser.Outcome invalid = withEffects(
+                "{'type':'trigger','trigger':'nostalgiaskills:on_spell_cast','action':{'type':'restore_mana','amount':0}}");
+        assertTrue(mentions(invalid, "restore_mana amount must be within"));
+    }
+
+    @Test
+    void acceptsDualWieldingAndCurioConditionsAndRejectsACurioWithoutTag() {
+        GraphParser.Outcome valid = withEffects(
+                "{'type':'conditional_attribute','attribute':'minecraft:generic.attack_speed','operation':'add_multiplied_base',"
+                        + "'amount':0.05,'condition':{'type':'dual_wielding'}}",
+                "{'type':'conditional_attribute','attribute':'minecraft:generic.armor','operation':'add_value',"
+                        + "'amount':1,'condition':{'type':'has_curio','tag':'curios:ring'}}");
+        assertTrue(valid.snapshot().isPresent(), () -> valid.report().errors().toString());
+        GraphParser.Outcome invalid = withEffects(
+                "{'type':'conditional_attribute','attribute':'minecraft:generic.armor','operation':'add_value',"
+                        + "'amount':1,'condition':{'type':'has_curio'}}");
+        assertTrue(mentions(invalid, "an item tag id"));
+    }
+
+    @Test
     void rejectsMalformedScopesTriggersAndWorldConditions() {
         GraphParser.Outcome outcome = withEffects(
                 "{'type':'damage_modifier','direction':'dealt','scope':'#not a tag','amount':0.1}",

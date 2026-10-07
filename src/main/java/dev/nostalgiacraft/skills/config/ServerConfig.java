@@ -1,5 +1,6 @@
 package dev.nostalgiacraft.skills.config;
 
+import dev.nostalgiacraft.skills.effects.EliteMobs;
 import dev.nostalgiacraft.skills.progression.ProgressionService;
 import dev.nostalgiacraft.skills.progression.XpCurve;
 import dev.nostalgiacraft.skills.server.FallenStars;
@@ -44,6 +45,10 @@ public final class ServerConfig {
     public static final ModConfigSpec.EnumValue<FallenStars.Mode> DROP_STAR_ON_DEATH;
     public static final ModConfigSpec.IntValue ECLIPSE_AVERAGE_DAYS;
     public static final ModConfigSpec.IntValue ELITE_MOB_NODES;
+    public static final ModConfigSpec.BooleanValue ELITE_SPAWNER_MOBS;
+    public static final ModConfigSpec.BooleanValue REDIRECT_TO_APOTHIC_ATTRIBUTES;
+    public static final ModConfigSpec.BooleanValue REDIRECT_TO_PUFFISH_ATTRIBUTES;
+    public static final ModConfigSpec.EnumValue<EliteMobs.Stacking> ELITE_STACKING;
     public static final ModConfigSpec.BooleanValue ECLIPSE_MONSTERS_SPAWN;
     public static final ModConfigSpec.BooleanValue STAR_SHOWER_ENABLED;
     public static final ModConfigSpec.IntValue STAR_SHOWER_AVERAGE_DAYS;
@@ -107,6 +112,8 @@ public final class ServerConfig {
                 .defineInRange("eliteMobChance", 0.02, 0.0, 1.0);
         ELITE_MOB_NODES = builder.comment("How many random skills beyond a hub a Constellated monster receives")
                 .defineInRange("eliteMobNodes", 8, 0, 60);
+        ELITE_SPAWNER_MOBS = builder.comment("Monsters from spawners and trial spawners may be Constellated; leaving this on with a mob farm turns it into a star fragment farm")
+                .define("eliteSpawnerMobs", false);
         ECLIPSE_ENABLED = builder.comment("Some days the moon covers the sun from dawn to dusk: resets and refunds need no Orb of Reconfiguration")
                 .define("eclipseEnabled", true);
         ECLIPSE_AVERAGE_DAYS = builder.comment("Average number of game days between two eclipses")
@@ -124,6 +131,18 @@ public final class ServerConfig {
                 .defineEnum("dropStarOnDeath", FallenStars.Mode.OFF);
         COMMUNITY_ENABLED = builder.comment("Players may donate XP to the server-wide constellation; each tier reached rewards everyone")
                 .define("communityEnabled", true);
+        builder.pop();
+        builder.comment("Optional mod integrations").push("integrations");
+        REDIRECT_TO_APOTHIC_ATTRIBUTES = builder.comment("With Apothic Attributes installed, skills that grant critical chance, critical damage, dodge,",
+                        "lifesteal, mining speed and healing received raise the Apothic attribute instead of this mod's own,",
+                        "so each stat is rolled once and shown as one number")
+                .define("redirectToApothicAttributes", true);
+        REDIRECT_TO_PUFFISH_ATTRIBUTES = builder.comment("With Pufferfish's Attributes installed, skills that grant lifesteal, mining speed, healing received and",
+                        "projectile damage raise the Pufferfish attribute instead of this mod's own; Apothic Attributes wins where both overlap")
+                .define("redirectToPuffishAttributes", true);
+        ELITE_STACKING = builder.comment("EXCLUSIVE: a monster that Champions or L2Hostility already made special is never Constellated too.",
+                        "STACK: the rolls are independent and one monster may be all of them")
+                .defineEnum("eliteStacking", EliteMobs.Stacking.EXCLUSIVE);
         builder.pop();
         SPEC = builder.build();
     }

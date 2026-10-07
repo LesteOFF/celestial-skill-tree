@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "requires_mod": "forbidden_arcanus",
+  "tree": "nostalgiaskills:main",
+  "connections": [
+    {
+      "id": "nostalgiaskills:edge/arcanist.transmutation--compat.forbidden_arcanus.aureal_flow",
+      "a": "nostalgiaskills:compat/forbidden_arcanus/aureal_flow",
+      "b": "nostalgiaskills:arcanist/transmutation",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.forbidden_arcanus.aureal_flow--compat.forbidden_arcanus.aureal_resonance",
+      "a": "nostalgiaskills:compat/forbidden_arcanus/aureal_resonance",
+      "b": "nostalgiaskills:compat/forbidden_arcanus/aureal_flow",
+      "directed": false,
+      "style": "path",
+      "points": []
+    }
+  ]
+}

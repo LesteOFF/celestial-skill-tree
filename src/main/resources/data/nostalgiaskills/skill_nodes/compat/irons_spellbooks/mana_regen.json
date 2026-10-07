@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:compat/irons_spellbooks/mana_regen",
+  "requires_mod": "irons_spellbooks",
+  "tree": "nostalgiaskills:main",
+  "sector": "arcanist",
+  "type": "minor",
+  "position": {
+    "x": 2150,
+    "y": 82
+  },
+  "name": "skill.nostalgiaskills.compat.irons_spellbooks.mana_regen.name",
+  "description": "skill.nostalgiaskills.compat.irons_spellbooks.mana_regen.description",
+  "icon": "nostalgiaskills:textures/skill_icons/magic.png",
+  "frame": "bronze_circle",
+  "cost": 1,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "irons_spellbooks:mana_regen",
+      "operation": "add_multiplied_base",
+      "amount": 0.08
+    }
+  ],
+  "tags": [
+    "magic",
+    "arcanist",
+    "compat"
+  ],
+  "cluster": "compat:irons_spellbooks"
+}

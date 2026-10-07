@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:compat/puffish_attributes/sprinting_speed",
+  "requires_mod": "puffish_attributes",
+  "tree": "nostalgiaskills:main",
+  "sector": "artificer",
+  "type": "minor",
+  "position": {
+    "x": -1912.9,
+    "y": 1207.3
+  },
+  "name": "skill.nostalgiaskills.compat.puffish_attributes.sprinting_speed.name",
+  "description": "skill.nostalgiaskills.compat.puffish_attributes.sprinting_speed.description",
+  "icon": "nostalgiaskills:textures/skill_icons/mobility.png",
+  "frame": "bronze_circle",
+  "cost": 1,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "puffish_attributes:sprinting_speed",
+      "operation": "add_multiplied_base",
+      "amount": 0.05
+    }
+  ],
+  "tags": [
+    "mobility",
+    "artificer",
+    "compat"
+  ],
+  "cluster": "compat:puffish_attributes"
+}

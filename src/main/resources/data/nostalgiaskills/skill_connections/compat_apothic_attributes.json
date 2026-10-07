@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "requires_mod": "apothic_attributes",
+  "tree": "nostalgiaskills:main",
+  "connections": [
+    {
+      "id": "nostalgiaskills:edge/berserker.reckless_fury--compat.apothic_attributes.armor_pierce",
+      "a": "nostalgiaskills:compat/apothic_attributes/armor_pierce",
+      "b": "nostalgiaskills:berserker/reckless_fury",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.apothic_attributes.armor_pierce--compat.apothic_attributes.armor_shred",
+      "a": "nostalgiaskills:compat/apothic_attributes/armor_shred",
+      "b": "nostalgiaskills:compat/apothic_attributes/armor_pierce",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.apothic_attributes.armor_pierce--compat.apothic_attributes.overheal",
+      "a": "nostalgiaskills:compat/apothic_attributes/overheal",
+      "b": "nostalgiaskills:compat/apothic_attributes/armor_pierce",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.apothic_attributes.armor_shred--compat.apothic_attributes.prot_pierce",
+      "a": "nostalgiaskills:compat/apothic_attributes/prot_pierce",
+      "b": "nostalgiaskills:compat/apothic_attributes/armor_shred",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.apothic_attributes.arrow_velocity--compat.apothic_attributes.draw_speed",
+      "a": "nostalgiaskills:compat/apothic_attributes/draw_speed",
+      "b": "nostalgiaskills:compat/apothic_attributes/arrow_velocity",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.apothic_attributes.arrow_velocity--compat.apothic_attributes.ghost_health",
+      "a": "nostalgiaskills:compat/apothic_attributes/arrow_velocity",
+      "b": "nostalgiaskills:compat/apothic_attributes/ghost_health",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.apothic_attributes.cold_damage--compat.apothic_attributes.fire_damage",
+      "a": "nostalgiaskills:compat/apothic_attributes/cold_damage",
+      "b": "nostalgiaskills:compat/apothic_attributes/fire_damage",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.apothic_attributes.current_hp_damage--compat.apothic_attributes.fire_damage",
+      "a": "nostalgiaskills:compat/apothic_attributes/fire_damage",
+      "b": "nostalgiaskills:compat/apothic_attributes/current_hp_damage",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.apothic_attributes.current_hp_damage--compat.apothic_attributes.prot_pierce",
+      "a": "nostalgiaskills:compat/apothic_attributes/current_hp_damage",
+      "b": "nostalgiaskills:compat/apothic_attributes/prot_pierce",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.apothic_attributes.draw_speed--compat.apothic_attributes.experience_gained",
+      "a": "nostalgiaskills:compat/apothic_attributes/experience_gained",
+      "b": "nostalgiaskills:compat/apothic_attributes/draw_speed",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.apothic_attributes.ghost_health--compat.apothic_attributes.overheal",
+      "a": "nostalgiaskills:compat/apothic_attributes/ghost_health",
+      "b": "nostalgiaskills:compat/apothic_attributes/overheal",
+      "directed": false,
+      "style": "path",
+      "points": []
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 package dev.nostalgiacraft.skills.data;
 
+import dev.nostalgiacraft.skills.effects.EffectEngine;
 import dev.nostalgiacraft.skills.graph.Ids;
 import dev.nostalgiacraft.skills.graph.KnownIds;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -10,7 +11,7 @@ public final class McKnownIds implements KnownIds {
 
     @Override
     public boolean isAttribute(String id) {
-        return Ids.isValid(id) && BuiltInRegistries.ATTRIBUTE.containsKey(ResourceLocation.parse(id));
+        return Ids.isValid(id) && (BuiltInRegistries.ATTRIBUTE.containsKey(ResourceLocation.parse(id)) || EffectEngine.hasAttributeTarget(id));
     }
 
     @Override

@@ -17,6 +17,10 @@ public final class ModTags {
     public static final TagKey<Item> MINING_TOOLS = item("mining_tools");
     public static final TagKey<DamageType> MAGIC = TagKey.create(Registries.DAMAGE_TYPE,
             ResourceLocation.fromNamespaceAndPath(NostalgiaSkills.MODID, "magic"));
+    public static final TagKey<DamageType> COUNTS_AS_PROJECTILE = TagKey.create(Registries.DAMAGE_TYPE,
+            ResourceLocation.fromNamespaceAndPath(NostalgiaSkills.MODID, "counts_as_projectile"));
+    public static final TagKey<DamageType> SPELL_DAMAGE = TagKey.create(Registries.DAMAGE_TYPE,
+            ResourceLocation.fromNamespaceAndPath(NostalgiaSkills.MODID, "spell_damage"));
 
     public static final TagKey<EntityType<?>> NEVER_CONSTELLATED = entityType("never_constellated");
     public static final TagKey<EntityType<?>> ALWAYS_DROPS_FRAGMENT = entityType("always_drops_fragment");

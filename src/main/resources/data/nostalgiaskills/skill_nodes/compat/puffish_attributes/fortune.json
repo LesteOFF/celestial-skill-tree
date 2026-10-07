@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:compat/puffish_attributes/fortune",
+  "requires_mod": "puffish_attributes",
+  "tree": "nostalgiaskills:main",
+  "sector": "artificer",
+  "type": "notable",
+  "position": {
+    "x": -2220.0,
+    "y": 1282.9
+  },
+  "name": "skill.nostalgiaskills.compat.puffish_attributes.fortune.name",
+  "description": "skill.nostalgiaskills.compat.puffish_attributes.fortune.description",
+  "icon": "nostalgiaskills:textures/skill_icons/mining.png",
+  "frame": "violet_facet",
+  "cost": 2,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "puffish_attributes:fortune",
+      "operation": "add_value",
+      "amount": 1
+    }
+  ],
+  "tags": [
+    "mining",
+    "artificer",
+    "compat"
+  ],
+  "cluster": "compat:puffish_attributes"
+}

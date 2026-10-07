@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "requires_mod": "irons_spellbooks",
+  "tree": "nostalgiaskills:main",
+  "connections": [
+    {
+      "id": "nostalgiaskills:edge/arcanist.tincture_mastery--compat.irons_spellbooks.max_mana",
+      "a": "nostalgiaskills:compat/irons_spellbooks/max_mana",
+      "b": "nostalgiaskills:arcanist/tincture_mastery",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.irons_spellbooks.mana_regen--compat.irons_spellbooks.max_mana",
+      "a": "nostalgiaskills:compat/irons_spellbooks/mana_regen",
+      "b": "nostalgiaskills:compat/irons_spellbooks/max_mana",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.irons_spellbooks.mana_regen--compat.irons_spellbooks.spell_power",
+      "a": "nostalgiaskills:compat/irons_spellbooks/spell_power",
+      "b": "nostalgiaskills:compat/irons_spellbooks/mana_regen",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.irons_spellbooks.cooldown_reduction--compat.irons_spellbooks.spell_power",
+      "a": "nostalgiaskills:compat/irons_spellbooks/cooldown_reduction",
+      "b": "nostalgiaskills:compat/irons_spellbooks/spell_power",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.irons_spellbooks.cast_time_reduction--compat.irons_spellbooks.cooldown_reduction",
+      "a": "nostalgiaskills:compat/irons_spellbooks/cast_time_reduction",
+      "b": "nostalgiaskills:compat/irons_spellbooks/cooldown_reduction",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.irons_spellbooks.cast_time_reduction--compat.irons_spellbooks.spell_resist",
+      "a": "nostalgiaskills:compat/irons_spellbooks/spell_resist",
+      "b": "nostalgiaskills:compat/irons_spellbooks/cast_time_reduction",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.irons_spellbooks.max_mana--compat.irons_spellbooks.school_fire",
+      "a": "nostalgiaskills:compat/irons_spellbooks/school_fire",
+      "b": "nostalgiaskills:compat/irons_spellbooks/max_mana",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.irons_spellbooks.mana_regen--compat.irons_spellbooks.school_ice",
+      "a": "nostalgiaskills:compat/irons_spellbooks/school_ice",
+      "b": "nostalgiaskills:compat/irons_spellbooks/mana_regen",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.irons_spellbooks.school_lightning--compat.irons_spellbooks.spell_power",
+      "a": "nostalgiaskills:compat/irons_spellbooks/school_lightning",
+      "b": "nostalgiaskills:compat/irons_spellbooks/spell_power",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.irons_spellbooks.cooldown_reduction--compat.irons_spellbooks.school_holy",
+      "a": "nostalgiaskills:compat/irons_spellbooks/school_holy",
+      "b": "nostalgiaskills:compat/irons_spellbooks/cooldown_reduction",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.irons_spellbooks.cast_time_reduction--compat.irons_spellbooks.school_ender",
+      "a": "nostalgiaskills:compat/irons_spellbooks/school_ender",
+      "b": "nostalgiaskills:compat/irons_spellbooks/cast_time_reduction",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.irons_spellbooks.school_blood--compat.irons_spellbooks.spell_resist",
+      "a": "nostalgiaskills:compat/irons_spellbooks/school_blood",
+      "b": "nostalgiaskills:compat/irons_spellbooks/spell_resist",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.irons_spellbooks.school_blood--compat.irons_spellbooks.school_evocation",
+      "a": "nostalgiaskills:compat/irons_spellbooks/school_evocation",
+      "b": "nostalgiaskills:compat/irons_spellbooks/school_blood",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.irons_spellbooks.school_evocation--compat.irons_spellbooks.school_nature",
+      "a": "nostalgiaskills:compat/irons_spellbooks/school_nature",
+      "b": "nostalgiaskills:compat/irons_spellbooks/school_evocation",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.irons_spellbooks.school_eldritch--compat.irons_spellbooks.school_nature",
+      "a": "nostalgiaskills:compat/irons_spellbooks/school_eldritch",
+      "b": "nostalgiaskills:compat/irons_spellbooks/school_nature",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.irons_spellbooks.spell_power--compat.irons_spellbooks.summoner_1",
+      "a": "nostalgiaskills:compat/irons_spellbooks/summoner_1",
+      "b": "nostalgiaskills:compat/irons_spellbooks/spell_power",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.irons_spellbooks.summoner_1--compat.irons_spellbooks.summoner_2",
+      "a": "nostalgiaskills:compat/irons_spellbooks/summoner_2",
+      "b": "nostalgiaskills:compat/irons_spellbooks/summoner_1",
+      "directed": false,
+      "style": "path",
+      "points": []
+    },
+    {
+      "id": "nostalgiaskills:edge/compat.irons_spellbooks.summoner_2--compat.irons_spellbooks.summoner_pact",
+      "a": "nostalgiaskills:compat/irons_spellbooks/summoner_pact",
+      "b": "nostalgiaskills:compat/irons_spellbooks/summoner_2",
+      "directed": false,
+      "style": "path",
+      "points": []
+    }
+  ]
+}

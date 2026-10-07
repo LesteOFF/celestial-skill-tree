@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "nostalgiaskills:compat/scguns/dead_eye",
+  "requires_mod": "scguns",
+  "tree": "nostalgiaskills:main",
+  "sector": "marksman",
+  "type": "notable",
+  "position": {
+    "x": 0.0,
+    "y": 2440.6
+  },
+  "name": "skill.nostalgiaskills.compat.scguns.dead_eye.name",
+  "description": "skill.nostalgiaskills.compat.scguns.dead_eye.description",
+  "icon": "nostalgiaskills:textures/skill_icons/critical.png",
+  "frame": "violet_facet",
+  "cost": 2,
+  "max_rank": 1,
+  "requirements": {
+    "all_of": [],
+    "any_of": [],
+    "minimum_sector_points": 0
+  },
+  "effects": [
+    {
+      "type": "conditional_attribute",
+      "attribute": "nostalgiaskills:projectile_damage",
+      "operation": "add_value",
+      "amount": 0.08,
+      "condition": {
+        "type": "holding",
+        "tag": "nostalgiaskills:firearms"
+      }
+    },
+    {
+      "type": "trigger",
+      "trigger": "nostalgiaskills:on_headshot",
+      "cooldown_ticks": 100,
+      "action": {
+        "type": "self_effect",
+        "effect": "minecraft:strength",
+        "duration_ticks": 60,
+        "amplifier": 0
+      }
+    },
+    {
+      "type": "trigger",
+      "trigger": "nostalgiaskills:on_reload",
+      "cooldown_ticks": 200,
+      "action": {
+        "type": "self_effect",
+        "effect": "minecraft:speed",
+        "duration_ticks": 60,
+        "amplifier": 0
+      }
+    }
+  ],
+  "tags": [
+    "critical",
+    "marksman",
+    "compat"
+  ],
+  "cluster": "compat:scguns"
+}

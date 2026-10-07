@@ -1,0 +1,44 @@
+{
+  "type": "apotheosis:gem",
+  "unique": true,
+  "weights": {
+    "quality": 0.1,
+    "weight": 50
+  },
+  "bonuses": [
+    {
+      "type": "apotheosis:attribute",
+      "attribute": "nostalgiaskills:crit_chance",
+      "gem_class": "apotheosis:melee_weapon",
+      "operation": "add_value",
+      "values": {
+        "cracked": 0.02,
+        "chipped": 0.04,
+        "flawed": 0.06,
+        "normal": 0.08,
+        "flawless": 0.1,
+        "perfect": 0.12
+      }
+    },
+    {
+      "type": "apotheosis:attribute",
+      "attribute": "nostalgiaskills:dodge_chance",
+      "gem_class": {
+        "key": "core_armor",
+        "types": [
+          "apotheosis:chestplate",
+          "apotheosis:leggings"
+        ]
+      },
+      "operation": "add_value",
+      "values": {
+        "cracked": 0.0133,
+        "chipped": 0.0267,
+        "flawed": 0.04,
+        "normal": 0.0533,
+        "flawless": 0.0667,
+        "perfect": 0.08
+      }
+    }
+  ]
+}

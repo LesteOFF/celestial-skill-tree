@@ -136,7 +136,7 @@ limit requires the explicit `true` override argument.
   (10,000, effectively none), curve coefficients and discount, per-type cost overrides, keep progression on death, orb requirement,
   caps (crit 50%, dodge 30%, lifesteal 10%, damage reduction 40%, magic resistance 60%, movement +50%), lifesteal
   cooldown, weapon/tool classification tags, request rate and batch-size limits. Section `[events]`: falling stars
-  (on, one per ~30 minutes of night per player), Constellated monster chance (2%) and size (8 skills), eclipses (on,
+  (on, one per ~30 minutes of night per player), Constellated monster chance (2%) and size (8 skills), `eliteSpawnerMobs` (off: spawner monsters are never Constellated), eclipses (on,
   every ~20 days, `eclipseMonstersSpawn` on), star showers (on, every ~12 days, 4 stars per minute per player),
   `dropStarOnDeath` (`OFF`, `PVP_ONLY`, `ALWAYS`) and the shared constellation (on).
 - **Client** (`config/nostalgiaskills-client.toml`): frame scale, zoom limits, glow intensity, background decoration,
@@ -170,15 +170,52 @@ An optional KubeJS integration ships (see below); packs and addons can build any
   `projectile`, `magic`, `fire` and `all`. A tag scope matches any damage of that tag the player deals or takes (spells,
   guns), while the named scopes still count only melee and projectile hits as dealt damage.
 - **Conditions.** `in_dimension` (`dimension`), `in_biome_tag` (`tag`), `sky_event` (`event`: `eclipse` or
-  `star_shower`, whatever dimension the player is in), `wearing` (`tag`, any armour slot) and `attribute_at_least`
-  (`attribute`, `value`).
+  `star_shower`, whatever dimension the player is in), `wearing` (`tag`, any armour slot), `attribute_at_least`
+  (`attribute`, `value`), `dual_wielding` (both hands hold an item of the light or heavy weapon tag) and `has_curio`
+  (`tag`; always false without Curios).
 - **Triggers from other mods.** A `trigger` may be any namespaced id, e.g. `"mypack:on_spell_cast"`. It fires when
   code calls `Triggers.fire(player, "mypack:on_spell_cast", target)` (`dev.nostalgiacraft.skills.effects.Triggers`);
   an id nobody fires simply never runs.
+- **Spell triggers and actions.** Iron's Spells 'n Spellbooks fires `nostalgiaskills:on_spell_cast` and
+  `nostalgiaskills:on_mana_empty`; Ars Nouveau fires `nostalgiaskills:on_glyph_cast` and
+  `nostalgiaskills:on_spell_resolve`. `nostalgiaskills:on_spell_crit` fires when the tree's critical chance lands on
+  spell damage. The action `restore_mana` (`amount` 0 to 10,000) refills Iron's mana and does nothing without that mod.
+  Both integrations talk to the other mod by reflection, so they need no extra dependency, and switch themselves off
+  with one warning if the installed version changes its API.
+- **Spell damage.** Damage types in `#nostalgiaskills:spell_damage` (Iron's schools and Ars Nouveau spells by default)
+  roll the tree's critical chance and critical damage and feed lifesteal like melee does. Other mods add their types
+  to that tag. Malum scythes (`#malum:scythe`) count as heavy weapons.
 - **Events** on the NeoForge bus, all nested in `dev.nostalgiacraft.skills.api.SkillEvents`, server side and not
   cancellable: `PointsBought`, `NodesLearned`, `NodesRefunded`, `BuildReset`, `SkyEventChanged`, `StarLanded`,
   `EliteSpawned`. Skills removed by reconciliation after a data pack change, or dropped as a Fallen Star, post no
   event.
+- **Apothic Attributes.** With that mod installed, skills granting critical chance, critical damage, dodge, lifesteal,
+  mining speed and healing received raise the Apothic attribute of the same name instead of this mod's own, so each
+  stat is rolled once and shown as one number. The caps still limit what the tree contributes, but the mechanics are
+  then Apothic's: its mining speed applies to every tool, its lifesteal has no cooldown, and its critical hits do not
+  fire `on_crit`. Turn it off with `redirectToApothicAttributes` in the `[integrations]` section.
+- **Pufferfish's Attributes.** Lifesteal, mining speed, healing received and projectile damage are redirected the same
+  way (`redirectToPuffishAttributes`); a flat bonus becomes a multiplier there, because those attributes scale another
+  value. Apothic Attributes wins where both mods overlap. Resistances are not redirected: their formulas differ.
+- **Combat mods.** Better Combat fires `nostalgiaskills:on_combo_finisher` on the last hit of a combo. Scorched Guns
+  fires `nostalgiaskills:on_headshot` and `nostalgiaskills:on_reload`, and its bullets count as the player's projectiles
+  through `#nostalgiaskills:counts_as_projectile` (add other guns' damage types there). ParCool fires
+  `nostalgiaskills:on_wall_jump`, `nostalgiaskills:on_roll` (breakfall) and the built-in `on_dodge`. Dummmmmmy shows a
+  critical hit rolled by the tree as a critical number.
+- **Curios.** An attribute effect on `curios:<slot>` (for example `curios:ring`) adds or removes slots of that type.
+- **Other elite systems.** With `eliteStacking = EXCLUSIVE` (default) a monster that Champions or L2Hostility already
+  made special is not Constellated as well; `STACK` keeps the rolls independent.
+- **Events.** `SkillEvents.TreeCriticalHit` (`getPlayer`, `getVictim`, `getMultiplier`) is posted for every critical
+  hit rolled by the tree.
+- **Data for other mods.** The jar ships content that only the matching mod reads: an Apotheosis gem (`gems/stellar`)
+  and affix (`affixes/constellation`), L2Artifacts stat types, a Truly Modular material made of Star Fragments and
+  Iron's Jewelry materials. The `astral` enchantment is plain vanilla data. All of them grant this mod's own
+  attributes directly, so they are not covered by the Apothic or Pufferfish redirection above. Apothic's attribute
+  screen shows every attribute of this mod with a description.
+- **Item tags.** `#nostalgiaskills:firearms` (Scorched Guns tiers by default) is meant for `holding`. Truly Modular
+  weapons and tools are listed in the weapon, bow, crossbow and mining tool tags.
+- **AttributeFix.** No conflict: it leaves the range of this mod's attributes untouched unless its own config says
+  otherwise, and the caps in this mod's config only limit what the tree contributes.
 - **Entity type tags.** `#nostalgiaskills:never_constellated` keeps a monster from ever being Constellated (bosses).
   `#nostalgiaskills:always_drops_fragment` makes every kill by a player drop a Star Fragment; if that mob can be
   farmed, so can skill points. Both ship empty.

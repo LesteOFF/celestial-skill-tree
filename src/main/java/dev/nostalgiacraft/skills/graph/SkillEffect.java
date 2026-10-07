@@ -55,6 +55,6 @@ public sealed interface SkillEffect {
     }
 
     record Action(String type, double amount, String effect, int durationTicks, int amplifier) {
-        public static final Set<String> TYPES = Set.of("heal", "self_effect", "target_effect");
+        public static final Set<String> TYPES = Set.of("heal", "restore_mana", "self_effect", "target_effect");
     }
 }

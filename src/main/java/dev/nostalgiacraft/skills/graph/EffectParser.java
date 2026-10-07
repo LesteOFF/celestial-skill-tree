@@ -15,6 +15,7 @@ final class EffectParser {
     private static final double MAX_DAMAGE_MODIFIER = 10;
     private static final int MAX_COOLDOWN_TICKS = 72_000;
     private static final double MAX_HEAL = 100;
+    private static final double MAX_MANA_RESTORE = 10_000;
     private static final int MAX_DURATION_TICKS = 12_000;
     private static final int MAX_AMPLIFIER = 4;
 
@@ -95,13 +96,17 @@ final class EffectParser {
             action.error("type", "unknown action '" + type + "'");
             return Optional.empty();
         }
-        return Optional.of(type.equals("heal") ? healAction(action, type) : mobEffectAction(action, type));
+        return Optional.of(switch (type) {
+            case "heal" -> amountAction(action, type, MAX_HEAL);
+            case "restore_mana" -> amountAction(action, type, MAX_MANA_RESTORE);
+            default -> mobEffectAction(action, type);
+        });
     }
 
-    private static SkillEffect.Action healAction(JsonFields action, String type) {
+    private static SkillEffect.Action amountAction(JsonFields action, String type, double max) {
         double amount = action.number("amount");
-        if (!(amount > 0 && amount <= MAX_HEAL)) {
-            action.error("amount", "heal amount must be within (0, 100]");
+        if (!(amount > 0 && amount <= max)) {
+            action.error("amount", type + " amount must be within (0, " + max + "]");
         }
         return new SkillEffect.Action(type, amount, "", 0, 0);
     }
@@ -147,7 +152,7 @@ final class EffectParser {
 
     private void requireValidParameters(JsonFields condition, String type, Map<String, Object> parameters) {
         switch (type) {
-            case "holding", "wearing" -> requireId(condition, parameters, "tag", "an item tag id");
+            case "holding", "wearing", "has_curio" -> requireId(condition, parameters, "tag", "an item tag id");
             case "in_biome_tag" -> requireId(condition, parameters, "tag", "a biome tag id");
             case "in_dimension" -> requireId(condition, parameters, "dimension", "a dimension id");
             case "sky_event" -> {

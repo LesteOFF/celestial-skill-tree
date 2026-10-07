@@ -1,6 +1,7 @@
 package dev.nostalgiacraft.skills;
 
 import com.mojang.logging.LogUtils;
+import dev.nostalgiacraft.skills.compat.Integrations;
 import dev.nostalgiacraft.skills.config.ClientConfig;
 import dev.nostalgiacraft.skills.config.ServerConfig;
 import dev.nostalgiacraft.skills.network.NetworkSetup;
@@ -29,5 +30,6 @@ public final class NostalgiaSkills {
         modBus.addListener(NetworkSetup::register);
         container.registerConfig(ModConfig.Type.SERVER, ServerConfig.SPEC);
         container.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);
+        Integrations.register();
     }
 }

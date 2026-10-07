@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -35,15 +36,28 @@ class BundledTreeTest {
             "healing_received", "lifesteal", "damage_reduction", "low_health_damage");
 
     static Map<String, JsonElement> load(Path dir) throws IOException {
+        return load(dir, mod -> false);
+    }
+
+    static Map<String, JsonElement> load(Path dir, Predicate<String> isModLoaded) throws IOException {
         Map<String, JsonElement> out = new HashMap<>();
         try (Stream<Path> s = Files.walk(dir)) {
             for (Path p : s.filter(f -> f.toString().endsWith(".json")).toList()) {
                 String rel = dir.relativize(p).toString().replace('\\', '/');
-                out.put(NS + ":" + rel.substring(0, rel.length() - 5),
-                        JsonParser.parseString(Files.readString(p, StandardCharsets.UTF_8)));
+                JsonElement file = JsonParser.parseString(Files.readString(p, StandardCharsets.UTF_8));
+                if (ModRequirement.isMet(file, isModLoaded)) {
+                    out.put(NS + ":" + rel.substring(0, rel.length() - 5), file);
+                }
             }
         }
         return out;
+    }
+
+    static GraphParser.Outcome parseWithEveryOptionalModLoaded() throws IOException {
+        Path root = Path.of(System.getProperty("nostalgiaskills.dataRoot", "src/main/resources/data/nostalgiaskills"));
+        return new GraphParser(KnownIds.PERMISSIVE).parse(NS + ":main", new GraphParser.Sources(
+                load(root.resolve("skill_trees"), mod -> true), load(root.resolve("skill_nodes"), mod -> true),
+                load(root.resolve("skill_connections"), mod -> true)));
     }
 
     @BeforeAll
@@ -70,6 +84,14 @@ class BundledTreeTest {
     void loadsWithoutErrorsOrOverlapWarnings() {
         assertTrue(outcome.snapshot().isPresent(), () -> outcome.report().errors().toString());
         assertTrue(outcome.report().warnings().isEmpty(), () -> outcome.report().warnings().toString());
+    }
+
+    @Test
+    void optionalNodesFormAValidTreeWhenTheirModsAreLoaded() throws IOException {
+        GraphParser.Outcome full = parseWithEveryOptionalModLoaded();
+        assertTrue(full.snapshot().isPresent(), () -> full.report().errors().toString());
+        assertTrue(full.report().warnings().isEmpty(), () -> full.report().warnings().toString());
+        assertTrue(full.snapshot().get().nodes().size() > g.nodes().size());
     }
 
     @Test

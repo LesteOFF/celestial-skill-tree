@@ -1,6 +1,7 @@
 package dev.nostalgiacraft.skills.effects;
 
 import dev.nostalgiacraft.skills.NostalgiaSkills;
+import dev.nostalgiacraft.skills.api.SkillEvents;
 import dev.nostalgiacraft.skills.config.ServerConfig;
 import dev.nostalgiacraft.skills.graph.SkillEffect;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
@@ -74,8 +75,12 @@ public final class GameplayEvents {
         return source.getEntity() == player && source.getDirectEntity() == player && source.is(DamageTypes.PLAYER_ATTACK);
     }
 
+    static boolean byProjectile(DamageSource source) {
+        return source.is(DamageTypeTags.IS_PROJECTILE) || source.is(ModTags.COUNTS_AS_PROJECTILE);
+    }
+
     static boolean projectile(DamageSource source, ServerPlayer player) {
-        return source.getEntity() == player && source.getDirectEntity() != player && source.is(DamageTypeTags.IS_PROJECTILE);
+        return source.getEntity() == player && source.getDirectEntity() != player && byProjectile(source);
     }
 
     static boolean weapon(DamageSource source, ServerPlayer player) {
@@ -89,7 +94,7 @@ public final class GameplayEvents {
         if (dealt && !weapon(source, player)) {
             return false;
         }
-        boolean byProjectile = source.is(DamageTypeTags.IS_PROJECTILE);
+        boolean byProjectile = byProjectile(source);
         return switch (scope) {
             case "melee" -> dealt ? melee(source, player) : source.getDirectEntity() instanceof LivingEntity && !byProjectile;
             case "projectile" -> dealt ? projectile(source, player) : byProjectile;
@@ -131,13 +136,20 @@ public final class GameplayEvents {
         if (event.getLevel().isClientSide() || !(event.getEntity() instanceof Projectile projectile)) {
             return;
         }
-        if (projectile.getOwner() instanceof ServerPlayer && !projectile.getPersistentData().contains(ORIGIN_KEY)) {
-            CompoundTag origin = new CompoundTag();
-            origin.putDouble("x", projectile.getX());
-            origin.putDouble("y", projectile.getY());
-            origin.putDouble("z", projectile.getZ());
-            projectile.getPersistentData().put(ORIGIN_KEY, origin);
+        if (projectile.getOwner() instanceof ServerPlayer) {
+            rememberOrigin(projectile);
         }
+    }
+
+    public static void rememberOrigin(Entity projectile) {
+        if (projectile.getPersistentData().contains(ORIGIN_KEY)) {
+            return;
+        }
+        CompoundTag origin = new CompoundTag();
+        origin.putDouble("x", projectile.getX());
+        origin.putDouble("y", projectile.getY());
+        origin.putDouble("z", projectile.getZ());
+        projectile.getPersistentData().put(ORIGIN_KEY, origin);
     }
 
     @SubscribeEvent
@@ -183,7 +195,7 @@ public final class GameplayEvents {
 
     private static boolean dodges(ServerPlayer defender, DamageSource source) {
         boolean dodgeable = !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)
-                && (source.getDirectEntity() instanceof LivingEntity || source.is(DamageTypeTags.IS_PROJECTILE))
+                && (source.getDirectEntity() instanceof LivingEntity || byProjectile(source))
                 && source.getEntity() != defender;
         double chance = Math.min(attributeValue(defender, ModAttributes.DODGE_CHANCE), ServerConfig.CAP_DODGE_CHANCE.get());
         return dodgeable && chance > 0 && defender.getRandom().nextDouble() < chance;
@@ -192,17 +204,18 @@ public final class GameplayEvents {
     private static void attack(LivingIncomingDamageEvent event, ServerPlayer attacker, LivingEntity victim,
                                DamageSource source) {
         boolean isMelee = melee(source, attacker);
+        boolean isSpell = source.is(ModTags.SPELL_DAMAGE);
         double distance = isMelee ? NO_SHOT_DISTANCE : shotDistance(source, victim);
         double bonus = modifierSum(attacker, source, true, new EffectEngine.DamageContext(victim, distance));
         if (isMelee) {
             bonus += meleeBonus(attacker);
         } else if (projectile(source, attacker)) {
             bonus += projectileBonus(attacker, source, distance);
-        } else if (bonus == 0) {
+        } else if (bonus == 0 && !isSpell) {
             return;
         }
         float amount = (float) (event.getAmount() * Math.max(MIN_DAMAGE_MULTIPLIER, 1.0 + bonus));
-        event.setAmount(isMelee ? amount * criticalMultiplier(attacker, victim) : amount);
+        event.setAmount(isMelee || isSpell ? amount * criticalMultiplier(attacker, victim, isSpell) : amount);
     }
 
     private static double meleeBonus(ServerPlayer attacker) {
@@ -236,8 +249,9 @@ public final class GameplayEvents {
         return bonus;
     }
 
-    private static float criticalMultiplier(ServerPlayer attacker, LivingEntity victim) {
-        boolean vanillaCrit = VANILLA_CRIT_TICK.getOrDefault(attacker.getUUID(), -1L) == attacker.serverLevel().getGameTime();
+    private static float criticalMultiplier(ServerPlayer attacker, LivingEntity victim, boolean spell) {
+        boolean vanillaCrit = !spell
+                && VANILLA_CRIT_TICK.getOrDefault(attacker.getUUID(), -1L) == attacker.serverLevel().getGameTime();
         double chance = Math.min(attributeValue(attacker, ModAttributes.CRIT_CHANCE), ServerConfig.CAP_CRIT_CHANCE.get());
         boolean treeCrit = !vanillaCrit && chance > 0 && attacker.getRandom().nextDouble() < chance;
         if (treeCrit) {
@@ -246,7 +260,15 @@ public final class GameplayEvents {
         if (treeCrit || vanillaCrit) {
             Triggers.fire(attacker, "on_crit", victim);
         }
-        return treeCrit ? (float) (1.0 + attributeValue(attacker, ModAttributes.CRIT_DAMAGE)) : 1f;
+        if (treeCrit && spell) {
+            Triggers.fire(attacker, Triggers.ON_SPELL_CRIT, victim);
+        }
+        if (!treeCrit) {
+            return 1f;
+        }
+        float multiplier = (float) (1.0 + attributeValue(attacker, ModAttributes.CRIT_DAMAGE));
+        SkillEvents.post(new SkillEvents.TreeCriticalHit(attacker, victim, multiplier));
+        return multiplier;
     }
 
     @SubscribeEvent
@@ -265,7 +287,7 @@ public final class GameplayEvents {
     }
 
     private static void afterDealingDamage(ServerPlayer attacker, LivingEntity victim, DamageSource source, float dealt) {
-        if (melee(source, attacker)) {
+        if (melee(source, attacker) || source.is(ModTags.SPELL_DAMAGE)) {
             double lifesteal = Math.min(attributeValue(attacker, ModAttributes.LIFESTEAL), ServerConfig.CAP_LIFESTEAL.get());
             boolean ready = lifesteal > 0 && ModAttachments.cooldowns(attacker).tryUse("lifesteal",
                     attacker.serverLevel().getGameTime(), ServerConfig.LIFESTEAL_COOLDOWN_TICKS.get());
