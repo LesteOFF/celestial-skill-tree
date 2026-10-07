@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:berserker",
+  "requires_mod": "cataclysm",
+  "hidden_until": "cataclysm:kill_ignis",
+  "name": "skill.nostalgiaskills.berserker.ignis_ember.name",
+  "text": "skill.nostalgiaskills.berserker.ignis_ember.text",
+  "icon": "nostalgiaskills:textures/skill_icons/fire.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:heavy_weapon_damage",
+      "operation": "add_value",
+      "amount": 0.12
+    },
+    {
+      "type": "damage_modifier",
+      "direction": "dealt",
+      "scope": "fire",
+      "amount": 0.15
+    }
+  ]
+}

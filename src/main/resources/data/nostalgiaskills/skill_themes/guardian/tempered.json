@@ -9,6 +9,12 @@
         "attribute": "minecraft:generic.armor_toughness",
         "operation": "add_value",
         "amount": 0.5
+      },
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.armor_toughness",
+        "operation": "add_multiplied_total",
+        "amount": 0.01
       }
     ]
   },
@@ -42,6 +48,15 @@
           "attribute": "minecraft:generic.armor",
           "operation": "add_value",
           "amount": 3.0,
+          "condition": {
+            "type": "sneaking"
+          }
+        },
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.armor",
+          "operation": "add_multiplied_total",
+          "amount": 0.06,
           "condition": {
             "type": "sneaking"
           }

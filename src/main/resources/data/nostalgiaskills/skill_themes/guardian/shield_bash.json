@@ -9,6 +9,12 @@
         "attribute": "minecraft:generic.attack_knockback",
         "operation": "add_value",
         "amount": 0.04
+      },
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.attack_knockback",
+        "operation": "add_multiplied_total",
+        "amount": 0.008
       }
     ]
   },

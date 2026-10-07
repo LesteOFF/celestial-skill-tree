@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:duelist",
+  "requires_mod": "born_in_chaos_v1",
+  "hidden_until": "born_in_chaos_v1:spider_warlord",
+  "name": "skill.nostalgiaskills.duelist.warlords_web.name",
+  "text": "skill.nostalgiaskills.duelist.warlords_web.text",
+  "icon": "nostalgiaskills:textures/skill_icons/lunge.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.attack_speed",
+      "operation": "add_multiplied_base",
+      "amount": 0.08
+    },
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:crit_chance",
+      "operation": "add_value",
+      "amount": 0.04
+    }
+  ]
+}

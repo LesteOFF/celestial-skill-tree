@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:arcanist",
+  "requires_mod": "cataclysm",
+  "hidden_until": "cataclysm:kill_maledictus",
+  "name": "skill.nostalgiaskills.arcanist.maledictus_hex.name",
+  "text": "skill.nostalgiaskills.arcanist.maledictus_hex.text",
+  "icon": "nostalgiaskills:textures/skill_icons/soul.png",
+  "effects": [
+    {
+      "type": "damage_modifier",
+      "direction": "dealt",
+      "scope": "magic",
+      "amount": 0.15
+    },
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:lifesteal",
+      "operation": "add_value",
+      "amount": 0.02
+    }
+  ]
+}

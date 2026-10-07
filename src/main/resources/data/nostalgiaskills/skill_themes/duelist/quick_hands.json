@@ -9,6 +9,12 @@
         "attribute": "minecraft:generic.attack_speed",
         "operation": "add_multiplied_base",
         "amount": 0.02
+      },
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.attack_speed",
+        "operation": "add_value",
+        "amount": 0.04
       }
     ]
   },
@@ -57,6 +63,16 @@
           "attribute": "minecraft:generic.attack_speed",
           "operation": "add_multiplied_base",
           "amount": 0.06,
+          "condition": {
+            "type": "holding",
+            "tag": "nostalgiaskills:light_weapons"
+          }
+        },
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.attack_speed",
+          "operation": "add_value",
+          "amount": 0.12,
           "condition": {
             "type": "holding",
             "tag": "nostalgiaskills:light_weapons"

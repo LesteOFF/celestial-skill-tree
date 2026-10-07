@@ -173,7 +173,7 @@ public final class StatsPanel {
             String operation = attributeAndOperation(sumKey)[1];
             boolean relative = !operation.equals("add_value") || attribute.startsWith(MOD_PREFIX);
             BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.parse(attribute)).ifPresent(holder -> lines.add(
-                    Component.translatable(holder.value().getDescriptionId()).append(" " + (relative ? signedPercent(sum) : signed(sum)))));
+                    Component.translatable(holder.value().getDescriptionId()).append(" " + (relative ? signedPercent(EffectEngine.scaled(sum)) : signed(EffectEngine.scaled(sum))))));
         });
         return lines;
     }
@@ -184,7 +184,7 @@ public final class StatsPanel {
             String attribute = attributeAndOperation(sumKey)[0];
             String operation = attributeAndOperation(sumKey)[1];
             ResourceLocation modifierId = EffectEngine.modifierId("tree", sumKey);
-            double total = EffectEngine.capped(attribute, operation, appliedAmount(player, attribute, modifierId) + pendingSum);
+            double total = EffectEngine.capped(attribute, operation, appliedAmount(player, attribute, modifierId) + EffectEngine.scaled(pendingSum));
             replacements.computeIfAbsent(attribute, key -> new ArrayList<>())
                     .add(new AttributeModifier(modifierId, total, EffectEngine.operationFor(attribute, operation)));
         });

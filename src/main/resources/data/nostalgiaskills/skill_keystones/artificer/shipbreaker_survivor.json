@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:artificer",
+  "requires_mod": "aquamirae",
+  "hidden_until": "aquamirae:adventure/survive_the_shipbreaker",
+  "name": "skill.nostalgiaskills.artificer.shipbreaker_survivor.name",
+  "text": "skill.nostalgiaskills.artificer.shipbreaker_survivor.text",
+  "icon": "nostalgiaskills:textures/skill_icons/keystone_wayfinder.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.max_health",
+      "operation": "add_value",
+      "amount": 4
+    },
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:tool_preservation",
+      "operation": "add_value",
+      "amount": 0.1
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:marksman",
+  "requires_mod": "block_factorys_bosses",
+  "hidden_until": "block_factorys_bosses:kill_sandworm",
+  "name": "skill.nostalgiaskills.marksman.sandworm_dunes.name",
+  "text": "skill.nostalgiaskills.marksman.sandworm_dunes.text",
+  "icon": "nostalgiaskills:textures/skill_icons/sneak_shot.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:dodge_chance",
+      "operation": "add_value",
+      "amount": 0.05
+    },
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:projectile_damage",
+      "operation": "add_value",
+      "amount": 0.1
+    }
+  ]
+}

@@ -25,7 +25,7 @@ config/       ServerConfig (gameplay, synced), ClientConfig (presentation only)
 client/       ClientSkillState, ClientSetup (key mapping), screen/, render/, VisualQa + InWorldQa (dev harness)
 ```
 
-`graph` and `progression` contain no Minecraft classes; they are unit-tested directly (`./gradlew test`, 172 tests,
+`graph` and `progression` contain no Minecraft classes; they are unit-tested directly (`./gradlew test`, 174 tests,
 including trees generated from the shipped catalog for many seeds). The same classes run on the server (authoritative) and
 on the client (previews only), so the client shows exactly the rules the server enforces.
 

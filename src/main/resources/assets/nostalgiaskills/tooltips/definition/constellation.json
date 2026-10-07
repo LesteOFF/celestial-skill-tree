@@ -1,0 +1,10 @@
+{
+  "priority": 10,
+  "style": "nostalgiaskills:constellation",
+  "filter": {
+    "type": "obscure_tooltips:mod",
+    "mods": [
+      "nostalgiaskills"
+    ]
+  }
+}

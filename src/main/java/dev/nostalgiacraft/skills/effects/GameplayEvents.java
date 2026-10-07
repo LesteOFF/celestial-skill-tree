@@ -183,9 +183,9 @@ public final class GameplayEvents {
         }
         double multiplier = 1.0 + modifierSum(defender, source, false, null);
         if (source.is(ModTags.MAGIC)) {
-            multiplier -= Math.min(attributeValue(defender, ModAttributes.MAGIC_RESISTANCE), ServerConfig.CAP_MAGIC_RESISTANCE.get());
+            multiplier -= attributeValue(defender, ModAttributes.MAGIC_RESISTANCE);
         }
-        multiplier -= Math.min(attributeValue(defender, ModAttributes.DAMAGE_REDUCTION), ServerConfig.CAP_DAMAGE_REDUCTION.get());
+        multiplier -= attributeValue(defender, ModAttributes.DAMAGE_REDUCTION);
         if (multiplier != 1.0) {
             double clamped = Math.max(MIN_DAMAGE_MULTIPLIER, Math.min(MAX_TAKEN_MULTIPLIER, multiplier));
             event.setAmount((float) (event.getAmount() * clamped));
@@ -197,7 +197,7 @@ public final class GameplayEvents {
         boolean dodgeable = !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)
                 && (source.getDirectEntity() instanceof LivingEntity || byProjectile(source))
                 && source.getEntity() != defender;
-        double chance = Math.min(attributeValue(defender, ModAttributes.DODGE_CHANCE), ServerConfig.CAP_DODGE_CHANCE.get());
+        double chance = attributeValue(defender, ModAttributes.DODGE_CHANCE);
         return dodgeable && chance > 0 && defender.getRandom().nextDouble() < chance;
     }
 
@@ -252,7 +252,7 @@ public final class GameplayEvents {
     private static float criticalMultiplier(ServerPlayer attacker, LivingEntity victim, boolean spell) {
         boolean vanillaCrit = !spell
                 && VANILLA_CRIT_TICK.getOrDefault(attacker.getUUID(), -1L) == attacker.serverLevel().getGameTime();
-        double chance = Math.min(attributeValue(attacker, ModAttributes.CRIT_CHANCE), ServerConfig.CAP_CRIT_CHANCE.get());
+        double chance = attributeValue(attacker, ModAttributes.CRIT_CHANCE);
         boolean treeCrit = !vanillaCrit && chance > 0 && attacker.getRandom().nextDouble() < chance;
         if (treeCrit) {
             attacker.level().playSound(null, victim.blockPosition(), SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.PLAYERS, 1f, 1.2f);
@@ -288,7 +288,7 @@ public final class GameplayEvents {
 
     private static void afterDealingDamage(ServerPlayer attacker, LivingEntity victim, DamageSource source, float dealt) {
         if (melee(source, attacker) || source.is(ModTags.SPELL_DAMAGE)) {
-            double lifesteal = Math.min(attributeValue(attacker, ModAttributes.LIFESTEAL), ServerConfig.CAP_LIFESTEAL.get());
+            double lifesteal = attributeValue(attacker, ModAttributes.LIFESTEAL);
             boolean ready = lifesteal > 0 && ModAttachments.cooldowns(attacker).tryUse("lifesteal",
                     attacker.serverLevel().getGameTime(), ServerConfig.LIFESTEAL_COOLDOWN_TICKS.get());
             if (ready) {

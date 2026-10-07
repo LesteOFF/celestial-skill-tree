@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:duelist",
+  "requires_mod": "block_factorys_bosses",
+  "hidden_until": "block_factorys_bosses:kill_underworld_knight",
+  "name": "skill.nostalgiaskills.duelist.knights_oath.name",
+  "text": "skill.nostalgiaskills.duelist.knights_oath.text",
+  "icon": "nostalgiaskills:textures/skill_icons/parry.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:damage_reduction",
+      "operation": "add_value",
+      "amount": 0.04
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.attack_damage",
+      "operation": "add_multiplied_total",
+      "amount": 0.05
+    }
+  ]
+}

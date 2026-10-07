@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:berserker",
+  "requires_mod": "twilightforest",
+  "hidden_until": "twilightforest:progress_hydra",
+  "name": "skill.nostalgiaskills.berserker.hydra_heads.name",
+  "text": "skill.nostalgiaskills.berserker.hydra_heads.text",
+  "icon": "nostalgiaskills:textures/skill_icons/damage.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.attack_damage",
+      "operation": "add_multiplied_total",
+      "amount": 0.08
+    },
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:lifesteal",
+      "operation": "add_value",
+      "amount": 0.02
+    }
+  ]
+}

@@ -13,6 +13,16 @@
           "type": "health_below",
           "fraction": 0.5
         }
+      },
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.armor",
+        "operation": "add_multiplied_total",
+        "amount": 0.016,
+        "condition": {
+          "type": "health_below",
+          "fraction": 0.5
+        }
       }
     ]
   },

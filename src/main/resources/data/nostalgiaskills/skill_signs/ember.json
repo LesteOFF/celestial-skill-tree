@@ -4,7 +4,7 @@
     {
       "type": "attribute",
       "attribute": "minecraft:generic.attack_damage",
-      "operation": "add_multiplied_base",
+      "operation": "add_multiplied_total",
       "amount": 0.04
     }
   ]

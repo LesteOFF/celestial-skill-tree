@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:marksman",
+  "requires_mod": "twilightforest",
+  "hidden_until": "twilightforest:progress_ur_ghast",
+  "name": "skill.nostalgiaskills.marksman.ghast_tear.name",
+  "text": "skill.nostalgiaskills.marksman.ghast_tear.text",
+  "icon": "nostalgiaskills:textures/skill_icons/bomb.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:projectile_damage",
+      "operation": "add_value",
+      "amount": 0.15
+    },
+    {
+      "type": "damage_modifier",
+      "direction": "dealt",
+      "scope": "fire",
+      "amount": 0.1
+    }
+  ]
+}

@@ -111,7 +111,7 @@ public final class EffectEngine {
 
     private static void applyPermanent(ServerPlayer player, String sumKey, double sum) {
         String[] attributeAndOperation = sumKey.split("\\|");
-        double amount = capped(attributeAndOperation[0], attributeAndOperation[1], sum);
+        double amount = capped(attributeAndOperation[0], attributeAndOperation[1], scaled(sum));
         if (amount == 0) {
             return;
         }
@@ -125,12 +125,20 @@ public final class EffectEngine {
         instance(player, attributeAndOperation[0]).ifPresent(instance -> instance.addTransientModifier(modifier));
     }
 
+    public static double scaled(double amount) {
+        return amount * ServerConfig.ATTRIBUTE_MULTIPLIER.get();
+    }
+
     public static double capped(String attribute, String operation, double amount) {
         if (attribute.equals("minecraft:generic.movement_speed") && operation.equals("add_multiplied_base")) {
-            return Math.min(amount, ServerConfig.CAP_MOVEMENT_SPEED.get());
+            return Math.min(amount, scaledCap(ServerConfig.CAP_MOVEMENT_SPEED));
         }
         Supplier<Double> cap = ADDITIVE_CAPS.get(attribute);
-        return cap == null || !operation.equals("add_value") ? amount : Math.min(amount, cap.get());
+        return cap == null || !operation.equals("add_value") ? amount : Math.min(amount, scaledCap(cap));
+    }
+
+    private static double scaledCap(Supplier<Double> cap) {
+        return cap.get() * ServerConfig.CAP_MULTIPLIER.get();
     }
 
     public static void updateConditionals(ServerPlayer player) {
@@ -154,7 +162,7 @@ public final class EffectEngine {
         ResourceLocation id = modifierId(CONDITIONAL_KIND, keyed.key());
         if (enable) {
             SkillEffect.ConditionalAttribute effect = keyed.effect();
-            instance.addOrUpdateTransientModifier(new AttributeModifier(id, effect.amount(),
+            instance.addOrUpdateTransientModifier(new AttributeModifier(id, scaled(effect.amount()),
                     operationFor(effect.attribute(), effect.operation())));
             active.add(keyed.key());
         } else {

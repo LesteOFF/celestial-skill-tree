@@ -7,8 +7,14 @@
       {
         "type": "attribute",
         "attribute": "minecraft:generic.attack_damage",
-        "operation": "add_multiplied_base",
+        "operation": "add_multiplied_total",
         "amount": 0.02
+      },
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.attack_damage",
+        "operation": "add_value",
+        "amount": 0.08
       }
     ]
   },
@@ -58,6 +64,16 @@
           "attribute": "nostalgiaskills:heavy_weapon_damage",
           "operation": "add_value",
           "amount": 0.1
+        },
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.attack_damage",
+          "operation": "add_value",
+          "amount": 0.4,
+          "condition": {
+            "type": "holding",
+            "tag": "nostalgiaskills:heavy_weapons"
+          }
         }
       ]
     }

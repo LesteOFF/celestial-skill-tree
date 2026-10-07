@@ -27,7 +27,7 @@ the only optional integration.
 
 ```bash
 ./gradlew build            # Windows: gradlew.bat build  → build/libs/nostalgiaskills-0.5.0.jar
-./gradlew test             # 172 unit tests, including trees generated from the shipped catalog
+./gradlew test             # 174 unit tests, including trees generated from the shipped catalog
 ./gradlew validateTree     # validates the catalog and generates one tree outside the game
 ./gradlew previewTree      # draws the tree shape to build/preview/tree.png
 ./gradlew runGameTestServer  # 12 in-game tests on a real server with mock players
@@ -138,7 +138,8 @@ limit requires the explicit `true` override argument.
 
 - **Server** (`world/serverconfig/nostalgiaskills-server.toml`, synced to clients): XP purchase on/off, point limit
   (10,000, effectively none), curve coefficients and discount, per-type cost overrides, keep progression on death, orb requirement,
-  caps (crit 50%, dodge 30%, lifesteal 10%, damage reduction 40%, magic resistance 60%, movement +50%), lifesteal
+  caps on what the tree grants (crit 50%, dodge 30%, lifesteal 10%, damage reduction 40%, magic resistance 60%,
+  movement +50%; equipment is never clamped), `[tuning]` multipliers for every attribute the tree grants and for the caps, lifesteal
   cooldown, weapon/tool classification tags, request rate and batch-size limits. Section `[events]`: falling stars
   (on, one per ~30 minutes of night per player), Constellated monster chance (2%) and size (8 skills), `eliteSpawnerMobs` (off: spawner monsters are never Constellated), eclipses (on,
   every ~20 days, `eclipseMonstersSpawn` on), star showers (on, every ~12 days, 4 stars per minute per player),
@@ -162,7 +163,7 @@ The tree is generated from a **catalog** of ordinary data files, then saved with
 - **Which classes a world gets.** Classes with at least `min_themes_for_own_class` themes enter, highest `priority`
   first, up to `max_classes`. Themes and keystones of a class that did not enter move to its `fallback_class`.
 - **The draw.** Everything the catalog offers a class appears in every world, as long as it fits: each branch ends
-  in a notable, the notables left over open a branch (and, on long branches, sit in the middle), and up to 9
+  in a notable, the notables left over open a branch (and, on long branches, sit in the middle), and up to 100
   keystones fan out at the tip. Which notable goes where is drawn by `weight` with the world seed. The minor skills
   never repeat inside one trunk or branch while the class has other themes to offer, the least used ones first, and
   the skill next to a notable is of that notable's theme. No skill appears more than `max_copies_per_skill` times in
@@ -220,6 +221,9 @@ An optional KubeJS integration ships (see below); packs and addons can build any
   stat is rolled once and shown as one number. The caps still limit what the tree contributes, but the mechanics are
   then Apothic's: its mining speed applies to every tool, its lifesteal has no cooldown, and its critical hits do not
   fire `on_crit`. Turn it off with `redirectToApothicAttributes` in the `[integrations]` section.
+- **L2DamageTracker.** Critical chance and critical damage raise its Weapon Crit Rate and Weapon Crit Damage
+  (`redirectToL2DamageTracker`). It wins over Apothic Attributes for these two stats, so the tree feeds only one of them
+  and a hit is never rolled twice.
 - **Pufferfish's Attributes.** Lifesteal, mining speed, healing received and projectile damage are redirected the same
   way (`redirectToPuffishAttributes`); a flat bonus becomes a multiplier there, because those attributes scale another
   value. Apothic Attributes wins where both mods overlap. Resistances are not redirected: their formulas differ.
@@ -238,6 +242,21 @@ An optional KubeJS integration ships (see below); packs and addons can build any
   Iron's Jewelry materials. The `astral` enchantment is plain vanilla data. All of them grant this mod's own
   attributes directly, so they are not covered by the Apothic or Pufferfish redirection above. Apothic's attribute
   screen shows every attribute of this mod with a description.
+- **Boss constellations.** With the matching mod installed, 27 keystones stay hidden until the player earns the
+  boss advancement (`hidden_until`): the Aether dungeons and Deep Aether's Brass Dungeon, Twilight Forest (Naga, Lich,
+  Hydra, Ur-Ghast, Snow Queen), Cataclysm (six bosses), Ice and Fire (dragon, hydra, sea serpent), Mowzie's Mobs
+  (Frostmaw, Ferrous Wroughtnaut, Umvuthi), Block Factory's Bosses (Kraken, Sandworm, Underworld Knight), Born in Chaos
+  (Spider Warlord, Pumpkin Lord) and Aquamirae (Shipbreaker). A class holds up to 100 keystones; beyond the
+  first nine they sit in wider rows of the crown, and every keystone takes one of the class's node slots.
+- **World themes.** `skyborn` (Artificer, Aether), `frostborn` (Guardian, cold biomes), `dune_runner` (Marksman, deserts)
+  and `nether_forged` (Berserker, Nether) use `in_dimension` and `in_biome_tag` through the common tags `c:is_cold`,
+  `c:is_desert` and `minecraft:is_nether`. `hearty_table` (Guardian, Farmer's Delight) fires Farmer's Delight's
+  Comfort and Nourishment from triggers.
+- **Loot.** Two global loot modifiers add Star Fragments and, rarely, Orbs: 6% and 1% on loot generated inside the
+  structures of `#nostalgiaskills:loot_structures` (vanilla, Moog's, Formations, Luki's and Aether Villages; Lootr uses
+  the same loot tables), and 1% of a fragment per night catch with a fishing rod. Starcatcher gets a night-only epic
+  catch (`starcatcher/fish/star_fragment`). Selling Bin is told the three items are worth 0, so they cannot be sold.
+- **Tooltips.** Obscure Tooltips draws every item of this mod with a violet and gold frame (`tooltips/` in the assets).
 - **Item tags.** `#nostalgiaskills:firearms` (Scorched Guns tiers by default) is meant for `holding`. Truly Modular
   weapons and tools are listed in the weapon, bow, crossbow and mining tool tags.
 - **AttributeFix.** No conflict: it leaves the range of this mod's attributes untouched unless its own config says

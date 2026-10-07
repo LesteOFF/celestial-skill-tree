@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:artificer",
+  "requires_mod": "iceandfire",
+  "hidden_until": "iceandfire:iceandfire/kill_sea_serpent",
+  "name": "skill.nostalgiaskills.artificer.serpent_depths.name",
+  "text": "skill.nostalgiaskills.artificer.serpent_depths.text",
+  "icon": "nostalgiaskills:textures/skill_icons/depth.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.water_movement_efficiency",
+      "operation": "add_value",
+      "amount": 0.5
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.movement_speed",
+      "operation": "add_multiplied_base",
+      "amount": 0.03
+    }
+  ]
+}

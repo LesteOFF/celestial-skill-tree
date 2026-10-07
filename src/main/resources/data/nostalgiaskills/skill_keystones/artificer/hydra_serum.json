@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:artificer",
+  "requires_mod": "iceandfire",
+  "hidden_until": "iceandfire:iceandfire/kill_hydra",
+  "name": "skill.nostalgiaskills.artificer.hydra_serum.name",
+  "text": "skill.nostalgiaskills.artificer.hydra_serum.text",
+  "icon": "nostalgiaskills:textures/skill_icons/antidote.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:potion_duration",
+      "operation": "add_value",
+      "amount": 0.25
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.luck",
+      "operation": "add_value",
+      "amount": 1
+    }
+  ]
+}

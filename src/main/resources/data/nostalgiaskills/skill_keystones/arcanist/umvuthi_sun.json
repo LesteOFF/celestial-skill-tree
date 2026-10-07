@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:arcanist",
+  "requires_mod": "mowziesmobs",
+  "hidden_until": "mowziesmobs:kill_umvuthi",
+  "name": "skill.nostalgiaskills.arcanist.umvuthi_sun.name",
+  "text": "skill.nostalgiaskills.arcanist.umvuthi_sun.text",
+  "icon": "nostalgiaskills:textures/skill_icons/school_holy.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:healing_received",
+      "operation": "add_value",
+      "amount": 0.15
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.max_health",
+      "operation": "add_multiplied_base",
+      "amount": 0.06
+    }
+  ]
+}

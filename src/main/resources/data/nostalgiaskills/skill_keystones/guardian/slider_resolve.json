@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:guardian",
+  "requires_mod": "aether",
+  "hidden_until": "aether:bronze_dungeon",
+  "name": "skill.nostalgiaskills.guardian.slider_resolve.name",
+  "text": "skill.nostalgiaskills.guardian.slider_resolve.text",
+  "icon": "nostalgiaskills:textures/skill_icons/keystone_bastion.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.armor_toughness",
+      "operation": "add_value",
+      "amount": 2
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.knockback_resistance",
+      "operation": "add_value",
+      "amount": 0.3
+    }
+  ]
+}

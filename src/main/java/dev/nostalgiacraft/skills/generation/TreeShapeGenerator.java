@@ -4,11 +4,12 @@ import dev.nostalgiacraft.skills.generation.TreeShape.Link;
 import dev.nostalgiacraft.skills.generation.TreeShape.LinkKind;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
 public final class TreeShapeGenerator {
-    public static final int MAX_KEYSTONES = 9;
+    public static final int MAX_KEYSTONES = 100;
     private static final int FIRST_ROW_KEYSTONES = 3;
     private static final double SECOND_ROW_KEYSTONE_DISTANCE = 250;
     private static final double[] SECOND_ROW_KEYSTONE_DEGREES = {-20, 20, -60, 60, -80, 80};
@@ -16,10 +17,20 @@ public final class TreeShapeGenerator {
     private static final int CROWN_STEM_SLOTS = 1;
     private static final double KEYSTONE_DISTANCE = 130;
     private static final double KEYSTONE_SPREAD_DEGREES = 40;
+    private static final double OUTER_ROW_DISTANCE_STEP = 120;
+    private static final double OUTER_ROW_SPACING = 100;
+    private static final double OUTER_ROW_HALF_ARC_DEGREES = 85;
+    private static final double OUTER_ROW_STAGGER = 0.146;
+    private static final double NEIGHBOUR_CLEARANCE = 45;
+    private static final double MIN_STAGGER = 0.15;
+    private static final double STAGGER_RANGE = 0.2;
     private static final double PORTAL_ARC_OFFSET = 110;
     private static final double PORTAL_TRUNK_OFFSET = 1.5;
 
     private record RingPlan(int ring, int slotsPerSide, boolean reachesBoundary) {
+    }
+
+    private record CrownSpot(double distance, double degrees) {
     }
 
     record PortalPair(int first, int second) {
@@ -74,7 +85,8 @@ public final class TreeShapeGenerator {
     }
 
     private static int keystoneCount(ShapeRequest.ClassBudget budget) {
-        return Math.max(0, Math.min(MAX_KEYSTONES, budget.keystones()));
+        int fitsTheBudget = budget.skills() - HUB_SLOTS - CROWN_STEM_SLOTS;
+        return Math.max(0, Math.min(MAX_KEYSTONES, Math.min(budget.keystones(), fitsTheBudget)));
     }
 
     private static ClassShape buildClass(Wheel wheel, int index, ShapeRequest.ClassBudget budget, int portalCount,
@@ -127,18 +139,55 @@ public final class TreeShapeGenerator {
 
     private static List<Slot> buildKeystones(Wheel wheel, int index, Slot stem, int count, List<Link> links) {
         List<Slot> keystones = new ArrayList<>();
-        int firstRow = Math.min(count, FIRST_ROW_KEYSTONES);
+        List<CrownSpot> spots = crownSpots(wheel, stem, count);
         for (int position = 0; position < count; position++) {
-            boolean inFirstRow = position < firstRow;
-            double degrees = inFirstRow ? (position - (firstRow - 1) / 2.0) * KEYSTONE_SPREAD_DEGREES
-                    : SECOND_ROW_KEYSTONE_DEGREES[position - firstRow];
-            double distance = inFirstRow ? KEYSTONE_DISTANCE : SECOND_ROW_KEYSTONE_DISTANCE;
+            CrownSpot spot = spots.get(position);
             Slot slot = new Slot(index + "/keystone_" + (position + 1), SlotKind.KEYSTONE,
-                    wheel.fanned(stem.position(), index, distance, degrees));
+                    wheel.fanned(stem.position(), index, spot.distance(), spot.degrees()));
             links.add(new Link(stem.key(), slot.key(), LinkKind.PATH));
             keystones.add(slot);
         }
         return keystones;
+    }
+
+    private static List<CrownSpot> crownSpots(Wheel wheel, Slot stem, int count) {
+        List<CrownSpot> spots = new ArrayList<>();
+        int firstRow = Math.min(count, FIRST_ROW_KEYSTONES);
+        for (int position = 0; position < firstRow; position++) {
+            spots.add(new CrownSpot(KEYSTONE_DISTANCE, (position - (firstRow - 1) / 2.0) * KEYSTONE_SPREAD_DEGREES));
+        }
+        for (int position = 0; position < SECOND_ROW_KEYSTONE_DEGREES.length && spots.size() < count; position++) {
+            spots.add(new CrownSpot(SECOND_ROW_KEYSTONE_DISTANCE, SECOND_ROW_KEYSTONE_DEGREES[position]));
+        }
+        double distance = SECOND_ROW_KEYSTONE_DISTANCE;
+        for (int row = 0; spots.size() < count; row++) {
+            distance += OUTER_ROW_DISTANCE_STEP;
+            List<CrownSpot> cells = outerRow(wheel, stem, distance, row);
+            spots.addAll(cells.subList(0, Math.min(count - spots.size(), cells.size())));
+        }
+        return spots;
+    }
+
+    private static List<CrownSpot> outerRow(Wheel wheel, Slot stem, double distance, int row) {
+        double stepDegrees = Math.toDegrees(OUTER_ROW_SPACING / distance);
+        int capacity = Math.max(1, (int) (2 * widestAngle(wheel, stem, distance) / stepDegrees));
+        double stagger = (MIN_STAGGER + STAGGER_RANGE * (row * OUTER_ROW_STAGGER % 1)) * stepDegrees;
+        List<CrownSpot> cells = new ArrayList<>();
+        for (int cell = 0; cell < capacity; cell++) {
+            cells.add(new CrownSpot(distance, (cell - (capacity - 1) / 2.0) * stepDegrees + stagger));
+        }
+        cells.sort(Comparator.comparingDouble(cell -> Math.abs(cell.degrees())));
+        return cells;
+    }
+
+    private static double widestAngle(Wheel wheel, Slot stem, double distance) {
+        if (wheel.classCount() < 2) {
+            return OUTER_ROW_HALF_ARC_DEGREES;
+        }
+        double half = wheel.halfAngle();
+        double stemRadius = Math.hypot(stem.position().x(), stem.position().y());
+        double room = Math.min(1, (stemRadius * Math.sin(half) - NEIGHBOUR_CLEARANCE) / distance);
+        return Math.min(OUTER_ROW_HALF_ARC_DEGREES, Math.toDegrees(half + Math.asin(room)));
     }
 
     private static Slot buildPortal(Wheel wheel, int index, List<Slot> trunk, int ringCount, int number, List<Link> links) {

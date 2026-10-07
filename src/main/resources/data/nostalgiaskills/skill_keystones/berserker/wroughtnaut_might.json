@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:berserker",
+  "requires_mod": "mowziesmobs",
+  "hidden_until": "mowziesmobs:kill_ferrous_wroughtnaut",
+  "name": "skill.nostalgiaskills.berserker.wroughtnaut_might.name",
+  "text": "skill.nostalgiaskills.berserker.wroughtnaut_might.text",
+  "icon": "nostalgiaskills:textures/skill_icons/heavy_weapon.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:heavy_weapon_damage",
+      "operation": "add_value",
+      "amount": 0.15
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.knockback_resistance",
+      "operation": "add_value",
+      "amount": 0.25
+    }
+  ]
+}

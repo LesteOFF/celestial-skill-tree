@@ -9,6 +9,12 @@
         "attribute": "minecraft:generic.max_health",
         "operation": "add_value",
         "amount": 1.0
+      },
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.max_health",
+        "operation": "add_multiplied_base",
+        "amount": 0.01
       }
     ]
   },
@@ -41,6 +47,12 @@
           "attribute": "minecraft:generic.max_health",
           "operation": "add_value",
           "amount": 4.0
+        },
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.max_health",
+          "operation": "add_multiplied_base",
+          "amount": 0.04
         }
       ]
     }

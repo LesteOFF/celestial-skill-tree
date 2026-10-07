@@ -23,6 +23,8 @@ public final class ServerConfig {
     public static final ModConfigSpec.BooleanValue ORB_REQUIRED_FOR_RESET;
     public static final ModConfigSpec.BooleanValue ALLOW_NODE_REFUNDS;
     public static final ModConfigSpec.BooleanValue ORB_REQUIRED_FOR_NODE_REFUND;
+    public static final ModConfigSpec.DoubleValue ATTRIBUTE_MULTIPLIER;
+    public static final ModConfigSpec.DoubleValue CAP_MULTIPLIER;
     public static final ModConfigSpec.DoubleValue CAP_CRIT_CHANCE;
     public static final ModConfigSpec.DoubleValue CAP_DODGE_CHANCE;
     public static final ModConfigSpec.DoubleValue CAP_LIFESTEAL;
@@ -48,6 +50,7 @@ public final class ServerConfig {
     public static final ModConfigSpec.BooleanValue ELITE_SPAWNER_MOBS;
     public static final ModConfigSpec.BooleanValue REDIRECT_TO_APOTHIC_ATTRIBUTES;
     public static final ModConfigSpec.BooleanValue REDIRECT_TO_PUFFISH_ATTRIBUTES;
+    public static final ModConfigSpec.BooleanValue REDIRECT_TO_L2_DAMAGE_TRACKER;
     public static final ModConfigSpec.EnumValue<EliteMobs.Stacking> ELITE_STACKING;
     public static final ModConfigSpec.BooleanValue ECLIPSE_MONSTERS_SPAWN;
     public static final ModConfigSpec.BooleanValue STAR_SHOWER_ENABLED;
@@ -82,7 +85,13 @@ public final class ServerConfig {
         ORB_REQUIRED_FOR_NODE_REFUND = builder.comment("Also consume an Orb of Reconfiguration for a single-skill refund")
                 .define("orbRequiredForNodeRefund", false);
         builder.pop();
-        builder.comment("Caps on this mod's own contribution; equipment and other mods are never clamped").push("caps");
+        builder.comment("Scaling of everything the tree grants").push("tuning");
+        ATTRIBUTE_MULTIPLIER = builder.comment("Multiplies the amount of every attribute effect granted by the tree (1.0 = as designed)")
+                .defineInRange("attributeMultiplier", 1.0, 0.0, 10.0);
+        CAP_MULTIPLIER = builder.comment("Multiplies every cap below (1.0 = as configured)")
+                .defineInRange("capMultiplier", 1.0, 0.0, 10.0);
+        builder.pop();
+        builder.comment("Caps on what the tree itself grants; equipment and other mods are never clamped").push("caps");
         CAP_CRIT_CHANCE = builder.defineInRange("critChance", 0.5, 0.0, 1.0);
         CAP_DODGE_CHANCE = builder.defineInRange("dodgeChance", 0.3, 0.0, 0.9);
         CAP_LIFESTEAL = builder.defineInRange("lifesteal", 0.1, 0.0, 1.0);
@@ -140,6 +149,9 @@ public final class ServerConfig {
         REDIRECT_TO_PUFFISH_ATTRIBUTES = builder.comment("With Pufferfish's Attributes installed, skills that grant lifesteal, mining speed, healing received and",
                         "projectile damage raise the Pufferfish attribute instead of this mod's own; Apothic Attributes wins where both overlap")
                 .define("redirectToPuffishAttributes", true);
+        REDIRECT_TO_L2_DAMAGE_TRACKER = builder.comment("With L2DamageTracker installed and Apothic Attributes absent, skills that grant critical chance and",
+                        "critical damage raise its Weapon Crit Rate and Weapon Crit Damage instead of this mod's own")
+                .define("redirectToL2DamageTracker", true);
         ELITE_STACKING = builder.comment("EXCLUSIVE: a monster that Champions or L2Hostility already made special is never Constellated too.",
                         "STACK: the rolls are independent and one monster may be all of them")
                 .defineEnum("eliteStacking", EliteMobs.Stacking.EXCLUSIVE);

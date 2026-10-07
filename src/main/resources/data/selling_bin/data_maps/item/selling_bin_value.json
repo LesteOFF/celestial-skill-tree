@@ -1,0 +1,16 @@
+{
+  "values": {
+    "nostalgiaskills:star_fragment": {
+      "base_value": 0,
+      "processors": []
+    },
+    "nostalgiaskills:orb_of_reconfiguration": {
+      "base_value": 0,
+      "processors": []
+    },
+    "nostalgiaskills:fallen_star": {
+      "base_value": 0,
+      "processors": []
+    }
+  }
+}

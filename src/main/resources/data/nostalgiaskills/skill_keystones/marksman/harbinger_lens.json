@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:marksman",
+  "requires_mod": "cataclysm",
+  "hidden_until": "cataclysm:kill_harbinger",
+  "name": "skill.nostalgiaskills.marksman.harbinger_lens.name",
+  "text": "skill.nostalgiaskills.marksman.harbinger_lens.text",
+  "icon": "nostalgiaskills:textures/skill_icons/insight.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:long_range_damage",
+      "operation": "add_value",
+      "amount": 0.15
+    },
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:crossbow_damage",
+      "operation": "add_value",
+      "amount": 0.1
+    }
+  ]
+}

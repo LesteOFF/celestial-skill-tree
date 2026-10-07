@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:duelist",
+  "requires_mod": "twilightforest",
+  "hidden_until": "twilightforest:progress_glacier",
+  "name": "skill.nostalgiaskills.duelist.frozen_court.name",
+  "text": "skill.nostalgiaskills.duelist.frozen_court.text",
+  "icon": "nostalgiaskills:textures/skill_icons/school_ice.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.movement_speed",
+      "operation": "add_multiplied_base",
+      "amount": 0.05
+    },
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:crit_chance",
+      "operation": "add_value",
+      "amount": 0.05
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:duelist",
+  "requires_mod": "aether",
+  "hidden_until": "aether:silver_dungeon",
+  "name": "skill.nostalgiaskills.duelist.valkyrie_grace.name",
+  "text": "skill.nostalgiaskills.duelist.valkyrie_grace.text",
+  "icon": "nostalgiaskills:textures/skill_icons/feather.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.attack_speed",
+      "operation": "add_multiplied_base",
+      "amount": 0.1
+    },
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:dodge_chance",
+      "operation": "add_value",
+      "amount": 0.06
+    }
+  ]
+}

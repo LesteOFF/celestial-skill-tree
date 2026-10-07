@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:berserker",
+  "requires_mod": "born_in_chaos_v1",
+  "hidden_until": "born_in_chaos_v1:pumpkin_lord",
+  "name": "skill.nostalgiaskills.berserker.pumpkin_harvest.name",
+  "text": "skill.nostalgiaskills.berserker.pumpkin_harvest.text",
+  "icon": "nostalgiaskills:textures/skill_icons/keystone_reckless_fury.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:lifesteal",
+      "operation": "add_value",
+      "amount": 0.02
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.attack_damage",
+      "operation": "add_multiplied_total",
+      "amount": 0.05
+    }
+  ]
+}

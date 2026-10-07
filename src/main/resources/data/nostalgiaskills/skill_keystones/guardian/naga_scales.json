@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:guardian",
+  "requires_mod": "twilightforest",
+  "hidden_until": "twilightforest:progress_naga",
+  "name": "skill.nostalgiaskills.guardian.naga_scales.name",
+  "text": "skill.nostalgiaskills.guardian.naga_scales.text",
+  "icon": "nostalgiaskills:textures/skill_icons/plate.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.armor",
+      "operation": "add_multiplied_total",
+      "amount": 0.1
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.max_health",
+      "operation": "add_value",
+      "amount": 4
+    }
+  ]
+}

@@ -12,6 +12,15 @@
         "condition": {
           "type": "blocking"
         }
+      },
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.armor",
+        "operation": "add_multiplied_total",
+        "amount": 0.012,
+        "condition": {
+          "type": "blocking"
+        }
       }
     ]
   },

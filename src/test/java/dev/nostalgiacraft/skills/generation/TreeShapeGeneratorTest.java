@@ -112,11 +112,11 @@ class TreeShapeGeneratorTest {
     }
 
     @Test
-    void aClassMayCarryUpToNineKeystonesWithoutOverlaps() {
+    void aClassMayCarryUpToAHundredKeystonesWithoutOverlaps() {
         for (int keystones = 0; keystones <= TreeShapeGenerator.MAX_KEYSTONES + 2; keystones++) {
             TreeShape shape = TreeShapeGenerator.generate(ShapeRequest.uniform(7, 100, keystones, true));
             ValidationReport report = new GraphValidator().validate(ShapeGraphs.placeholder(shape));
-            int expected = Math.min(keystones, TreeShapeGenerator.MAX_KEYSTONES);
+            int expected = Math.min(keystones, 100 - 2);
             assertTrue(report.issues().isEmpty(), () -> expected + " keystones: " + report.issues());
             assertEquals(expected, shape.classes().get(0).keystones().size());
             assertTrue(shape.classes().get(0).skillCount() <= 100);

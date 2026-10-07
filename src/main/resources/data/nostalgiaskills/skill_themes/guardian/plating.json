@@ -9,6 +9,12 @@
         "attribute": "minecraft:generic.armor",
         "operation": "add_value",
         "amount": 0.5
+      },
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.armor",
+        "operation": "add_multiplied_total",
+        "amount": 0.01
       }
     ]
   },
@@ -23,6 +29,12 @@
           "attribute": "minecraft:generic.max_health",
           "operation": "add_value",
           "amount": 4.0
+        },
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.max_health",
+          "operation": "add_multiplied_base",
+          "amount": 0.04
         }
       ]
     },

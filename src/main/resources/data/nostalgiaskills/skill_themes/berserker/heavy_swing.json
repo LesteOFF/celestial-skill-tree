@@ -9,6 +9,16 @@
         "attribute": "nostalgiaskills:heavy_weapon_damage",
         "operation": "add_value",
         "amount": 0.03
+      },
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.attack_damage",
+        "operation": "add_value",
+        "amount": 0.12,
+        "condition": {
+          "type": "holding",
+          "tag": "nostalgiaskills:heavy_weapons"
+        }
       }
     ]
   },
@@ -36,6 +46,16 @@
           "attribute": "minecraft:generic.attack_speed",
           "operation": "add_multiplied_base",
           "amount": 0.1,
+          "condition": {
+            "type": "holding",
+            "tag": "nostalgiaskills:heavy_weapons"
+          }
+        },
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.attack_speed",
+          "operation": "add_value",
+          "amount": 0.2,
           "condition": {
             "type": "holding",
             "tag": "nostalgiaskills:heavy_weapons"

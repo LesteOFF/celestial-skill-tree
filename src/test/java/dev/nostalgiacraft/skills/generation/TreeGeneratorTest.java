@@ -79,6 +79,18 @@ class TreeGeneratorTest {
     }
 
     @Test
+    void aClassWithManyKeystonesPlacesAllOfThem() {
+        Catalog catalog = CatalogFixtures.world(6, ENOUGH_THEMES, 1, 30).catalog();
+        for (long seed = 0; seed < 5; seed++) {
+            SkillGraphSnapshot graph = graph(generate(catalog, seed, TreeDraw.EMPTY));
+            for (int keystone = 0; keystone < 30; keystone++) {
+                assertTrue(graph.contains("test:c0/k" + keystone), "keystone " + keystone);
+            }
+            assertEquals(30, count(graph, "test:c0", NodeType.KEYSTONE));
+        }
+    }
+
+    @Test
     void anExtraNotableOpensABranchFollowedByASkillOfItsOwnTheme() {
         TreeDraw draw = generate(CatalogFixtures.world(6, ENOUGH_THEMES, 1, 3).catalog(), SEED, TreeDraw.EMPTY).draw();
         ClassDraw drawn = draw.classes().get(0);

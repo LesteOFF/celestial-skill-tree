@@ -13,6 +13,16 @@
           "type": "holding",
           "tag": "nostalgiaskills:heavy_weapons"
         }
+      },
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.attack_speed",
+        "operation": "add_value",
+        "amount": 0.03,
+        "condition": {
+          "type": "holding",
+          "tag": "nostalgiaskills:heavy_weapons"
+        }
       }
     ]
   },
