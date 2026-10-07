@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.nostalgiacraft.skills.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "LevelMixin"
+  ],
+  "client": [
+    "ClientLevelMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

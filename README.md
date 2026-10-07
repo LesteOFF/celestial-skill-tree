@@ -24,7 +24,7 @@ optional integrations in this version.
 ## Building
 
 ```bash
-./gradlew build            # Windows: gradlew.bat build  → build/libs/nostalgiaskills-0.4.0.jar
+./gradlew build            # Windows: gradlew.bat build  → build/libs/nostalgiaskills-0.5.0.jar
 ./gradlew test             # 91 domain unit tests, including validation of the full 484-node dataset
 ./gradlew runGameTestServer  # 12 in-game tests on a real server with mock players
 ./gradlew runClient / runServer
@@ -71,12 +71,18 @@ Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256
 - **Birth sign.** On your first login the world day decides one of twelve signs. Its small passive bonus is permanent,
   survives resets and is listed in **Show Stats**. The **Birth Sign** button (bottom left) opens your birth chart: a
   wheel of the twelve constellations with yours at the top; hover any sign to read its bonus.
-- **Star fragments and shooting stars.** At night a glowing Star Fragment occasionally falls near a player in the
-  Overworld. Using a fragment grants 1 skill point, never beyond the server's point limit.
+- **Falling stars.** At night a falling star occasionally crosses the sky near a player in the Overworld: a bright
+  head with a streak and a trail of sparks, a sound that follows it, and a burst where it lands. It leaves a
+  Star Fragment. Using a fragment grants 1 skill point, never beyond the server's point limit.
+- **Star shower.** Some nights are announced as a star shower: the sky and clouds are tinted, the stars shine
+  brighter and falling stars come several times a minute until dawn.
 - **Constellated monsters.** Rarely a monster spawns Constellated: +50% health, +25% damage and the attribute bonuses of
-  a small random constellation. It drops a Star Fragment.
-- **Eclipse.** Some nights are announced as an eclipse. Until dawn, resets and single-skill refunds need no Orb of
-  Reconfiguration.
+  a small random constellation. It drops a Star Fragment. Only monsters the world spawns on its own qualify (natural,
+  world generation, structures, patrols, raids, reinforcements, jockeys); spawners, trial spawners, spawn eggs,
+  commands and machines never produce one.
+- **Eclipse.** Some days the moon slides over the sun at dawn and stays until dusk. The sky, clouds and fog turn
+  dark, the stars come out and the world is lit like night: monsters spawn on the surface, undead do not burn and
+  beds cannot be used. In exchange, resets and single-skill refunds need no Orb of Reconfiguration.
 - **Shared constellation.** The **Community** button (bottom left) opens a path of stars, one per tier, that lights
   up as the server donates XP. Donate 100, 1,000 or everything you can; each tier reached gives every player a bonus.
   Donated XP is never returned.
@@ -115,8 +121,9 @@ does not pause the game.
 | `/nostalgiaskills unlock <player> <node_id> [grant_cost]` | level 2 — prerequisites and connectivity always apply; `grant_cost` first grants exactly the node's price |
 | `/nostalgiaskills reset <player>` | level 2 (no orb needed) |
 | `/nostalgiaskills validate` | level 2 — load result, revision, and the first errors with file/field/reason |
-| `/nostalgiaskills star <player>` | level 2 — a star fragment falls near the player |
-| `/nostalgiaskills eclipse start\|stop` | level 2 — force or end an eclipse |
+| `/nostalgiaskills star <player>` | level 2 — a falling star lands near the player |
+| `/nostalgiaskills eclipse start\|stop` | level 2 — force an eclipse, or end the current sky event |
+| `/nostalgiaskills shower start\|stop` | level 2 — force a star shower, or end the current sky event |
 | `/nostalgiaskills community set <xp>` | level 2 — set the shared constellation's donated XP |
 
 `points set` changes the available balance and books the difference as a net administrative grant; purchased points
@@ -128,9 +135,10 @@ limit requires the explicit `true` override argument.
 - **Server** (`world/serverconfig/nostalgiaskills-server.toml`, synced to clients): XP purchase on/off, point limit
   (10,000, effectively none), curve coefficients and discount, per-type cost overrides, keep progression on death, orb requirement,
   caps (crit 50%, dodge 30%, lifesteal 10%, damage reduction 40%, magic resistance 60%, movement +50%), lifesteal
-  cooldown, weapon/tool classification tags, request rate and batch-size limits. Section `[events]`: shooting stars
+  cooldown, weapon/tool classification tags, request rate and batch-size limits. Section `[events]`: falling stars
   (on, one per ~30 minutes of night per player), Constellated monster chance (2%) and size (8 skills), eclipses (on,
-  every ~20 days), `dropStarOnDeath` (`OFF`, `PVP_ONLY`, `ALWAYS`) and the shared constellation (on).
+  every ~20 days, `eclipseMonstersSpawn` on), star showers (on, every ~12 days, 4 stars per minute per player),
+  `dropStarOnDeath` (`OFF`, `PVP_ONLY`, `ALWAYS`) and the shared constellation (on).
 - **Client** (`config/nostalgiaskills-client.toml`): frame scale, zoom limits, glow intensity, background decoration,
   reduced motion, detailed tooltips, high contrast. Client settings never affect costs, rules or bonuses.
 
@@ -142,6 +150,10 @@ plus `effects`); both use the same effect vocabulary as nodes and take their tex
 `.description` and `community.<ns>.<id>.name` / `.description`. A node may also carry `"neighbour_multiplier": 2.0`
 (a black hole: adjacent skills you own count that many times, adjacent skills you do not own are sealed while it is
 active) or `"hidden_until": "<advancement id>"` (the node is invisible until the player earns that advancement).
+Any file in these folders may carry `"requires_mod": "modid"` (or a list of mod ids): it is skipped unless every
+listed mod is installed, so a node can use another mod's attributes or effects without breaking the tree when that
+mod is absent. Put the connections of such nodes in a connection file with the same `requires_mod`. Skills a player
+owns from a mod that was removed are refunded at their paid price on the next login.
 Override a node by shipping the same path in a higher-priority pack, then `/reload`. Invalid data is rejected with
 file, field and reason and the last valid tree stays active. Examples:
 
@@ -150,8 +162,29 @@ file, field and reason and the last valid tree stays active. Examples:
 - `examples/datapacks/nostalgiaskills_black_hole/` — turns the Death Wish keystone into a black hole.
 - `examples/datapacks/nostalgiaskills_hidden_keystone/` — hides Arcane Ward until you brew a potion.
 
+### Integration hooks
+
+No integration with another mod ships, but packs and addons can build one with these:
+
+- **Damage type tags as scope.** A `damage_modifier` takes `"scope": "#<damage type tag>"` beside `melee`,
+  `projectile`, `magic`, `fire` and `all`. A tag scope matches any damage of that tag the player deals or takes (spells,
+  guns), while the named scopes still count only melee and projectile hits as dealt damage.
+- **Conditions.** `in_dimension` (`dimension`), `in_biome_tag` (`tag`), `sky_event` (`event`: `eclipse` or
+  `star_shower`, whatever dimension the player is in), `wearing` (`tag`, any armour slot) and `attribute_at_least`
+  (`attribute`, `value`).
+- **Triggers from other mods.** A `trigger` may be any namespaced id, e.g. `"mypack:on_spell_cast"`. It fires when
+  code calls `Triggers.fire(player, "mypack:on_spell_cast", target)` (`dev.nostalgiacraft.skills.effects.Triggers`);
+  an id nobody fires simply never runs.
+- **Events** on the NeoForge bus, all nested in `dev.nostalgiacraft.skills.api.SkillEvents`, server side and not
+  cancellable: `PointsBought`, `NodesLearned`, `NodesRefunded`, `BuildReset`, `SkyEventChanged`, `StarLanded`,
+  `EliteSpawned`. KubeJS reaches them with `NativeEvents.onEvent`. Skills removed by reconciliation after a data pack
+  change, or dropped as a Fallen Star, post no event.
+- **Entity type tags.** `#nostalgiaskills:never_constellated` keeps a monster from ever being Constellated (bosses).
+  `#nostalgiaskills:always_drops_fragment` makes every kill by a player drop a Star Fragment; if that mob can be
+  farmed, so can skill points. Both ship empty.
+
 Tools: `python3 tools/layout/export.py` regenerates all node/connection data, translations and the layout manifest
-from the authored blueprints. The shipped tree uses the Fibonacci layout from `docs/layout/fibonacci/` (the blueprint
+from the authored blueprints. The shipped tree uses the Fibonacci layout (the blueprint
 positions expanded by φ² with a logarithmic twist; same nodes, edges and costs). Running `export.py` writes the
 blueprint positions back, and `gerar_fibonacci.ps1` reads its input from the shipped data, so run it only right
 after `export.py` and then copy `resource_override/data` over `src/main/resources/data` again. Afterwards
@@ -166,18 +199,16 @@ to be removed again (the blueprints still declare them).
   leaving the full reset as the only route.
 - No optional integrations ship; compatibility was tested only with NeoForge 21.1.256 and this mod alone.
 - Verified in a cloud container without a GPU: performance on real hardware (FPS, frame time) has not been measured,
-  and no human playtest or human visual review has been done. See `docs/verification/VERIFICATION.md` for exactly
-  what ran.
+  and no human playtest or human visual review has been done.
 
 ## Documentation
 
-- [TREE_DESIGN.md](TREE_DESIGN.md) — sectors, effects, caps
 - [ARCHITECTURE.md](ARCHITECTURE.md) — persistence, networking, transactions, effects, reloading
-- [LAYOUT_MANIFEST.md](LAYOUT_MANIFEST.md) — every node and edge, coordinates, validation results
-- [ART_DIRECTION.md](ART_DIRECTION.md) — backdrop composition, palette, sprites, asset pipeline
-- [PROGRESS.md](PROGRESS.md) — what was verified, how, and what remains
-- `docs/screenshots/`, `docs/verification/` — captures and test logs from real runs ([VERIFICATION.md](docs/verification/VERIFICATION.md) maps each in-game check to its evidence)
 
 ## License
 
-All Rights Reserved (see `gradle.properties` → `mod_license`). All art, data and code were created for this project.
+All Rights Reserved (see `gradle.properties` → `mod_license`). All art, data and code were created for this project,
+with one exception: the sounds in `assets/nostalgiaskills/sounds/` (falling star loop and impacts, eclipse
+and star shower stingers) come from Hyxcate 1.2.4 by the Elite Modding Team, a fork of Nyx by Ellpeck (MIT). The
+eclipse and falling star behaviour is also modelled on that mod. Confirm the fork's licence and keep this credit
+before distributing a build that ships those files.

@@ -8,8 +8,25 @@ public sealed interface SkillEffect {
     Set<String> TRIGGERS = Set.of("on_crit", "on_dodge", "on_block", "on_kill", "on_projectile_kill", "on_hurt",
             "on_low_health", "on_potion", "on_full_charge_hit", "on_block_break");
     Set<String> DAMAGE_SCOPES = Set.of("melee", "projectile", "magic", "fire", "all");
+    String TAG_PREFIX = "#";
 
     String type();
+
+    static boolean isTagScope(String scope) {
+        return scope.startsWith(TAG_PREFIX);
+    }
+
+    static String tagOf(String scope) {
+        return scope.substring(TAG_PREFIX.length());
+    }
+
+    static boolean isKnownScope(String scope) {
+        return isTagScope(scope) ? Ids.isValid(tagOf(scope)) : DAMAGE_SCOPES.contains(scope);
+    }
+
+    static boolean isKnownTrigger(String trigger) {
+        return TRIGGERS.contains(trigger) || Ids.isValid(trigger);
+    }
 
     record Attribute(String attribute, String operation, double amount) implements SkillEffect {
         public String type() {

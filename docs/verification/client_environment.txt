@@ -1,2 +1,0 @@
-Hardware: Intel(R) Xeon(R) Processor @ 2.10GHz, 4 vCPU, 15 GiB RAM, no GPU: Mesa llvmpipe software OpenGL under Xvfb.
-Backend library: LWJGL version 3.3.3+5

@@ -9,3 +9,6 @@ __pycache__/
 *.pyc
 tools/**/out/
 run_mpqa/
+docs/
+tools/
+.vscode

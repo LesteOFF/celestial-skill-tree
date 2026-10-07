@@ -1,6 +1,7 @@
 package dev.nostalgiacraft.skills.effects;
 
 import dev.nostalgiacraft.skills.NostalgiaSkills;
+import dev.nostalgiacraft.skills.api.SkillEvents;
 import dev.nostalgiacraft.skills.config.ServerConfig;
 import dev.nostalgiacraft.skills.data.SkillTreeManager;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
@@ -10,24 +11,29 @@ import dev.nostalgiacraft.skills.progression.Holdings;
 import dev.nostalgiacraft.skills.progression.LedgerService;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.registry.ModItems;
+import dev.nostalgiacraft.skills.registry.ModTags;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @EventBusSubscriber(modid = NostalgiaSkills.MODID)
 public final class EliteMobs {
@@ -39,6 +45,9 @@ public final class EliteMobs {
     private static final double BASE_HEALTH_BONUS = 0.5;
     private static final double BASE_DAMAGE_BONUS = 0.25;
     private static final int CONSTELLATION_BUDGET = 1_000;
+    private static final Set<MobSpawnType> WILD_SPAWNS = EnumSet.of(MobSpawnType.NATURAL, MobSpawnType.CHUNK_GENERATION,
+            MobSpawnType.STRUCTURE, MobSpawnType.PATROL, MobSpawnType.EVENT, MobSpawnType.REINFORCEMENT,
+            MobSpawnType.JOCKEY);
 
     private EliteMobs() {
     }
@@ -50,6 +59,9 @@ public final class EliteMobs {
             return;
         }
         Monster monster = (Monster) event.getEntity();
+        if (!WILD_SPAWNS.contains(monster.getSpawnType()) || monster.getType().is(ModTags.NEVER_CONSTELLATED)) {
+            return;
+        }
         monster.getPersistentData().putBoolean(ROLLED_KEY, true);
         if (monster.getRandom().nextDouble() < ServerConfig.ELITE_MOB_CHANCE.get()) {
             empower(monster, monster.getRandom(), ServerConfig.ELITE_MOB_NODES.get());
@@ -59,7 +71,8 @@ public final class EliteMobs {
     @SubscribeEvent
     public static void onDrops(LivingDropsEvent event) {
         LivingEntity entity = event.getEntity();
-        if (isElite(entity)) {
+        boolean taggedKill = entity.getType().is(ModTags.ALWAYS_DROPS_FRAGMENT) && event.getSource().getEntity() instanceof Player;
+        if (isElite(entity) || taggedKill) {
             event.getDrops().add(new ItemEntity(entity.level(), entity.getX(), entity.getY(), entity.getZ(),
                     new ItemStack(ModItems.STAR_FRAGMENT.get())));
         }
@@ -82,6 +95,7 @@ public final class EliteMobs {
         monster.setCustomName(Component.translatable("entity.nostalgiaskills.elite", monster.getType().getDescription())
                 .withStyle(ChatFormatting.LIGHT_PURPLE));
         monster.getPersistentData().putBoolean(ELITE_KEY, true);
+        SkillEvents.post(new SkillEvents.EliteSpawned(monster));
         return true;
     }
 

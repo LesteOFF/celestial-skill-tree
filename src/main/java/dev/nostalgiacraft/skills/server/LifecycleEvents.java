@@ -41,6 +41,7 @@ public final class LifecycleEvents {
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             reconcileAndSync(player);
+            SkyEvents.greet(player);
         }
     }
 

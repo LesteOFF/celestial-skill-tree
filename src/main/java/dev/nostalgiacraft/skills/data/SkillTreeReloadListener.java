@@ -9,6 +9,7 @@ import dev.nostalgiacraft.skills.graph.CommunityParser;
 import dev.nostalgiacraft.skills.graph.CommunityTier;
 import dev.nostalgiacraft.skills.graph.GraphParser;
 import dev.nostalgiacraft.skills.graph.Ids;
+import dev.nostalgiacraft.skills.graph.ModRequirement;
 import dev.nostalgiacraft.skills.graph.NodeType;
 import dev.nostalgiacraft.skills.graph.SignParser;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
@@ -19,6 +20,7 @@ import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.neoforged.fml.ModList;
 
 import java.io.Reader;
 import java.util.ArrayList;
@@ -77,7 +79,10 @@ public final class SkillTreeReloadListener extends SimplePreparableReloadListene
             String path = location.getPath();
             String id = location.getNamespace() + ":" + path.substring(directory.length() + 1, path.length() - JSON_SUFFIX.length());
             try (Reader reader = resource.openAsReader()) {
-                files.put(id, JsonParser.parseReader(reader));
+                JsonElement file = JsonParser.parseReader(reader);
+                if (ModRequirement.isMet(file, ModList.get()::isLoaded)) {
+                    files.put(id, file);
+                }
             } catch (Exception unreadable) {
                 errors.add(directory + "/" + id + " (pack " + resource.sourcePackId() + "): unreadable JSON: " + unreadable.getMessage());
             }

@@ -6,7 +6,9 @@ import dev.nostalgiacraft.skills.config.ServerConfig;
 import dev.nostalgiacraft.skills.network.NetworkSetup;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
 import dev.nostalgiacraft.skills.registry.ModAttributes;
+import dev.nostalgiacraft.skills.registry.ModEntities;
 import dev.nostalgiacraft.skills.registry.ModItems;
+import dev.nostalgiacraft.skills.registry.ModSounds;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -22,6 +24,8 @@ public final class NostalgiaSkills {
         ModAttributes.register(modBus);
         ModAttachments.register(modBus);
         ModItems.register(modBus);
+        ModEntities.register(modBus);
+        ModSounds.register(modBus);
         modBus.addListener(NetworkSetup::register);
         container.registerConfig(ModConfig.Type.SERVER, ServerConfig.SPEC);
         container.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);

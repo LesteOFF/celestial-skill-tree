@@ -1,6 +1,7 @@
 package dev.nostalgiacraft.skills.server;
 
 import dev.nostalgiacraft.skills.NostalgiaSkills;
+import dev.nostalgiacraft.skills.api.SkillEvents;
 import dev.nostalgiacraft.skills.config.ServerConfig;
 import dev.nostalgiacraft.skills.data.SkillTreeManager;
 import dev.nostalgiacraft.skills.data.WorldSkillData;
@@ -19,6 +20,7 @@ import dev.nostalgiacraft.skills.progression.RejectReason;
 import dev.nostalgiacraft.skills.progression.RequestGuard;
 import dev.nostalgiacraft.skills.progression.RespecService;
 import dev.nostalgiacraft.skills.progression.SignService;
+import dev.nostalgiacraft.skills.progression.WorldClock;
 import dev.nostalgiacraft.skills.progression.XpMath;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
 import dev.nostalgiacraft.skills.registry.ModItems;
@@ -39,7 +41,6 @@ import java.util.UUID;
 public final class SkillService {
     private static final Map<UUID, RequestGuard> GUARDS = new HashMap<>();
     private static final RateLimiter LIMITER = new RateLimiter();
-    private static final long TICKS_PER_DAY = 24_000;
     private static byte[] encodedGraph;
     private static String encodedFingerprint = "";
 
@@ -63,14 +64,14 @@ public final class SkillService {
     }
 
     private static boolean orbNeeded(boolean configured) {
-        return configured && !Eclipse.isActive();
+        return configured && !SkyEvents.isEclipse();
     }
 
     private static Payloads.WorldRules worldRules(ServerPlayer player) {
         List<Payloads.TierInfo> tiers = SkillTreeManager.communityTiers().stream().limit(Payloads.WorldRules.MAX_TIERS)
                 .map(tier -> new Payloads.TierInfo(tier.id(), tier.xpRequired())).toList();
         List<String> signIds = SkillTreeManager.sortedSignIds().stream().limit(Payloads.WorldRules.MAX_SIGNS).toList();
-        return new Payloads.WorldRules(Eclipse.isActive(), WorldSkillData.of(player.server).communityXp(), tiers, signIds);
+        return new Payloads.WorldRules(SkyEvents.current(), WorldSkillData.of(player.server).communityXp(), tiers, signIds);
     }
 
     static void send(ServerPlayer player, CustomPacketPayload payload) {
@@ -114,7 +115,7 @@ public final class SkillService {
     }
 
     private static void assignSign(ServerPlayer player) {
-        long worldDay = player.serverLevel().getDayTime() / TICKS_PER_DAY;
+        long worldDay = WorldClock.day(player.serverLevel().getDayTime());
         SignService.assignIfMissing(ModAttachments.state(player), SkillTreeManager.sortedSignIds(), worldDay)
                 .ifPresent(signId -> player.sendSystemMessage(Component.translatable("message.nostalgiaskills.sign_assigned",
                         Component.translatable(SkillSign.nameKey(signId)), Component.translatable(SkillSign.descriptionKey(signId)))));
@@ -205,6 +206,7 @@ public final class SkillService {
             return;
         }
         setExperience(player, result.newXpTotal());
+        SkillEvents.post(new SkillEvents.PointsBought(player, result.bought(), result.totalCost()));
         if (result.bought() == 1) {
             request.accept("message.nostalgiaskills.point_bought", result.totalCost() + "/" + result.newXpTotal());
         } else {
@@ -252,6 +254,7 @@ public final class SkillService {
             return;
         }
         EffectEngine.refresh(request.player());
+        SkillEvents.post(new SkillEvents.NodesLearned(request.player(), result.nodeIds()));
         request.accept("message.nostalgiaskills.allocated", result.accepted().size() + "/" + result.totalCost());
     }
 
@@ -275,6 +278,7 @@ public final class SkillService {
         RespecService.Preview done = RespecService.resetAll(state);
         consume(orb.get());
         EffectEngine.refresh(player);
+        SkillEvents.post(new SkillEvents.BuildReset(player, done.removed(), done.refund()));
         request.accept("message.nostalgiaskills.reset_done", done.refund() + "/" + done.removed().size());
     }
 
@@ -303,6 +307,7 @@ public final class SkillService {
         }
         consume(orb.get());
         EffectEngine.refresh(request.player());
+        SkillEvents.post(new SkillEvents.NodesRefunded(request.player(), done.removed(), done.refund()));
         request.accept("message.nostalgiaskills.refunded", done.refund() + "/" + done.removed().size());
     }
 

@@ -35,6 +35,10 @@ public final class AllocationService {
     }
 
     public record BatchResult(boolean ok, List<Accepted> accepted, int totalCost, Optional<Rejection> rejection) {
+        public List<String> nodeIds() {
+            return accepted.stream().map(Accepted::nodeId).toList();
+        }
+
         static BatchResult reject(RejectReason reason, String nodeId, String detail) {
             return reject(new Rejection(reason, nodeId, detail));
         }

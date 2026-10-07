@@ -44,6 +44,10 @@ public final class ServerConfig {
     public static final ModConfigSpec.EnumValue<FallenStars.Mode> DROP_STAR_ON_DEATH;
     public static final ModConfigSpec.IntValue ECLIPSE_AVERAGE_DAYS;
     public static final ModConfigSpec.IntValue ELITE_MOB_NODES;
+    public static final ModConfigSpec.BooleanValue ECLIPSE_MONSTERS_SPAWN;
+    public static final ModConfigSpec.BooleanValue STAR_SHOWER_ENABLED;
+    public static final ModConfigSpec.IntValue STAR_SHOWER_AVERAGE_DAYS;
+    public static final ModConfigSpec.IntValue STAR_SHOWER_STARS_PER_MINUTE;
 
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -95,7 +99,7 @@ public final class ServerConfig {
         MAX_BATCH_SIZE = builder.defineInRange("maxBatchSize", 400, 1, 400);
         builder.pop();
         builder.comment("World events").push("events");
-        SHOOTING_STARS_ENABLED = builder.comment("At night, a star fragment occasionally falls near a player in the Overworld")
+        SHOOTING_STARS_ENABLED = builder.comment("At night, a falling star occasionally crosses the sky near a player in the Overworld and leaves a star fragment")
                 .define("shootingStarsEnabled", true);
         SHOOTING_STAR_AVERAGE_MINUTES = builder.comment("Average minutes of night between two shooting stars, per player")
                 .defineInRange("shootingStarAverageMinutes", 30, 1, 1440);
@@ -103,10 +107,18 @@ public final class ServerConfig {
                 .defineInRange("eliteMobChance", 0.02, 0.0, 1.0);
         ELITE_MOB_NODES = builder.comment("How many random skills beyond a hub a Constellated monster receives")
                 .defineInRange("eliteMobNodes", 8, 0, 60);
-        ECLIPSE_ENABLED = builder.comment("Some nights are an eclipse: resets and refunds need no Orb of Reconfiguration")
+        ECLIPSE_ENABLED = builder.comment("Some days the moon covers the sun from dawn to dusk: resets and refunds need no Orb of Reconfiguration")
                 .define("eclipseEnabled", true);
         ECLIPSE_AVERAGE_DAYS = builder.comment("Average number of game days between two eclipses")
                 .defineInRange("eclipseAverageDays", 20, 1, 1000);
+        ECLIPSE_MONSTERS_SPAWN = builder.comment("During an eclipse the Overworld is as dark as night: monsters spawn on the surface and undead do not burn")
+                .define("eclipseMonstersSpawn", true);
+        STAR_SHOWER_ENABLED = builder.comment("Some nights are a star shower: falling stars are far more frequent")
+                .define("starShowerEnabled", true);
+        STAR_SHOWER_AVERAGE_DAYS = builder.comment("Average number of game days between two star showers")
+                .defineInRange("starShowerAverageDays", 12, 1, 1000);
+        STAR_SHOWER_STARS_PER_MINUTE = builder.comment("Falling stars per minute, per player, during a star shower")
+                .defineInRange("starShowerStarsPerMinute", 4, 1, 60);
         DROP_STAR_ON_DEATH = builder.comment("On death the newest stand-alone skill drops as a Fallen Star: its owner can take it back,",
                         "anyone else gains its points. OFF, PVP_ONLY (killed by another player) or ALWAYS")
                 .defineEnum("dropStarOnDeath", FallenStars.Mode.OFF);

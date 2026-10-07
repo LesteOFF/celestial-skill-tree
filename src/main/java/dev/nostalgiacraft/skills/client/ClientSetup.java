@@ -2,6 +2,8 @@ package dev.nostalgiacraft.skills.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import dev.nostalgiacraft.skills.NostalgiaSkills;
+import dev.nostalgiacraft.skills.client.render.FallingStarRenderer;
+import dev.nostalgiacraft.skills.registry.ModEntities;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
@@ -9,6 +11,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import org.lwjgl.glfw.GLFW;
@@ -28,6 +31,11 @@ public final class ClientSetup {
         @SubscribeEvent
         public static void keys(RegisterKeyMappingsEvent e) {
             e.register(OPEN_KEY);
+        }
+
+        @SubscribeEvent
+        public static void renderers(EntityRenderersEvent.RegisterRenderers e) {
+            e.registerEntityRenderer(ModEntities.FALLING_STAR.get(), FallingStarRenderer::new);
         }
     }
 

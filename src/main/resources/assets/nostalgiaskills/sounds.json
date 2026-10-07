@@ -1,0 +1,29 @@
+{
+  "entity.falling_star.falling": {
+    "subtitle": "subtitles.nostalgiaskills.falling_star.falling",
+    "sounds": [
+      "nostalgiaskills:entity/falling_star/falling_loop"
+    ]
+  },
+  "entity.falling_star.impact": {
+    "subtitle": "subtitles.nostalgiaskills.falling_star.impact",
+    "sounds": [
+      "nostalgiaskills:entity/falling_star/impact1",
+      "nostalgiaskills:entity/falling_star/impact2",
+      "nostalgiaskills:entity/falling_star/impact3",
+      "nostalgiaskills:entity/falling_star/impact4"
+    ]
+  },
+  "event.eclipse.start": {
+    "subtitle": "subtitles.nostalgiaskills.eclipse.start",
+    "sounds": [
+      "nostalgiaskills:event/eclipse"
+    ]
+  },
+  "event.star_shower.start": {
+    "subtitle": "subtitles.nostalgiaskills.star_shower.start",
+    "sounds": [
+      "nostalgiaskills:event/star_shower"
+    ]
+  }
+}

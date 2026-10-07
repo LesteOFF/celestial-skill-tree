@@ -78,7 +78,17 @@ public final class GameplayEvents {
         return source.getEntity() == player && source.getDirectEntity() != player && source.is(DamageTypeTags.IS_PROJECTILE);
     }
 
+    static boolean weapon(DamageSource source, ServerPlayer player) {
+        return melee(source, player) || projectile(source, player);
+    }
+
     static boolean inScope(String scope, DamageSource source, ServerPlayer player, boolean dealt) {
+        if (SkillEffect.isTagScope(scope)) {
+            return source.is(ModTags.damageTag(SkillEffect.tagOf(scope)));
+        }
+        if (dealt && !weapon(source, player)) {
+            return false;
+        }
         boolean byProjectile = source.is(DamageTypeTags.IS_PROJECTILE);
         return switch (scope) {
             case "melee" -> dealt ? melee(source, player) : source.getDirectEntity() instanceof LivingEntity && !byProjectile;
@@ -182,12 +192,15 @@ public final class GameplayEvents {
     private static void attack(LivingIncomingDamageEvent event, ServerPlayer attacker, LivingEntity victim,
                                DamageSource source) {
         boolean isMelee = melee(source, attacker);
-        if (!isMelee && !projectile(source, attacker)) {
+        double distance = isMelee ? NO_SHOT_DISTANCE : shotDistance(source, victim);
+        double bonus = modifierSum(attacker, source, true, new EffectEngine.DamageContext(victim, distance));
+        if (isMelee) {
+            bonus += meleeBonus(attacker);
+        } else if (projectile(source, attacker)) {
+            bonus += projectileBonus(attacker, source, distance);
+        } else if (bonus == 0) {
             return;
         }
-        double distance = isMelee ? NO_SHOT_DISTANCE : shotDistance(source, victim);
-        double bonus = isMelee ? meleeBonus(attacker) : projectileBonus(attacker, source, distance);
-        bonus += modifierSum(attacker, source, true, new EffectEngine.DamageContext(victim, distance));
         float amount = (float) (event.getAmount() * Math.max(MIN_DAMAGE_MULTIPLIER, 1.0 + bonus));
         event.setAmount(isMelee ? amount * criticalMultiplier(attacker, victim) : amount);
     }

@@ -152,20 +152,42 @@ class ProgressionTest {
     }
 
     @Test
-    void eclipsesAreScheduledStrictlyInTheFutureAndOnlyActiveAtNight() {
-        assertTrue(EclipseSchedule.needsScheduling(EclipseSchedule.UNSCHEDULED, 0));
-        assertTrue(EclipseSchedule.needsScheduling(4, 5));
-        assertFalse(EclipseSchedule.needsScheduling(5, 5));
-        assertEquals(6, EclipseSchedule.nextAfter(5, 20, 0.0));
-        assertEquals(44, EclipseSchedule.nextAfter(5, 20, 1.0));
-        assertEquals(6, EclipseSchedule.nextAfter(5, 1, 0.9));
+    void skyEventsAreScheduledStrictlyInTheFuture() {
+        assertTrue(SkyEventSchedule.needsScheduling(SkyEventSchedule.UNSCHEDULED, 0));
+        assertTrue(SkyEventSchedule.needsScheduling(4, 5));
+        assertFalse(SkyEventSchedule.needsScheduling(5, 5));
+        assertEquals(6, SkyEventSchedule.nextAfter(5, 20, 0.0));
+        assertEquals(44, SkyEventSchedule.nextAfter(5, 20, 1.0));
+        assertEquals(6, SkyEventSchedule.nextAfter(5, 1, 0.9));
         for (int i = 0; i <= 100; i++) {
-            long next = EclipseSchedule.nextAfter(10, 20, i / 100.0);
+            long next = SkyEventSchedule.nextAfter(10, 20, i / 100.0);
             assertTrue(next > 10 && next <= 49, "next " + next);
         }
-        assertTrue(EclipseSchedule.isActive(7, 7, true));
-        assertFalse(EclipseSchedule.isActive(7, 7, false));
-        assertFalse(EclipseSchedule.isActive(7, 8, true));
+    }
+
+    @Test
+    void theClockDecidesNightRegardlessOfWeather() {
+        assertEquals(0, WorldClock.day(23_999));
+        assertEquals(3, WorldClock.day(3 * 24_000L + 6_000));
+        assertTrue(WorldClock.isDaylight(0) && WorldClock.isDaylight(12_541));
+        assertFalse(WorldClock.isDaylight(12_542) || WorldClock.isDaylight(23_999));
+        assertTrue(WorldClock.isNight(12_542) && WorldClock.isNight(5 * 24_000L + 23_459));
+        assertFalse(WorldClock.isNight(6_000) || WorldClock.isNight(23_460));
+    }
+
+    @Test
+    void anEclipseLastsTheDaylightOfItsDayAndAShowerItsNight() {
+        long day7 = 7 * 24_000L;
+        assertEquals(SkyEvent.ECLIPSE, SkyEventSchedule.current(7, 7, day7));
+        assertEquals(SkyEvent.ECLIPSE, SkyEventSchedule.current(7, 9, day7 + 12_541));
+        assertEquals(SkyEvent.NONE, SkyEventSchedule.current(7, 9, day7 + 12_542));
+        assertEquals(SkyEvent.NONE, SkyEventSchedule.current(7, 9, day7 + 23_999));
+        assertEquals(SkyEvent.NONE, SkyEventSchedule.current(7, 9, day7 + 24_000));
+        assertEquals(SkyEvent.STAR_SHOWER, SkyEventSchedule.current(7, 7, day7 + 12_542));
+        assertEquals(SkyEvent.STAR_SHOWER, SkyEventSchedule.current(9, 7, day7 + 23_459));
+        assertEquals(SkyEvent.NONE, SkyEventSchedule.current(9, 7, day7 + 23_460));
+        assertEquals(SkyEvent.NONE, SkyEventSchedule.current(9, 7, day7 + 6_000));
+        assertEquals(SkyEvent.NONE, SkyEventSchedule.current(SkyEventSchedule.UNSCHEDULED, SkyEventSchedule.UNSCHEDULED, day7));
     }
 
     @Test

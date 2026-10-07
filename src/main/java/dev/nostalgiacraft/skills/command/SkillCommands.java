@@ -8,9 +8,11 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import dev.nostalgiacraft.skills.NostalgiaSkills;
+import dev.nostalgiacraft.skills.api.SkillEvents;
 import dev.nostalgiacraft.skills.config.ServerConfig;
 import dev.nostalgiacraft.skills.data.SkillTreeManager;
 import dev.nostalgiacraft.skills.effects.EffectEngine;
+import dev.nostalgiacraft.skills.entity.FallingStar;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.graph.ValidationReport;
 import dev.nostalgiacraft.skills.network.Payloads;
@@ -19,11 +21,11 @@ import dev.nostalgiacraft.skills.progression.LedgerService;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.progression.RejectReason;
 import dev.nostalgiacraft.skills.progression.RespecService;
+import dev.nostalgiacraft.skills.progression.SkyEvent;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
 import dev.nostalgiacraft.skills.server.CommunityTree;
-import dev.nostalgiacraft.skills.server.Eclipse;
-import dev.nostalgiacraft.skills.server.ShootingStars;
 import dev.nostalgiacraft.skills.server.SkillService;
+import dev.nostalgiacraft.skills.server.SkyEvents;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -72,8 +74,11 @@ public final class SkillCommands {
                 .then(admin("community").then(Commands.literal("set")
                         .then(Commands.argument("xp", IntegerArgumentType.integer(0)).executes(SkillCommands::community))))
                 .then(admin("eclipse")
-                        .then(Commands.literal("start").executes(context -> eclipse(context, true)))
-                        .then(Commands.literal("stop").executes(context -> eclipse(context, false))))
+                        .then(Commands.literal("start").executes(context -> skyEvent(context, SkyEvent.ECLIPSE, true)))
+                        .then(Commands.literal("stop").executes(context -> skyEvent(context, SkyEvent.ECLIPSE, false))))
+                .then(admin("shower")
+                        .then(Commands.literal("start").executes(context -> skyEvent(context, SkyEvent.STAR_SHOWER, true)))
+                        .then(Commands.literal("stop").executes(context -> skyEvent(context, SkyEvent.STAR_SHOWER, false))))
                 .then(admin("validate").executes(SkillCommands::validate)));
     }
 
@@ -155,6 +160,7 @@ public final class SkillCommands {
             return 0;
         }
         changed(player);
+        SkillEvents.post(new SkillEvents.NodesLearned(player, result.nodeIds()));
         context.getSource().sendSuccess(() -> Component.translatable("command.nostalgiaskills.unlock", id,
                 player.getDisplayName(), result.totalCost()), true);
         return 1;
@@ -178,6 +184,7 @@ public final class SkillCommands {
         ServerPlayer player = EntityArgument.getPlayer(context, "player");
         RespecService.Preview done = RespecService.resetAll(ModAttachments.state(player));
         changed(player);
+        SkillEvents.post(new SkillEvents.BuildReset(player, done.removed(), done.refund()));
         context.getSource().sendSuccess(() -> Component.translatable("command.nostalgiaskills.reset", player.getDisplayName(),
                 done.refund(), done.removed().size()), true);
         return done.refund();
@@ -185,16 +192,16 @@ public final class SkillCommands {
 
     private static int star(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = EntityArgument.getPlayer(context, "player");
-        boolean fell = ShootingStars.spawnNear(player).isPresent();
+        boolean fell = FallingStar.spawnNear(player).isPresent();
         context.getSource().sendSuccess(() -> Component.translatable(fell ? "command.nostalgiaskills.star"
                 : "command.nostalgiaskills.star.unloaded", player.getDisplayName()), true);
         return fell ? 1 : 0;
     }
 
-    private static int eclipse(CommandContext<CommandSourceStack> context, boolean start) {
-        Eclipse.force(context.getSource().getServer(), start);
-        context.getSource().sendSuccess(() -> Component.translatable(start ? "command.nostalgiaskills.eclipse.start"
-                : "command.nostalgiaskills.eclipse.stop"), true);
+    private static int skyEvent(CommandContext<CommandSourceStack> context, SkyEvent event, boolean start) {
+        SkyEvents.force(context.getSource().getServer(), start ? event : SkyEvent.NONE);
+        String messageKey = "command.nostalgiaskills." + event.id() + (start ? ".start" : ".stop");
+        context.getSource().sendSuccess(() -> Component.translatable(messageKey), true);
         return 1;
     }
 

@@ -10,15 +10,19 @@ import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
 import dev.nostalgiacraft.skills.registry.ModTags;
+import dev.nostalgiacraft.skills.server.SkyEvents;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -165,6 +169,15 @@ public final class EffectEngine {
         };
     }
 
+    private static boolean wears(Player player, TagKey<Item> tag) {
+        for (ItemStack armor : player.getArmorSlots()) {
+            if (armor.is(tag)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static boolean holds(Player player, Condition condition, DamageContext context) {
         return switch (condition.type()) {
             case "holding" -> player.getMainHandItem().is(ModTags.itemTag(condition.string("tag")));
@@ -177,6 +190,12 @@ public final class EffectEngine {
                     && context.target().getHealth() > context.target().getMaxHealth() * condition.number("fraction");
             case "shot_distance_over" -> context != null && context.hasShot() && context.shotDistance() > condition.number("blocks");
             case "shot_distance_under" -> context != null && context.hasShot() && context.shotDistance() <= condition.number("blocks");
+            case "in_dimension" -> player.level().dimension().location().toString().equals(condition.string("dimension"));
+            case "in_biome_tag" -> player.level().getBiome(player.blockPosition()).is(ModTags.biomeTag(condition.string("tag")));
+            case "sky_event" -> SkyEvents.current().id().equals(condition.string("event"));
+            case "wearing" -> wears(player, ModTags.itemTag(condition.string("tag")));
+            case "attribute_at_least" -> BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.parse(condition.string("attribute")))
+                    .filter(attribute -> GameplayEvents.attributeValue(player, attribute) >= condition.number("value")).isPresent();
             default -> false;
         };
     }

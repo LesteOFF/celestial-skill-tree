@@ -13,6 +13,7 @@ registry/     attributes, item tags, attachments + codecs, persisted cooldowns, 
 network/      payload records + registration (client-bound handlers reach client code only through ClientHandlers)
 server/       SkillService (authoritative intents), LifecycleEvents, RateLimiter
 effects/      CompiledBuild, EffectEngine (attribute modifiers), GameplayEvents (combat/potions/mining), Triggers
+api/          SkillEvents: NeoForge events other mods and scripts may listen to
 command/      /nostalgiaskills
 config/       ServerConfig (gameplay, synced), ClientConfig (presentation only)
 client/       ClientSkillState, ClientSetup (key mapping), screen/, render/, VisualQa + InWorldQa (dev harness)
@@ -91,7 +92,7 @@ Clients send intents only (`network/Payloads.java`):
 | Server → client | Fields |
 |---|---|
 | `graph_sync` | graph revision + deflated binary snapshot (`GraphCodec`; 25 KB for the shipped tree, cap 900 KB < 1 MiB) |
-| `state_sync` | graph revision, full player state, economy values for display (next cost, limit, flags), XP curve coefficients, world rules (eclipse active, shared-constellation XP and tier thresholds) |
+| `state_sync` | graph revision, full player state, economy values for display (next cost, limit, flags), XP curve coefficients, world rules (current sky event, shared-constellation XP and tier thresholds) |
 | `transaction_result` | request UUID, ok flag, translatable message key, detail |
 | `open_screen` | opens the tree or the reset confirmation |
 
@@ -181,12 +182,25 @@ Dist.CLIENT)` classes, which is why the dedicated server starts without loading 
   `EffectEngine`, `GameplayEvents` and `Triggers` need no special cases.
 - **Birth sign**: `SignParser` reads `skill_signs`; `SignService.assignIfMissing` picks by world day on login; the id is
   stored in `PlayerSkillState.sign` (optional codec field, old saves load unchanged).
-- **World data** (`data/WorldSkillData`, a `SavedData` on the Overworld): next eclipse day, forced-eclipse flag and
-  donated XP. `server/Eclipse` re-evaluates once a second; while active `SkillService` asks for no orb and the synced
-  economy says so. `server/CommunityTree` applies donations (pure rules in `CommunityProgress`) and refreshes everyone
+- **World data** (`data/WorldSkillData`, a `SavedData` on the Overworld): next eclipse day, next star shower day,
+  forced sky event and donated XP.
+- **Sky events**: `progression/WorldClock` decides day and night from the clock alone (never `Level.isNight()`, which
+  a thunderstorm or the eclipse itself would flip); `SkyEventSchedule` says which `SkyEvent` (`ECLIPSE` during the
+  daylight of its day, `STAR_SHOWER` during the night of its day) is due. `server/SkyEvents` re-evaluates once a
+  second, announces changes with a chat line and a stinger, blocks beds during an eclipse and syncs the event in
+  `WorldRules`; during an eclipse `SkillService` asks for no orb. `mixin/LevelMixin` raises the Overworld's
+  `skyDarken` to night level while an eclipse is active, which is what lets monsters spawn and stops undead burning.
+  On the client `client/render/SkyTint` holds one eased 0..1 strength; `mixin/ClientLevelMixin` feeds it into sky
+  colour, cloud colour, sky light and star brightness, and `SkyEventRenderer` tints the fog and draws the moon disc
+  and corona over the sun after the sky pass, sliding into place as the strength rises.
+- **Community**: `server/CommunityTree` applies donations (pure rules in `CommunityProgress`) and refreshes everyone
   when a tier is reached.
 - **Star fragments**: `StarFragmentItem.redeem` grants one point through `LedgerService.grant` (limit respected).
-  `server/ShootingStars` drops one as a glowing `ItemEntity` near a player at night; `effects/EliteMobs` marks a fresh
+  `server/ShootingStars` rolls once a second per Overworld player at night (far more often during a star shower) and
+  calls `entity/FallingStar.spawnNear`: the entity starts 50-80 blocks above a landing point near the player, moves
+  along a fixed diagonal and, on hitting a block or fluid, plays the impact, bursts particles for every viewer and
+  leaves the fragment as an `ItemEntity`. `client/render/FallingStarRenderer` draws an additive head and
+  streak at any distance; `client/sound/StarSounds` loops the falling sound on the star. `effects/EliteMobs` marks a fresh
   monster once (persistent data), adds permanent modifiers from a random constellation and adds the fragment to its drops.
 - **Fallen Star**: `FallenStarService.dropNewest` forfeits the newest allocation whose refund plan is not chained,
   taking its paid points out of the ledger (`available + spent = purchased + granted` still holds). The item carries

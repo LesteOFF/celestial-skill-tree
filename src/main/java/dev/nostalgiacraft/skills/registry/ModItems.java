@@ -28,7 +28,7 @@ public final class ModItems {
             OrbOfReconfiguration::new, new Item.Properties().stacksTo(16).rarity(Rarity.RARE));
 
     public static final DeferredItem<Item> STAR_FRAGMENT = ITEMS.registerItem("star_fragment", StarFragmentItem::new,
-            new Item.Properties().rarity(Rarity.UNCOMMON));
+            new Item.Properties().rarity(Rarity.UNCOMMON).fireResistant());
 
     public static final DeferredItem<Item> FALLEN_STAR = ITEMS.registerItem("fallen_star", FallenStarItem::new,
             new Item.Properties().stacksTo(1).rarity(Rarity.EPIC).fireResistant());

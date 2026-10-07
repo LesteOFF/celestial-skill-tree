@@ -4,6 +4,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.graph.GraphParser;
+import dev.nostalgiacraft.skills.graph.ModRequirement;
+import net.neoforged.fml.ModList;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,7 +37,10 @@ public final class BundledTree {
         List<JsonElement> paths = index.getAsJsonObject().getAsJsonArray(dir).asList();
         for (JsonElement element : paths) {
             String path = element.getAsString();
-            out.put(NostalgiaSkills.MODID + ":" + path, read("/data/" + NostalgiaSkills.MODID + "/" + dir + "/" + path + ".json"));
+            JsonElement file = read("/data/" + NostalgiaSkills.MODID + "/" + dir + "/" + path + ".json");
+            if (ModRequirement.isMet(file, ModList.get()::isLoaded)) {
+                out.put(NostalgiaSkills.MODID + ":" + path, file);
+            }
         }
     }
 

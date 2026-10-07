@@ -65,8 +65,9 @@ final class EffectParser {
             effect.error("direction", "must be 'dealt' or 'taken'");
         }
         String scope = effect.text("scope");
-        if (scope != null && !SkillEffect.DAMAGE_SCOPES.contains(scope)) {
-            effect.error("scope", "unknown scope '" + scope + "'");
+        if (scope != null && !SkillEffect.isKnownScope(scope)) {
+            effect.error("scope", "unknown scope '" + scope + "' (use one of " + new TreeSet<>(SkillEffect.DAMAGE_SCOPES)
+                    + " or #<damage type tag id>)");
         }
         double amount = effect.number("amount");
         effect.requireBounded("amount", amount);
@@ -79,8 +80,9 @@ final class EffectParser {
 
     private Optional<SkillEffect> trigger(JsonFields effect) {
         String trigger = effect.text("trigger");
-        if (trigger != null && !SkillEffect.TRIGGERS.contains(trigger)) {
-            effect.error("trigger", "unknown trigger '" + trigger + "'");
+        if (trigger != null && !SkillEffect.isKnownTrigger(trigger)) {
+            effect.error("trigger", "unknown trigger '" + trigger + "' (use one of " + new TreeSet<>(SkillEffect.TRIGGERS)
+                    + " or a namespaced id fired by another mod)");
         }
         int cooldown = effect.integerWithin("cooldown_ticks", 0, 0, MAX_COOLDOWN_TICKS);
         return effect.object("action").flatMap(this::action)
@@ -114,7 +116,7 @@ final class EffectParser {
         return new SkillEffect.Action(type, 0, mobEffect, duration, amplifier);
     }
 
-    private static Optional<Condition> condition(JsonFields owner) {
+    private Optional<Condition> condition(JsonFields owner) {
         JsonElement element = owner.json().get("condition");
         if (element == null || !element.isJsonObject()) {
             owner.error("condition", "missing condition object");
@@ -143,18 +145,33 @@ final class EffectParser {
         return parameters;
     }
 
-    private static void requireValidParameters(JsonFields condition, String type, Map<String, Object> parameters) {
+    private void requireValidParameters(JsonFields condition, String type, Map<String, Object> parameters) {
         switch (type) {
-            case "holding" -> {
-                if (!(parameters.get("tag") instanceof String tag) || !Ids.isValid(tag)) {
-                    condition.error("tag", "holding needs an item tag id");
+            case "holding", "wearing" -> requireId(condition, parameters, "tag", "an item tag id");
+            case "in_biome_tag" -> requireId(condition, parameters, "tag", "a biome tag id");
+            case "in_dimension" -> requireId(condition, parameters, "dimension", "a dimension id");
+            case "sky_event" -> {
+                if (!(parameters.get("event") instanceof String event) || !Condition.SKY_EVENTS.contains(event)) {
+                    condition.error("event", "must be one of " + new TreeSet<>(Condition.SKY_EVENTS));
                 }
+            }
+            case "attribute_at_least" -> {
+                if (!(parameters.get("attribute") instanceof String attribute) || !known.isAttribute(attribute)) {
+                    condition.error("attribute", "unknown attribute '" + parameters.get("attribute") + "'");
+                }
+                requireNumber(condition, parameters, "value", -1_000_000, 1_000_000);
             }
             case "below_y" -> requireNumber(condition, parameters, "y", -2048, 2048);
             case "health_below", "target_health_above" -> requireNumber(condition, parameters, "fraction", 0.01, 1.0);
             case "shot_distance_over", "shot_distance_under" -> requireNumber(condition, parameters, "blocks", 0, 512);
             default -> {
             }
+        }
+    }
+
+    private static void requireId(JsonFields condition, Map<String, Object> parameters, String key, String expected) {
+        if (!(parameters.get(key) instanceof String id) || !Ids.isValid(id)) {
+            condition.error(key, "needs " + expected);
         }
     }
 

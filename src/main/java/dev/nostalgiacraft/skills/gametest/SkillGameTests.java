@@ -6,6 +6,7 @@ import dev.nostalgiacraft.skills.data.SkillTreeManager;
 import dev.nostalgiacraft.skills.data.WorldSkillData;
 import dev.nostalgiacraft.skills.effects.EffectEngine;
 import dev.nostalgiacraft.skills.effects.EliteMobs;
+import dev.nostalgiacraft.skills.entity.FallingStar;
 import dev.nostalgiacraft.skills.graph.CommunityTier;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.progression.AllocationService;
@@ -17,6 +18,7 @@ import dev.nostalgiacraft.skills.progression.ProgressionService;
 import dev.nostalgiacraft.skills.progression.RefundService;
 import dev.nostalgiacraft.skills.progression.RejectReason;
 import dev.nostalgiacraft.skills.progression.RespecService;
+import dev.nostalgiacraft.skills.progression.SkyEvent;
 import dev.nostalgiacraft.skills.progression.XpCurve;
 import dev.nostalgiacraft.skills.progression.XpMath;
 import dev.nostalgiacraft.skills.registry.FallenStarItem;
@@ -26,10 +28,9 @@ import dev.nostalgiacraft.skills.registry.ModItems;
 import dev.nostalgiacraft.skills.registry.StarFragmentItem;
 import dev.nostalgiacraft.skills.registry.StateCodecs;
 import dev.nostalgiacraft.skills.server.CommunityTree;
-import dev.nostalgiacraft.skills.server.Eclipse;
 import dev.nostalgiacraft.skills.server.FallenStars;
-import dev.nostalgiacraft.skills.server.ShootingStars;
 import dev.nostalgiacraft.skills.server.SkillService;
+import dev.nostalgiacraft.skills.server.SkyEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -48,6 +49,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -59,6 +61,9 @@ import java.util.Set;
 @PrefixGameTestTemplate(false)
 public final class SkillGameTests {
     private static final String NS = NostalgiaSkills.MODID + ":";
+    private static final int NOON = 6_000;
+    private static final double STAR_HEIGHT = 10.0;
+    private static final Vec3 STAR_TRAJECTORY = new Vec3(0.4, -0.8, 0.4);
 
     private SkillGameTests() {
     }
@@ -271,9 +276,11 @@ public final class SkillGameTests {
         LedgerService.grant(state, limit - state.totalPoints(), limit, false);
         helper.assertFalse(StarFragmentItem.redeem(player, fragments), "no fragment is redeemed at the point limit");
         helper.assertTrue(state.totalPoints() == limit && fragments.getCount() == 1, "nothing consumed at the limit");
-        ItemEntity star = ShootingStars.spawnNear(player).orElseThrow();
-        helper.assertTrue(star.getItem().is(ModItems.STAR_FRAGMENT.get()) && star.hasGlowingTag(), "a glowing fragment falls");
-        star.discard();
+        FallingStar star = FallingStar.launch(helper.getLevel(), player.position().add(0, STAR_HEIGHT, 0), STAR_TRAJECTORY);
+        helper.assertTrue(star.isAlive() && star.getDeltaMovement().y < 0, "a star falls from above");
+        ItemEntity fragment = star.land();
+        helper.assertTrue(star.isRemoved() && fragment.getItem().is(ModItems.STAR_FRAGMENT.get()), "the star lands as a fragment");
+        fragment.discard();
         helper.succeed();
     }
 
@@ -297,11 +304,17 @@ public final class SkillGameTests {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         PlayerSkillState state = ModAttachments.state(player);
         boolean orbConfigured = ServerConfig.ORB_REQUIRED_FOR_RESET.get();
-        Eclipse.force(helper.getLevel().getServer(), true);
-        helper.assertTrue(Eclipse.isActive(), "forced eclipse is active");
+        helper.setDayTime(NOON);
+        SkyEvents.force(helper.getLevel().getServer(), SkyEvent.ECLIPSE);
+        helper.getLevel().updateSkyBrightness();
+        helper.assertTrue(SkyEvents.isEclipse(), "forced eclipse is active");
+        helper.assertFalse(helper.getLevel().isDay(), "the eclipse makes noon as dark as night");
         helper.assertFalse(SkillService.economy(state).orbRequired(), "no orb is asked for during an eclipse");
-        Eclipse.force(helper.getLevel().getServer(), false);
-        helper.assertFalse(Eclipse.isActive(), "eclipse stopped");
+        SkyEvents.force(helper.getLevel().getServer(), SkyEvent.STAR_SHOWER);
+        helper.assertTrue(SkyEvents.current() == SkyEvent.STAR_SHOWER && !SkyEvents.isEclipse(), "a star shower replaces the eclipse");
+        SkyEvents.force(helper.getLevel().getServer(), SkyEvent.NONE);
+        helper.getLevel().updateSkyBrightness();
+        helper.assertTrue(SkyEvents.current() == SkyEvent.NONE && helper.getLevel().isDay(), "the sky event stopped and daylight is back");
         helper.assertTrue(SkillService.economy(state).orbRequired() == orbConfigured, "the orb rule returns after the eclipse");
         helper.succeed();
     }

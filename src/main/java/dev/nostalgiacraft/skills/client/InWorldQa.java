@@ -11,6 +11,7 @@ import dev.nostalgiacraft.skills.network.Payloads;
 import dev.nostalgiacraft.skills.progression.AllocationService;
 import dev.nostalgiacraft.skills.progression.PathFinder;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
+import dev.nostalgiacraft.skills.progression.SkyEvent;
 import dev.nostalgiacraft.skills.registry.ModItems;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
@@ -58,6 +59,10 @@ public final class InWorldQa {
     private static final List<Step> STEPS = new ArrayList<>();
     private static final List<String> REPORT = new ArrayList<>();
     private static boolean active;
+    private static final float SKY_PITCH = -70f;
+    private static final int SKY_FADE_TICKS = 140;
+    private static final int QA_STARS = 6;
+    private static final int STAR_FLIGHT_TICKS = 45;
     private static int step = -1;
     private static int ticks;
     private static boolean started;
@@ -417,6 +422,41 @@ public final class InWorldQa {
         }, () -> true, 10);
     }
 
+    private static boolean eclipseShown() {
+        return ClientSkillState.worldRules().skyEvent() == SkyEvent.ECLIPSE;
+    }
+
+    private static void addSkySteps() {
+        step("eclipse at noon", () -> {
+            minecraft().setScreen(null);
+            minecraft().player.setXRot(SKY_PITCH);
+            command("time set noon");
+            command("nostalgiaskills eclipse start");
+        }, () -> eclipseShown() && ticks >= SKY_FADE_TICKS, 2 * SKY_FADE_TICKS);
+        skyShot("eclipse_sky");
+        step("star shower at midnight", () -> {
+            command("nostalgiaskills eclipse stop");
+            command("time set midnight");
+            command("nostalgiaskills shower start");
+        }, () -> ClientSkillState.worldRules().skyEvent() == SkyEvent.STAR_SHOWER && ticks >= SKY_FADE_TICKS, 2 * SKY_FADE_TICKS);
+        step("call falling stars", () -> {
+            for (int i = 0; i < QA_STARS; i++) {
+                command("nostalgiaskills star @s");
+            }
+        }, () -> ticks >= STAR_FLIGHT_TICKS, 2 * STAR_FLIGHT_TICKS);
+        skyShot("falling_stars");
+        step("stop the star shower", () -> command("nostalgiaskills shower stop"),
+                () -> ClientSkillState.worldRules().skyEvent() == SkyEvent.NONE, 200);
+    }
+
+    private static void skyShot(String name) {
+        step("capture " + name, () -> {
+            log("sky event " + ClientSkillState.worldRules().skyEvent() + " captured as " + name);
+            Screenshot.grab(minecraft().gameDirectory, "nostalgiaskills_qa_ingame_" + name + "_1280x720.png",
+                    minecraft().getMainRenderTarget(), message -> { });
+        }, () -> true, 10);
+    }
+
     private static void addWorldEventSteps() {
         step("birth sign and shooting star", () -> {
             String signName = state().sign().map(signId -> I18n.get(SkillSign.nameKey(signId))).orElse("none");
@@ -425,9 +465,9 @@ public final class InWorldQa {
             command("nostalgiaskills star @s");
         }, () -> true, 40);
         step("start an eclipse", () -> command("nostalgiaskills eclipse start"),
-                () -> ClientSkillState.worldRules().eclipseActive(), 200);
+                () -> eclipseShown(), 200);
         step("reset panel during the eclipse", () -> {
-            log("eclipse active=" + ClientSkillState.worldRules().eclipseActive() + ", orb required for reset="
+            log("eclipse active=" + eclipseShown() + ", orb required for reset="
                     + ClientSkillState.economy().orbRequired());
             screen().qaSetup(List.of(), false, true);
         }, () -> true, 30);
@@ -436,7 +476,7 @@ public final class InWorldQa {
         step("stop the eclipse", () -> {
             screen().qaSetup(List.of(), false, false);
             command("nostalgiaskills eclipse stop");
-        }, () -> !ClientSkillState.worldRules().eclipseActive(), 200);
+        }, () -> !eclipseShown(), 200);
         step("xp for the donation", () -> command("xp add @s 400 points"), () -> ClientSkillState.xpBalance() >= 400, 200);
         step("donate to the shared constellation", () -> {
             log("orb required again=" + ClientSkillState.economy().orbRequired() + "; community tiers known to the client: "
@@ -470,6 +510,7 @@ public final class InWorldQa {
         addBulkPurchaseSteps();
         addPendingStatsSteps();
         addWorldEventSteps();
+        addSkySteps();
         step("finish", InWorldQa::finish, () -> true, 5);
         next();
     }

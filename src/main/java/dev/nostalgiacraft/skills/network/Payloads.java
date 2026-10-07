@@ -4,6 +4,7 @@ import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.graph.GraphCodec;
 import dev.nostalgiacraft.skills.progression.AllocationService;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
+import dev.nostalgiacraft.skills.progression.SkyEvent;
 import dev.nostalgiacraft.skills.progression.XpCurve;
 import dev.nostalgiacraft.skills.registry.StateCodecs;
 import io.netty.buffer.ByteBuf;
@@ -129,12 +130,12 @@ public final class Payloads {
                 NODE_ID, TierInfo::id, ByteBufCodecs.VAR_LONG, TierInfo::xpRequired, TierInfo::new);
     }
 
-    public record WorldRules(boolean eclipseActive, long communityXp, List<TierInfo> communityTiers, List<String> signIds) {
+    public record WorldRules(SkyEvent skyEvent, long communityXp, List<TierInfo> communityTiers, List<String> signIds) {
         public static final int MAX_TIERS = 64;
         public static final int MAX_SIGNS = 64;
-        public static final WorldRules NONE = new WorldRules(false, 0, List.of(), List.of());
+        public static final WorldRules NONE = new WorldRules(SkyEvent.NONE, 0, List.of(), List.of());
         public static final StreamCodec<ByteBuf, WorldRules> CODEC = StreamCodec.composite(
-                ByteBufCodecs.BOOL, WorldRules::eclipseActive, ByteBufCodecs.VAR_LONG, WorldRules::communityXp,
+                ByteBufCodecs.idMapper(SkyEvent::byId, SkyEvent::ordinal), WorldRules::skyEvent, ByteBufCodecs.VAR_LONG, WorldRules::communityXp,
                 TierInfo.CODEC.apply(ByteBufCodecs.list(MAX_TIERS)), WorldRules::communityTiers,
                 NODE_ID.apply(ByteBufCodecs.list(MAX_SIGNS)), WorldRules::signIds, WorldRules::new);
 

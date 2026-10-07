@@ -8,6 +8,7 @@ import dev.nostalgiacraft.skills.progression.Allocation;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.progression.RefundService;
 import dev.nostalgiacraft.skills.progression.RespecService;
+import dev.nostalgiacraft.skills.progression.SkyEvent;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -70,7 +71,7 @@ final class PanelContents {
     }
 
     private static void addEclipseNote(List<Component> lines) {
-        if (ClientSkillState.worldRules().eclipseActive()) {
+        if (ClientSkillState.worldRules().skyEvent() == SkyEvent.ECLIPSE) {
             lines.add(GuiText.of("eclipse.no_orb").withStyle(ChatFormatting.DARK_PURPLE));
         }
     }
