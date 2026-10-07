@@ -1,0 +1,20 @@
+{
+  "class": "nostalgiaskills:artificer",
+  "name": "skill.nostalgiaskills.artificer.tinkers_bargain.name",
+  "icon": "nostalgiaskills:textures/skill_icons/keystone_tinkers_bargain.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:tool_preservation",
+      "operation": "add_value",
+      "amount": 0.25
+    },
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:mining_speed",
+      "operation": "add_value",
+      "amount": -0.1
+    }
+  ],
+  "text": "skill.nostalgiaskills.artificer.tinkers_bargain.text"
+}

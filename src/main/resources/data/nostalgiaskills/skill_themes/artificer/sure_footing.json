@@ -1,0 +1,30 @@
+{
+  "class": "nostalgiaskills:artificer",
+  "name": "theme.nostalgiaskills.artificer.sure_footing",
+  "icon": "nostalgiaskills:textures/skill_icons/exploration.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.safe_fall_distance",
+        "operation": "add_value",
+        "amount": 0.5
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "reinforced_handles",
+      "name": "skill.nostalgiaskills.artificer.reinforced_handles.name",
+      "icon": "nostalgiaskills:textures/skill_icons/tools.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:tool_preservation",
+          "operation": "add_value",
+          "amount": 0.1
+        }
+      ]
+    }
+  ]
+}

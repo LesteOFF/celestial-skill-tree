@@ -1,0 +1,28 @@
+{
+  "class": "nostalgiaskills:marksman",
+  "name": "skill.nostalgiaskills.marksman.patient_aim.name",
+  "icon": "nostalgiaskills:textures/skill_icons/keystone_patient_aim.png",
+  "effects": [
+    {
+      "type": "damage_modifier",
+      "direction": "dealt",
+      "scope": "projectile",
+      "amount": 0.2,
+      "condition": {
+        "type": "shot_distance_over",
+        "blocks": 12.0
+      }
+    },
+    {
+      "type": "damage_modifier",
+      "direction": "dealt",
+      "scope": "projectile",
+      "amount": -0.1,
+      "condition": {
+        "type": "shot_distance_under",
+        "blocks": 12.0
+      }
+    }
+  ],
+  "text": "skill.nostalgiaskills.marksman.patient_aim.text"
+}

@@ -1,0 +1,30 @@
+{
+  "class": "nostalgiaskills:mage",
+  "requires_mod": "malum",
+  "name": "theme.nostalgiaskills.mage.reapers_craft",
+  "icon": "nostalgiaskills:textures/skill_icons/scythe.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "malum:scythe_proficiency",
+        "operation": "add_value",
+        "amount": 0.01
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "grim_harvest",
+      "name": "skill.nostalgiaskills.mage.grim_harvest.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "malum:scythe_proficiency",
+          "operation": "add_value",
+          "amount": 0.05
+        }
+      ]
+    }
+  ]
+}

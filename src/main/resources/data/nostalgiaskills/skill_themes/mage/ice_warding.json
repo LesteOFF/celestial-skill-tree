@@ -1,0 +1,17 @@
+{
+  "class": "nostalgiaskills:mage",
+  "requires_mod": "irons_spellbooks",
+  "name": "theme.nostalgiaskills.mage.ice_warding",
+  "icon": "nostalgiaskills:textures/skill_icons/school_ice_ward.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "irons_spellbooks:ice_magic_resist",
+        "operation": "add_multiplied_base",
+        "amount": 0.01
+      }
+    ]
+  },
+  "notables": []
+}

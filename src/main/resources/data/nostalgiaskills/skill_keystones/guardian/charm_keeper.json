@@ -1,0 +1,21 @@
+{
+  "class": "nostalgiaskills:guardian",
+  "requires_mod": "curios",
+  "name": "skill.nostalgiaskills.guardian.charm_keeper.name",
+  "text": "skill.nostalgiaskills.guardian.charm_keeper.text",
+  "icon": "nostalgiaskills:textures/skill_icons/luck.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "curios:charm",
+      "operation": "add_value",
+      "amount": 1
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.armor",
+      "operation": "add_value",
+      "amount": -3
+    }
+  ]
+}

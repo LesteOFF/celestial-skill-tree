@@ -1,0 +1,30 @@
+{
+  "class": "nostalgiaskills:duelist",
+  "requires_mod": "bettercombat",
+  "name": "theme.nostalgiaskills.duelist.long_blades",
+  "icon": "nostalgiaskills:textures/skill_icons/range.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:player.entity_interaction_range",
+        "operation": "add_value",
+        "amount": 0.05
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "polearm_training",
+      "name": "skill.nostalgiaskills.duelist.polearm_training.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:player.entity_interaction_range",
+          "operation": "add_value",
+          "amount": 0.25
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "class": "nostalgiaskills:marksman",
+  "requires_mod": "apothic_attributes",
+  "name": "theme.nostalgiaskills.marksman.taut_bowstring",
+  "icon": "nostalgiaskills:textures/skill_icons/bow.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "apothic_attributes:arrow_velocity",
+        "operation": "add_value",
+        "amount": 0.02
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "quick_draw",
+      "name": "skill.nostalgiaskills.marksman.quick_draw.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "apothic_attributes:draw_speed",
+          "operation": "add_value",
+          "amount": 0.1
+        }
+      ]
+    }
+  ]
+}

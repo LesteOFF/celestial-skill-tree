@@ -1,0 +1,16 @@
+{
+  "class": "nostalgiaskills:arcanist",
+  "name": "theme.nostalgiaskills.arcanist.cooling_draught",
+  "icon": "nostalgiaskills:textures/skill_icons/extinguish.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.burning_time",
+        "operation": "add_multiplied_base",
+        "amount": -0.04
+      }
+    ]
+  },
+  "notables": []
+}

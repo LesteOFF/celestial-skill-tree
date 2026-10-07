@@ -1,0 +1,30 @@
+{
+  "class": "nostalgiaskills:mage",
+  "requires_mod": "ars_nouveau",
+  "name": "theme.nostalgiaskills.mage.glyph_power",
+  "icon": "nostalgiaskills:textures/skill_icons/book.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "ars_nouveau:ars_nouveau.perk.spell_damage",
+        "operation": "add_value",
+        "amount": 0.2
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "glyph_mastery",
+      "name": "skill.nostalgiaskills.mage.glyph_mastery.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "ars_nouveau:ars_nouveau.perk.spell_damage",
+          "operation": "add_value",
+          "amount": 1
+        }
+      ]
+    }
+  ]
+}

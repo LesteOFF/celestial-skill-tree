@@ -1,0 +1,19 @@
+{
+  "class": "nostalgiaskills:guardian",
+  "name": "theme.nostalgiaskills.guardian.stand_firm",
+  "icon": "nostalgiaskills:textures/skill_icons/pillar.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.knockback_resistance",
+        "operation": "add_value",
+        "amount": 0.03,
+        "condition": {
+          "type": "sneaking"
+        }
+      }
+    ]
+  },
+  "notables": []
+}

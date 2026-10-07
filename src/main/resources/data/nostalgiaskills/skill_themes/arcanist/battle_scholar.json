@@ -1,0 +1,30 @@
+{
+  "class": "nostalgiaskills:arcanist",
+  "requires_mod": "apothic_attributes",
+  "name": "theme.nostalgiaskills.arcanist.battle_scholar",
+  "icon": "nostalgiaskills:textures/skill_icons/luck.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "apothic_attributes:experience_gained",
+        "operation": "add_value",
+        "amount": 0.01
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "scholar_of_battle",
+      "name": "skill.nostalgiaskills.arcanist.scholar_of_battle.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "apothic_attributes:experience_gained",
+          "operation": "add_value",
+          "amount": 0.1
+        }
+      ]
+    }
+  ]
+}

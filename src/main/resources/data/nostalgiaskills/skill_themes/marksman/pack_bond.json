@@ -1,0 +1,42 @@
+{
+  "class": "nostalgiaskills:marksman",
+  "requires_mod": "puffish_attributes",
+  "name": "theme.nostalgiaskills.artificer.pack_bond",
+  "icon": "nostalgiaskills:textures/skill_icons/damage.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "puffish_attributes:tamed_damage",
+        "operation": "add_multiplied_base",
+        "amount": 0.02
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "pack_leader",
+      "name": "skill.nostalgiaskills.artificer.pack_leader.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "puffish_attributes:tamed_damage",
+          "operation": "add_multiplied_base",
+          "amount": 0.08
+        }
+      ]
+    },
+    {
+      "id": "pack_guardian",
+      "name": "skill.nostalgiaskills.artificer.pack_guardian.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "puffish_attributes:tamed_resistance",
+          "operation": "add_multiplied_base",
+          "amount": 0.08
+        }
+      ]
+    }
+  ]
+}

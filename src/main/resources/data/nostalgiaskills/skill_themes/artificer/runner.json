@@ -1,0 +1,42 @@
+{
+  "class": "nostalgiaskills:artificer",
+  "requires_mod": "parcool",
+  "name": "theme.nostalgiaskills.artificer.runner",
+  "icon": "nostalgiaskills:textures/skill_icons/mobility.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "parcool:parcool.max_stamina",
+        "operation": "add_value",
+        "amount": 40
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "runners_lungs",
+      "name": "skill.nostalgiaskills.artificer.runners_lungs.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "parcool:parcool.max_stamina",
+          "operation": "add_value",
+          "amount": 200
+        }
+      ]
+    },
+    {
+      "id": "second_wind",
+      "name": "skill.nostalgiaskills.artificer.second_wind.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "parcool:parcool.stamina_recovery",
+          "operation": "add_value",
+          "amount": 1
+        }
+      ]
+    }
+  ]
+}

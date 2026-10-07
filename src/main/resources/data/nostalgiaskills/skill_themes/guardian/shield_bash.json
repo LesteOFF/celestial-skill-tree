@@ -1,0 +1,16 @@
+{
+  "class": "nostalgiaskills:guardian",
+  "name": "theme.nostalgiaskills.guardian.shield_bash",
+  "icon": "nostalgiaskills:textures/skill_icons/shield_bash.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.attack_knockback",
+        "operation": "add_value",
+        "amount": 0.04
+      }
+    ]
+  },
+  "notables": []
+}

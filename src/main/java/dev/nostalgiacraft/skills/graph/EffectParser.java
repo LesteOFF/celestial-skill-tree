@@ -1,16 +1,19 @@
 package dev.nostalgiacraft.skills.graph;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-final class EffectParser {
+public final class EffectParser {
     private static final double MIN_DAMAGE_MODIFIER = -0.95;
     private static final double MAX_DAMAGE_MODIFIER = 10;
     private static final int MAX_COOLDOWN_TICKS = 72_000;
@@ -21,11 +24,27 @@ final class EffectParser {
 
     private final KnownIds known;
 
-    EffectParser(KnownIds known) {
+    public EffectParser(KnownIds known) {
         this.known = known;
     }
 
-    Optional<SkillEffect> parse(JsonFields effect) {
+    public List<SkillEffect> parseAll(JsonFields owner) {
+        Optional<JsonArray> array = owner.array("effects");
+        if (array.isEmpty()) {
+            return List.of();
+        }
+        if (array.get().size() > GraphParser.MAX_EFFECTS) {
+            owner.error("effects", "at most " + GraphParser.MAX_EFFECTS + " effects");
+        }
+        List<SkillEffect> effects = new ArrayList<>();
+        for (int i = 0; i < array.get().size(); i++) {
+            JsonFields effect = owner.child(array.get().get(i).getAsJsonObject(), "effects[" + i + "].");
+            parse(effect).ifPresent(effects::add);
+        }
+        return List.copyOf(effects);
+    }
+
+    public Optional<SkillEffect> parse(JsonFields effect) {
         String type = effect.text("type");
         if (type == null) {
             return Optional.empty();

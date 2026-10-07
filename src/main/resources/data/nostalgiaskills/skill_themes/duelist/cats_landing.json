@@ -1,0 +1,16 @@
+{
+  "class": "nostalgiaskills:duelist",
+  "name": "theme.nostalgiaskills.duelist.cats_landing",
+  "icon": "nostalgiaskills:textures/skill_icons/feather.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.safe_fall_distance",
+        "operation": "add_value",
+        "amount": 0.4
+      }
+    ]
+  },
+  "notables": []
+}

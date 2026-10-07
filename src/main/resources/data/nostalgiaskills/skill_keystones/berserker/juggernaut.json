@@ -1,0 +1,26 @@
+{
+  "class": "nostalgiaskills:berserker",
+  "name": "skill.nostalgiaskills.berserker.juggernaut.name",
+  "icon": "nostalgiaskills:textures/skill_icons/keystone_juggernaut.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:heavy_weapon_damage",
+      "operation": "add_value",
+      "amount": 0.2
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.knockback_resistance",
+      "operation": "add_value",
+      "amount": 0.3
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.attack_speed",
+      "operation": "add_multiplied_base",
+      "amount": -0.15
+    }
+  ],
+  "text": "skill.nostalgiaskills.berserker.juggernaut.text"
+}

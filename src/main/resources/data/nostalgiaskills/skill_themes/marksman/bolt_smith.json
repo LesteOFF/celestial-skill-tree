@@ -1,0 +1,49 @@
+{
+  "class": "nostalgiaskills:marksman",
+  "name": "theme.nostalgiaskills.marksman.bolt_smith",
+  "icon": "nostalgiaskills:textures/skill_icons/crossbow.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "nostalgiaskills:crossbow_damage",
+        "operation": "add_value",
+        "amount": 0.03
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "bolt_workshop",
+      "name": "skill.nostalgiaskills.marksman.bolt_workshop.name",
+      "icon": "nostalgiaskills:textures/skill_icons/crossbow.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:crossbow_damage",
+          "operation": "add_value",
+          "amount": 0.05
+        },
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:projectile_damage",
+          "operation": "add_value",
+          "amount": 0.05
+        }
+      ]
+    },
+    {
+      "id": "crossbow_drill",
+      "name": "skill.nostalgiaskills.marksman.crossbow_drill.name",
+      "icon": "nostalgiaskills:textures/skill_icons/crossbow.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:crossbow_damage",
+          "operation": "add_value",
+          "amount": 0.1
+        }
+      ]
+    }
+  ]
+}

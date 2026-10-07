@@ -1,0 +1,25 @@
+{
+  "name": "sector.nostalgiaskills.artificer",
+  "icon": "nostalgiaskills:textures/skill_icons/hub_artificer.png",
+  "hub": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "nostalgiaskills:mining_speed",
+        "operation": "add_value",
+        "amount": 0.05
+      }
+    ]
+  },
+  "trunk": {
+    "name": "trunk.nostalgiaskills.artificer",
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "nostalgiaskills:mining_speed",
+        "operation": "add_value",
+        "amount": 0.01
+      }
+    ]
+  }
+}

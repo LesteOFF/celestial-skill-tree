@@ -1,0 +1,42 @@
+{
+  "class": "nostalgiaskills:mage",
+  "requires_mod": "malum",
+  "name": "theme.nostalgiaskills.mage.arcane_echo",
+  "icon": "nostalgiaskills:textures/skill_icons/echo.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "malum:arcane_resonance",
+        "operation": "add_value",
+        "amount": 0.02
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "resonant_soul",
+      "name": "skill.nostalgiaskills.mage.resonant_soul.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "malum:arcane_resonance",
+          "operation": "add_value",
+          "amount": 0.1
+        }
+      ]
+    },
+    {
+      "id": "spirit_harvest",
+      "name": "skill.nostalgiaskills.mage.spirit_harvest.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "malum:spirit_spoils",
+          "operation": "add_value",
+          "amount": 1
+        }
+      ]
+    }
+  ]
+}

@@ -29,6 +29,20 @@ class ModRequirementTest {
         assertFalse(isMet("{\"requires_mod\":[\"curios\",\"ars_nouveau\"]}"));
     }
 
+    @Test
+    void oneModOfAnAnyListIsEnough() {
+        assertTrue(isMet("{\"requires_any_mod\":[\"ars_nouveau\",\"curios\"]}"));
+        assertTrue(isMet("{\"requires_any_mod\":\"curios\"}"));
+        assertFalse(isMet("{\"requires_any_mod\":[\"ars_nouveau\",\"malum\"]}"));
+    }
+
+    @Test
+    void bothRequirementsMustHoldTogether() {
+        assertTrue(isMet("{\"requires_mod\":\"curios\",\"requires_any_mod\":[\"ars_nouveau\",\"irons_spellbooks\"]}"));
+        assertFalse(isMet("{\"requires_mod\":\"malum\",\"requires_any_mod\":[\"curios\"]}"));
+        assertFalse(isMet("{\"requires_mod\":\"curios\",\"requires_any_mod\":[\"malum\"]}"));
+    }
+
     private static boolean isMet(String json) {
         return ModRequirement.isMet(JsonParser.parseString(json), LOADED::contains);
     }

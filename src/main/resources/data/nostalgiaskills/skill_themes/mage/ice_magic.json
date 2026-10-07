@@ -1,0 +1,36 @@
+{
+  "class": "nostalgiaskills:mage",
+  "requires_mod": "irons_spellbooks",
+  "name": "theme.nostalgiaskills.mage.ice_magic",
+  "icon": "nostalgiaskills:textures/skill_icons/school_ice.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "irons_spellbooks:ice_spell_power",
+        "operation": "add_multiplied_base",
+        "amount": 0.01
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "school_ice",
+      "name": "skill.nostalgiaskills.mage.school_ice.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "irons_spellbooks:ice_spell_power",
+          "operation": "add_multiplied_base",
+          "amount": 0.1
+        },
+        {
+          "type": "attribute",
+          "attribute": "irons_spellbooks:ice_magic_resist",
+          "operation": "add_multiplied_base",
+          "amount": 0.1
+        }
+      ]
+    }
+  ]
+}

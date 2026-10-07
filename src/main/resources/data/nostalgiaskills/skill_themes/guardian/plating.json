@@ -1,0 +1,61 @@
+{
+  "class": "nostalgiaskills:guardian",
+  "name": "theme.nostalgiaskills.guardian.plating",
+  "icon": "nostalgiaskills:textures/skill_icons/armor.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.armor",
+        "operation": "add_value",
+        "amount": 0.5
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "gatekeeper",
+      "name": "skill.nostalgiaskills.guardian.gatekeeper.name",
+      "icon": "nostalgiaskills:textures/skill_icons/health.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.max_health",
+          "operation": "add_value",
+          "amount": 4.0
+        }
+      ]
+    },
+    {
+      "id": "shield_wall",
+      "name": "skill.nostalgiaskills.guardian.shield_wall.name",
+      "icon": "nostalgiaskills:textures/skill_icons/shield.png",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "on_block",
+          "action": {
+            "type": "self_effect",
+            "effect": "minecraft:resistance",
+            "duration_ticks": 60,
+            "amplifier": 0
+          },
+          "cooldown_ticks": 200
+        }
+      ]
+    },
+    {
+      "id": "stalwart",
+      "name": "skill.nostalgiaskills.guardian.stalwart.name",
+      "icon": "nostalgiaskills:textures/skill_icons/defense.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:damage_reduction",
+          "operation": "add_value",
+          "amount": 0.03
+        }
+      ]
+    }
+  ]
+}

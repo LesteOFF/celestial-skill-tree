@@ -1,0 +1,19 @@
+{
+  "class": "nostalgiaskills:berserker",
+  "name": "theme.nostalgiaskills.berserker.charge",
+  "icon": "nostalgiaskills:textures/skill_icons/charge.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.movement_speed",
+        "operation": "add_multiplied_base",
+        "amount": 0.02,
+        "condition": {
+          "type": "sprinting"
+        }
+      }
+    ]
+  },
+  "notables": []
+}

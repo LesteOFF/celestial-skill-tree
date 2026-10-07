@@ -1,0 +1,47 @@
+{
+  "class": "nostalgiaskills:berserker",
+  "name": "theme.nostalgiaskills.berserker.heavy_swing",
+  "icon": "nostalgiaskills:textures/skill_icons/heavy_weapon.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "nostalgiaskills:heavy_weapon_damage",
+        "operation": "add_value",
+        "amount": 0.03
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "cleaving_blows",
+      "name": "skill.nostalgiaskills.berserker.cleaving_blows.name",
+      "icon": "nostalgiaskills:textures/skill_icons/melee.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:player.sweeping_damage_ratio",
+          "operation": "add_value",
+          "amount": 0.25
+        }
+      ]
+    },
+    {
+      "id": "heavy_handed",
+      "name": "skill.nostalgiaskills.berserker.heavy_handed.name",
+      "icon": "nostalgiaskills:textures/skill_icons/heavy_weapon.png",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.attack_speed",
+          "operation": "add_multiplied_base",
+          "amount": 0.1,
+          "condition": {
+            "type": "holding",
+            "tag": "nostalgiaskills:heavy_weapons"
+          }
+        }
+      ]
+    }
+  ]
+}

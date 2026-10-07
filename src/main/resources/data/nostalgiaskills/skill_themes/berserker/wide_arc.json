@@ -1,0 +1,16 @@
+{
+  "class": "nostalgiaskills:berserker",
+  "name": "theme.nostalgiaskills.berserker.wide_arc",
+  "icon": "nostalgiaskills:textures/skill_icons/sweep.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:player.sweeping_damage_ratio",
+        "operation": "add_value",
+        "amount": 0.03
+      }
+    ]
+  },
+  "notables": []
+}

@@ -2,6 +2,7 @@ package dev.nostalgiacraft.skills.server;
 
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.config.ServerConfig;
+import dev.nostalgiacraft.skills.data.GeneratedTree;
 import dev.nostalgiacraft.skills.data.SkillTreeReloadListener;
 import dev.nostalgiacraft.skills.effects.EffectEngine;
 import dev.nostalgiacraft.skills.effects.GameplayEvents;
@@ -11,6 +12,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
 @EventBusSubscriber(modid = NostalgiaSkills.MODID)
@@ -26,6 +28,11 @@ public final class LifecycleEvents {
     @SubscribeEvent
     public static void onAddReloadListeners(AddReloadListenerEvent event) {
         event.addListener(new SkillTreeReloadListener());
+    }
+
+    @SubscribeEvent
+    public static void onServerStarting(ServerStartingEvent event) {
+        GeneratedTree.generateFor(event.getServer());
     }
 
     @SubscribeEvent

@@ -1,0 +1,20 @@
+{
+  "class": "nostalgiaskills:arcanist",
+  "name": "theme.nostalgiaskills.arcanist.emergency_draught",
+  "icon": "nostalgiaskills:textures/skill_icons/heart_plus.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "nostalgiaskills:healing_received",
+        "operation": "add_value",
+        "amount": 0.03,
+        "condition": {
+          "type": "health_below",
+          "fraction": 0.5
+        }
+      }
+    ]
+  },
+  "notables": []
+}

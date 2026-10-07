@@ -1,0 +1,16 @@
+{
+  "class": "nostalgiaskills:artificer",
+  "name": "theme.nostalgiaskills.artificer.miners_luck",
+  "icon": "nostalgiaskills:textures/skill_icons/dice.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.luck",
+        "operation": "add_value",
+        "amount": 0.2
+      }
+    ]
+  },
+  "notables": []
+}

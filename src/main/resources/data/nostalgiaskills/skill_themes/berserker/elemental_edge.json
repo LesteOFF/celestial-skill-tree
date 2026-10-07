@@ -1,0 +1,42 @@
+{
+  "class": "nostalgiaskills:berserker",
+  "requires_mod": "apothic_attributes",
+  "name": "theme.nostalgiaskills.berserker.elemental_edge",
+  "icon": "nostalgiaskills:textures/skill_icons/fire.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "apothic_attributes:fire_damage",
+        "operation": "add_value",
+        "amount": 0.25
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "searing_edge",
+      "name": "skill.nostalgiaskills.berserker.searing_edge.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "apothic_attributes:fire_damage",
+          "operation": "add_value",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "id": "frozen_edge",
+      "name": "skill.nostalgiaskills.berserker.frozen_edge.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "apothic_attributes:cold_damage",
+          "operation": "add_value",
+          "amount": 1
+        }
+      ]
+    }
+  ]
+}

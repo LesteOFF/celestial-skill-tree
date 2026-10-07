@@ -1,0 +1,49 @@
+{
+  "class": "nostalgiaskills:berserker",
+  "name": "theme.nostalgiaskills.berserker.bloodthirst",
+  "icon": "nostalgiaskills:textures/skill_icons/lifesteal.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "nostalgiaskills:lifesteal",
+        "operation": "add_value",
+        "amount": 0.005
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "blood_pact",
+      "name": "skill.nostalgiaskills.berserker.blood_pact.name",
+      "icon": "nostalgiaskills:textures/skill_icons/lifesteal.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:lifesteal",
+          "operation": "add_value",
+          "amount": 0.015
+        },
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:low_health_damage",
+          "operation": "add_value",
+          "amount": 0.05
+        }
+      ]
+    },
+    {
+      "id": "bloodletting",
+      "name": "skill.nostalgiaskills.berserker.bloodletting.name",
+      "icon": "nostalgiaskills:textures/skill_icons/lifesteal.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:lifesteal",
+          "operation": "add_value",
+          "amount": 0.02
+        }
+      ]
+    }
+  ]
+}

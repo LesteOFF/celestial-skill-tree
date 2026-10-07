@@ -1,0 +1,20 @@
+{
+  "class": "nostalgiaskills:artificer",
+  "name": "theme.nostalgiaskills.artificer.deep_delver",
+  "icon": "nostalgiaskills:textures/skill_icons/depth.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "nostalgiaskills:mining_speed",
+        "operation": "add_value",
+        "amount": 0.03,
+        "condition": {
+          "type": "below_y",
+          "y": 0
+        }
+      }
+    ]
+  },
+  "notables": []
+}

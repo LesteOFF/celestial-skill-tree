@@ -1,0 +1,16 @@
+{
+  "class": "nostalgiaskills:marksman",
+  "name": "theme.nostalgiaskills.marksman.silent_step",
+  "icon": "nostalgiaskills:textures/skill_icons/footprint.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:player.sneaking_speed",
+        "operation": "add_value",
+        "amount": 0.02
+      }
+    ]
+  },
+  "notables": []
+}

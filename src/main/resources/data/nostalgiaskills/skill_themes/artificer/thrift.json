@@ -1,0 +1,42 @@
+{
+  "class": "nostalgiaskills:artificer",
+  "requires_mod": "puffish_attributes",
+  "name": "theme.nostalgiaskills.artificer.thrift",
+  "icon": "nostalgiaskills:textures/skill_icons/tools.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "puffish_attributes:repair_cost",
+        "operation": "add_multiplied_base",
+        "amount": -0.02
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "thrifty_smith",
+      "name": "skill.nostalgiaskills.artificer.thrifty_smith.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "puffish_attributes:repair_cost",
+          "operation": "add_multiplied_base",
+          "amount": -0.1
+        }
+      ]
+    },
+    {
+      "id": "lucky_strike",
+      "name": "skill.nostalgiaskills.artificer.lucky_strike.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "puffish_attributes:fortune",
+          "operation": "add_value",
+          "amount": 1
+        }
+      ]
+    }
+  ]
+}

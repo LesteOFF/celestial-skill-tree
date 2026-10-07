@@ -3,10 +3,8 @@ package dev.nostalgiacraft.skills.client;
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.client.screen.SkillTreeScreen;
 import dev.nostalgiacraft.skills.config.ClientConfig;
-import dev.nostalgiacraft.skills.data.BundledTree;
 import dev.nostalgiacraft.skills.data.McKnownIds;
 import dev.nostalgiacraft.skills.data.SkillTreeManager;
-import dev.nostalgiacraft.skills.graph.GraphParser;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.network.Payloads;
 import dev.nostalgiacraft.skills.progression.AllocationService;
@@ -52,14 +50,10 @@ public final class VisualQa {
             if (minecraft.getOverlay() != null || !(minecraft.screen instanceof TitleScreen || minecraft.screen != null)) {
                 return;
             }
-            try {
-                graph = new GraphParser(McKnownIds.INSTANCE).parse(SkillTreeManager.TREE_ID, BundledTree.load())
-                        .snapshot().orElseThrow();
-            } catch (Exception ex) {
-                NostalgiaSkills.LOGGER.error("Visual QA: cannot load bundled tree", ex);
-                done = true;
+            if (SkillTreeManager.graph().isEmpty()) {
                 return;
             }
+            graph = SkillTreeManager.graph().get();
             shots = plan();
             NostalgiaSkills.LOGGER.info("Visual QA: {} shots planned", shots.size());
             next(minecraft);
@@ -174,8 +168,8 @@ public final class VisualQa {
             sc.qaSetup(List.of(), true, false);
         }));
         l.add(new Shot("portal_tooltip_1280x720", 1280, 720, 2, "hybrid", sc -> {
-            sc.qaZoom(0.6, "portal/east");
-            sc.qaHover(id("portal/east"));
+            sc.qaZoom(0.6, "guardian/portal");
+            sc.qaHover(id("guardian/portal"));
         }));
         l.add(new Shot("reset_panel_1280x720", 1280, 720, 2, "hybrid", sc -> {
             sc.qaFit();

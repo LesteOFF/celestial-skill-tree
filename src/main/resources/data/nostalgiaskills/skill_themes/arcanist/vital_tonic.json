@@ -1,0 +1,16 @@
+{
+  "class": "nostalgiaskills:arcanist",
+  "name": "theme.nostalgiaskills.arcanist.vital_tonic",
+  "icon": "nostalgiaskills:textures/skill_icons/heart_plus.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.max_health",
+        "operation": "add_value",
+        "amount": 0.5
+      }
+    ]
+  },
+  "notables": []
+}

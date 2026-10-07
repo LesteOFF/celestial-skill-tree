@@ -131,8 +131,8 @@ public final class TestGraphs {
         JsonObject conn = new JsonObject();
         conn.addProperty("schema_version", 1);
         conn.add("connections", connections);
-        return new GraphParser(KnownIds.PERMISSIVE).parse(TREE,
-                new GraphParser.Sources(Map.of(TREE, tree), nodes, Map.of("t:main", conn)));
+        return new GraphJsonParser(KnownIds.PERMISSIVE).parse(TREE,
+                new GraphJsonParser.Sources(Map.of(TREE, tree), nodes, Map.of("t:main", conn)));
     }
 
     public SkillGraphSnapshot build() {

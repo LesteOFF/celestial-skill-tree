@@ -618,7 +618,7 @@ public final class SkillTreeScreen extends Screen {
     }
 
     private static String searchableText(SkillNodeDefinition node) {
-        return (Component.translatable(node.nameKey()).getString() + " " + Component.translatable(node.descriptionKey()).getString()
+        return (SkillTexts.name(node).getString() + " " + SkillTexts.description(node).getString()
                 + " " + String.join(" ", node.tags()) + " " + node.effects()).toLowerCase(Locale.ROOT);
     }
 
@@ -642,8 +642,8 @@ public final class SkillTreeScreen extends Screen {
     private void narrate(SkillNodeDefinition node) {
         if (minecraft != null && minecraft.getNarrator().isActive()) {
             String stateKey = "state." + nodeStates.of(node.id()).name().toLowerCase(Locale.ROOT);
-            minecraft.getNarrator().sayNow(Component.translatable(node.nameKey()).append(". ").append(text(stateKey))
-                    .append(". ").append(Component.translatable(node.descriptionKey())));
+            minecraft.getNarrator().sayNow(SkillTexts.name(node).append(". ").append(text(stateKey))
+                    .append(". ").append(SkillTexts.description(node)));
         }
     }
 

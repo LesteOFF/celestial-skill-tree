@@ -1,0 +1,19 @@
+{
+  "class": "nostalgiaskills:guardian",
+  "name": "theme.nostalgiaskills.guardian.shield_arm",
+  "icon": "nostalgiaskills:textures/skill_icons/raised_shield.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.armor",
+        "operation": "add_value",
+        "amount": 0.6,
+        "condition": {
+          "type": "blocking"
+        }
+      }
+    ]
+  },
+  "notables": []
+}

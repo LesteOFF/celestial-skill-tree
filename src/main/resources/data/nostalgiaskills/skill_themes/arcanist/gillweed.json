@@ -1,0 +1,16 @@
+{
+  "class": "nostalgiaskills:arcanist",
+  "name": "theme.nostalgiaskills.arcanist.gillweed",
+  "icon": "nostalgiaskills:textures/skill_icons/leaf.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.oxygen_bonus",
+        "operation": "add_value",
+        "amount": 0.2
+      }
+    ]
+  },
+  "notables": []
+}

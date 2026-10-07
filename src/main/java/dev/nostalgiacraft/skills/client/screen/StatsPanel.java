@@ -122,8 +122,8 @@ public final class StatsPanel {
         for (SkillNodeDefinition node : ownedNodes(state, graph)) {
             boolean hasConditionalEffect = node.effects().stream().anyMatch(effect -> !(effect instanceof SkillEffect.Attribute));
             if (node.type() != NodeType.KEYSTONE && hasConditionalEffect) {
-                entries.add(Component.literal(" • ").append(Component.translatable(node.nameKey())).append(": ")
-                        .append(Component.translatable(node.descriptionKey())).withStyle(ChatFormatting.GRAY));
+                entries.add(Component.literal(" • ").append(SkillTexts.name(node)).append(": ")
+                        .append(SkillTexts.description(node)).withStyle(ChatFormatting.GRAY));
             }
         }
         return entries;
@@ -133,8 +133,8 @@ public final class StatsPanel {
         List<Component> entries = new ArrayList<>();
         for (SkillNodeDefinition node : ownedNodes(state, graph)) {
             if (node.type() == NodeType.KEYSTONE) {
-                entries.add(Component.literal(" ◆ ").append(Component.translatable(node.nameKey())).withStyle(ChatFormatting.GOLD));
-                entries.add(Component.literal("   ").append(Component.translatable(node.descriptionKey())).withStyle(ChatFormatting.GRAY));
+                entries.add(Component.literal(" ◆ ").append(SkillTexts.name(node)).withStyle(ChatFormatting.GOLD));
+                entries.add(Component.literal("   ").append(SkillTexts.description(node)).withStyle(ChatFormatting.GRAY));
             }
         }
         return entries;

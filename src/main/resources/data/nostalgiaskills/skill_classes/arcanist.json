@@ -1,0 +1,25 @@
+{
+  "name": "sector.nostalgiaskills.arcanist",
+  "icon": "nostalgiaskills:textures/skill_icons/hub_arcanist.png",
+  "hub": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "nostalgiaskills:potion_duration",
+        "operation": "add_value",
+        "amount": 0.05
+      }
+    ]
+  },
+  "trunk": {
+    "name": "trunk.nostalgiaskills.arcanist",
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "nostalgiaskills:potion_duration",
+        "operation": "add_value",
+        "amount": 0.01
+      }
+    ]
+  }
+}

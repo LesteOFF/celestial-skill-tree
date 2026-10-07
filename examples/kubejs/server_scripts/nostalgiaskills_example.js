@@ -13,3 +13,15 @@ NostalgiaSkillsEvents.skyEventChanged(event => {
 ItemEvents.rightClicked('minecraft:stick', event => {
   NostalgiaSkills.fireTrigger(event.player, 'mypack:on_stick_used')
 })
+
+NostalgiaSkillsEvents.catalog(event => {
+  event.rules({ nodes_per_class: 80, max_classes: 8 })
+  event.removeKeystone('nostalgiaskills:guardian/bastion')
+  event.addTheme('mypack:duelist/footwork', {
+    class: 'nostalgiaskills:duelist',
+    name: 'Footwork',
+    icon: 'nostalgiaskills:textures/skill_icons/mobility.png',
+    minor: { effects: [{ type: 'attribute', attribute: 'minecraft:generic.movement_speed', operation: 'add_multiplied_base', amount: 0.01 }] },
+    notables: [{ id: 'side_step', name: 'Side Step', effects: [{ type: 'attribute', attribute: 'nostalgiaskills:dodge_chance', operation: 'add_value', amount: 0.03 }] }]
+  })
+})

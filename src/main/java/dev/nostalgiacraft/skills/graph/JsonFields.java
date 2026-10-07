@@ -6,7 +6,7 @@ import com.google.gson.JsonObject;
 
 import java.util.Optional;
 
-final class JsonFields {
+public final class JsonFields {
     private static final double MAX_MAGNITUDE = 1_000;
 
     private final JsonObject json;
@@ -14,30 +14,30 @@ final class JsonFields {
     private final String prefix;
     private final ValidationReport report;
 
-    JsonFields(JsonObject json, String source, String prefix, ValidationReport report) {
+    public JsonFields(JsonObject json, String source, String prefix, ValidationReport report) {
         this.json = json;
         this.source = source;
         this.prefix = prefix;
         this.report = report;
     }
 
-    JsonObject json() {
+    public JsonObject json() {
         return json;
     }
 
-    boolean has(String key) {
+    public boolean has(String key) {
         return json.has(key);
     }
 
-    void error(String key, String message) {
+    public void error(String key, String message) {
         report.error(source, prefix + key, message);
     }
 
-    JsonFields child(JsonObject child, String childPrefix) {
+    public JsonFields child(JsonObject child, String childPrefix) {
         return new JsonFields(child, source, prefix + childPrefix, report);
     }
 
-    String text(String key) {
+    public String text(String key) {
         if (!json.has(key) || !json.get(key).isJsonPrimitive()) {
             error(key, "missing string");
             return null;
@@ -50,7 +50,7 @@ final class JsonFields {
         return value;
     }
 
-    String id(String key) {
+    public String id(String key) {
         String value = text(key);
         if (value != null && !Ids.isValid(value)) {
             error(key, "invalid namespaced id '" + value + "'");
@@ -59,7 +59,19 @@ final class JsonFields {
         return value;
     }
 
-    double number(String key) {
+    public Optional<String> optionalText(String key) {
+        return has(key) ? Optional.ofNullable(text(key)) : Optional.empty();
+    }
+
+    public Optional<String> optionalId(String key) {
+        return has(key) ? Optional.ofNullable(id(key)) : Optional.empty();
+    }
+
+    public void warn(String key, String message) {
+        report.warn(source, prefix + key, message);
+    }
+
+    public double number(String key) {
         if (!json.has(key) || !json.get(key).isJsonPrimitive() || !json.getAsJsonPrimitive(key).isNumber()) {
             error(key, "missing number");
             return Double.NaN;
@@ -67,17 +79,17 @@ final class JsonFields {
         return json.get(key).getAsDouble();
     }
 
-    void requireBounded(String key, double value) {
+    public void requireBounded(String key, double value) {
         if (!Double.isFinite(value) || Math.abs(value) > MAX_MAGNITUDE) {
             error(key, "must be finite and within +/-1000");
         }
     }
 
-    int integer(String key, int fallback) {
+    public int integer(String key, int fallback) {
         return json.has(key) ? json.get(key).getAsInt() : fallback;
     }
 
-    int integerWithin(String key, int fallback, int min, int max) {
+    public int integerWithin(String key, int fallback, int min, int max) {
         int value = integer(key, fallback);
         if (value < min || value > max) {
             error(key, "must be within " + min + ".." + max);
@@ -85,19 +97,23 @@ final class JsonFields {
         return value;
     }
 
-    boolean flag(String key) {
+    public boolean flag(String key) {
         return json.has(key) && json.get(key).getAsBoolean();
     }
 
-    String rawText(String key, String fallback) {
+    public boolean flag(String key, boolean fallback) {
+        return json.has(key) ? json.get(key).getAsBoolean() : fallback;
+    }
+
+    public String rawText(String key, String fallback) {
         return json.has(key) ? json.get(key).getAsString() : fallback;
     }
 
-    Optional<String> optionalRawText(String key) {
+    public Optional<String> optionalRawText(String key) {
         return json.has(key) ? Optional.of(json.get(key).getAsString()) : Optional.empty();
     }
 
-    Optional<JsonArray> array(String key) {
+    public Optional<JsonArray> array(String key) {
         if (!json.has(key) || !json.get(key).isJsonArray()) {
             error(key, "missing array");
             return Optional.empty();
@@ -105,7 +121,7 @@ final class JsonFields {
         return Optional.of(json.getAsJsonArray(key));
     }
 
-    Optional<JsonFields> object(String key) {
+    public Optional<JsonFields> object(String key) {
         JsonElement element = json.get(key);
         if (element == null || !element.isJsonObject()) {
             error(key, "missing object");
@@ -114,7 +130,7 @@ final class JsonFields {
         return Optional.of(child(element.getAsJsonObject(), key + "."));
     }
 
-    void requireSupportedSchema() {
+    public void requireSupportedSchema() {
         if (!json.has("schema_version")) {
             error("schema_version", "missing");
         } else if (json.get("schema_version").getAsInt() != GraphParser.SUPPORTED_SCHEMA) {

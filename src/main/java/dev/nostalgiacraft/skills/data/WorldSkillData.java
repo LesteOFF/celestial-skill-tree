@@ -1,5 +1,7 @@
 package dev.nostalgiacraft.skills.data;
 
+import dev.nostalgiacraft.skills.generation.DrawJson;
+import dev.nostalgiacraft.skills.generation.TreeDraw;
 import dev.nostalgiacraft.skills.progression.SkyEvent;
 import dev.nostalgiacraft.skills.progression.SkyEventSchedule;
 import net.minecraft.core.HolderLookup;
@@ -14,11 +16,13 @@ public final class WorldSkillData extends SavedData {
     private static final String FORCED_EVENT = "forced_event";
     private static final String LEGACY_ECLIPSE_FORCED = "eclipse_forced";
     private static final String COMMUNITY_XP = "community_xp";
+    private static final String TREE_DRAW = "tree_draw";
 
     private long eclipseDay = SkyEventSchedule.UNSCHEDULED;
     private long showerDay = SkyEventSchedule.UNSCHEDULED;
     private SkyEvent forcedEvent = SkyEvent.NONE;
     private long communityXp;
+    private String treeDraw = "";
 
     public static WorldSkillData of(MinecraftServer server) {
         return server.overworld().getDataStorage().computeIfAbsent(new Factory<>(WorldSkillData::new, WorldSkillData::load), FILE_NAME);
@@ -30,6 +34,7 @@ public final class WorldSkillData extends SavedData {
         data.showerDay = scheduledDay(tag, SHOWER_DAY);
         data.forcedEvent = tag.getBoolean(LEGACY_ECLIPSE_FORCED) ? SkyEvent.ECLIPSE : SkyEvent.byName(tag.getString(FORCED_EVENT));
         data.communityXp = Math.max(0, tag.getLong(COMMUNITY_XP));
+        data.treeDraw = tag.getString(TREE_DRAW);
         return data;
     }
 
@@ -43,6 +48,7 @@ public final class WorldSkillData extends SavedData {
         tag.putLong(SHOWER_DAY, showerDay);
         tag.putString(FORCED_EVENT, forcedEvent.id());
         tag.putLong(COMMUNITY_XP, communityXp);
+        tag.putString(TREE_DRAW, treeDraw);
         return tag;
     }
 
@@ -71,6 +77,18 @@ public final class WorldSkillData extends SavedData {
     public void setForcedEvent(SkyEvent event) {
         forcedEvent = event;
         setDirty();
+    }
+
+    public TreeDraw treeDraw() {
+        return DrawJson.read(treeDraw);
+    }
+
+    public void setTreeDraw(TreeDraw draw) {
+        String written = DrawJson.write(draw);
+        if (!written.equals(treeDraw)) {
+            treeDraw = written;
+            setDirty();
+        }
     }
 
     public long communityXp() {

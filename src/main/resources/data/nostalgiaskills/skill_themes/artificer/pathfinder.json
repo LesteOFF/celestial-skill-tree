@@ -1,0 +1,62 @@
+{
+  "class": "nostalgiaskills:artificer",
+  "name": "theme.nostalgiaskills.artificer.pathfinder",
+  "icon": "nostalgiaskills:textures/skill_icons/mobility.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.movement_speed",
+        "operation": "add_multiplied_base",
+        "amount": 0.01
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "foremans_post",
+      "name": "skill.nostalgiaskills.artificer.foremans_post.name",
+      "icon": "nostalgiaskills:textures/skill_icons/mining.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:mining_speed",
+          "operation": "add_value",
+          "amount": 0.08
+        },
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:tool_preservation",
+          "operation": "add_value",
+          "amount": 0.04
+        }
+      ]
+    },
+    {
+      "id": "prospectors_camp",
+      "name": "skill.nostalgiaskills.artificer.prospectors_camp.name",
+      "icon": "nostalgiaskills:textures/skill_icons/exploration.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.step_height",
+          "operation": "add_value",
+          "amount": 0.4
+        }
+      ]
+    },
+    {
+      "id": "trailblazer",
+      "name": "skill.nostalgiaskills.artificer.trailblazer.name",
+      "icon": "nostalgiaskills:textures/skill_icons/mobility.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.movement_speed",
+          "operation": "add_multiplied_base",
+          "amount": 0.05
+        }
+      ]
+    }
+  ]
+}

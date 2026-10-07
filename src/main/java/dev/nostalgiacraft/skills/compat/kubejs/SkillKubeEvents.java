@@ -1,5 +1,6 @@
 package dev.nostalgiacraft.skills.compat.kubejs;
 
+import com.google.gson.JsonObject;
 import dev.latvian.mods.kubejs.event.EventGroup;
 import dev.latvian.mods.kubejs.event.EventHandler;
 import dev.latvian.mods.kubejs.event.KubeEvent;
@@ -25,6 +26,7 @@ public final class SkillKubeEvents {
     private static final EventHandler SKY_EVENT_CHANGED = GROUP.server("skyEventChanged", () -> SkyEventChangedKubeEvent.class);
     private static final EventHandler STAR_LANDED = GROUP.server("starLanded", () -> StarLandedKubeEvent.class);
     private static final EventHandler ELITE_SPAWNED = GROUP.server("eliteSpawned", () -> EliteSpawnedKubeEvent.class);
+    private static final EventHandler CATALOG = GROUP.server("catalog", () -> CatalogKubeEvent.class);
 
     private SkillKubeEvents() {
     }
@@ -37,6 +39,7 @@ public final class SkillKubeEvents {
         forward(SkillEvents.SkyEventChanged.class, SKY_EVENT_CHANGED, SkyEventChangedKubeEvent::new);
         forward(SkillEvents.StarLanded.class, STAR_LANDED, StarLandedKubeEvent::new);
         forward(SkillEvents.EliteSpawned.class, ELITE_SPAWNED, EliteSpawnedKubeEvent::new);
+        forward(SkillEvents.CatalogLoading.class, CATALOG, CatalogKubeEvent::new);
     }
 
     private static <E extends Event> void forward(Class<E> type, EventHandler handler, Function<E, KubeEvent> wrap) {
@@ -45,6 +48,36 @@ public final class SkillKubeEvents {
                 handler.post(ScriptType.SERVER, wrap.apply(event));
             }
         }));
+    }
+
+    public record CatalogKubeEvent(SkillEvents.CatalogLoading event) implements KubeEvent {
+        public void addClass(String id, JsonObject definition) {
+            event.getCatalog().addClass(id, definition);
+        }
+
+        public void removeClass(String id) {
+            event.getCatalog().removeClass(id);
+        }
+
+        public void addTheme(String id, JsonObject definition) {
+            event.getCatalog().addTheme(id, definition);
+        }
+
+        public void removeTheme(String id) {
+            event.getCatalog().removeTheme(id);
+        }
+
+        public void addKeystone(String id, JsonObject definition) {
+            event.getCatalog().addKeystone(id, definition);
+        }
+
+        public void removeKeystone(String id) {
+            event.getCatalog().removeKeystone(id);
+        }
+
+        public void rules(JsonObject definition) {
+            event.getCatalog().rules(definition);
+        }
     }
 
     public record PointsBoughtKubeEvent(SkillEvents.PointsBought event) implements KubeEvent {

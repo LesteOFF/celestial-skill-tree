@@ -1,0 +1,16 @@
+{
+  "class": "nostalgiaskills:artificer",
+  "name": "theme.nostalgiaskills.artificer.rough_terrain",
+  "icon": "nostalgiaskills:textures/skill_icons/mountain.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.movement_efficiency",
+        "operation": "add_value",
+        "amount": 0.03
+      }
+    ]
+  },
+  "notables": []
+}

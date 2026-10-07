@@ -1,0 +1,16 @@
+{
+  "class": "nostalgiaskills:duelist",
+  "name": "theme.nostalgiaskills.duelist.lunge",
+  "icon": "nostalgiaskills:textures/skill_icons/lunge.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:player.entity_interaction_range",
+        "operation": "add_value",
+        "amount": 0.04
+      }
+    ]
+  },
+  "notables": []
+}

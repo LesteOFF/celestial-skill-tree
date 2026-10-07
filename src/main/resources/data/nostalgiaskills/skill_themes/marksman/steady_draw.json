@@ -1,0 +1,60 @@
+{
+  "class": "nostalgiaskills:marksman",
+  "name": "theme.nostalgiaskills.marksman.steady_draw",
+  "icon": "nostalgiaskills:textures/skill_icons/projectile.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "nostalgiaskills:long_range_damage",
+        "operation": "add_value",
+        "amount": 0.03
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "lower_limb",
+      "name": "skill.nostalgiaskills.marksman.lower_limb.name",
+      "icon": "nostalgiaskills:textures/skill_icons/crossbow.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:crossbow_damage",
+          "operation": "add_value",
+          "amount": 0.08
+        }
+      ]
+    },
+    {
+      "id": "upper_limb",
+      "name": "skill.nostalgiaskills.marksman.upper_limb.name",
+      "icon": "nostalgiaskills:textures/skill_icons/bow.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:charged_shot_damage",
+          "operation": "add_value",
+          "amount": 0.08
+        }
+      ]
+    },
+    {
+      "id": "windreader",
+      "name": "skill.nostalgiaskills.marksman.windreader.name",
+      "icon": "nostalgiaskills:textures/skill_icons/bow.png",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.movement_speed",
+          "operation": "add_multiplied_base",
+          "amount": 0.05,
+          "condition": {
+            "type": "holding",
+            "tag": "nostalgiaskills:bows"
+          }
+        }
+      ]
+    }
+  ]
+}

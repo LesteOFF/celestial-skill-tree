@@ -1,0 +1,16 @@
+{
+  "class": "nostalgiaskills:arcanist",
+  "name": "theme.nostalgiaskills.arcanist.ironbark_brew",
+  "icon": "nostalgiaskills:textures/skill_icons/plate.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.armor",
+        "operation": "add_value",
+        "amount": 0.3
+      }
+    ]
+  },
+  "notables": []
+}

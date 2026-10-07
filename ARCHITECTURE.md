@@ -3,12 +3,16 @@
 NeoForge 21.1.256 for Minecraft 1.21.1, Java 21, ModDevGradle 2.0.148. Package root `dev.nostalgiacraft.skills`.
 
 ```text
-graph/        pure Java: node/edge/effect model, GraphParser (JSON; split into NodeParser, EffectParser,
+generation/   pure Java: catalog model and CatalogParser, TreeShapeGenerator (the web layout), TreeDrawer
+              (seeded draw), TreeAssembler and TreeGenerator (catalog + seed -> validated graph), DrawJson
+text/         pure Java: EffectPhrases and PhraseRenderer turn effects into sentences
+graph/        pure Java: node/edge/effect model, EffectParser (JSON effects; the old node-file parser,
               ConnectionParser over JsonFields), GraphValidator, SkillGraphSnapshot, GraphCodec
 progression/  pure Java: PlayerSkillState (ledger), AllocationService, Holdings, PathFinder, XpMath, XpCurve,
               ProgressionService, LedgerService, RespecService, RefundService, Reconciler, RequestGuard,
               RejectReason
-data/         server resource loading: SkillTreeReloadListener, SkillTreeManager, BundledTree, McKnownIds
+data/         server resource loading: SkillTreeReloadListener (reads the catalog), GeneratedTree (generates
+              per world), SkillTreeManager, WorldSkillData (saves the draw), McKnownIds
 registry/     attributes, item tags, attachments + codecs, persisted cooldowns, Orb of Reconfiguration
 network/      payload records + registration (client-bound handlers reach client code only through ClientHandlers)
 server/       SkillService (authoritative intents), LifecycleEvents, RateLimiter
@@ -21,34 +25,33 @@ config/       ServerConfig (gameplay, synced), ClientConfig (presentation only)
 client/       ClientSkillState, ClientSetup (key mapping), screen/, render/, VisualQa + InWorldQa (dev harness)
 ```
 
-`graph` and `progression` contain no Minecraft classes; they are unit-tested directly (`./gradlew test`, 88 tests,
-including validation of the full bundled 480-node dataset). The same classes run on the server (authoritative) and
+`graph` and `progression` contain no Minecraft classes; they are unit-tested directly (`./gradlew test`, 172 tests,
+including trees generated from the shipped catalog for many seeds). The same classes run on the server (authoritative) and
 on the client (previews only), so the client shows exactly the rules the server enforces.
 
 ## Data and loading
 
-| Location | Content |
-|---|---|
-| `data/<ns>/skill_trees/<name>.json` | tree id, sectors (id, root, name key), exclusive groups, default costs, bounds |
-| `data/<ns>/skill_nodes/<path>.json` | one node per file; id = `<ns>:<path>` (explicit `id` optional but must match) |
-| `data/<ns>/skill_connections/<name>.json` | `connections[]`: `a`, `b`, optional `id` (else derived from sorted endpoints), `directed`, `style`, `points[]`, `bridge`, `corridor` |
-| `data/<ns>/skill_migrations/<name>.json` | `{"schema_version":1,"migrations":{"old:id":"new:id"}}` |
+The tree is not authored node by node. `SkillTreeReloadListener` reads the catalog (`skill_classes`, `skill_themes`,
+`skill_keystones`, `skill_rules`; formats in the README), drops files whose mod is missing, posts
+`SkillEvents.CatalogLoading` so scripts and mods can edit the raw entries, and parses the result with
+`CatalogParser`. `GeneratedTree` then calls `TreeGenerator` with the world seed and the draw saved in
+`WorldSkillData`, on `ServerStartingEvent` (the seed and the save are needed) and again on every `/reload`.
 
-Node schema (version 1) is exactly what `tools/layout/export.py` writes; see any file under
-`src/main/resources/data/nostalgiaskills/skill_nodes/` and the example datapack in `examples/datapacks/`.
-`requirements.all_of` / `any_of` take node ids or `#tag` terms; empty lists impose nothing; when both are non-empty
-both must hold. `minimum_sector_points` counts recorded paid points already held in the node's sector, including
-nodes accepted earlier in the same batch, never the node itself. Adjacency is checked separately.
+`TreeGenerator`: `ClassPool.select` picks the classes and moves orphan themes to fallback classes;
+`TreeShapeGenerator` lays out hub, trunk, arc-shaped ribs, keystones and portals for that number of classes;
+`TreeDrawer` gives each rib a notable and lets `MinorDeck` fill trunk and ribs with minor skills that do not repeat inside a run, at
+most `max_copies_per_skill` of each, keeping every previous choice that is still valid; the class budget shrinks
+until its themes can fill it;
+`TreeAssembler` turns slots into `SkillNodeDefinition`s and connections; `GraphValidator` has the last word. Skill
+ids come from the catalog entry (`<theme>_<n>`, not from the position), so `Reconciler` refunds exactly what
+disappeared.
 
-**Reload strategy.** `SkillTreeReloadListener` is registered through `AddReloadListenerEvent`, so it runs on server
-start and on every `/reload`. `prepare` reads JSON off-thread; `apply` parses, validates and builds a new immutable
-`SkillGraphSnapshot`. Only a fully valid snapshot replaces the active one (`SkillTreeManager`):
+Only a fully valid graph replaces the active one (`SkillTreeManager`). Invalid data during a session keeps the
+previous graph; on the first load skill features stay disabled with `error.nostalgiaskills.tree_unavailable`. Every
+problem is logged with file, field and reason and shown by `/nostalgiaskills validate`.
 
-- invalid custom data during a session → the previous snapshot stays active; every problem is logged with file,
-  field and reason and is shown by `/nostalgiaskills validate`;
-- invalid data on the initial load → the verified tree bundled in the jar is loaded from the classpath
-  (`BundledTree`, using `nostalgiaskills_bundled_index.json`), with a loud error; if that fails too, skill features
-  are disabled with `error.nostalgiaskills.tree_unavailable` (no silent empty tree).
+`GraphJsonParser`, `NodeParser` and `ConnectionParser` (one JSON file per node) now live in the test sources only:
+the unit tests of `progression` still build their small graphs with them.
 
 The graph revision (`SkillTreeManager.revision()`) increments whenever the content fingerprint changes. After a
 reload `OnDatapackSyncEvent` fires for all players: each is reconciled, effects are rebuilt and the new graph and
@@ -148,7 +151,7 @@ Offline players go through the same path on their next login, before effects are
   light/heavy_weapon_damage, projectile/long_range/crossbow/charged_shot_damage, mining_speed, tool_preservation,
   potion_duration, magic_resistance, healing_received, lifesteal, damage_reduction, low_health_damage.
 - **Conditional attributes:** evaluated every 10 ticks and on equipment change, only for players whose compiled
-  build has any (`CompiledBuild` is rebuilt only when the build or graph changes; nothing scans 480 nodes per tick).
+  build has any (`CompiledBuild` is rebuilt only when the build or graph changes; nothing scans the whole tree per tick).
 - **Damage** (`GameplayEvents.onIncomingDamage`, `LivingIncomingDamageEvent`, low priority): defender side —
   dodge roll, taken modifiers, magic resistance, damage reduction; attacker side — only player melee
   (`minecraft:player_attack` with the player as direct entity) or player projectiles (`#minecraft:is_projectile`,

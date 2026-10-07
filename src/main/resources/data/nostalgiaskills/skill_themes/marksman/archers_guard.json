@@ -1,0 +1,16 @@
+{
+  "class": "nostalgiaskills:marksman",
+  "name": "theme.nostalgiaskills.marksman.archers_guard",
+  "icon": "nostalgiaskills:textures/skill_icons/arrow_guard.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "damage_modifier",
+        "direction": "taken",
+        "scope": "projectile",
+        "amount": -0.02
+      }
+    ]
+  },
+  "notables": []
+}

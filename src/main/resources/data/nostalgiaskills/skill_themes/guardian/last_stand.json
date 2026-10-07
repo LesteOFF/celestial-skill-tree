@@ -1,0 +1,20 @@
+{
+  "class": "nostalgiaskills:guardian",
+  "name": "theme.nostalgiaskills.guardian.last_stand",
+  "icon": "nostalgiaskills:textures/skill_icons/last_stand.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.armor",
+        "operation": "add_value",
+        "amount": 0.8,
+        "condition": {
+          "type": "health_below",
+          "fraction": 0.5
+        }
+      }
+    ]
+  },
+  "notables": []
+}

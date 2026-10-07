@@ -1,0 +1,62 @@
+{
+  "class": "nostalgiaskills:marksman",
+  "name": "theme.nostalgiaskills.marksman.fletching",
+  "icon": "nostalgiaskills:textures/skill_icons/projectile.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "nostalgiaskills:projectile_damage",
+        "operation": "add_value",
+        "amount": 0.02
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "eagle_eye",
+      "name": "skill.nostalgiaskills.marksman.eagle_eye.name",
+      "icon": "nostalgiaskills:textures/skill_icons/range.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:long_range_damage",
+          "operation": "add_value",
+          "amount": 0.1
+        }
+      ]
+    },
+    {
+      "id": "long_shot",
+      "name": "skill.nostalgiaskills.marksman.long_shot.name",
+      "icon": "nostalgiaskills:textures/skill_icons/range.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:long_range_damage",
+          "operation": "add_value",
+          "amount": 0.06
+        },
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:projectile_damage",
+          "operation": "add_value",
+          "amount": 0.03
+        }
+      ]
+    },
+    {
+      "id": "nocking_point",
+      "name": "skill.nostalgiaskills.marksman.nocking_point.name",
+      "icon": "nostalgiaskills:textures/skill_icons/projectile.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:projectile_damage",
+          "operation": "add_value",
+          "amount": 0.06
+        }
+      ]
+    }
+  ]
+}

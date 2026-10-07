@@ -1,0 +1,41 @@
+{
+  "class": "nostalgiaskills:mage",
+  "requires_mod": "forbidden_arcanus",
+  "name": "theme.nostalgiaskills.mage.aureal_flow",
+  "icon": "nostalgiaskills:textures/skill_icons/halo.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "forbidden_arcanus:generic.aureal_regeneration",
+        "operation": "add_value",
+        "amount": 0.2
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "aureal_resonance",
+      "name": "skill.nostalgiaskills.mage.aureal_resonance.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "forbidden_arcanus:generic.magic_protection",
+          "operation": "add_value",
+          "amount": 0.05
+        },
+        {
+          "type": "conditional_attribute",
+          "attribute": "nostalgiaskills:magic_resistance",
+          "operation": "add_value",
+          "amount": 0.1,
+          "condition": {
+            "type": "attribute_at_least",
+            "attribute": "forbidden_arcanus:generic.aureal_regeneration",
+            "value": 1
+          }
+        }
+      ]
+    }
+  ]
+}

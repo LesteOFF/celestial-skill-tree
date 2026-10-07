@@ -1,0 +1,25 @@
+{
+  "name": "sector.nostalgiaskills.guardian",
+  "icon": "nostalgiaskills:textures/skill_icons/hub_guardian.png",
+  "hub": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.max_health",
+        "operation": "add_value",
+        "amount": 2.0
+      }
+    ]
+  },
+  "trunk": {
+    "name": "trunk.nostalgiaskills.guardian",
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.armor",
+        "operation": "add_value",
+        "amount": 0.25
+      }
+    ]
+  }
+}

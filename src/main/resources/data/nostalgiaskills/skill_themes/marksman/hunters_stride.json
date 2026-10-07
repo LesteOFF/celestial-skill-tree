@@ -1,0 +1,51 @@
+{
+  "class": "nostalgiaskills:marksman",
+  "name": "theme.nostalgiaskills.marksman.hunters_stride",
+  "icon": "nostalgiaskills:textures/skill_icons/mobility.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.movement_speed",
+        "operation": "add_multiplied_base",
+        "amount": 0.01
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "hunters_blind",
+      "name": "skill.nostalgiaskills.marksman.hunters_blind.name",
+      "icon": "nostalgiaskills:textures/skill_icons/projectile.png",
+      "effects": [
+        {
+          "type": "damage_modifier",
+          "direction": "dealt",
+          "scope": "projectile",
+          "amount": 0.1,
+          "condition": {
+            "type": "sneaking"
+          }
+        }
+      ]
+    },
+    {
+      "id": "taut_string",
+      "name": "skill.nostalgiaskills.marksman.taut_string.name",
+      "icon": "nostalgiaskills:textures/skill_icons/bow.png",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "on_full_charge_hit",
+          "action": {
+            "type": "self_effect",
+            "effect": "minecraft:speed",
+            "duration_ticks": 40,
+            "amplifier": 0
+          },
+          "cooldown_ticks": 100
+        }
+      ]
+    }
+  ]
+}

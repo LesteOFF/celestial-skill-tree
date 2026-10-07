@@ -1,11 +1,13 @@
 # Nostalgia Skills
 
-A NeoForge mod for **Minecraft Java 1.21.1** that adds a 484-node passive skill tree, presented as a constellation
-chart inside **The Astral Observatory**. Buy skill points with vanilla experience, plan a route across six
-specialisations, confirm it in one batch, and reshape your build with the Orb of Reconfiguration.
+A NeoForge mod for **Minecraft Java 1.21.1** that adds a passive skill tree generated for each world, presented as a constellation
+chart inside **The Astral Observatory**. Buy skill points with vanilla experience, plan a route across the
+classes of your world, confirm it in one batch, and reshape your build with the Orb of Reconfiguration.
 
-- 6 sectors — Duelist, Guardian, Arcanist/Alchemist, Marksman, Artificer/Explorer, Berserker — each with its own
-  route shapes: 64 minors, 12 notables and 3 keystones per sector, plus a root hub.
+- 6 classes without other mods — Duelist, Guardian, Arcanist, Marksman, Artificer, Berserker — and a Mage class when a
+  supported magic mod is installed. Every class has the same shape: a hub, a straight trunk, themed branches that end
+  in a notable, and up to 3 keystones at the tip. Together they form a web of up to 100 skills per class.
+- The tree is drawn from a catalog using the world seed, so another world, or another set of mods, gets another tree.
 - Every node has a real gameplay effect; keystones trade a strong advantage for a drawback.
 - Server-authoritative: the client only previews; the server validates every purchase, allocation and reset.
 - English (`en_us`) and Brazilian Portuguese (`pt_br`).
@@ -25,7 +27,9 @@ the only optional integration.
 
 ```bash
 ./gradlew build            # Windows: gradlew.bat build  → build/libs/nostalgiaskills-0.5.0.jar
-./gradlew test             # 91 domain unit tests, including validation of the full 484-node dataset
+./gradlew test             # 172 unit tests, including trees generated from the shipped catalog
+./gradlew validateTree     # validates the catalog and generates one tree outside the game
+./gradlew previewTree      # draws the tree shape to build/preview/tree.png
 ./gradlew runGameTestServer  # 12 in-game tests on a real server with mock players
 ./gradlew runClient / runServer
 ```
@@ -62,7 +66,7 @@ Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256
   unlearning either end closes both. Hovering a gate lights up its twin; while the pair is selected or learned, two lanes
   of arrows flow both ways between them. The tooltip names the destination.
 - **No caps, no exclusive choices.** Nothing in the shipped tree excludes anything else and the default point limit is
-  10,000, so one character can eventually learn all 484 skills (593 points). Each skill must still connect to one you
+  10,000, so one character can eventually learn every skill. Each skill must still connect to one you
   already own. The XP price of a point keeps rising with every point bought (`100 + 20p + 2p²`); lower
   `curveQuadratic` in the server config if the whole tree should be a realistic goal.
 
@@ -144,23 +148,45 @@ limit requires the explicit `true` override argument.
 
 ## Data packs
 
-The tree is ordinary data: `data/<namespace>/skill_trees`, `skill_nodes`, `skill_connections`, `skill_migrations`.
-Birth signs live in `skill_signs` (`effects` only) and shared-constellation tiers in `skill_community` (`xp_required`
-plus `effects`); both use the same effect vocabulary as nodes and take their texts from `sign.<ns>.<id>.name` /
-`.description` and `community.<ns>.<id>.name` / `.description`. A node may also carry `"neighbour_multiplier": 2.0`
-(a black hole: adjacent skills you own count that many times, adjacent skills you do not own are sealed while it is
-active) or `"hidden_until": "<advancement id>"` (the node is invisible until the player earns that advancement).
-Any file in these folders may carry `"requires_mod": "modid"` (or a list of mod ids): it is skipped unless every
-listed mod is installed, so a node can use another mod's attributes or effects without breaking the tree when that
-mod is absent. Put the connections of such nodes in a connection file with the same `requires_mod`. Skills a player
-owns from a mod that was removed are refunded at their paid price on the next login.
-Override a node by shipping the same path in a higher-priority pack, then `/reload`. Invalid data is rejected with
-file, field and reason and the last valid tree stays active. Examples:
+The tree is generated from a **catalog** of ordinary data files, then saved with the world:
 
-- `examples/datapacks/nostalgiaskills_example_tweaks/` — makes *Keen Edge I* stronger and shows a migration entry.
-- `examples/datapacks/nostalgiaskills_invalid_test/` — deliberately broken, for testing rejection.
-- `examples/datapacks/nostalgiaskills_black_hole/` — turns the Death Wish keystone into a black hole.
-- `examples/datapacks/nostalgiaskills_hidden_keystone/` — hides Arcane Ward until you brew a potion.
+| Folder | Content |
+|---|---|
+| `data/<ns>/skill_classes/<id>.json` | a class: `name`, `icon`, `hub` (its effects), `trunk` (`name` and effects of the skill repeated along the trunk); optional `priority`, `fallback_class`, `nodes` |
+| `data/<ns>/skill_themes/<path>.json` | a branch theme: `class`, `name`, `icon`, `minor` (effects of the numbered skills), optional `weight` and `notables` (`id`, `name`, effects) |
+| `data/<ns>/skill_keystones/<path>.json` | a keystone: `class`, `name`, `text` (required plain-language sentence), effects; optional `icon`, `weight`, `neighbour_multiplier`, `hidden_until` |
+| `data/nostalgiaskills/skill_rules/main.json` | `nodes_per_class` (12 to 100, default 100), `max_classes` (default 10), `min_themes_for_own_class` (default 4), `max_copies_per_skill` (default 5), `vary_by_seed`, `portals` |
+
+- **Mods.** Any file may carry `"requires_mod"` (one id or a list, all needed) or `"requires_any_mod"` (one of the list
+  is enough). A file whose mod is missing is skipped before it is read, so it may use that mod's attributes.
+- **Which classes a world gets.** Classes with at least `min_themes_for_own_class` themes enter, highest `priority`
+  first, up to `max_classes`. Themes and keystones of a class that did not enter move to its `fallback_class`.
+- **The draw.** Everything the catalog offers a class appears in every world, as long as it fits: each branch ends
+  in a notable, the notables left over open a branch (and, on long branches, sit in the middle), and up to 9
+  keystones fan out at the tip. Which notable goes where is drawn by `weight` with the world seed. The minor skills
+  never repeat inside one trunk or branch while the class has other themes to offer, the least used ones first, and
+  the skill next to a notable is of that notable's theme. No skill appears more than `max_copies_per_skill` times in
+  a class. Notables or keystones that still do not fit are reported as a warning. A class whose themes cannot fill
+  its size under that limit becomes smaller. With `vary_by_seed` off every world of the pack gets the same tree.
+- **Changes.** After `/reload` or a changed mod list, branches whose theme still exists stay as they are and only the
+  emptied ones are drawn again. Skills that no longer exist are refunded at their paid price on the next login. A
+  class entering or leaving changes the width of every slice, which shortens or lengthens the branches.
+- **Texts.** A skill without `text` is described from its effects ("+5% Attack Speed (of base value) while holding a
+  weapon in each hand"). `text` replaces that with a written sentence and the tooltip still shows the exact numbers
+  under it. Names and texts are translation keys; a missing key is shown as written.
+- **Validation.** Invalid data is rejected with file, field and reason and the last valid tree stays active;
+  `/nostalgiaskills validate` shows the result. A skill that combines a trigger with other effects, or has three or
+  more effects, only warns when it has no `text`.
+
+Skill ids are `<class>/hub`, `<class>/trunk_<n>`, `<theme>_<n>`, `<theme folder>/<notable id>`, the keystone file id and
+`<class>/portal`.
+
+Birth signs live in `skill_signs` (`effects` only) and shared-constellation tiers in `skill_community` (`xp_required`
+plus `effects`); both use the same effect vocabulary and take their texts from `sign.<ns>.<id>.name` /
+`.description` and `community.<ns>.<id>.name` / `.description`. `skill_migrations` renames skill ids.
+
+Example: `examples/datapacks/nostalgiaskills_catalog_example/` — smaller classes, one new Guardian theme and a
+keystone that stays hidden until an advancement.
 
 ### Integration hooks
 
@@ -238,20 +264,13 @@ the mod keeps working.
 - **Changing a build** from a script goes through the admin commands, e.g.
   `server.runCommandSilent('nostalgiaskills unlock ' + player.username + ' nostalgiaskills:some_node')`, so the
   ledger, effects and client sync stay consistent.
-- **Tree data** (nodes, connections, signs, community tiers) is ordinary data pack JSON: put it under
-  `kubejs/data/<namespace>/skill_nodes/...`, or generate it from a script with
-  `ServerEvents.generateData('after_mods', event => event.json('<namespace>:skill_nodes/<sector>/<name>', {...}))`.
-  A new node needs a connection (`skill_connections`) to an existing one.
+- **Catalog** (`NostalgiaSkillsEvents.catalog`, server scripts): `addClass(id, {...})`, `addTheme(id, {...})`,
+  `addKeystone(id, {...})`, `removeClass(id)`, `removeTheme(id)`, `removeKeystone(id)` and `rules({...})`. The objects
+  use the same fields as the data files above and go through the same validation. Adding an existing id replaces it,
+  removing a class also drops its themes and keystones, and `rules` replaces the whole rules file. Other mods can do
+  the same through the NeoForge event `SkillEvents.CatalogLoading`.
 
 Example: `examples/kubejs/server_scripts/nostalgiaskills_example.js`.
-
-Tools: `python3 tools/layout/export.py` regenerates all node/connection data, translations and the layout manifest
-from the authored blueprints. The shipped tree uses the Fibonacci layout (the blueprint
-positions expanded by φ² with a logarithmic twist; same nodes, edges and costs). Running `export.py` writes the
-blueprint positions back, and `gerar_fibonacci.ps1` reads its input from the shipped data, so run it only right
-after `export.py` and then copy `resource_override/data` over `src/main/resources/data` again. Afterwards
-`python tools/layout/portals.py` places the four gates in free space and links them, and the exclusive groups have
-to be removed again (the blueprints still declare them).
 
 ## Known limitations
 

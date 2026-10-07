@@ -1,0 +1,19 @@
+{
+  "class": "nostalgiaskills:duelist",
+  "name": "theme.nostalgiaskills.duelist.running_strike",
+  "icon": "nostalgiaskills:textures/skill_icons/charge.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "damage_modifier",
+        "direction": "dealt",
+        "scope": "melee",
+        "amount": 0.02,
+        "condition": {
+          "type": "sprinting"
+        }
+      }
+    ]
+  },
+  "notables": []
+}

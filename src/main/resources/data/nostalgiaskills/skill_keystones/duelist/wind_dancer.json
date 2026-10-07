@@ -1,0 +1,20 @@
+{
+  "class": "nostalgiaskills:duelist",
+  "name": "skill.nostalgiaskills.duelist.wind_dancer.name",
+  "icon": "nostalgiaskills:textures/skill_icons/keystone_wind_dancer.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:dodge_chance",
+      "operation": "add_value",
+      "amount": 0.08
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.max_health",
+      "operation": "add_value",
+      "amount": -4.0
+    }
+  ],
+  "text": "skill.nostalgiaskills.duelist.wind_dancer.text"
+}

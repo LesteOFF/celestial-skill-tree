@@ -1,0 +1,20 @@
+{
+  "class": "nostalgiaskills:arcanist",
+  "name": "skill.nostalgiaskills.arcanist.arcane_ward.name",
+  "icon": "nostalgiaskills:textures/skill_icons/keystone_arcane_ward.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:magic_resistance",
+      "operation": "add_value",
+      "amount": 0.25
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.attack_damage",
+      "operation": "add_multiplied_base",
+      "amount": -0.1
+    }
+  ],
+  "text": "skill.nostalgiaskills.arcanist.arcane_ward.text"
+}

@@ -48,7 +48,7 @@ public final class SkillTooltips {
             if (term.startsWith("#")) {
                 return GuiText.of("any_tagged", term.substring(1));
             }
-            return graph.node(term).<Component>map(required -> Component.translatable(required.nameKey()))
+            return graph.node(term).<Component>map(required -> SkillTexts.name(required))
                     .orElse(Component.literal(term));
         }
 
@@ -91,16 +91,17 @@ public final class SkillTooltips {
             case MINOR -> ChatFormatting.WHITE;
             case PORTAL -> ChatFormatting.DARK_AQUA;
         };
-        lines.add(Component.translatable(node.nameKey()).withStyle(nameColor, ChatFormatting.BOLD));
+        lines.add(SkillTexts.name(node).withStyle(nameColor, ChatFormatting.BOLD));
         lines.add(Component.translatable(subject.sectorKey()).append(" · ")
                 .append(GuiText.of("type." + node.type().serializedName())).withStyle(ChatFormatting.GRAY));
         boolean owned = subject.state().isAllocated(node.id());
         int shownCost = owned ? subject.state().allocations().get(node.id()).paidCost() : subject.cost();
         lines.add(GuiText.of("cost", shownCost).append("   ").append(GuiText.of("rank", owned ? 1 : 0, node.maxRank()))
                 .withStyle(ChatFormatting.YELLOW));
-        lines.add(Component.translatable(node.descriptionKey()).withStyle(ChatFormatting.GREEN));
+        lines.add(SkillTexts.description(node).withStyle(ChatFormatting.GREEN));
+        SkillTexts.numbersBehindPlainText(node).ifPresent(numbers -> lines.add(numbers.withStyle(ChatFormatting.DARK_GREEN)));
         subject.graph().portalDestination(node.id()).flatMap(subject.graph()::node).ifPresent(destination -> lines.add(
-                GuiText.of("portal_destination", Component.translatable(destination.nameKey())).withStyle(ChatFormatting.AQUA)));
+                GuiText.of("portal_destination", SkillTexts.name(destination)).withStyle(ChatFormatting.AQUA)));
         if (node.traits().amplifiesNeighbours()) {
             lines.add(GuiText.of("amplifier", format(node.traits().neighbourMultiplier(), false)).withStyle(ChatFormatting.DARK_PURPLE));
         }

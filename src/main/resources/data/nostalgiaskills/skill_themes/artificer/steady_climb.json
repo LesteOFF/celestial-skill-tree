@@ -1,0 +1,16 @@
+{
+  "class": "nostalgiaskills:artificer",
+  "name": "theme.nostalgiaskills.artificer.steady_climb",
+  "icon": "nostalgiaskills:textures/skill_icons/stairs.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.step_height",
+        "operation": "add_value",
+        "amount": 0.05
+      }
+    ]
+  },
+  "notables": []
+}

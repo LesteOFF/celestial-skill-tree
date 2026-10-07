@@ -1,0 +1,48 @@
+{
+  "class": "nostalgiaskills:duelist",
+  "name": "theme.nostalgiaskills.duelist.fencers_poise",
+  "icon": "nostalgiaskills:textures/skill_icons/light_weapon.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "nostalgiaskills:light_weapon_damage",
+        "operation": "add_value",
+        "amount": 0.03
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "disarming_touch",
+      "name": "skill.nostalgiaskills.duelist.disarming_touch.name",
+      "icon": "nostalgiaskills:textures/skill_icons/critical.png",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "on_crit",
+          "action": {
+            "type": "target_effect",
+            "effect": "minecraft:weakness",
+            "duration_ticks": 60,
+            "amplifier": 0
+          },
+          "cooldown_ticks": 100
+        }
+      ]
+    },
+    {
+      "id": "lunge_mastery",
+      "name": "skill.nostalgiaskills.duelist.lunge_mastery.name",
+      "icon": "nostalgiaskills:textures/skill_icons/melee.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:player.entity_interaction_range",
+          "operation": "add_value",
+          "amount": 0.5
+        }
+      ]
+    }
+  ]
+}

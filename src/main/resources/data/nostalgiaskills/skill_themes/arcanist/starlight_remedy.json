@@ -1,0 +1,20 @@
+{
+  "class": "nostalgiaskills:arcanist",
+  "name": "theme.nostalgiaskills.arcanist.starlight_remedy",
+  "icon": "nostalgiaskills:textures/skill_icons/star.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "nostalgiaskills:healing_received",
+        "operation": "add_value",
+        "amount": 0.04,
+        "condition": {
+          "type": "sky_event",
+          "event": "star_shower"
+        }
+      }
+    ]
+  },
+  "notables": []
+}

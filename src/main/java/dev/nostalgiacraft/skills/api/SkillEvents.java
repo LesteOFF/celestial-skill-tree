@@ -1,5 +1,6 @@
 package dev.nostalgiacraft.skills.api;
 
+import dev.nostalgiacraft.skills.generation.CatalogEditor;
 import dev.nostalgiacraft.skills.progression.SkyEvent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -153,6 +154,18 @@ public final class SkillEvents {
 
         public float getMultiplier() {
             return multiplier;
+        }
+    }
+
+    public static final class CatalogLoading extends Event {
+        private final CatalogEditor catalog;
+
+        public CatalogLoading(CatalogEditor catalog) {
+            this.catalog = catalog;
+        }
+
+        public CatalogEditor getCatalog() {
+            return catalog;
         }
     }
 

@@ -1,0 +1,42 @@
+{
+  "class": "nostalgiaskills:berserker",
+  "requires_mod": "apothic_attributes",
+  "name": "theme.nostalgiaskills.berserker.overflowing_vigor",
+  "icon": "nostalgiaskills:textures/skill_icons/healing.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "apothic_attributes:overheal",
+        "operation": "add_value",
+        "amount": 0.02
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "spectral_shell",
+      "name": "skill.nostalgiaskills.berserker.spectral_shell.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "apothic_attributes:ghost_health",
+          "operation": "add_value",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "giant_slayer",
+      "name": "skill.nostalgiaskills.berserker.giant_slayer.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "apothic_attributes:current_hp_damage",
+          "operation": "add_value",
+          "amount": 0.02
+        }
+      ]
+    }
+  ]
+}

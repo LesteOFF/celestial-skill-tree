@@ -129,8 +129,18 @@ tasks.matching { it.name == 'runServer' || it.name == 'runMpqaServer' }.configur
 
 tasks.register('validateTree', JavaExec) {
     group = 'verification'
-    description = 'Validates skill tree JSON outside the game with the same parser the server uses.'
+    description = 'Validates the skill catalog and generates one tree outside the game: -PtreeDir=<data dir> -Pseed=<n>'
     classpath = sourceSets.test.runtimeClasspath
-    mainClass = 'dev.nostalgiacraft.skills.graph.TreeValidatorCli'
-    args = [project.findProperty('treeDir') ?: 'src/main/resources/data', project.findProperty('treeId') ?: 'nostalgiaskills:main']
+    mainClass = 'dev.nostalgiacraft.skills.generation.CatalogValidatorCli'
+    args = [project.findProperty('treeDir') ?: 'src/main/resources/data', project.findProperty('seed') ?: '0']
+}
+
+tasks.register('previewTree', JavaExec) {
+    group = 'verification'
+    description = 'Draws the generated tree shape to a PNG: -Pclasses=6 -Pskills=100 -Pout=build/preview/tree.png'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.nostalgiacraft.skills.generation.TreePreviewCli'
+    systemProperty 'java.awt.headless', 'true'
+    args = [project.findProperty('classes') ?: '6', project.findProperty('skills') ?: '100',
+            project.findProperty('out') ?: 'build/preview/tree.png']
 }

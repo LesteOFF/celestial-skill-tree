@@ -1,0 +1,58 @@
+{
+  "class": "nostalgiaskills:arcanist",
+  "name": "theme.nostalgiaskills.arcanist.distillation",
+  "icon": "nostalgiaskills:textures/skill_icons/potion.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "nostalgiaskills:potion_duration",
+        "operation": "add_value",
+        "amount": 0.04
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "distillers_patience",
+      "name": "skill.nostalgiaskills.arcanist.distillers_patience.name",
+      "icon": "nostalgiaskills:textures/skill_icons/potion.png",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "on_potion",
+          "action": {
+            "type": "self_effect",
+            "effect": "minecraft:absorption",
+            "duration_ticks": 200,
+            "amplifier": 0
+          },
+          "cooldown_ticks": 600
+        }
+      ]
+    },
+    {
+      "id": "tincture_mastery",
+      "name": "skill.nostalgiaskills.arcanist.tincture_mastery.name",
+      "icon": "nostalgiaskills:textures/skill_icons/potion.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:potion_duration",
+          "operation": "add_value",
+          "amount": 0.12
+        },
+        {
+          "type": "trigger",
+          "trigger": "on_potion",
+          "action": {
+            "type": "heal",
+            "amount": 1.0
+          },
+          "cooldown_ticks": 100
+        }
+      ],
+      "text": "skill.nostalgiaskills.arcanist.tincture_mastery.text"
+    }
+  ]
+}

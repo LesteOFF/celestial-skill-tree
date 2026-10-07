@@ -1,0 +1,20 @@
+{
+  "class": "nostalgiaskills:arcanist",
+  "name": "theme.nostalgiaskills.arcanist.eclipse_lore",
+  "icon": "nostalgiaskills:textures/skill_icons/eclipse.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "nostalgiaskills:magic_resistance",
+        "operation": "add_value",
+        "amount": 0.03,
+        "condition": {
+          "type": "sky_event",
+          "event": "eclipse"
+        }
+      }
+    ]
+  },
+  "notables": []
+}

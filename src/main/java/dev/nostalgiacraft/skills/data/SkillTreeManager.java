@@ -12,13 +12,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
-import java.util.function.Supplier;
 
 public final class SkillTreeManager {
     public static final String TREE_ID = "nostalgiaskills:main";
     private static final int NO_OVERRIDE = -1;
 
-    public enum LoadResult { APPLIED, KEPT_PREVIOUS, FALLBACK_BUNDLED, FAILED }
+    public enum LoadResult { APPLIED, KEPT_PREVIOUS, FAILED }
 
     private static volatile SkillGraphSnapshot active;
     private static volatile int revision;
@@ -79,27 +78,16 @@ public final class SkillTreeManager {
     }
 
     static synchronized LoadResult install(GraphParser.Outcome outcome, List<String> fileErrors,
-                                           Map<String, String> newMigrations, Supplier<GraphParser.Outcome> bundled) {
+                                           Map<String, String> newMigrations) {
         readErrors = List.copyOf(fileErrors);
         lastReport = outcome.report();
         if (outcome.snapshot().isPresent() && fileErrors.isEmpty()) {
             activate(outcome.snapshot().get(), newMigrations);
             lastResult = LoadResult.APPLIED;
-        } else if (active != null) {
-            lastResult = LoadResult.KEPT_PREVIOUS;
         } else {
-            lastResult = installBundled(bundled.get(), newMigrations);
+            lastResult = active != null ? LoadResult.KEPT_PREVIOUS : LoadResult.FAILED;
         }
         return lastResult;
-    }
-
-    private static LoadResult installBundled(GraphParser.Outcome bundled, Map<String, String> newMigrations) {
-        if (bundled.snapshot().isEmpty()) {
-            lastReport.addAll(bundled.report());
-            return LoadResult.FAILED;
-        }
-        activate(bundled.snapshot().get(), newMigrations);
-        return LoadResult.FALLBACK_BUNDLED;
     }
 
     private static void activate(SkillGraphSnapshot graph, Map<String, String> newMigrations) {

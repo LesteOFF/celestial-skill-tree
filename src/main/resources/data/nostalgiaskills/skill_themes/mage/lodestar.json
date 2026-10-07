@@ -1,0 +1,54 @@
+{
+  "class": "nostalgiaskills:mage",
+  "requires_mod": "lodestone",
+  "name": "theme.nostalgiaskills.mage.lodestar",
+  "icon": "nostalgiaskills:textures/skill_icons/lodestar.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "lodestone:magic_damage",
+        "operation": "add_value",
+        "amount": 0.2
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "lodestar_strike",
+      "name": "skill.nostalgiaskills.mage.lodestar_strike.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "lodestone:magic_damage",
+          "operation": "add_value",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "id": "lodestar_mastery",
+      "name": "skill.nostalgiaskills.mage.lodestar_mastery.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "lodestone:magic_proficiency",
+          "operation": "add_value",
+          "amount": 0.1
+        }
+      ]
+    },
+    {
+      "id": "lodestar_ward",
+      "name": "skill.nostalgiaskills.mage.lodestar_ward.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "lodestone:magic_resistance",
+          "operation": "add_value",
+          "amount": 1
+        }
+      ]
+    }
+  ]
+}

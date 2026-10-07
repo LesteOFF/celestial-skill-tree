@@ -1,0 +1,20 @@
+{
+  "class": "nostalgiaskills:marksman",
+  "name": "theme.nostalgiaskills.marksman.point_blank",
+  "icon": "nostalgiaskills:textures/skill_icons/point_blank.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "damage_modifier",
+        "direction": "dealt",
+        "scope": "projectile",
+        "amount": 0.02,
+        "condition": {
+          "type": "shot_distance_under",
+          "blocks": 6
+        }
+      }
+    ]
+  },
+  "notables": []
+}

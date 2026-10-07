@@ -1,0 +1,16 @@
+{
+  "class": "nostalgiaskills:berserker",
+  "name": "theme.nostalgiaskills.berserker.pain_tolerance",
+  "icon": "nostalgiaskills:textures/skill_icons/parry.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "damage_modifier",
+        "direction": "taken",
+        "scope": "melee",
+        "amount": -0.01
+      }
+    ]
+  },
+  "notables": []
+}

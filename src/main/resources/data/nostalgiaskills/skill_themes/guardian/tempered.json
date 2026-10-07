@@ -1,0 +1,52 @@
+{
+  "class": "nostalgiaskills:guardian",
+  "name": "theme.nostalgiaskills.guardian.tempered",
+  "icon": "nostalgiaskills:textures/skill_icons/armor.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.armor_toughness",
+        "operation": "add_value",
+        "amount": 0.5
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "inner_sanctum",
+      "name": "skill.nostalgiaskills.guardian.inner_sanctum.name",
+      "icon": "nostalgiaskills:textures/skill_icons/armor.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.armor",
+          "operation": "add_value",
+          "amount": 2.0
+        },
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.armor_toughness",
+          "operation": "add_value",
+          "amount": 1.0
+        }
+      ]
+    },
+    {
+      "id": "oathbound",
+      "name": "skill.nostalgiaskills.guardian.oathbound.name",
+      "icon": "nostalgiaskills:textures/skill_icons/armor.png",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.armor",
+          "operation": "add_value",
+          "amount": 3.0,
+          "condition": {
+            "type": "sneaking"
+          }
+        }
+      ]
+    }
+  ]
+}

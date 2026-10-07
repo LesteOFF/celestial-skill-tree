@@ -1,0 +1,20 @@
+{
+  "class": "nostalgiaskills:marksman",
+  "name": "skill.nostalgiaskills.marksman.volley_doctrine.name",
+  "icon": "nostalgiaskills:textures/skill_icons/keystone_volley_doctrine.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:projectile_damage",
+      "operation": "add_value",
+      "amount": 0.15
+    },
+    {
+      "type": "damage_modifier",
+      "direction": "dealt",
+      "scope": "melee",
+      "amount": -0.1
+    }
+  ],
+  "text": "skill.nostalgiaskills.marksman.volley_doctrine.text"
+}

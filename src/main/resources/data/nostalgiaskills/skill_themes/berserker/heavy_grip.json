@@ -1,0 +1,20 @@
+{
+  "class": "nostalgiaskills:berserker",
+  "name": "theme.nostalgiaskills.berserker.heavy_grip",
+  "icon": "nostalgiaskills:textures/skill_icons/grip_heavy.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.attack_speed",
+        "operation": "add_multiplied_base",
+        "amount": 0.015,
+        "condition": {
+          "type": "holding",
+          "tag": "nostalgiaskills:heavy_weapons"
+        }
+      }
+    ]
+  },
+  "notables": []
+}

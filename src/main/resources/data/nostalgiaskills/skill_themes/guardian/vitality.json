@@ -1,0 +1,105 @@
+{
+  "class": "nostalgiaskills:guardian",
+  "name": "theme.nostalgiaskills.guardian.vitality",
+  "icon": "nostalgiaskills:textures/skill_icons/health.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.max_health",
+        "operation": "add_value",
+        "amount": 1.0
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "beacon_keep",
+      "name": "skill.nostalgiaskills.guardian.beacon_keep.name",
+      "icon": "nostalgiaskills:textures/skill_icons/healing.png",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "on_hurt",
+          "action": {
+            "type": "self_effect",
+            "effect": "minecraft:regeneration",
+            "duration_ticks": 60,
+            "amplifier": 0
+          },
+          "cooldown_ticks": 300
+        }
+      ]
+    },
+    {
+      "id": "iron_will",
+      "name": "skill.nostalgiaskills.guardian.iron_will.name",
+      "icon": "nostalgiaskills:textures/skill_icons/health.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.max_health",
+          "operation": "add_multiplied_base",
+          "amount": 0.05
+        }
+      ]
+    },
+    {
+      "id": "sentinel",
+      "name": "skill.nostalgiaskills.guardian.sentinel.name",
+      "icon": "nostalgiaskills:textures/skill_icons/armor.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.armor",
+          "operation": "add_multiplied_base",
+          "amount": 0.1
+        }
+      ]
+    },
+    {
+      "id": "unbroken",
+      "name": "skill.nostalgiaskills.guardian.unbroken.name",
+      "icon": "nostalgiaskills:textures/skill_icons/defense.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.knockback_resistance",
+          "operation": "add_value",
+          "amount": 0.1
+        },
+        {
+          "type": "trigger",
+          "trigger": "on_low_health",
+          "action": {
+            "type": "self_effect",
+            "effect": "minecraft:resistance",
+            "duration_ticks": 100,
+            "amplifier": 1
+          },
+          "cooldown_ticks": 1200
+        }
+      ],
+      "text": "skill.nostalgiaskills.guardian.unbroken.text"
+    },
+    {
+      "id": "warden",
+      "name": "skill.nostalgiaskills.guardian.warden.name",
+      "icon": "nostalgiaskills:textures/skill_icons/health.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.max_health",
+          "operation": "add_value",
+          "amount": 2.0
+        },
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.armor",
+          "operation": "add_value",
+          "amount": 1.0
+        }
+      ]
+    }
+  ]
+}
