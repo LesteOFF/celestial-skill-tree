@@ -1,5 +1,6 @@
 package dev.nostalgiacraft.skills.gametest;
 
+import com.mojang.authlib.GameProfile;
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.config.ServerConfig;
 import dev.nostalgiacraft.skills.data.SkillTreeManager;
@@ -31,14 +32,18 @@ import dev.nostalgiacraft.skills.server.CommunityTree;
 import dev.nostalgiacraft.skills.server.FallenStars;
 import dev.nostalgiacraft.skills.server.SkillService;
 import dev.nostalgiacraft.skills.server.SkyEvents;
+import io.netty.channel.embedded.EmbeddedChannel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -52,10 +57,12 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.neoforge.network.registration.NetworkRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @GameTestHolder(NostalgiaSkills.MODID)
 @PrefixGameTestTemplate(false)
@@ -86,14 +93,35 @@ public final class SkillGameTests {
         return state;
     }
 
+    private static ServerPlayer mockPlayer(GameTestHelper h) {
+        MinecraftServer server = h.getLevel().getServer();
+        CommonListenerCookie cookie = CommonListenerCookie.createInitial(new GameProfile(UUID.randomUUID(), "test-mock-player"), false);
+        ServerPlayer player = new ServerPlayer(server, h.getLevel(), cookie.gameProfile(), cookie.clientInformation()) {
+            @Override
+            public boolean isSpectator() {
+                return false;
+            }
+
+            @Override
+            public boolean isCreative() {
+                return true;
+            }
+        };
+        Connection connection = new Connection(PacketFlow.SERVERBOUND);
+        new EmbeddedChannel(connection);
+        NetworkRegistry.configureMockConnection(connection);
+        server.getPlayerList().placeNewPlayer(connection, player, cookie);
+        return player;
+    }
+
     private static void near(GameTestHelper h, double expected, double actual, String what) {
         h.assertTrue(Math.abs(expected - actual) < 1e-4, what + ": expected " + expected + " got " + actual);
     }
 
     @GameTest(template = "empty")
     public static void twoPlayersHaveIndependentBalancesAndBuilds(GameTestHelper h) {
-        ServerPlayer player = h.makeMockServerPlayerInLevel();
-        ServerPlayer b = h.makeMockServerPlayerInLevel();
+        ServerPlayer player = mockPlayer(h);
+        ServerPlayer b = mockPlayer(h);
         SkillService.setExperience(player, 1395);
         ProgressionService.PurchaseResult result = ProgressionService.purchasePoint(ModAttachments.state(player),
                 XpMath.balance(player.experienceLevel, player.experienceProgress), ProgressionService.Settings.DEFAULT);
@@ -110,7 +138,7 @@ public final class SkillGameTests {
 
     @GameTest(template = "empty")
     public static void xpDebitKeepsLevelBarAndTotalConsistent(GameTestHelper h) {
-        ServerPlayer player = h.makeMockServerPlayerInLevel();
+        ServerPlayer player = mockPlayer(h);
         for (long start : new long[]{100, 352, 1507, 5000}) {
             SkillService.setExperience(player, start);
             long balance = XpMath.balance(player.experienceLevel, player.experienceProgress);
@@ -142,7 +170,7 @@ public final class SkillGameTests {
                 new Case("berserker/hub", "berserker/skull_splitter", ModAttributes.HEAVY_WEAPON_DAMAGE, 0.10));
         List<String> failures = new ArrayList<>();
         for (Case c : cases) {
-            ServerPlayer player = h.makeMockServerPlayerInLevel();
+            ServerPlayer player = mockPlayer(h);
             build(h, player, c.hub(), c.target());
             double v = player.getAttributeValue(c.attr());
             if (c.expected() < 0 ? v <= 0.10 : v < c.expected() - 0.001) {
@@ -155,7 +183,7 @@ public final class SkillGameTests {
 
     @GameTest(template = "empty")
     public static void recklessFuryChangesDealtAndTakenDamage(GameTestHelper h) {
-        ServerPlayer player = h.makeMockServerPlayerInLevel();
+        ServerPlayer player = mockPlayer(h);
         Cow baseline = h.spawn(EntityType.COW, 1, 1, 1);
         baseline.hurt(player.damageSources().playerAttack(player), 4f);
         float baseLoss = baseline.getMaxHealth() - baseline.getHealth();
@@ -176,7 +204,7 @@ public final class SkillGameTests {
 
     @GameTest(template = "empty")
     public static void refreshIsIdempotentAndResetRemovesEverything(GameTestHelper h) {
-        ServerPlayer player = h.makeMockServerPlayerInLevel();
+        ServerPlayer player = mockPlayer(h);
         SkillService.reconcileAndRefresh(player);
         int signModifiers = ownedModifiers(player);
         build(h, player, "guardian/hub", "guardian/bastion");
@@ -205,7 +233,7 @@ public final class SkillGameTests {
 
     @GameTest(template = "empty")
     public static void singleSkillRefundRemovesItsEffectsAndItsChain(GameTestHelper h) {
-        ServerPlayer player = h.makeMockServerPlayerInLevel();
+        ServerPlayer player = mockPlayer(h);
         PlayerSkillState state = build(h, player, "guardian/hub", "guardian/bastion");
         h.assertTrue(state.allocations().size() >= 3, "fixture route is long enough: " + state.allocations().size());
         double full = player.getAttributeValue(Attributes.MAX_HEALTH);
@@ -237,7 +265,7 @@ public final class SkillGameTests {
         h.assertTrue(state.availablePoints() == available + spent, "every paid point is back: " + state.availablePoints()
                 + " expected " + (available + spent));
         h.assertTrue(state.startingRoot().filter(hub::equals).isPresent(), "the starting hub is kept");
-        ServerPlayer hubOnly = h.makeMockServerPlayerInLevel();
+        ServerPlayer hubOnly = mockPlayer(h);
         build(h, hubOnly, "guardian/hub");
         h.assertTrue(ownedModifiers(player) == ownedModifiers(hubOnly), "only the hub's modifiers are left: "
                 + ownedModifiers(player) + " vs " + ownedModifiers(hubOnly));
@@ -251,7 +279,7 @@ public final class SkillGameTests {
 
     @GameTest(template = "empty")
     public static void statePersistsThroughSerialisation(GameTestHelper h) {
-        ServerPlayer player = h.makeMockServerPlayerInLevel();
+        ServerPlayer player = mockPlayer(h);
         PlayerSkillState state = build(h, player, "marksman/hub", "marksman/patient_aim");
         var tag = StateCodecs.STATE.encodeStart(NbtOps.INSTANCE, state)
                 .getOrThrow();
@@ -265,7 +293,7 @@ public final class SkillGameTests {
 
     @GameTest(template = "empty")
     public static void starFragmentGrantsOnePointUpToTheLimit(GameTestHelper helper) {
-        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ServerPlayer player = mockPlayer(helper);
         player.setGameMode(GameType.SURVIVAL);
         PlayerSkillState state = ModAttachments.state(player);
         int limit = ServerConfig.POINT_LIMIT.get();
@@ -301,7 +329,7 @@ public final class SkillGameTests {
 
     @GameTest(template = "empty")
     public static void eclipseWaivesTheOrbAndEndsCleanly(GameTestHelper helper) {
-        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ServerPlayer player = mockPlayer(helper);
         PlayerSkillState state = ModAttachments.state(player);
         boolean orbConfigured = ServerConfig.ORB_REQUIRED_FOR_RESET.get();
         helper.setDayTime(NOON);
@@ -321,8 +349,8 @@ public final class SkillGameTests {
 
     @GameTest(template = "empty")
     public static void fallenStarReturnsToItsOwnerOrPaysAThief(GameTestHelper helper) {
-        ServerPlayer owner = helper.makeMockServerPlayerInLevel();
-        ServerPlayer thief = helper.makeMockServerPlayerInLevel();
+        ServerPlayer owner = mockPlayer(helper);
+        ServerPlayer thief = mockPlayer(helper);
         PlayerSkillState ownerState = build(helper, owner, "guardian/hub", "guardian/gatekeeper");
         int learned = ownerState.allocations().size();
         int available = ownerState.availablePoints();
@@ -345,8 +373,8 @@ public final class SkillGameTests {
     @GameTest(template = "empty")
     public static void donationsFillTheSharedConstellationAndRewardEveryone(GameTestHelper helper) {
         MinecraftServer server = helper.getLevel().getServer();
-        ServerPlayer donor = helper.makeMockServerPlayerInLevel();
-        ServerPlayer bystander = helper.makeMockServerPlayerInLevel();
+        ServerPlayer donor = mockPlayer(helper);
+        ServerPlayer bystander = mockPlayer(helper);
         SkillService.reconcileAndRefresh(bystander);
         double healthBefore = bystander.getMaxHealth();
         long firstTier = SkillTreeManager.communityTiers().get(0).xpRequired();

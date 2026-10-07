@@ -14,6 +14,8 @@ network/      payload records + registration (client-bound handlers reach client
 server/       SkillService (authoritative intents), LifecycleEvents, RateLimiter
 effects/      CompiledBuild, EffectEngine (attribute modifiers), GameplayEvents (combat/potions/mining), Triggers
 api/          SkillEvents: NeoForge events other mods and scripts may listen to
+compat/       kubejs/: optional KubeJS plugin (script events + NostalgiaSkills binding); the only package that
+              references KubeJS classes, loaded by KubeJS itself through kubejs.plugins.txt
 command/      /nostalgiaskills
 config/       ServerConfig (gameplay, synced), ClientConfig (presentation only)
 client/       ClientSkillState, ClientSetup (key mapping), screen/, render/, VisualQa + InWorldQa (dev harness)

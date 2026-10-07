@@ -72,9 +72,21 @@ neoForge {
 
 repositories {
     mavenCentral()
+    maven {
+        url = 'https://maven.latvian.dev/releases'
+        content {
+            includeGroup 'dev.latvian.mods'
+        }
+    }
 }
 
 dependencies {
+    compileOnly("dev.latvian.mods:kubejs-neoforge:${kubejs_version}") {
+        transitive = false
+    }
+    compileOnly("dev.latvian.mods:rhino:${rhino_version}") {
+        transitive = false
+    }
     testImplementation "org.junit.jupiter:junit-jupiter:${junit_version}"
     testImplementation 'com.google.code.gson:gson:2.11.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

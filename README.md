@@ -18,8 +18,8 @@ specialisations, confirm it in one batch, and reshape your build with the Orb of
 | NeoForge | 21.1.256 or newer 21.1.x (`[21.1.256,21.2)`) |
 | Java | 21 (64-bit) |
 
-Install the jar in `mods/` on **both** the client and the server. No other mods are required; there are no
-optional integrations in this version.
+Install the jar in `mods/` on **both** the client and the server. No other mods are required; KubeJS (2101.x) is
+the only optional integration.
 
 ## Building
 
@@ -164,7 +164,7 @@ file, field and reason and the last valid tree stays active. Examples:
 
 ### Integration hooks
 
-No integration with another mod ships, but packs and addons can build one with these:
+An optional KubeJS integration ships (see below); packs and addons can build any other with these:
 
 - **Damage type tags as scope.** A `damage_modifier` takes `"scope": "#<damage type tag>"` beside `melee`,
   `projectile`, `magic`, `fire` and `all`. A tag scope matches any damage of that tag the player deals or takes (spells,
@@ -177,11 +177,36 @@ No integration with another mod ships, but packs and addons can build one with t
   an id nobody fires simply never runs.
 - **Events** on the NeoForge bus, all nested in `dev.nostalgiacraft.skills.api.SkillEvents`, server side and not
   cancellable: `PointsBought`, `NodesLearned`, `NodesRefunded`, `BuildReset`, `SkyEventChanged`, `StarLanded`,
-  `EliteSpawned`. KubeJS reaches them with `NativeEvents.onEvent`. Skills removed by reconciliation after a data pack
-  change, or dropped as a Fallen Star, post no event.
+  `EliteSpawned`. Skills removed by reconciliation after a data pack change, or dropped as a Fallen Star, post no
+  event.
 - **Entity type tags.** `#nostalgiaskills:never_constellated` keeps a monster from ever being Constellated (bosses).
   `#nostalgiaskills:always_drops_fragment` makes every kill by a player drop a Star Fragment; if that mob can be
   farmed, so can skill points. Both ship empty.
+
+### KubeJS
+
+KubeJS is optional: without it nothing changes, with it server scripts get the events and a binding below. The
+integration is built against the first KubeJS 2101 release (`2101.7.0-build.126`) and checked against the latest
+(`2101.7.2-build.379`); it uses only the plugin, event group and binding registration API, which is identical in
+both. If a KubeJS build ever breaks that API the integration logs one warning and switches itself off, the rest of
+the mod keeps working.
+
+- **Events** (`NostalgiaSkillsEvents`, server scripts, not cancellable): `pointsBought` (`player`, `points`,
+  `xpSpent`), `nodesLearned` (`player`, `nodes`), `nodesRefunded` and `buildReset` (`player`, `nodes`,
+  `pointsReturned`), `skyEventChanged` (`server`, `before`, `now` as `none`, `eclipse` or `star_shower`),
+  `starLanded` (`level`, `fragment`) and `eliteSpawned` (`monster`).
+- **Binding** (`NostalgiaSkills`, server scripts): `hasNode(player, nodeId)`, `learnedNodes(player)`,
+  `availablePoints(player)`, `sign(player)` (`null` before a sign is assigned), `skyEvent()` and
+  `fireTrigger(player, trigger[, target])`, which runs every owned skill listening to that namespaced trigger.
+- **Changing a build** from a script goes through the admin commands, e.g.
+  `server.runCommandSilent('nostalgiaskills unlock ' + player.username + ' nostalgiaskills:some_node')`, so the
+  ledger, effects and client sync stay consistent.
+- **Tree data** (nodes, connections, signs, community tiers) is ordinary data pack JSON: put it under
+  `kubejs/data/<namespace>/skill_nodes/...`, or generate it from a script with
+  `ServerEvents.generateData('after_mods', event => event.json('<namespace>:skill_nodes/<sector>/<name>', {...}))`.
+  A new node needs a connection (`skill_connections`) to an existing one.
+
+Example: `examples/kubejs/server_scripts/nostalgiaskills_example.js`.
 
 Tools: `python3 tools/layout/export.py` regenerates all node/connection data, translations and the layout manifest
 from the authored blueprints. The shipped tree uses the Fibonacci layout (the blueprint
@@ -197,7 +222,10 @@ to be removed again (the blueprints still declare them).
   dependent to keep, or moving a build sideways without paying again, is not offered. Server operators can switch
   single-skill refunds off (`allowNodeRefunds = false`) or charge an orb for them (`orbRequiredForNodeRefund = true`),
   leaving the full reset as the only route.
-- No optional integrations ship; compatibility was tested only with NeoForge 21.1.256 and this mod alone.
+- KubeJS is the only optional integration; compatibility was tested only with NeoForge 21.1.256 and this mod alone
+  or with KubeJS `2101.7.0-build.126` and `2101.7.2-build.379`. Of the KubeJS events, `nodesLearned`, `buildReset`
+  and `skyEventChanged` were exercised in a running server (simulated players); `pointsBought`, `nodesRefunded`,
+  `starLanded` and `eliteSpawned` share the same forwarding code but have not been fired with KubeJS installed.
 - Verified in a cloud container without a GPU: performance on real hardware (FPS, frame time) has not been measured,
   and no human playtest or human visual review has been done.
 
