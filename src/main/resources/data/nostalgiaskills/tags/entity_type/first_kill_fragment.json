@@ -1,0 +1,49 @@
+{
+  "values": [
+    "#c:bosses",
+    "minecraft:wither",
+    "minecraft:ender_dragon",
+    "minecraft:warden",
+    "minecraft:elder_guardian",
+    {
+      "id": "iceandfire:fire_dragon",
+      "required": false
+    },
+    {
+      "id": "iceandfire:ice_dragon",
+      "required": false
+    },
+    {
+      "id": "iceandfire:lightning_dragon",
+      "required": false
+    },
+    {
+      "id": "iceandfire:hydra",
+      "required": false
+    },
+    {
+      "id": "aquamirae:captain_cornelia",
+      "required": false
+    },
+    {
+      "id": "aquamirae:maze_mother",
+      "required": false
+    },
+    {
+      "id": "aquamirae:shipbreaker",
+      "required": false
+    },
+    {
+      "id": "companions:sacred_pontiff",
+      "required": false
+    },
+    {
+      "id": "companions:his_holiness",
+      "required": false
+    },
+    {
+      "id": "rottencreatures:dead_beard",
+      "required": false
+    }
+  ]
+}
