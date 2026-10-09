@@ -78,6 +78,12 @@ repositories {
             includeGroup 'dev.latvian.mods'
         }
     }
+    maven {
+        url = 'https://api.modrinth.com/maven'
+        content {
+            includeGroup 'maven.modrinth'
+        }
+    }
 }
 
 dependencies {
@@ -85,6 +91,12 @@ dependencies {
         transitive = false
     }
     compileOnly("dev.latvian.mods:rhino:${rhino_version}") {
+        transitive = false
+    }
+    compileOnly("maven.modrinth:jade:${jade_version}") {
+        transitive = false
+    }
+    compileOnly("maven.modrinth:champions-unofficial:${champions_version}") {
         transitive = false
     }
     testImplementation "org.junit.jupiter:junit-jupiter:${junit_version}"
