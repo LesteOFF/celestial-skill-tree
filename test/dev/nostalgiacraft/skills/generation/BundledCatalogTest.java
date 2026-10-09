@@ -122,6 +122,23 @@ class BundledCatalogTest {
     }
 
     @Test
+    void reopeningAWorldKeepsItsTree() {
+        reopeningKeepsTheTreeOf(catalog(WITHOUT_MODS, mod -> false));
+        reopeningKeepsTheTreeOf(catalog(KnownIds.PERMISSIVE, mod -> true));
+    }
+
+    private static void reopeningKeepsTheTreeOf(Catalog catalog) {
+        for (long seed = 0; seed < SEEDS; seed++) {
+            TreeGenerator.Result created = TreeGenerator.generate(TREE, catalog, seed, TreeDraw.EMPTY);
+            TreeDraw saved = DrawJson.read(DrawJson.write(created.draw()));
+            TreeGenerator.Result reopened = TreeGenerator.generate(TREE, catalog, seed, saved);
+            assertEquals(created.draw(), saved, "seed " + seed + ": the draw changes when it is saved");
+            assertEquals(created.graph().orElseThrow().ids(), reopened.graph().orElseThrow().ids(), "seed " + seed + ": skills change");
+            assertEquals(created.graph().orElseThrow().fingerprint(), reopened.graph().orElseThrow().fingerprint(), "seed " + seed);
+        }
+    }
+
+    @Test
     void everyNameAndTextIsTranslatedInBothLanguages() throws IOException {
         SkillGraphSnapshot graph = tree(catalog(KnownIds.PERMISSIVE, mod -> true), 3);
         for (String language : List.of("en_us", "pt_br")) {

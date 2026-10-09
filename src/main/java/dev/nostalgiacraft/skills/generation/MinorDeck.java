@@ -74,8 +74,12 @@ final class MinorDeck {
         if (isNewIn(wanted, sequence)) {
             return wanted;
         }
-        boolean keepsPrevious = isNewIn(before, sequence) && !keptForLater.contains(before);
-        return keepsPrevious ? before : leastUsed(sequence, keptForLater);
+        return staysFrom(before, sequence, keptForLater) ? before : leastUsed(sequence, keptForLater);
+    }
+
+    private boolean staysFrom(String before, List<String> sequence, Set<String> keptForLater) {
+        boolean repeatsNeighbour = !sequence.isEmpty() && sequence.get(sequence.size() - 1).equals(before);
+        return before != null && hasCopies(before) && !repeatsNeighbour && !keptForLater.contains(before);
     }
 
     private boolean isNewIn(String skill, List<String> sequence) {
