@@ -25,7 +25,7 @@ config/       ServerConfig (gameplay, synced), ClientConfig (presentation only)
 client/       ClientSkillState, ClientSetup (key mapping), screen/, render/, VisualQa + InWorldQa (dev harness)
 ```
 
-`graph` and `progression` contain no Minecraft classes; they are unit-tested directly (`./gradlew test`, 28 tests in `test/`,
+`graph` and `progression` contain no Minecraft classes; they are unit-tested directly (`./gradlew test`, 29 tests in `test/`,
 including trees generated from the shipped catalog for many seeds). The same classes run on the server (authoritative) and
 on the client (previews only), so the client shows exactly the rules the server enforces.
 
@@ -240,8 +240,13 @@ Dist.CLIENT)` classes, which is why the dedicated server starts without loading 
 
 ## Development harness (not part of gameplay)
 
-`-Pvisualqa` adds `-Dnostalgiaskills.visualqa=true` to `runClient`. `VisualQa` renders the real screen with fixture
-builds (fresh, focused, hybrid, pending, conflict, insufficient points; nothing is purchased, no server involved) at
-1000×563, 1280×720, 1920×1080 and 2560×1080 with GUI scales 2 and 3, then `InWorldQa` creates a flat singleplayer
-world and drives the real network path (XP → points, pending + cancel, confirm, stats with live attributes, death and
-respawn, orb reset), writing `run/nostalgiaskills_qa_ingame.txt`.
+`-Pvisualqa` adds `-Dnostalgiaskills.visualqa=true` to `runClient`. The run is one `QaScript`: a list of steps that
+each wait for a condition or time out, with `expect` checks that are counted as PASS or FAIL. `InWorldQa` deletes and
+recreates a flat singleplayer world (the tree only exists once a world has generated it), `VisualQa` then renders the
+real screen with fixture builds (fresh, focused, hybrid, pending, conflict, insufficient points; nothing is purchased)
+at 1000×563, 1280×720, 1920×1080 and 2560×1080 with GUI scales 2 and 3, and `InWorldQa` goes back to the live state
+and drives the real network path (XP → points, pending + cancel, confirm, death and respawn, dimension change, request
+burst, world restart, catalog change + `/reload`, orb reset, single and chained refunds, bulk purchase, eclipse,
+donation). The report is `run/nostalgiaskills_qa_ingame.txt`; its first line is `RESULT: PASSED` or `RESULT: FAILED`
+with the number of checks, and every screenshot taken is checked to exist. `MultiplayerQa` uses the same script for
+two clients on a dedicated server.
