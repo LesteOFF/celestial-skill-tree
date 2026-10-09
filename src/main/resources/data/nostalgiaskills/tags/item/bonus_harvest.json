@@ -1,0 +1,9 @@
+{
+  "values": [
+    "#c:crops",
+    {
+      "id": "#mysticalagriculture:essences",
+      "required": false
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "values": [
+    {
+      "id": "ltxi:arc_turret",
+      "required": false
+    },
+    {
+      "id": "ltxi:railgun_turret",
+      "required": false
+    },
+    {
+      "id": "ltxi:rocket_turret",
+      "required": false
+    }
+  ]
+}

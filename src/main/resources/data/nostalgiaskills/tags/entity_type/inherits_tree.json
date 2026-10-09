@@ -1,0 +1,108 @@
+{
+  "values": [
+    {
+      "id": "iceandfire:fire_dragon",
+      "required": false
+    },
+    {
+      "id": "iceandfire:ice_dragon",
+      "required": false
+    },
+    {
+      "id": "iceandfire:lightning_dragon",
+      "required": false
+    },
+    {
+      "id": "companions:antlion",
+      "required": false
+    },
+    {
+      "id": "companions:cloak",
+      "required": false
+    },
+    {
+      "id": "companions:cornelius",
+      "required": false
+    },
+    {
+      "id": "companions:croissant_dragon",
+      "required": false
+    },
+    {
+      "id": "companions:dinamo",
+      "required": false
+    },
+    {
+      "id": "companions:golden_allay",
+      "required": false
+    },
+    {
+      "id": "companions:mankh",
+      "required": false
+    },
+    {
+      "id": "companions:minion",
+      "required": false
+    },
+    {
+      "id": "companions:puppet",
+      "required": false
+    },
+    {
+      "id": "companions:puppet_glove",
+      "required": false
+    },
+    {
+      "id": "companions:shade_bat",
+      "required": false
+    },
+    {
+      "id": "companions:shade_maw",
+      "required": false
+    },
+    {
+      "id": "companions:shade_sword",
+      "required": false
+    },
+    {
+      "id": "companions:soul_mage",
+      "required": false
+    },
+    {
+      "id": "companions:teddy",
+      "required": false
+    },
+    {
+      "id": "companions:mutated_teddy",
+      "required": false
+    },
+    {
+      "id": "ars_nouveau:familiar_amethyst_golem",
+      "required": false
+    },
+    {
+      "id": "ars_nouveau:familiar_bookwyrm",
+      "required": false
+    },
+    {
+      "id": "ars_nouveau:familiar_drygmy",
+      "required": false
+    },
+    {
+      "id": "ars_nouveau:familiar_starbuncle",
+      "required": false
+    },
+    {
+      "id": "ars_nouveau:familiar_whirlisprig",
+      "required": false
+    },
+    {
+      "id": "ars_nouveau:familiar_wixie",
+      "required": false
+    },
+    {
+      "id": "endermanoverhaul:pet_enderman",
+      "required": false
+    }
+  ]
+}

@@ -47,6 +47,46 @@
     {
       "id": "#scguns:wrecker_gun_tier",
       "required": false
+    },
+    {
+      "id": "mekaweapons:meka_gun",
+      "required": false
+    },
+    {
+      "id": "reliquary:handgun",
+      "required": false
+    },
+    {
+      "id": "netherexp:shotgun_fist",
+      "required": false
+    },
+    {
+      "id": "netherexp:pump_charge_shotgun",
+      "required": false
+    },
+    {
+      "id": "pneumaticcraft:minigun",
+      "required": false
+    },
+    {
+      "id": "ltxi:shotgun",
+      "required": false
+    },
+    {
+      "id": "ltxi:submachine_gun",
+      "required": false
+    },
+    {
+      "id": "ltxi:linear_fusion_rifle",
+      "required": false
+    },
+    {
+      "id": "ltxi:grenade_launcher",
+      "required": false
+    },
+    {
+      "id": "ltxi:rocket_launcher",
+      "required": false
     }
   ]
 }

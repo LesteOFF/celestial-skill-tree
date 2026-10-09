@@ -1,0 +1,20 @@
+{
+  "values": [
+    {
+      "id": "avaritia:infinity_helmet",
+      "required": false
+    },
+    {
+      "id": "avaritia:infinity_chestplate",
+      "required": false
+    },
+    {
+      "id": "avaritia:infinity_pants",
+      "required": false
+    },
+    {
+      "id": "avaritia:infinity_boots",
+      "required": false
+    }
+  ]
+}

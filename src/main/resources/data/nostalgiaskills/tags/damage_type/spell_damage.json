@@ -55,6 +55,50 @@
     {
       "id": "ars_nouveau:crush",
       "required": false
+    },
+    {
+      "id": "#aces_spell_utils:hydro_magic",
+      "required": false
+    },
+    {
+      "id": "#aces_spell_utils:ritual_magic",
+      "required": false
+    },
+    {
+      "id": "#aces_spell_utils:technomancy_magic",
+      "required": false
+    },
+    {
+      "id": "gametechbcs_spellbooks:aerial_collapse",
+      "required": false
+    },
+    {
+      "id": "gametechbcs_spellbooks:banish",
+      "required": false
+    },
+    {
+      "id": "gametechbcs_spellbooks:blackout",
+      "required": false
+    },
+    {
+      "id": "gametechbcs_spellbooks:nullflare_blast",
+      "required": false
+    },
+    {
+      "id": "gametechbcs_spellbooks:nullflare_fire",
+      "required": false
+    },
+    {
+      "id": "gametechbcs_spellbooks:nullflare_ice",
+      "required": false
+    },
+    {
+      "id": "gametechbcs_spellbooks:reversal",
+      "required": false
+    },
+    {
+      "id": "malum:voodoo",
+      "required": false
     }
   ]
 }

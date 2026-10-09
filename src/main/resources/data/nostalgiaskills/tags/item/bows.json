@@ -4,6 +4,10 @@
     {
       "id": "#miapi:bows",
       "required": false
+    },
+    {
+      "id": "mekaweapons:meka_bow",
+      "required": false
     }
   ]
 }

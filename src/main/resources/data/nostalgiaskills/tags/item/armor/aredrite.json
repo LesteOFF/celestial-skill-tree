@@ -1,0 +1,20 @@
+{
+  "values": [
+    {
+      "id": "oathboundrelics:aredrite_helmet",
+      "required": false
+    },
+    {
+      "id": "oathboundrelics:aredrite_chestplate",
+      "required": false
+    },
+    {
+      "id": "oathboundrelics:aredrite_leggings",
+      "required": false
+    },
+    {
+      "id": "oathboundrelics:aredrite_boots",
+      "required": false
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "values": [
+    {
+      "id": "aquamirae:abyssal_heaume",
+      "required": false
+    },
+    {
+      "id": "aquamirae:abyssal_tiara",
+      "required": false
+    },
+    {
+      "id": "aquamirae:abyssal_brigandine",
+      "required": false
+    },
+    {
+      "id": "aquamirae:abyssal_leggings",
+      "required": false
+    },
+    {
+      "id": "aquamirae:abyssal_boots",
+      "required": false
+    }
+  ]
+}

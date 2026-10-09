@@ -1,0 +1,20 @@
+{
+  "values": [
+    {
+      "id": "aquamirae:terrible_helmet",
+      "required": false
+    },
+    {
+      "id": "aquamirae:terrible_chestplate",
+      "required": false
+    },
+    {
+      "id": "aquamirae:terrible_leggings",
+      "required": false
+    },
+    {
+      "id": "aquamirae:terrible_boots",
+      "required": false
+    }
+  ]
+}

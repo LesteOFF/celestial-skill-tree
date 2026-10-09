@@ -18,6 +18,226 @@
     {
       "id": "miapi:modular_naginata",
       "required": false
+    },
+    {
+      "id": "#simplyswords:heavy_weapons",
+      "required": false
+    },
+    {
+      "id": "simplyswords:twisted_blade",
+      "required": false
+    },
+    {
+      "id": "simplyswords:awakened_lichblade",
+      "required": false
+    },
+    {
+      "id": "simplyswords:caelestis",
+      "required": false
+    },
+    {
+      "id": "simplyswords:hearthflame",
+      "required": false
+    },
+    {
+      "id": "simplyswords:hiveheart",
+      "required": false
+    },
+    {
+      "id": "simplyswords:slumbering_lichblade",
+      "required": false
+    },
+    {
+      "id": "simplyswords:soulkeeper",
+      "required": false
+    },
+    {
+      "id": "simplyswords:soulpyre",
+      "required": false
+    },
+    {
+      "id": "simplyswords:waking_lichblade",
+      "required": false
+    },
+    {
+      "id": "simplyswords:waxweaver",
+      "required": false
+    },
+    {
+      "id": "simplyswords:decaying_relic",
+      "required": false
+    },
+    {
+      "id": "simplyswords:magiscythe",
+      "required": false
+    },
+    {
+      "id": "simplyswords:magispear",
+      "required": false
+    },
+    {
+      "id": "simplyswords:gloampiercer",
+      "required": false
+    },
+    {
+      "id": "simplyswords:wickpiercer",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:ancient_metal_claymore",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:ancient_metal_greataxe",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:ancient_metal_greathammer",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:ancient_metal_glaive",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:ancient_metal_halberd",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:ancient_metal_scythe",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:black_steel_claymore",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:black_steel_greataxe",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:black_steel_greathammer",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:black_steel_glaive",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:black_steel_halberd",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:black_steel_scythe",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:cursium_claymore",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:cursium_greataxe",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:cursium_greathammer",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:cursium_glaive",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:cursium_halberd",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:cursium_scythe",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:ignitium_claymore",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:ignitium_greataxe",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:ignitium_greathammer",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:ignitium_glaive",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:ignitium_halberd",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:ignitium_scythe",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:witherite_claymore",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:witherite_greataxe",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:witherite_greathammer",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:witherite_glaive",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:witherite_halberd",
+      "required": false
+    },
+    {
+      "id": "simplycataclysm:witherite_scythe",
+      "required": false
+    },
+    {
+      "id": "mahoutsukai:rhongomyniad",
+      "required": false
+    },
+    {
+      "id": "forbidden_arcanus:draco_arcanus_axe",
+      "required": false
+    },
+    {
+      "id": "enigmaticlegacyplus:etherium_scythe",
+      "required": false
+    },
+    {
+      "id": "oathboundrelics:lethargic_greatsword",
+      "required": false
+    },
+    {
+      "id": "oathboundrelics:ruinwake",
+      "required": false
+    },
+    {
+      "id": "#aether:tools/lances",
+      "required": false
+    },
+    {
+      "id": "industrialforegoing:infinity_hammer",
+      "required": false
+    },
+    {
+      "id": "industrialforegoing:infinity_trident",
+      "required": false
+    },
+    {
+      "id": "avaritia:infinity_sword",
+      "required": false
     }
   ]
 }

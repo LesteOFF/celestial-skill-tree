@@ -20,6 +20,50 @@
     {
       "id": "#miapi:hoes",
       "required": false
+    },
+    {
+      "id": "forbidden_arcanus:draco_arcanus_pickaxe",
+      "required": false
+    },
+    {
+      "id": "forbidden_arcanus:draco_arcanus_axe",
+      "required": false
+    },
+    {
+      "id": "forbidden_arcanus:draco_arcanus_shovel",
+      "required": false
+    },
+    {
+      "id": "forbidden_arcanus:draco_arcanus_hoe",
+      "required": false
+    },
+    {
+      "id": "mekanism:meka_tool",
+      "required": false
+    },
+    {
+      "id": "mekanism:atomic_disassembler",
+      "required": false
+    },
+    {
+      "id": "industrialforegoing:infinity_drill",
+      "required": false
+    },
+    {
+      "id": "industrialforegoing:infinity_saw",
+      "required": false
+    },
+    {
+      "id": "industrialforegoing:infinity_hammer",
+      "required": false
+    },
+    {
+      "id": "quark:pickarang",
+      "required": false
+    },
+    {
+      "id": "quark:flamerang",
+      "required": false
     }
   ]
 }

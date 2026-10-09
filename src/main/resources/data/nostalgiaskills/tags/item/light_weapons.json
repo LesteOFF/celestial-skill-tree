@@ -1,3 +1,53 @@
 {
-  "values": ["#minecraft:swords"]
+  "values": [
+    "#minecraft:swords",
+    {
+      "id": "#simplyswords:light_weapons",
+      "required": false
+    },
+    {
+      "id": "#simplyswords:medium_weapons",
+      "required": false
+    },
+    {
+      "id": "#simplyswords:uniques",
+      "required": false
+    },
+    {
+      "id": "mekaweapons:meka_tana",
+      "required": false
+    },
+    {
+      "id": "malum:soul_stained_steel_knife",
+      "required": false
+    },
+    {
+      "id": "forbidden_arcanus:draco_arcanus_sword",
+      "required": false
+    },
+    {
+      "id": "enigmaticlegacyplus:the_twist",
+      "required": false
+    },
+    {
+      "id": "enigmaticlegacyplus:the_infinitum",
+      "required": false
+    },
+    {
+      "id": "celestial_artifacts:holy_sword",
+      "required": false
+    },
+    {
+      "id": "curseofpandora:barbaric_blade",
+      "required": false
+    },
+    {
+      "id": "#c:tools/knife",
+      "required": false
+    },
+    {
+      "id": "#farmersdelight:tools/knives",
+      "required": false
+    }
+  ]
 }

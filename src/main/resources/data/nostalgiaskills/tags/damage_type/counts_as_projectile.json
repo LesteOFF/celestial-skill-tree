@@ -1,7 +1,36 @@
 {
   "values": [
+    "minecraft:sonic_boom",
     {
       "id": "scguns:bullet",
+      "required": false
+    },
+    {
+      "id": "reliquary:bullet",
+      "required": false
+    },
+    {
+      "id": "pneumaticcraft:minigun",
+      "required": false
+    },
+    {
+      "id": "pneumaticcraft:minigun_ap",
+      "required": false
+    },
+    {
+      "id": "ae2:matter_cannon",
+      "required": false
+    },
+    {
+      "id": "ltxi:lightfrag",
+      "required": false
+    },
+    {
+      "id": "supplementaries:slingshot",
+      "required": false
+    },
+    {
+      "id": "supplementaries:player_bomb_explosion",
       "required": false
     }
   ]
