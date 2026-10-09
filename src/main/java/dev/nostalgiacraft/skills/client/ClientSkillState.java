@@ -24,6 +24,7 @@ public final class ClientSkillState {
     private static XpCurve curve = XpCurve.DEFAULT;
     private static Payloads.WorldRules worldRules = Payloads.WorldRules.NONE;
     private static UUID inFlight;
+    private static String lastAnswer = "";
     private static Consumer<Payloads.TransactionResult> resultListener = r -> { };
     private static Runnable changeListener = () -> { };
     private static boolean fixture;
@@ -59,6 +60,10 @@ public final class ClientSkillState {
 
     public static boolean ready() {
         return graph != null && state != null && stateGraphRevision == graphRevision;
+    }
+
+    public static String lastAnswer() {
+        return lastAnswer;
     }
 
     public static boolean requestInFlight() {
@@ -99,11 +104,11 @@ public final class ClientSkillState {
     }
 
     public static long xpBalance() {
-        Player player = Minecraft.getInstance().player;
-        if (player != null) {
-            return XpMath.balance(player.experienceLevel, player.experienceProgress) + economy.walletXp();
+        if (fixture) {
+            return XpMath.balance(fixtureLevel, fixtureProgress);
         }
-        return fixture ? XpMath.balance(fixtureLevel, fixtureProgress) : 0;
+        Player player = Minecraft.getInstance().player;
+        return player == null ? 0 : XpMath.balance(player.experienceLevel, player.experienceProgress) + economy.walletXp();
     }
 
     public static void reset() {
@@ -115,6 +120,9 @@ public final class ClientSkillState {
     }
 
     public static void onGraph(Payloads.GraphSync graphSync) {
+        if (fixture) {
+            return;
+        }
         try {
             graph = GraphCodec.decode(graphSync.data());
             graphRevision = graphSync.revision();
@@ -125,6 +133,9 @@ public final class ClientSkillState {
     }
 
     public static void onState(Payloads.StateSync stateSync) {
+        if (fixture) {
+            return;
+        }
         state = stateSync.state();
         stateGraphRevision = stateSync.graphRevision();
         economy = stateSync.economy();
@@ -137,6 +148,7 @@ public final class ClientSkillState {
         if (result.requestId().equals(inFlight)) {
             inFlight = null;
         }
+        lastAnswer = result.messageKey() + " " + result.detail();
         resultListener.accept(result);
         if (!result.ok() && Minecraft.getInstance().screen == null && Minecraft.getInstance().player != null) {
             Minecraft.getInstance().player.displayClientMessage(Component.translatable(result.messageKey()), true);

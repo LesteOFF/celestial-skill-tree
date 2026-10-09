@@ -1,8 +1,10 @@
 package dev.nostalgiacraft.skills.client;
 
 import dev.nostalgiacraft.skills.NostalgiaSkills;
+import dev.nostalgiacraft.skills.client.InWorldQa.Snapshot;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.network.Payloads;
+import dev.nostalgiacraft.skills.progression.Allocation;
 import dev.nostalgiacraft.skills.progression.AllocationService;
 import dev.nostalgiacraft.skills.progression.PathFinder;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
@@ -13,6 +15,7 @@ import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.gui.screens.WinScreen;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.resolver.ServerAddress;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
@@ -21,40 +24,71 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
-import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 
 @EventBusSubscriber(modid = NostalgiaSkills.MODID, value = Dist.CLIENT)
 public final class MultiplayerQa {
-    private record Step(String name, Runnable action, BooleanSupplier done, int timeoutTicks) {
-    }
-
     private static final String ROLE = System.getProperty("nostalgiaskills.mpqa", "");
     private static final String ADDRESS = System.getProperty("nostalgiaskills.mpqa.address", "127.0.0.1:25565");
-    private static final String GUARDIAN_TARGET = "nostalgiaskills:guardian/gatekeeper";
+    private static final String GUARDIAN = "nostalgiaskills:guardian/";
+    private static final String GUARDIAN_HUB = GUARDIAN + "hub";
+    private static final String GUARDIAN_TARGET = GUARDIAN + "gatekeeper";
+    private static final String MARKSMAN_HUB = "nostalgiaskills:marksman/hub";
     private static final String MARKSMAN_TARGET = "nostalgiaskills:marksman/eagle_eye";
-    private static final String MARKSMAN_LAST = "nostalgiaskills:marksman/fletching_4";
+    private static final String ACCEPTED = "ok";
+    private static final int GUARDIAN_SKILLS = 4;
+    private static final int MARKSMAN_SKILLS = 5;
+    private static final int ALPHA_POINTS = 3;
+    private static final int BETA_POINTS = 4;
+    private static final int BUY_BURST = 12;
+    private static final int REFUND_BURST = 5;
+    private static final int REPLAYED_REQUESTS = 2;
+    private static final int CONNECT_TICKS = 6000;
+    private static final int SERVER_ANSWER_TICKS = 1200;
+    private static final int PORTAL_TICKS = 2400;
+    private static final int COMMAND_TICKS = 400;
+    private static final int COOL_DOWN_TICKS = 60;
 
-    private static final List<Step> STEPS = new ArrayList<>();
-    private static final List<String> REPORT = new ArrayList<>();
-    private static final List<String> RESULTS = new ArrayList<>();
-    private static boolean built;
-    private static int step;
-    private static int ticks;
-    private static boolean started;
-    private static int counter;
-    private static long xpBefore;
-    private static String refundTarget;
-    private static double statBefore;
+    private static final List<String> ANSWERS = new ArrayList<>();
+    private static QaScript script;
+    private static Snapshot before;
+    private static List<String> route = List.of();
+    private static String target = "";
+    private static double projectileBefore;
 
     private MultiplayerQa() {
+    }
+
+    @SubscribeEvent
+    public static void tick(ClientTickEvent.Post event) {
+        if (ROLE.isEmpty()) {
+            return;
+        }
+        if (script == null) {
+            if (!(minecraft().screen instanceof TitleScreen)) {
+                return;
+            }
+            script = plan();
+        }
+        script.tick();
+    }
+
+    private static QaScript plan() {
+        script = new QaScript("Multiplayer QA [" + ROLE + "]", "nostalgiaskills_mpqa_" + ROLE + ".txt", InWorldQa::situation);
+        addConnectStep();
+        switch (ROLE) {
+            case "alpha" -> addAlphaSteps();
+            case "beta" -> addBetaSteps();
+            case "alpha_verify", "beta_verify" -> addVerifySteps();
+            default -> script.then("reject the role", () -> script.expect("role " + ROLE + " is known", false));
+        }
+        return script;
     }
 
     private static Minecraft minecraft() {
@@ -62,274 +96,226 @@ public final class MultiplayerQa {
     }
 
     private static PlayerSkillState state() {
-        return ClientSkillState.state().orElse(null);
-    }
-
-    private static void log(String line) {
-        REPORT.add(line);
-        NostalgiaSkills.LOGGER.info("Multiplayer QA [{}]: {}", ROLE, line);
+        return ClientSkillState.state().orElseThrow();
     }
 
     private static double maxHealth() {
         return minecraft().player.getAttributeValue(Attributes.MAX_HEALTH);
     }
 
-    private static double projectile() {
+    private static double projectileDamage() {
         return minecraft().player.getAttributeValue(ModAttributes.PROJECTILE_DAMAGE);
+    }
+
+    private static boolean healthIs(double expected) {
+        return Math.abs(maxHealth() - expected) < 1e-4;
+    }
+
+    private static void command(String command) {
+        minecraft().player.connection.sendCommand(command);
+    }
+
+    private static void remember() {
+        before = Snapshot.take();
+        projectileBefore = projectileDamage();
     }
 
     private static String summary() {
         PlayerSkillState state = state();
         return "player=" + minecraft().player.getGameProfile().getName() + ", purchased=" + state.purchasedPoints() + ", available="
-                + state.availablePoints() + ", allocations=" + state.allocations().size() + " " + new TreeSet<>(state.allocations().keySet())
-                + ", max health=" + maxHealth() + ", projectile_damage=" + projectile() + ", ledger ok=" + state.ledgerHolds();
+                + state.availablePoints() + ", skills=" + new TreeSet<>(state.allocations().keySet()) + ", max health=" + maxHealth()
+                + ", projectile damage=" + projectileDamage();
     }
 
-    private static boolean inWorld() {
-        return minecraft().player != null && minecraft().getConnection() != null && ClientSkillState.ready() && !ClientSkillState.isFixture();
+    private static void expectUnchanged(String when) {
+        script.note(when + ": " + summary());
+        script.expect("skills learned " + when, before.allocations(), state().allocations().size());
+        script.expect("points available " + when, before.available(), state().availablePoints());
+        script.expectNear("max health " + when, before.maxHealth(), maxHealth());
+        script.expect("ledger holds " + when, state().ledgerHolds());
     }
 
-    private static void connect() {
-        ClientSkillState.reset();
-        ServerData data = new ServerData("nostalgiaskills qa", ADDRESS, ServerData.Type.OTHER);
-        ConnectScreen.startConnecting(new TitleScreen(), minecraft(), ServerAddress.parseString(ADDRESS), data, false, null);
+    private static void send(Function<UUID, CustomPacketPayload> request) {
+        UUID id = UUID.randomUUID();
+        ClientSkillState.markInFlight(id);
+        PacketDistributor.sendToServer(request.apply(id));
     }
 
-    private static Step connectStep() {
-        return new Step("connect to " + ADDRESS, MultiplayerQa::connect, MultiplayerQa::inWorld, 6000);
+    private static void burst(int requests, Function<UUID, CustomPacketPayload> request) {
+        ANSWERS.clear();
+        ClientSkillState.setListeners(result -> ANSWERS.add(result.ok() ? ACCEPTED : result.messageKey()), () -> { });
+        UUID replayed = UUID.randomUUID();
+        for (int sent = 0; sent < requests; sent++) {
+            PacketDistributor.sendToServer(request.apply(sent < REPLAYED_REQUESTS ? replayed : UUID.randomUUID()));
+        }
     }
 
-    private static List<String> route(String root, String target, int limit) {
+    private static void expectOneAccepted(String what, int requests) {
+        ClientSkillState.clearListeners();
+        Map<String, Integer> counts = new TreeMap<>();
+        ANSWERS.forEach(answer -> counts.merge(answer, 1, Integer::sum));
+        script.note("answers to " + what + ": " + counts);
+        script.expect(what + " accepted out of " + requests, 1, counts.getOrDefault(ACCEPTED, 0).intValue());
+    }
+
+    private static List<String> routeFrom(String hub, String targetId, int limit) {
         SkillGraphSnapshot graph = ClientSkillState.graph().orElseThrow();
-        PlayerSkillState state = state().copy();
-        AllocationService.confirm(graph, state, List.of(root));
-        List<String> out = new ArrayList<>();
-        out.add(root);
-        PathFinder.route(graph, state, List.of(), target).ifPresent(r -> out.addAll(r.newNodes()));
-        return List.copyOf(out.subList(0, Math.min(limit, out.size())));
+        PlayerSkillState simulated = state().copy();
+        AllocationService.confirm(graph, simulated, List.of(hub));
+        List<String> nodes = new ArrayList<>(List.of(hub));
+        PathFinder.route(graph, simulated, List.of(), targetId).ifPresent(found -> nodes.addAll(found.newNodes()));
+        return List.copyOf(nodes.subList(0, Math.min(limit, nodes.size())));
     }
 
-    private static Step buyPoints(int target) {
-        return new Step("buy points up to " + target, () -> xpBefore = ClientSkillState.xpBalance(), () -> {
-            if (state().purchasedPoints() >= target) {
+    private static boolean learnedRoute() {
+        return route.stream().allMatch(state()::isAllocated);
+    }
+
+    private static void confirmRoute() {
+        send(id -> new Payloads.ConfirmAllocation(id, state().stateRevision(), ClientSkillState.graphRevision(), route));
+        script.note("confirm sent for " + route);
+    }
+
+    private static void addConnectStep() {
+        script.step("connect to " + ADDRESS, () -> {
+            ClientSkillState.reset();
+            ServerData server = new ServerData("nostalgiaskills qa", ADDRESS, ServerData.Type.OTHER);
+            ConnectScreen.startConnecting(new TitleScreen(), minecraft(), ServerAddress.parseString(ADDRESS), server, false, null);
+        }, () -> InWorldQa.joined() && minecraft().getConnection() != null, CONNECT_TICKS);
+    }
+
+    private static void addPeerSteps() {
+        script.waitFor("wait for the other player", () -> minecraft().getConnection().getOnlinePlayers().size() >= 2, CONNECT_TICKS);
+        script.then("report the join", () -> script.note("joined the dedicated server: " + summary()));
+        script.step("grant 30 levels", () -> command("xp add @s 30 levels"), () -> minecraft().player.experienceLevel >= 30, COMMAND_TICKS);
+    }
+
+    private static void addPurchaseSteps(int points) {
+        script.step("buy " + points + " points one at a time", MultiplayerQa::remember, () -> {
+            if (state().purchasedPoints() >= before.purchased() + points) {
                 return true;
             }
             if (!ClientSkillState.requestInFlight()) {
-                UUID id = UUID.randomUUID();
-                ClientSkillState.markInFlight(id);
-                PacketDistributor.sendToServer(new Payloads.BuyPoint(id, state().stateRevision(), 1));
+                send(id -> new Payloads.BuyPoint(id, state().stateRevision(), 1));
             }
             return false;
-        }, 1200);
+        }, SERVER_ANSWER_TICKS);
+        script.then("check the purchases", () -> {
+            long cost = ClientSkillState.curve().totalCost(before.purchased(), points);
+            script.expect("points available", before.available() + points, state().availablePoints());
+            script.expect("XP left after paying " + cost, before.xp() - cost, ClientSkillState.xpBalance());
+        });
     }
 
-    private static Step note(String name, Runnable r) {
-        return new Step(name, r, () -> true, 5);
+    private static void addVerifySteps() {
+        script.pause("let the state settle", COOL_DOWN_TICKS);
+        script.then("report after the server restart", () -> {
+            script.note("after the dedicated server restart: " + summary());
+            script.expect("ledger holds after the server restart", state().ledgerHolds());
+        });
     }
 
-    private static void build() {
-        STEPS.add(connectStep());
-        switch (ROLE) {
-            case "alpha" -> alpha();
-            case "beta" -> beta();
-            case "alpha_verify", "beta_verify" -> {
-                STEPS.add(new Step("settle", () -> { }, () -> ticks >= 60, 100));
-                STEPS.add(note("report after server restart", () -> log("after dedicated server restart: " + summary())));
-            }
-            default -> log("unknown role " + ROLE);
-        }
-        STEPS.add(note("finish", MultiplayerQa::finish));
-    }
-
-    private static void waitForPeer() {
-        STEPS.add(new Step("wait for the other player", () -> { }, () -> minecraft().getConnection().getOnlinePlayers().size() >= 2, 6000));
-        STEPS.add(note("report join", () -> log("joined dedicated server; online players=" + minecraft().getConnection().getOnlinePlayers().stream()
-                .map(p -> p.getProfile().getName()).sorted().toList() + "; " + summary())));
-    }
-
-    private static void alpha() {
-        waitForPeer();
-        STEPS.add(new Step("xp", () -> minecraft().player.connection.sendCommand("xp add @s 30 levels"), () -> minecraft().player.experienceLevel >= 30, 400));
-        STEPS.add(buyPoints(3));
-        STEPS.add(note("report purchase", () -> log("bought 3 points: xp raw " + xpBefore + " -> " + ClientSkillState.xpBalance()
-                + " (expected -" + (100 + 122 + 148) + "), next cost=" + ClientSkillState.economy().nextPointCost())));
-        STEPS.add(new Step("guardian route", () -> {
-            List<String> nodes = route("nostalgiaskills:guardian/hub", GUARDIAN_TARGET, 4);
-            UUID id = UUID.randomUUID();
-            ClientSkillState.markInFlight(id);
-            PacketDistributor.sendToServer(new Payloads.ConfirmAllocation(id, state().stateRevision(), ClientSkillState.graphRevision(), nodes));
-            log("confirm sent for " + nodes);
-        }, () -> state().allocations().size() == 4 && maxHealth() > 20.0, 1200));
-        STEPS.add(note("report build", () -> log("after confirm: " + summary() + " (expected max health 25: hub +2, 3x Vitality +1)")));
-        STEPS.add(new Step("logout", () -> {
+    private static void addAlphaSteps() {
+        addPeerSteps();
+        addPurchaseSteps(ALPHA_POINTS);
+        script.step("learn a guardian route", () -> {
+            remember();
+            route = routeFrom(GUARDIAN_HUB, GUARDIAN_TARGET, GUARDIAN_SKILLS);
+            confirmRoute();
+        }, () -> learnedRoute() && maxHealth() > before.maxHealth(), SERVER_ANSWER_TICKS);
+        script.then("check the guardian build", () -> {
+            script.note("after confirming: " + summary());
+            script.expect("skills learned", route.size(), state().allocations().size());
+            script.expect("ledger holds after confirming", state().ledgerHolds());
+        });
+        script.step("log out", () -> {
+            remember();
             minecraft().level.disconnect();
             minecraft().disconnect(new TitleScreen());
-        }, () -> minecraft().level == null && minecraft().getConnection() == null, 1200));
-        STEPS.add(connectStep());
-        STEPS.add(new Step("effects after login", () -> { }, () -> maxHealth() == 25.0, 400));
-        STEPS.add(note("report relog", () -> log("after logout + login: " + summary())));
-        STEPS.add(new Step("go to the End", () -> minecraft().player.connection.sendCommand("execute in minecraft:the_end run tp @s 100 52 0"),
-                () -> minecraft().level.dimension() == Level.END && maxHealth() == 25.0, 1200));
-        STEPS.add(note("report End", () -> log("in the End: " + summary())));
-        STEPS.add(new Step("leave the End through an exit portal", () -> minecraft().player.connection.sendCommand(
-                "execute at @s run fill ~-1 ~-4 ~-1 ~1 ~1 ~1 minecraft:end_portal"), () -> {
-            if (minecraft().screen instanceof WinScreen win) {
-                win.onClose();
-            }
-            return minecraft().level != null && minecraft().level.dimension() == Level.OVERWORLD && minecraft().player.isAlive()
-                    && ClientSkillState.ready() && maxHealth() == 25.0;
-        }, 2400));
-        STEPS.add(note("report End return", () -> log("after End exit portal + credits (End return): " + summary())));
-        STEPS.add(new Step("refund the last learned skill", () -> {
-            counter = state().allocations().size();
-            statBefore = maxHealth();
-            refundTarget = state().orderedAllocations().get(counter - 1).nodeId();
-            UUID id = UUID.randomUUID();
-            ClientSkillState.markInFlight(id);
-            PacketDistributor.sendToServer(new Payloads.RequestRefund(id, state().stateRevision(),
-                    ClientSkillState.graphRevision(), refundTarget));
-            log("refund requested for " + refundTarget + " (paid " + state().allocations().get(refundTarget).paidCost()
-                    + "), max health " + statBefore);
-        }, () -> !state().isAllocated(refundTarget) && maxHealth() < statBefore, 1200));
-        STEPS.add(note("report refund", () -> log("after refunding one skill: allocations " + counter + " -> "
-                + state().allocations().size() + ", max health " + statBefore + " -> " + maxHealth() + "; " + summary())));
+        }, () -> minecraft().level == null && minecraft().getConnection() == null, SERVER_ANSWER_TICKS);
+        addConnectStep();
+        script.waitFor("effects return after the login", () -> healthIs(before.maxHealth()), COMMAND_TICKS);
+        script.then("check the build after logging in again", () -> expectUnchanged("after logging out and in"));
+        script.step("go to the End", () -> command("execute in minecraft:the_end run tp @s 100 52 0"),
+                () -> minecraft().level.dimension() == Level.END && healthIs(before.maxHealth()), SERVER_ANSWER_TICKS);
+        script.then("check the build in the End", () -> expectUnchanged("in the End"));
+        script.step("leave the End through an exit portal", () -> command("execute at @s run fill ~-1 ~-4 ~-1 ~1 ~1 ~1 minecraft:end_portal"),
+                MultiplayerQa::returnedFromTheEnd, PORTAL_TICKS);
+        script.then("check the build after the credits", () -> expectUnchanged("after the End exit portal"));
+        script.step("refund the newest skill", () -> {
+            remember();
+            List<Allocation> learned = state().orderedAllocations();
+            target = learned.get(learned.size() - 1).nodeId();
+            send(id -> new Payloads.RequestRefund(id, state().stateRevision(), ClientSkillState.graphRevision(), target));
+        }, () -> !state().isAllocated(target) && maxHealth() < before.maxHealth(), SERVER_ANSWER_TICKS);
+        script.then("check the refund", () -> {
+            script.note("after refunding " + target + ": " + summary());
+            script.expect("skills learned after the refund", before.allocations() - 1, state().allocations().size());
+            script.expect("ledger holds after the refund", state().ledgerHolds());
+        });
     }
 
-    private static void beta() {
-        waitForPeer();
-        STEPS.add(new Step("xp", () -> minecraft().player.connection.sendCommand("xp add @s 30 levels"), () -> minecraft().player.experienceLevel >= 30, 400));
-        STEPS.add(buyPoints(4));
-        STEPS.add(note("report purchase", () -> log("bought 4 points through the latency proxy: xp raw " + xpBefore + " -> "
-                + ClientSkillState.xpBalance() + " (expected -" + (100 + 122 + 148 + 178) + "), next cost=" + ClientSkillState.economy().nextPointCost())));
-        STEPS.add(new Step("rapid repeated buy requests", () -> {
-            RESULTS.clear();
-            counter = state().purchasedPoints();
-            ClientSkillState.setListeners(r -> RESULTS.add(r.ok() ? "ok" : r.messageKey()), () -> { });
-            long rev = state().stateRevision();
-            UUID same = UUID.randomUUID();
-            for (int i = 0; i < 2; i++) {
-                PacketDistributor.sendToServer(new Payloads.BuyPoint(same, rev, 1));
-            }
-            for (int i = 0; i < 10; i++) {
-                PacketDistributor.sendToServer(new Payloads.BuyPoint(UUID.randomUUID(), rev, 1));
-            }
-        }, () -> RESULTS.size() >= 12, 1200));
-        STEPS.add(note("report rapid", () -> {
-            Map<String, Integer> counts = new TreeMap<>();
-            RESULTS.forEach(r -> counts.merge(r, 1, Integer::sum));
-            log("12 buy requests sent back-to-back under latency (2 share one id, all expect the same revision): " + counts
-                    + "; purchased " + counter + " -> " + state().purchasedPoints() + " (exactly one purchase expected), ledger ok=" + state().ledgerHolds());
-            ClientSkillState.clearListeners();
-        }));
-        STEPS.add(new Step("cool down", () -> { }, () -> ticks >= 60, 100));
-        STEPS.add(new Step("marksman route", () -> {
-            List<String> nodes = route("nostalgiaskills:marksman/hub", MARKSMAN_TARGET, 5);
-            RESULTS.clear();
-            ClientSkillState.setListeners(r -> RESULTS.add(r.ok() ? "ok" : r.messageKey() + " " + r.detail()), () -> { });
-            UUID id = UUID.randomUUID();
-            ClientSkillState.markInFlight(id);
-            PacketDistributor.sendToServer(new Payloads.ConfirmAllocation(id, state().stateRevision(), ClientSkillState.graphRevision(), nodes));
-            log("confirm sent for " + nodes);
-        }, () -> state().isAllocated(MARKSMAN_LAST) || !RESULTS.isEmpty() && !RESULTS.contains("ok"), 1200));
-        STEPS.add(note("report confirm result", () -> {
-            log("server answer to confirm: " + RESULTS);
-            ClientSkillState.clearListeners();
-        }));
-        STEPS.add(new Step("effects", () -> { }, () -> projectile() > 0.0, 400));
-        STEPS.add(note("report build", () -> log("after confirm: " + summary() + " (no guardian nodes expected: builds are per player)")));
-        STEPS.add(new Step("cool down", () -> { }, () -> ticks >= 60, 100));
-        STEPS.add(new Step("refund a mid-branch skill, replayed under latency", () -> {
-            RESULTS.clear();
-            ClientSkillState.setListeners(r -> RESULTS.add(r.ok() ? "ok" : r.messageKey()), () -> { });
-            counter = state().availablePoints();
-            statBefore = projectile();
-            refundTarget = state().orderedAllocations().get(2).nodeId();
-            long rev = state().stateRevision();
-            int graphRev = ClientSkillState.graphRevision();
-            UUID same = UUID.randomUUID();
-            for (int i = 0; i < 2; i++) {
-                PacketDistributor.sendToServer(new Payloads.RequestRefund(same, rev, graphRev, refundTarget));
-            }
-            for (int i = 0; i < 3; i++) {
-                PacketDistributor.sendToServer(new Payloads.RequestRefund(UUID.randomUUID(), rev, graphRev, refundTarget));
-            }
-            log("5 refund requests for " + refundTarget + " (2 share one id, all expect state revision " + rev + ")");
-        }, () -> RESULTS.size() >= 5, 1200));
-        STEPS.add(note("report refund", () -> {
-            Map<String, Integer> counts = new TreeMap<>();
-            RESULTS.forEach(r -> counts.merge(r, 1, Integer::sum));
-            log("refund replay results " + counts + "; available " + counter + " -> " + state().availablePoints()
-                    + ", projectile_damage " + statBefore + " -> " + projectile() + " (" + refundTarget
-                    + " and everything that depended on it removed); " + summary());
-            ClientSkillState.clearListeners();
-        }));
-        STEPS.add(new Step("cool down", () -> { }, () -> ticks >= 60, 100));
-        STEPS.add(new Step("learn the refunded branch again", () -> {
-            SkillGraphSnapshot graph = ClientSkillState.graph().orElseThrow();
-            List<String> nodes = PathFinder.route(graph, state(), List.of(), MARKSMAN_LAST)
-                    .filter(PathFinder.Route::valid).map(PathFinder.Route::newNodes).orElse(List.of());
-            UUID id = UUID.randomUUID();
-            ClientSkillState.markInFlight(id);
-            PacketDistributor.sendToServer(new Payloads.ConfirmAllocation(id, state().stateRevision(),
-                    ClientSkillState.graphRevision(), nodes));
-            log("learning the refunded branch again: " + nodes);
-        }, () -> state().isAllocated(MARKSMAN_LAST), 1200));
-        STEPS.add(note("report relearn", () -> log("after learning the refunded branch again at the current prices: "
-                + summary())));
+    private static boolean returnedFromTheEnd() {
+        if (minecraft().screen instanceof WinScreen credits) {
+            credits.onClose();
+        }
+        return minecraft().level != null && minecraft().level.dimension() == Level.OVERWORLD && minecraft().player.isAlive()
+                && ClientSkillState.ready() && healthIs(before.maxHealth());
     }
 
-    private static void finish() {
-        try {
-            Files.write(minecraft().gameDirectory.toPath().resolve("nostalgiaskills_mpqa_" + ROLE + ".txt"), REPORT);
-        } catch (IOException e) {
-            NostalgiaSkills.LOGGER.error("could not write multiplayer QA report", e);
-        }
-        NostalgiaSkills.LOGGER.info("Multiplayer QA [{}]: finished", ROLE);
-        if (minecraft().level != null) {
-            minecraft().level.disconnect();
-        }
-        minecraft().stop();
+    private static void addBetaSteps() {
+        addPeerSteps();
+        addPurchaseSteps(BETA_POINTS);
+        script.step("send " + BUY_BURST + " buy requests in one tick", () -> {
+            remember();
+            long revision = state().stateRevision();
+            burst(BUY_BURST, id -> new Payloads.BuyPoint(id, revision, 1));
+        }, () -> ANSWERS.size() >= BUY_BURST, SERVER_ANSWER_TICKS);
+        script.then("check the buy burst", () -> {
+            expectOneAccepted("buy requests", BUY_BURST);
+            script.expect("points purchased by the burst", before.purchased() + 1, state().purchasedPoints());
+            script.expect("ledger holds after the buy burst", state().ledgerHolds());
+        });
+        script.pause("cool down after the buy burst", COOL_DOWN_TICKS);
+        script.step("learn a marksman route", () -> {
+            remember();
+            route = routeFrom(MARKSMAN_HUB, MARKSMAN_TARGET, MARKSMAN_SKILLS);
+            confirmRoute();
+        }, () -> learnedRoute() && projectileDamage() > 0, SERVER_ANSWER_TICKS);
+        script.then("check the marksman build", () -> {
+            script.note("after confirming: " + summary());
+            script.expect("builds are per player: no guardian skill here",
+                    state().allocations().keySet().stream().noneMatch(skill -> skill.startsWith(GUARDIAN)));
+            script.expect("ledger holds after confirming", state().ledgerHolds());
+        });
+        script.pause("cool down after confirming", COOL_DOWN_TICKS);
+        script.step("send " + REFUND_BURST + " refund requests for one mid-branch skill", () -> {
+            remember();
+            target = state().orderedAllocations().get(2).nodeId();
+            long revision = state().stateRevision();
+            int graphRevision = ClientSkillState.graphRevision();
+            burst(REFUND_BURST, id -> new Payloads.RequestRefund(id, revision, graphRevision, target));
+        }, () -> ANSWERS.size() >= REFUND_BURST, SERVER_ANSWER_TICKS);
+        script.then("check the refund burst", () -> {
+            expectOneAccepted("refund requests", REFUND_BURST);
+            script.note("after refunding " + target + ": " + summary());
+            script.expect("the refunded skill is gone", !state().isAllocated(target));
+            script.expect("no point was created or lost", before.available() + before.spent(),
+                    state().availablePoints() + state().activeSpentPoints());
+            script.expect("its bonus is gone", projectileDamage() <= projectileBefore);
+            script.expect("ledger holds after the refund burst", state().ledgerHolds());
+        });
+        script.pause("cool down after the refund burst", COOL_DOWN_TICKS);
+        script.step("learn the refunded branch again", MultiplayerQa::confirmMissingRoute, MultiplayerQa::learnedRoute, SERVER_ANSWER_TICKS);
+        script.then("check the build learned again", () -> {
+            script.note("after learning the branch again: " + summary());
+            script.expect("ledger holds after learning again", state().ledgerHolds());
+        });
     }
 
-    @SubscribeEvent
-    public static void tick(ClientTickEvent.Post e) {
-        if (ROLE.isEmpty()) {
-            return;
-        }
-        if (!built) {
-            if (!(minecraft().screen instanceof TitleScreen)) {
-                return;
-            }
-            built = true;
-            build();
-        }
-        if (step >= STEPS.size()) {
-            return;
-        }
-        Step s = STEPS.get(step);
-        try {
-            if (!started) {
-                started = true;
-                s.action().run();
-                return;
-            }
-            ticks++;
-            if (s.done().getAsBoolean()) {
-                step++;
-                ticks = 0;
-                started = false;
-            } else if (ticks > s.timeoutTicks()) {
-                log("FAILED (timeout): " + s.name() + (minecraft().player != null && state() != null ? "; " + summary() : ""));
-                step = STEPS.size() - 1;
-                ticks = 0;
-                started = false;
-            }
-        } catch (Exception ex) {
-            log("FAILED (exception) in " + s.name() + ": " + ex);
-            NostalgiaSkills.LOGGER.error("Multiplayer QA step failed", ex);
-            step = STEPS.size() - 1;
-            ticks = 0;
-            started = false;
-        }
+    private static void confirmMissingRoute() {
+        List<String> missing = route.stream().filter(skill -> !state().isAllocated(skill)).toList();
+        send(id -> new Payloads.ConfirmAllocation(id, state().stateRevision(), ClientSkillState.graphRevision(), missing));
+        script.note("confirm sent for " + missing);
     }
 }

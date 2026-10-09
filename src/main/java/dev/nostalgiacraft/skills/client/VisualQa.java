@@ -3,8 +3,6 @@ package dev.nostalgiacraft.skills.client;
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.client.screen.SkillTreeScreen;
 import dev.nostalgiacraft.skills.config.ClientConfig;
-import dev.nostalgiacraft.skills.data.McKnownIds;
-import dev.nostalgiacraft.skills.data.SkillTreeManager;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.network.Payloads;
 import dev.nostalgiacraft.skills.progression.AllocationService;
@@ -12,12 +10,11 @@ import dev.nostalgiacraft.skills.progression.LedgerService;
 import dev.nostalgiacraft.skills.progression.PathFinder;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.Screenshot;
-import net.minecraft.client.gui.screens.TitleScreen;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,171 +23,211 @@ import java.util.function.Consumer;
 @EventBusSubscriber(modid = NostalgiaSkills.MODID, value = Dist.CLIENT)
 public final class VisualQa {
     private static final boolean ENABLED = Boolean.getBoolean("nostalgiaskills.visualqa");
-    private static final int SETTLE_TICKS = 14;
+    private static final String REPORT_FILE = "nostalgiaskills_qa_ingame.txt";
+    private static final String SHOT_PREFIX = "nostalgiaskills_qa_";
+    private static final int OPEN_TICKS = 4;
+    private static final int FRAME_TICKS = 10;
+    private static final int SYNC_TICKS = 400;
+    private static final int FIXTURE_POINT_CAP = 10_000;
+    private static final float FIXTURE_XP_PROGRESS = 0.4f;
+    private static final Payloads.Economy FIXTURE_ECONOMY = new Payloads.Economy(100, 120, true, true, true, false);
+    private static final Resolution HD = new Resolution(1280, 720, 2);
+    private static final Resolution ULTRAWIDE = new Resolution(2560, 1080, 3);
+    private static final List<Resolution> OVERVIEWS = List.of(new Resolution(1000, 563, 2), new Resolution(1000, 563, 3),
+            HD, new Resolution(1280, 720, 3), new Resolution(1920, 1080, 2), new Resolution(1920, 1080, 3));
+    private static final List<Edge> SCREEN_EDGES = List.of(new Edge("left", 0.03, 0.5), new Edge("right", 0.97, 0.5),
+            new Edge("top", 0.5, 0.16), new Edge("bottom", 0.5, 0.9));
 
-    private record Shot(String name, int w, int h, int gui, String fixture, Consumer<SkillTreeScreen> setup) {
+    private record Resolution(int width, int height, int guiScale) {
+        String size() {
+            return width + "x" + height;
+        }
     }
 
-    private static List<Shot> shots;
-    private static int index = -1;
-    private static int wait;
+    private record Edge(String name, double widthFraction, double heightFraction) {
+    }
+
+    private enum Look {
+        NORMAL, REDUCED_MOTION, HIGH_CONTRAST
+    }
+
+    private enum Fixture {
+        FRESH(0, 24),
+        FOCUSED(60, 24, "guardian/hub", "guardian/bastion", "guardian/warden", "guardian/gatekeeper", "guardian/shield_drill"),
+        HYBRID(110, 24, "duelist/hub", "duelist/swift_hands", "duelist/parry_and_return", "berserker/hub", "berserker/rising_rage",
+                "berserker/battle_cry"),
+        CONFLICT(40, 24, "duelist/hub", "duelist/swift_hands"),
+        INSUFFICIENT(14, 3, "marksman/hub", "marksman/eagle_eye");
+
+        private final int points;
+        private final int level;
+        private final List<String> skills;
+
+        Fixture(int points, int level, String... skills) {
+            this.points = points;
+            this.level = level;
+            this.skills = List.of(skills);
+        }
+
+        PlayerSkillState build() {
+            PlayerSkillState state = new PlayerSkillState();
+            LedgerService.grant(state, points, FIXTURE_POINT_CAP, true);
+            skills.forEach(skill -> learn(state, id(skill)));
+            return state;
+        }
+
+        private static void learn(PlayerSkillState state, String skillId) {
+            if (state.startingRoot().isEmpty()) {
+                AllocationService.confirm(graph, state, List.of(skillId));
+                return;
+            }
+            PathFinder.route(graph, state, List.of(), skillId).filter(PathFinder.Route::valid)
+                    .ifPresent(route -> AllocationService.confirm(graph, state, route.newNodes()));
+        }
+    }
+
+    private record Shot(String name, Resolution resolution, Fixture fixture, Look look, Consumer<SkillTreeScreen> frame) {
+        Shot(String name, Fixture fixture, Consumer<SkillTreeScreen> frame) {
+            this(name + "_" + HD.size(), HD, fixture, Look.NORMAL, frame);
+        }
+    }
+
+    private static QaScript script;
     private static SkillGraphSnapshot graph;
-    private static boolean done;
 
     private VisualQa() {
     }
 
     @SubscribeEvent
-    public static void tick(ClientTickEvent.Post e) {
-        if (!ENABLED || done) {
+    public static void tick(ClientTickEvent.Post event) {
+        if (!ENABLED) {
             return;
         }
-        Minecraft minecraft = Minecraft.getInstance();
-        if (shots == null) {
-            if (minecraft.getOverlay() != null || !(minecraft.screen instanceof TitleScreen || minecraft.screen != null)) {
+        if (script == null) {
+            Minecraft minecraft = Minecraft.getInstance();
+            if (minecraft.getOverlay() != null || minecraft.screen == null) {
                 return;
             }
-            if (SkillTreeManager.graph().isEmpty()) {
-                return;
-            }
-            graph = SkillTreeManager.graph().get();
-            shots = plan();
-            NostalgiaSkills.LOGGER.info("Visual QA: {} shots planned", shots.size());
-            next(minecraft);
-            return;
+            script = plan();
         }
-        if (--wait > 0) {
-            if (wait == SETTLE_TICKS - 4 && minecraft.screen instanceof SkillTreeScreen screen) {
-                shots.get(index).setup().accept(screen);
-            }
-            return;
-        }
-        Shot s = shots.get(index);
-        String file = "nostalgiaskills_qa_" + s.name() + ".png";
-        Screenshot.grab(minecraft.gameDirectory, file, minecraft.getMainRenderTarget(), msg -> { });
-        NostalgiaSkills.LOGGER.info("Visual QA: captured {} ({}x{} window, gui scale {}, framebuffer {}x{}, gui {}x{}, {} fps)",
-                file, s.w(), s.h(), s.gui(), minecraft.getWindow().getWidth(), minecraft.getWindow().getHeight(),
-                minecraft.getWindow().getGuiScaledWidth(), minecraft.getWindow().getGuiScaledHeight(), minecraft.getFps());
-        next(minecraft);
+        script.tick();
     }
 
-    private static void next(Minecraft minecraft) {
-        index++;
-        if (index >= shots.size()) {
-            NostalgiaSkills.LOGGER.info("Visual QA: fixture shots finished; starting in-world scenario");
-            InWorldQa.start();
-            done = true;
-            return;
+    private static QaScript plan() {
+        QaScript qa = new QaScript("Visual QA", REPORT_FILE, InWorldQa::situation);
+        InWorldQa world = new InWorldQa(qa);
+        world.enterWorld();
+        qa.then("check the fixture builds", () -> checkFixtures(qa));
+        shots().forEach(shot -> addShot(qa, shot));
+        qa.step("return to the live build", VisualQa::leaveFixtures, InWorldQa::joined, SYNC_TICKS);
+        world.addScenario();
+        return qa;
+    }
+
+    private static void checkFixtures(QaScript qa) {
+        graph = ClientSkillState.graph().orElseThrow();
+        for (Fixture fixture : Fixture.values()) {
+            PlayerSkillState state = fixture.build();
+            fixture.skills.forEach(skill -> qa.expect("fixture " + fixture + " learns " + skill, state.isAllocated(id(skill))));
         }
-        Shot s = shots.get(index);
-        if (minecraft.getWindow().getWidth() != s.w() || minecraft.getWindow().getHeight() != s.h()) {
-            minecraft.getWindow().setWindowed(s.w(), s.h());
+    }
+
+    private static void addShot(QaScript qa, Shot shot) {
+        qa.step("open " + shot.name(), () -> open(shot), () -> qa.ticks() >= OPEN_TICKS, 2 * OPEN_TICKS);
+        qa.step("frame " + shot.name(), () -> shot.frame().accept(screen()), () -> qa.ticks() >= FRAME_TICKS, 2 * FRAME_TICKS);
+        qa.then("capture " + shot.name(), () -> qa.capture(SHOT_PREFIX + shot.name() + ".png"));
+    }
+
+    private static void open(Shot shot) {
+        resize(shot.resolution());
+        ClientConfig.REDUCED_MOTION.set(shot.look() == Look.REDUCED_MOTION);
+        ClientConfig.HIGH_CONTRAST.set(shot.look() == Look.HIGH_CONTRAST);
+        ClientSkillState.loadFixture(graph, shot.fixture().build(), FIXTURE_ECONOMY, shot.fixture().level, FIXTURE_XP_PROGRESS);
+        Minecraft.getInstance().setScreen(new SkillTreeScreen());
+    }
+
+    private static void resize(Resolution resolution) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.getWindow().getWidth() != resolution.width() || minecraft.getWindow().getHeight() != resolution.height()) {
+            minecraft.getWindow().setWindowed(resolution.width(), resolution.height());
         }
-        minecraft.options.guiScale().set(s.gui());
+        minecraft.options.guiScale().set(resolution.guiScale());
         minecraft.resizeDisplay();
-        ClientConfig.REDUCED_MOTION.set(s.name().contains("reduced_motion"));
-        ClientConfig.HIGH_CONTRAST.set(s.name().contains("high_contrast"));
-        loadFixture(s.fixture());
-        minecraft.setScreen(new SkillTreeScreen());
-        wait = SETTLE_TICKS;
+    }
+
+    private static void leaveFixtures() {
+        Minecraft.getInstance().setScreen(null);
+        ClientConfig.REDUCED_MOTION.set(false);
+        ClientConfig.HIGH_CONTRAST.set(false);
+        resize(HD);
+        ClientSkillState.reset();
+        PacketDistributor.sendToServer(new Payloads.RequestSync(""));
+    }
+
+    private static SkillTreeScreen screen() {
+        return (SkillTreeScreen) Minecraft.getInstance().screen;
     }
 
     private static String id(String path) {
         return NostalgiaSkills.MODID + ":" + path;
     }
 
-    private static PlayerSkillState build(int points, String start, String... targets) {
-        PlayerSkillState state = new PlayerSkillState();
-        LedgerService.grant(state, points, 10_000, true);
-        if (start != null) {
-            AllocationService.confirm(graph, state, List.of(id(start)));
-        }
-        for (String t : targets) {
-            PathFinder.route(graph, state, List.of(), id(t)).filter(PathFinder.Route::valid)
-                    .ifPresent(r -> AllocationService.confirm(graph, state, r.newNodes()));
-        }
-        return state;
+    private static String inTree(String path) {
+        script.expect("the tree has " + path, graph.contains(id(path)));
+        return id(path);
     }
 
-    private static void loadFixture(String name) {
-        PlayerSkillState state = switch (name) {
-            case "fresh" -> build(0, null);
-            case "focused" -> build(60, "guardian/hub", "guardian/bastion", "guardian/warden", "guardian/gatekeeper",
-                    "guardian/shield_drill");
-            case "hybrid" -> build(110, "duelist/hub", "duelist/swift_hands", "duelist/parry_and_return",
-                    "berserker/hub", "berserker/rising_rage", "berserker/battle_cry");
-            case "conflict" -> build(40, "duelist/hub", "duelist/swift_hands");
-            case "insufficient" -> build(14, "marksman/hub", "marksman/eagle_eye");
-            default -> build(0, null);
-        };
-        int level = name.equals("insufficient") ? 3 : 24;
-        Payloads.Economy economy = new Payloads.Economy(100 + 20 * 0, 120, true, true, true, false);
-        ClientSkillState.loadFixture(graph, state, economy, level, 0.4f);
+    private static void select(SkillTreeScreen screen, String targetPath) {
+        PlayerSkillState state = ClientSkillState.state().orElseThrow();
+        List<String> route = PathFinder.route(graph, state, List.of(), inTree(targetPath)).map(PathFinder.Route::newNodes).orElse(List.of());
+        script.expect("a route to " + targetPath + " is selected", !route.isEmpty());
+        screen.qaSetup(route, false, false);
     }
 
-    private static List<String> routeTo(String fixtureTarget, PlayerSkillState state) {
-        return PathFinder.route(graph, state, List.of(), id(fixtureTarget)).map(PathFinder.Route::newNodes).orElse(List.of());
+    private static void hover(SkillTreeScreen screen, double zoom, String path) {
+        screen.qaZoom(zoom, path);
+        screen.qaHover(inTree(path));
     }
 
-    private static List<Shot> plan() {
-        List<Shot> l = new ArrayList<>();
-        int[][] sizes = {{1000, 563}, {1280, 720}, {1920, 1080}};
-        for (int[] sz : sizes) {
-            for (int gui : new int[]{2, 3}) {
-                l.add(new Shot("overview_" + sz[0] + "x" + sz[1] + "_gui" + gui, sz[0], sz[1], gui, "hybrid",
-                        SkillTreeScreen::qaFit));
-            }
-        }
-        l.add(new Shot("fresh_character_1280x720", 1280, 720, 2, "fresh", SkillTreeScreen::qaFit));
-        l.add(new Shot("focused_guardian_1280x720", 1280, 720, 2, "focused", sc -> sc.qaZoom(1.1, "guardian/hub")));
-        l.add(new Shot("hybrid_closeup_1280x720", 1280, 720, 2, "hybrid", sc -> sc.qaZoom(1.0, "duelist/hub")));
-        l.add(new Shot("pending_changes_1280x720", 1280, 720, 2, "hybrid", sc -> {
-            PlayerSkillState state = ClientSkillState.state().orElseThrow();
-            sc.qaSetup(routeTo("berserker/frenzy", state), false, false);
-            sc.qaZoom(0.9, "berserker/frenzy");
+    private static List<Shot> shots() {
+        List<Shot> shots = new ArrayList<>();
+        OVERVIEWS.forEach(resolution -> shots.add(new Shot("overview_" + resolution.size() + "_gui" + resolution.guiScale(), resolution,
+                Fixture.HYBRID, Look.NORMAL, SkillTreeScreen::qaFit)));
+        shots.add(new Shot("fresh_character", Fixture.FRESH, SkillTreeScreen::qaFit));
+        shots.add(new Shot("focused_guardian", Fixture.FOCUSED, screen -> screen.qaZoom(1.1, "guardian/hub")));
+        shots.add(new Shot("hybrid_closeup", Fixture.HYBRID, screen -> screen.qaZoom(1.0, "duelist/hub")));
+        shots.add(new Shot("pending_changes", Fixture.HYBRID, screen -> {
+            select(screen, "berserker/frenzy");
+            screen.qaZoom(0.9, "berserker/frenzy");
         }));
-        l.add(new Shot("route_preview_tooltip_1280x720", 1280, 720, 2, "hybrid", sc -> {
-            sc.qaZoom(0.9, "berserker/juggernaut");
-            sc.qaHover(id("berserker/juggernaut"));
+        shots.add(new Shot("route_preview_tooltip", Fixture.HYBRID, screen -> hover(screen, 0.9, "berserker/juggernaut")));
+        shots.add(new Shot("conflict_tooltip", Fixture.CONFLICT, screen -> hover(screen, 1.4, "duelist/thousand_cuts")));
+        shots.add(new Shot("insufficient_points", Fixture.INSUFFICIENT, screen -> {
+            select(screen, "marksman/long_shot");
+            hover(screen, 1.2, "marksman/nocking_point");
         }));
-        l.add(new Shot("conflict_tooltip_1280x720", 1280, 720, 2, "conflict", sc -> {
-            sc.qaZoom(1.4, "duelist/thousand_cuts");
-            sc.qaHover(id("duelist/thousand_cuts"));
+        shots.add(new Shot("stats_panel", Fixture.HYBRID, screen -> {
+            screen.qaFit();
+            screen.qaSetup(List.of(), true, false);
         }));
-        l.add(new Shot("insufficient_points_1280x720", 1280, 720, 2, "insufficient", sc -> {
-            PlayerSkillState state = ClientSkillState.state().orElseThrow();
-            sc.qaSetup(routeTo("marksman/long_shot", state), false, false);
-            sc.qaZoom(1.2, "marksman/nocking_point");
-            sc.qaHover(id("marksman/nocking_point"));
+        shots.add(new Shot("portal_tooltip", Fixture.HYBRID, screen -> hover(screen, 0.6, "guardian/portal")));
+        shots.add(new Shot("reset_panel", Fixture.HYBRID, screen -> {
+            screen.qaFit();
+            screen.qaSetup(List.of(), false, true);
         }));
-        l.add(new Shot("stats_panel_1280x720", 1280, 720, 2, "hybrid", sc -> {
-            sc.qaFit();
-            sc.qaSetup(List.of(), true, false);
+        shots.add(new Shot("refund_panel", Fixture.FOCUSED, screen -> {
+            String nextToHub = ClientSkillState.state().orElseThrow().orderedAllocations().get(1).nodeId();
+            screen.qaZoom(1.1, nextToHub);
+            screen.qaRefund(nextToHub);
         }));
-        l.add(new Shot("portal_tooltip_1280x720", 1280, 720, 2, "hybrid", sc -> {
-            sc.qaZoom(0.6, "guardian/portal");
-            sc.qaHover(id("guardian/portal"));
-        }));
-        l.add(new Shot("reset_panel_1280x720", 1280, 720, 2, "hybrid", sc -> {
-            sc.qaFit();
-            sc.qaSetup(List.of(), false, true);
-        }));
-        l.add(new Shot("refund_panel_1280x720", 1280, 720, 2, "focused", sc -> {
-            PlayerSkillState state = ClientSkillState.state().orElseThrow();
-            String target = state.orderedAllocations().get(1).nodeId();
-            sc.qaZoom(1.1, target);
-            sc.qaRefund(target);
-        }));
-        String[][] edges = {{"left", "0.03", "0.5"}, {"right", "0.97", "0.5"}, {"top", "0.5", "0.16"}, {"bottom", "0.5", "0.9"}};
-        for (String[] e : edges) {
-            l.add(new Shot("tooltip_edge_" + e[0] + "_1280x720", 1280, 720, 2, "hybrid", sc -> {
-                sc.qaZoom(1.0, "duelist/en_garde");
-                sc.qaHoverAt(id("duelist/en_garde"), Double.parseDouble(e[1]), Double.parseDouble(e[2]));
-            }));
-        }
-        l.add(new Shot("reduced_motion_1280x720", 1280, 720, 2, "hybrid", SkillTreeScreen::qaFit));
-        l.add(new Shot("high_contrast_1280x720", 1280, 720, 2, "hybrid", SkillTreeScreen::qaFit));
-        l.add(new Shot("ultrawide_2560x1080_gui3", 2560, 1080, 3, "hybrid", SkillTreeScreen::qaFit));
-        return l;
+        SCREEN_EDGES.forEach(edge -> shots.add(new Shot("tooltip_edge_" + edge.name(), Fixture.HYBRID, screen -> {
+            screen.qaZoom(1.0, "duelist/en_garde");
+            screen.qaHoverAt(inTree("duelist/en_garde"), edge.widthFraction(), edge.heightFraction());
+        })));
+        shots.add(new Shot("reduced_motion_" + HD.size(), HD, Fixture.HYBRID, Look.REDUCED_MOTION, SkillTreeScreen::qaFit));
+        shots.add(new Shot("high_contrast_" + HD.size(), HD, Fixture.HYBRID, Look.HIGH_CONTRAST, SkillTreeScreen::qaFit));
+        shots.add(new Shot("ultrawide_" + ULTRAWIDE.size() + "_gui" + ULTRAWIDE.guiScale(), ULTRAWIDE, Fixture.HYBRID, Look.NORMAL,
+                SkillTreeScreen::qaFit));
+        return shots;
     }
 }

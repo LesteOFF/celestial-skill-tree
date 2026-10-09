@@ -1,28 +1,29 @@
 package dev.nostalgiacraft.skills.client;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.client.screen.SkillTreeScreen;
+import dev.nostalgiacraft.skills.graph.NodeType;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.graph.SkillSign;
 import dev.nostalgiacraft.skills.network.Payloads;
+import dev.nostalgiacraft.skills.progression.Allocation;
 import dev.nostalgiacraft.skills.progression.AllocationService;
+import dev.nostalgiacraft.skills.progression.LedgerService;
 import dev.nostalgiacraft.skills.progression.PathFinder;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.progression.SkyEvent;
 import dev.nostalgiacraft.skills.registry.ModItems;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.Screenshot;
 import net.minecraft.client.gui.screens.GenericMessageScreen;
 import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
@@ -31,10 +32,7 @@ import net.minecraft.world.level.WorldDataConfiguration;
 import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
 import net.minecraft.world.level.storage.LevelResource;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.minecraft.world.level.storage.LevelStorageSource;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.io.IOException;
@@ -46,50 +44,108 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.UUID;
-import java.util.function.BooleanSupplier;
 
-@EventBusSubscriber(modid = NostalgiaSkills.MODID, value = Dist.CLIENT)
-public final class InWorldQa {
-    private record Step(String name, Runnable action, BooleanSupplier done, int timeoutTicks) {
+final class InWorldQa {
+    private static final String WORLD = "nostalgiaskills_qa";
+    private static final long WORLD_SEED = 20261006L;
+    private static final String SHOT_PREFIX = "nostalgiaskills_qa_ingame_";
+    private static final String SHOT_SUFFIX = "_1280x720.png";
+    private static final String GUARDIAN = "nostalgiaskills:guardian";
+    private static final String HUB = GUARDIAN + "/hub";
+    private static final String GATEKEEPER = GUARDIAN + "/gatekeeper";
+    private static final String GATEKEEPER_THEME = "data/nostalgiaskills/skill_themes/guardian/plating.json";
+    private static final String RECONCILE_PACK = "qa_reconcile";
+    private static final String PACK_META = "{\"pack\":{\"pack_format\":48,\"description\":\"QA: Gatekeeper leaves the catalog\"}}";
+    private static final String ROOT_NEEDS_RESET = "rejected: ROOT_NEEDS_RESET";
+    private static final String ACCEPTED = "ok";
+    private static final int WINDOW_WIDTH = 1280;
+    private static final int WINDOW_HEIGHT = 720;
+    private static final int WORLD_LOAD_TICKS = 2400;
+    private static final int SERVER_ANSWER_TICKS = 400;
+    private static final int COMMAND_TICKS = 200;
+    private static final int RELOAD_TICKS = 1200;
+    private static final int SETTLE_TICKS = 10;
+    private static final int PAUSE_SAVE_TICKS = 60;
+    private static final int RETRY_TICKS = 40;
+    private static final int SKY_FADE_TICKS = 140;
+    private static final int STAR_FLIGHT_TICKS = 45;
+    private static final int FALLING_STARS = 6;
+    private static final int FIRST_PURCHASE = 6;
+    private static final int BULK_PURCHASE = 3;
+    private static final int GREEDY_PURCHASE = 120;
+    private static final int BURST_REQUESTS = 14;
+    private static final int REPLAYED_REQUESTS = 2;
+    private static final int GRANTED_POINTS = 10;
+    private static final int MOST_EXPENSIVE_SKILL = 10;
+    private static final int BULK_XP = 2000;
+    private static final int DONATION = 120;
+    private static final int LIT_COMMUNITY_XP = 9000;
+    private static final float SKY_PITCH = -70f;
+
+    record Snapshot(int allocations, int available, int spent, int purchased, double maxHealth, long xp, long communityXp,
+                            int graphRevision, boolean orbRequired) {
+        static Snapshot take() {
+            PlayerSkillState state = state();
+            return new Snapshot(state.allocations().size(), state.availablePoints(), state.activeSpentPoints(), state.purchasedPoints(),
+                    InWorldQa.maxHealth(), ClientSkillState.xpBalance(), ClientSkillState.worldRules().communityXp(),
+                    ClientSkillState.graphRevision(), ClientSkillState.economy().orbRequired());
+        }
     }
 
-    private static final int PAUSE_SAVE_TICKS = 60;
-    private static final List<Step> STEPS = new ArrayList<>();
-    private static final List<String> REPORT = new ArrayList<>();
-    private static boolean active;
-    private static final float SKY_PITCH = -70f;
-    private static final int SKY_FADE_TICKS = 140;
-    private static final int QA_STARS = 6;
-    private static final int STAR_FLIGHT_TICKS = 45;
-    private static int step = -1;
-    private static int ticks;
-    private static boolean started;
-    private static double healthBefore;
-    private static int boughtTarget;
-    private static int allocatedBeforeDeath;
-    private static int purchasedBeforeSpam;
-    private static int availableBeforeReload;
-    private static double healthBeforeRefund;
-    private static String refundTarget;
-    private static int refundCost;
-    private static final List<String> RESULTS = new ArrayList<>();
+    private final QaScript script;
+    private final List<String> answers = new ArrayList<>();
+    private Snapshot before;
+    private List<String> route = List.of();
+    private String target = "";
+    private double healthAtJoin;
+    private int expectedCost;
+    private int expectedBought;
 
-    private InWorldQa() {
+    InWorldQa(QaScript script) {
+        this.script = script;
     }
 
     private static Minecraft minecraft() {
         return Minecraft.getInstance();
     }
 
-    private static void log(String line) {
-        REPORT.add(line);
-        NostalgiaSkills.LOGGER.info("In-world QA: {}", line);
+    private static LocalPlayer player() {
+        return minecraft().player;
     }
 
     private static PlayerSkillState state() {
-        return ClientSkillState.state().orElse(null);
+        return ClientSkillState.state().orElseThrow();
+    }
+
+    private static SkillGraphSnapshot graph() {
+        return ClientSkillState.graph().orElseThrow();
+    }
+
+    private static double maxHealth() {
+        return player().getAttributeValue(Attributes.MAX_HEALTH);
+    }
+
+    private static boolean healthIs(double expected) {
+        return Math.abs(maxHealth() - expected) < 1e-4;
+    }
+
+    private static void command(String command) {
+        player().connection.sendCommand(command);
+    }
+
+    private static int orbs() {
+        return player().getInventory().countItem(ModItems.ORB_OF_RECONFIGURATION.get());
+    }
+
+    private static boolean inDimension(ResourceKey<Level> dimension) {
+        return minecraft().level != null && minecraft().level.dimension() == dimension;
+    }
+
+    private static SkyEvent skyEvent() {
+        return ClientSkillState.worldRules().skyEvent();
     }
 
     private static SkillTreeScreen screen() {
@@ -99,78 +155,145 @@ public final class InWorldQa {
         return (SkillTreeScreen) minecraft().screen;
     }
 
-    private static int orbs() {
-        int n = 0;
-        for (ItemStack stack : minecraft().player.getInventory().items) {
-            if (stack.is(ModItems.ORB_OF_RECONFIGURATION.get())) {
-                n += stack.getCount();
-            }
+    static String situation() {
+        if (player() == null || ClientSkillState.state().isEmpty()) {
+            return "not in a world";
         }
-        return n;
+        PlayerSkillState state = state();
+        return "skills=" + state.allocations().size() + ", available=" + state.availablePoints() + ", purchased=" + state.purchasedPoints()
+                + ", max health=" + maxHealth() + ", xp=" + ClientSkillState.xpBalance() + ", ready=" + ClientSkillState.ready()
+                + ", request in flight=" + ClientSkillState.requestInFlight() + ", last answer=" + ClientSkillState.lastAnswer();
     }
 
-    private static void step(String name, Runnable action, BooleanSupplier done, int timeoutTicks) {
-        STEPS.add(new Step(name, action, done, timeoutTicks));
+    static boolean joined() {
+        return player() != null && ClientSkillState.ready() && !ClientSkillState.isFixture();
     }
 
-    private static double maxHealth() {
-        return minecraft().player.getAttributeValue(Attributes.MAX_HEALTH);
+    private void remember() {
+        before = Snapshot.take();
     }
 
-    private static void command(String command) {
-        minecraft().player.connection.sendCommand(command);
+    private void expectUnchanged(String when) {
+        PlayerSkillState state = state();
+        script.expect("skills learned " + when, before.allocations(), state.allocations().size());
+        script.expect("points available " + when, before.available(), state.availablePoints());
+        script.expect("points purchased " + when, before.purchased(), state.purchasedPoints());
+        script.expectNear("max health " + when, before.maxHealth(), maxHealth());
+        script.expect("ledger holds " + when, state.ledgerHolds());
     }
 
-    private static void writeGatekeeperOverride() {
-        String resource = "/data/nostalgiaskills/skill_nodes/guardian/gatekeeper.json";
-        Path pack = minecraft().getSingleplayerServer().getWorldPath(LevelResource.DATAPACK_DIR).resolve("qa_reconcile");
-        Path node = pack.resolve("data/nostalgiaskills/skill_nodes/guardian/gatekeeper.json");
-        try (InputStream bundled = InWorldQa.class.getResourceAsStream(resource)) {
-            JsonObject json = JsonParser.parseString(new String(bundled.readAllBytes(), StandardCharsets.UTF_8)).getAsJsonObject();
-            JsonArray requiresBastion = new JsonArray();
-            requiresBastion.add("nostalgiaskills:guardian/bastion");
-            json.getAsJsonObject("requirements").add("all_of", requiresBastion);
-            Files.createDirectories(node.getParent());
-            Files.writeString(pack.resolve("pack.mcmeta"),
-                    "{\"pack\":{\"pack_format\":48,\"description\":\"QA: gatekeeper now requires bastion\"}}");
-            Files.writeString(node, json.toString());
-        } catch (IOException unwritable) {
-            throw new UncheckedIOException(unwritable);
+    private void show(String name, Runnable arrange) {
+        script.step("show " + name, arrange, () -> script.ticks() >= SETTLE_TICKS, 2 * SETTLE_TICKS);
+        script.then("capture " + name, () -> script.capture(SHOT_PREFIX + name + SHOT_SUFFIX));
+    }
+
+    private static Optional<List<String>> validRouteTo(String targetId) {
+        PlayerSkillState simulated = state().copy();
+        List<String> nodes = new ArrayList<>();
+        if (simulated.startingRoot().isEmpty()) {
+            AllocationService.confirm(graph(), simulated, List.of(HUB));
+            nodes.add(HUB);
         }
+        return PathFinder.route(graph(), simulated, List.of(), targetId).filter(PathFinder.Route::valid).map(found -> {
+            nodes.addAll(found.newNodes());
+            return nodes;
+        });
     }
 
-    static void start() {
-        active = true;
-        ClientSkillState.reset();
+    private static List<String> routeTo(String targetId) {
+        return validRouteTo(targetId).orElseThrow(() -> new IllegalStateException("no valid route to " + targetId));
+    }
+
+    private static int costOf(List<String> nodes) {
+        PlayerSkillState wealthy = state().copy();
+        LedgerService.grant(wealthy, nodes.size() * MOST_EXPENSIVE_SKILL, Integer.MAX_VALUE, true);
+        return AllocationService.confirm(graph(), wealthy, nodes).totalCost();
+    }
+
+    private static String cheapestGuardianNotable() {
+        Map<String, Integer> costs = new TreeMap<>();
+        graph().nodes().values().stream().filter(node -> node.type() == NodeType.NOTABLE && node.sector().equals(GUARDIAN))
+                .forEach(notable -> validRouteTo(notable.id()).ifPresent(found -> costs.put(notable.id(), costOf(found))));
+        return costs.entrySet().stream().min(Map.Entry.comparingByValue()).map(Map.Entry::getKey)
+                .orElseThrow(() -> new IllegalStateException("no guardian notable can be reached"));
+    }
+
+    private void confirm(List<String> nodes) {
+        screen().qaSetup(nodes, false, false);
+        screen().qaConfirm();
+    }
+
+    private boolean learnedRoute() {
+        if (route.stream().allMatch(state()::isAllocated)) {
+            return true;
+        }
+        if (!ClientSkillState.requestInFlight() && script.ticks() % RETRY_TICKS == 0) {
+            confirm(route);
+        }
+        return false;
+    }
+
+    void enterWorld() {
+        script.then("prepare the window", InWorldQa::prepareWindow);
+        script.then("delete the previous QA world", InWorldQa::deleteWorld);
+        script.step("create a flat world", InWorldQa::createWorld, InWorldQa::joined, WORLD_LOAD_TICKS);
+        script.then("check the fresh player", () -> {
+            healthAtJoin = maxHealth();
+            script.note("joined: " + graph().nodes().size() + " skills in the tree, max health " + healthAtJoin);
+            script.expect("points of a fresh player", 0, state().availablePoints());
+            script.expect("skills of a fresh player", 0, state().allocations().size());
+            script.expect("a birth sign is assigned at the first login", state().sign().isPresent());
+        });
+    }
+
+    static void prepareWindow() {
         Minecraft minecraft = minecraft();
-        minecraft.getWindow().setWindowed(1280, 720);
+        minecraft.getWindow().setWindowed(WINDOW_WIDTH, WINDOW_HEIGHT);
         minecraft.options.guiScale().set(2);
         minecraft.options.pauseOnLostFocus = false;
         minecraft.resizeDisplay();
-        step("create world", () -> minecraft().createWorldOpenFlows().createFreshLevel("nostalgiaskills_qa",
-                new LevelSettings("nostalgiaskills_qa", GameType.SURVIVAL, false, Difficulty.PEACEFUL, true, new GameRules(),
-                        WorldDataConfiguration.DEFAULT),
-                new WorldOptions(20261006L, false, false),
-                ra -> ra.registryOrThrow(Registries.WORLD_PRESET).getHolderOrThrow(WorldPresets.FLAT).value().createWorldDimensions(),
-                new TitleScreen()),
-                () -> minecraft().player != null && ClientSkillState.ready() && !ClientSkillState.isFixture(), 2400);
-        step("settle", () -> {
-            healthBefore = maxHealth();
-            log("joined world; graph nodes=" + ClientSkillState.graph().map(g -> g.nodes().size()).orElse(0)
-                    + ", max health=" + healthBefore + ", available points=" + state().availablePoints());
-            command("xp add @s 30 levels");
-        }, () -> minecraft().player.experienceLevel >= 30, 200);
-        runAllSteps();
     }
 
-    private static void addPurchaseSteps() {
-        step("buy 6 points with XP", () -> {
-            log("xp before purchases: level " + minecraft().player.experienceLevel + " progress " + minecraft().player.experienceProgress
-                    + " (raw " + ClientSkillState.xpBalance() + ")");
-            boughtTarget = 6;
-        }, () -> {
-            PlayerSkillState state = state();
-            if (state.purchasedPoints() >= boughtTarget) {
+    private static void deleteWorld() {
+        try (LevelStorageSource.LevelStorageAccess previous = minecraft().getLevelSource().createAccess(WORLD)) {
+            previous.deleteLevel();
+        } catch (IOException undeletable) {
+            throw new UncheckedIOException(undeletable);
+        }
+    }
+
+    private static void createWorld() {
+        ClientSkillState.reset();
+        LevelSettings settings = new LevelSettings(WORLD, GameType.SURVIVAL, false, Difficulty.PEACEFUL, true, new GameRules(),
+                WorldDataConfiguration.DEFAULT);
+        minecraft().createWorldOpenFlows().createFreshLevel(WORLD, settings, new WorldOptions(WORLD_SEED, false, false),
+                registries -> registries.registryOrThrow(Registries.WORLD_PRESET).getHolderOrThrow(WorldPresets.FLAT).value()
+                        .createWorldDimensions(), new TitleScreen());
+    }
+
+    void addScenario() {
+        script.step("grant 30 levels", () -> command("xp add @s 30 levels"), () -> player().experienceLevel >= 30, COMMAND_TICKS);
+        addPurchaseSteps();
+        addAllocationSteps();
+        addDeathSteps();
+        addDimensionSteps();
+        addRequestBurstSteps();
+        addWorldRestartSteps();
+        addReconcileSteps();
+        addResetSteps();
+        addRefundSteps();
+        addBulkPurchaseSteps();
+        addPendingStatsSteps();
+        addBirthSignSteps();
+        addEclipseSteps();
+        addCommunitySteps();
+        addSkySteps();
+        script.pause("let the screenshots reach the disk", 2 * SETTLE_TICKS);
+    }
+
+    private void addPurchaseSteps() {
+        script.step("buy " + FIRST_PURCHASE + " points one at a time", this::remember, () -> {
+            if (state().purchasedPoints() >= before.purchased() + FIRST_PURCHASE) {
                 return true;
             }
             if (!ClientSkillState.requestInFlight()) {
@@ -178,416 +301,326 @@ public final class InWorldQa {
             }
             return false;
         }, 600);
-        step("check purchase", () -> log("after buying: purchased=" + state().purchasedPoints() + ", available="
-                + state().availablePoints() + ", xp raw " + ClientSkillState.xpBalance() + " (level " + minecraft().player.experienceLevel
-                + "), expected XP spent 100+122+148+178+212+250=1010, next cost=" + ClientSkillState.economy().nextPointCost()),
-                () -> true, 5);
+        script.then("check the purchases", () -> {
+            long cost = ClientSkillState.curve().totalCost(before.purchased(), FIRST_PURCHASE);
+            script.expect("points purchased", before.purchased() + FIRST_PURCHASE, state().purchasedPoints());
+            script.expect("points available", before.available() + FIRST_PURCHASE, state().availablePoints());
+            script.expect("XP left after paying " + cost, before.xp() - cost, ClientSkillState.xpBalance());
+            script.expect("price of the next point", ClientSkillState.curve().cost(state().purchasedPoints()),
+                    ClientSkillState.economy().nextPointCost());
+        });
     }
 
-    private static void addAllocationSteps() {
-        step("pending selection then cancel", () -> {
-            List<String> pending = guardianRoute();
-            screen().qaSetup(pending, false, false);
-            log("pending selection of " + pending.size() + " nodes created (not confirmed)");
-        }, () -> true, 20);
-        step("verify cancel applies nothing", () -> {
+    private void addAllocationSteps() {
+        script.step("receive the points the route still needs", () -> {
+            route = routeTo(GATEKEEPER);
+            expectedCost = costOf(route);
+            command("nostalgiaskills points add @s " + Math.max(0, expectedCost - state().availablePoints()));
+        }, () -> state().availablePoints() >= expectedCost, COMMAND_TICKS);
+        script.step("select the route without confirming", () -> {
+            remember();
+            screen().qaSetup(route, false, false);
+        }, () -> script.ticks() >= SETTLE_TICKS, 2 * SETTLE_TICKS);
+        script.then("cancel the selection", () -> {
+            script.note("selection before cancelling: " + screen().qaPending());
             screen().qaSetup(List.of(), false, false);
-            log("after cancel: allocations=" + state().allocations().size() + ", available=" + state().availablePoints()
-                    + ", max health=" + maxHealth());
-        }, () -> true, 20);
-        step("confirm guardian route", () -> {
-            List<String> pending = guardianRoute();
-            screen().qaSetup(pending, false, false);
-            screen().qaConfirm();
-            log("confirm sent for " + pending);
-        }, () -> state().isAllocated("nostalgiaskills:guardian/gatekeeper"), 400);
-        step("effects applied", () -> { }, () -> maxHealth() > healthBefore, 200);
-        step("report allocation", () -> log("after confirm: allocations=" + state().allocations().size()
-                + ", available=" + state().availablePoints() + ", spent=" + state().activeSpentPoints() + ", max health "
-                + healthBefore + " -> " + maxHealth() + " (expected +9: hub +2, 3x Vitality +1, Gatekeeper +4)"
-                + ", ledger ok=" + state().ledgerHolds()), () -> true, 5);
-        step("screenshot stats", () -> {
+            expectUnchanged("after cancelling a selection");
+        });
+        script.step("confirm the route to Gatekeeper", () -> {
+            remember();
+            confirm(route);
+            script.note("confirm sent for " + route);
+        }, () -> state().isAllocated(GATEKEEPER) && maxHealth() > before.maxHealth(), SERVER_ANSWER_TICKS);
+        script.then("check the build", () -> {
+            script.note("max health " + before.maxHealth() + " -> " + maxHealth());
+            script.expect("skills learned", before.allocations() + route.size(), state().allocations().size());
+            script.expect("points available after paying " + expectedCost, before.available() - expectedCost, state().availablePoints());
+            script.expect("the hub is the starting root", HUB, state().startingRoot().orElse(""));
+            script.expect("ledger holds after confirming", state().ledgerHolds());
+        });
+        show("stats_panel", () -> {
             screen().qaSetup(List.of(), true, false);
             screen().qaZoom(1.0, "guardian/hub");
-        }, () -> true, 30);
-        step("capture stats", () -> Screenshot.grab(minecraft().gameDirectory, "nostalgiaskills_qa_ingame_stats_panel_1280x720.png",
-                minecraft().getMainRenderTarget(), m -> { }), () -> true, 10);
+        });
     }
 
-    private static void addDeathAndDimensionSteps() {
-        step("die", () -> {
-            allocatedBeforeDeath = state().allocations().size();
+    private void addDeathSteps() {
+        script.step("die", () -> {
+            remember();
             minecraft().setScreen(null);
             command("kill @s");
-        }, () -> minecraft().player.isDeadOrDying(), 200);
-        step("respawn", () -> minecraft().player.respawn(), () -> minecraft().player.isAlive() && minecraft().player.getHealth() > 0, 400);
-        step("after respawn", () -> { }, () -> maxHealth() > healthBefore, 200);
-        step("report respawn", () -> log("after death+respawn: allocations " + allocatedBeforeDeath + " -> "
-                + state().allocations().size() + ", max health=" + maxHealth()
-                + ", available=" + state().availablePoints()), () -> true, 5);
-        step("dimension change", () -> command("execute in minecraft:the_nether run tp @s 0 120 0"),
-                () -> minecraft().level.dimension() == Level.NETHER
-                        && maxHealth() > healthBefore, 400);
-        step("report dimension", () -> {
-            log("after moving to the Nether: max health=" + maxHealth()
-                    + ", allocations=" + state().allocations().size());
-            command("execute in minecraft:overworld run tp @s 0 -59 0");
-        }, () -> minecraft().level.dimension() == Level.OVERWORLD, 400);
+        }, () -> player().isDeadOrDying(), COMMAND_TICKS);
+        script.step("respawn", () -> player().respawn(), () -> player().isAlive() && player().getHealth() > 0, SERVER_ANSWER_TICKS);
+        script.waitFor("effects return after the respawn", () -> healthIs(before.maxHealth()), COMMAND_TICKS);
+        script.then("check the build after death", () -> expectUnchanged("after death and respawn"));
     }
 
-    private static void addRequestSpamSteps() {
-        step("xp for spam test", () -> command("xp add @s 1000 points"),
-                () -> ClientSkillState.xpBalance() >= ClientSkillState.economy().nextPointCost(), 200);
-        step("replay and spam requests", () -> {
-            RESULTS.clear();
-            ClientSkillState.setListeners(r -> RESULTS.add(r.ok() ? "ok" : r.messageKey()), () -> { });
-            long rev = state().stateRevision();
-            purchasedBeforeSpam = state().purchasedPoints();
-            UUID same = UUID.randomUUID();
-            for (int i = 0; i < 2; i++) {
-                PacketDistributor.sendToServer(new Payloads.BuyPoint(same, rev, 1));
+    private void addDimensionSteps() {
+        script.step("travel to the Nether", () -> {
+            remember();
+            command("execute in minecraft:the_nether run tp @s 0 120 0");
+        }, () -> inDimension(Level.NETHER) && healthIs(before.maxHealth()), SERVER_ANSWER_TICKS);
+        script.then("check the build in the Nether", () -> expectUnchanged("in the Nether"));
+        script.step("return to the Overworld", () -> command("execute in minecraft:overworld run tp @s 0 -59 0"),
+                () -> inDimension(Level.OVERWORLD) && healthIs(before.maxHealth()), SERVER_ANSWER_TICKS);
+    }
+
+    private void addRequestBurstSteps() {
+        script.step("grant XP for the request burst", () -> command("xp add @s 1000 points"),
+                () -> ClientSkillState.xpBalance() >= ClientSkillState.economy().nextPointCost(), COMMAND_TICKS);
+        script.step("send " + BURST_REQUESTS + " buy requests in one tick", () -> {
+            minecraft().setScreen(null);
+            remember();
+            answers.clear();
+            ClientSkillState.setListeners(result -> answers.add(result.ok() ? ACCEPTED : result.messageKey()), () -> { });
+            long revision = state().stateRevision();
+            UUID replayed = UUID.randomUUID();
+            for (int request = 0; request < BURST_REQUESTS; request++) {
+                UUID id = request < REPLAYED_REQUESTS ? replayed : UUID.randomUUID();
+                PacketDistributor.sendToServer(new Payloads.BuyPoint(id, revision, 1));
             }
-            for (int i = 0; i < 12; i++) {
-                PacketDistributor.sendToServer(
-                        new Payloads.BuyPoint(UUID.randomUUID(), rev, 1));
-            }
-        }, () -> RESULTS.size() >= 14, 400);
-        step("report spam", () -> {
-            Map<String, Integer> counts = new TreeMap<>();
-            RESULTS.forEach(r -> counts.merge(r, 1, Integer::sum));
-            log("14 rapid buy requests (2 share one request id, all expect the same state revision): results " + counts
-                    + "; purchased " + purchasedBeforeSpam + " -> " + state().purchasedPoints() + " (exactly one purchase expected)"
-                    + ", ledger ok=" + state().ledgerHolds());
+        }, () -> answers.size() >= BURST_REQUESTS, SERVER_ANSWER_TICKS);
+        script.then("check the burst", () -> {
             ClientSkillState.clearListeners();
-        }, () -> true, 5);
+            Map<String, Integer> counts = new TreeMap<>();
+            answers.forEach(answer -> counts.merge(answer, 1, Integer::sum));
+            script.note("answers to the burst: " + counts);
+            script.expect("requests accepted out of " + BURST_REQUESTS, 1, counts.getOrDefault(ACCEPTED, 0).intValue());
+            script.expect("points purchased by the burst", before.purchased() + 1, state().purchasedPoints());
+            script.expect("ledger holds after the burst", state().ledgerHolds());
+        });
     }
 
-    private static void addWorldRestartSteps() {
-        step("pause like the vanilla menu does before quitting", () -> {
+    private void addWorldRestartSteps() {
+        script.step("pause like the vanilla menu does before quitting", () -> {
             minecraft().setScreen(null);
             minecraft().pauseGame(false);
-        }, () -> minecraft().isPaused() && ticks >= PAUSE_SAVE_TICKS, 4 * PAUSE_SAVE_TICKS);
-        step("save and quit world", () -> {
-            allocatedBeforeDeath = state().allocations().size();
-            purchasedBeforeSpam = state().purchasedPoints();
+        }, () -> minecraft().isPaused() && script.ticks() >= PAUSE_SAVE_TICKS, 4 * PAUSE_SAVE_TICKS);
+        script.step("save and quit the world", () -> {
+            remember();
             minecraft().level.disconnect();
-            minecraft().disconnect(new GenericMessageScreen(
-                    Component.literal("Saving world")));
-        }, () -> minecraft().level == null && minecraft().getSingleplayerServer() == null, 1200);
-        step("reopen world", () -> {
+            minecraft().disconnect(new GenericMessageScreen(Component.literal("Saving world")));
+        }, () -> minecraft().level == null && minecraft().getSingleplayerServer() == null, RELOAD_TICKS);
+        script.step("open the world again", () -> {
             ClientSkillState.reset();
-            minecraft().createWorldOpenFlows().openWorld("nostalgiaskills_qa", () -> log("FAILED to reopen world"));
-        }, () -> minecraft().player != null && ClientSkillState.ready() && maxHealth() > healthBefore, 2400);
-        step("report restart", () -> log("after saving, quitting and reloading the world (integrated server restart): allocations "
-                + allocatedBeforeDeath + " -> " + state().allocations().size() + ", purchased " + purchasedBeforeSpam + " -> "
-                + state().purchasedPoints() + ", max health=" + maxHealth()
-                + ", ledger ok=" + state().ledgerHolds()), () -> true, 5);
+            minecraft().createWorldOpenFlows().openWorld(WORLD, () -> script.note("the world could not be opened again"));
+        }, () -> joined() && healthIs(before.maxHealth()), WORLD_LOAD_TICKS);
+        script.then("check the build after the restart", () -> expectUnchanged("after saving, quitting and reopening the world"));
     }
 
-    private static void addReloadSteps() {
-        step("live prerequisite change via datapack + /reload", () -> {
-            availableBeforeReload = state().availablePoints();
-            allocatedBeforeDeath = state().allocations().size();
-            writeGatekeeperOverride();
+    private void addReconcileSteps() {
+        script.step("remove Gatekeeper from the catalog and reload", () -> {
+            remember();
+            expectedCost = state().allocations().get(GATEKEEPER).paidCost();
+            writeCatalogWithoutGatekeeper();
             command("reload");
-        }, () -> !state().isAllocated("nostalgiaskills:guardian/gatekeeper") && maxHealth() < 29, 1200);
-        step("report reconcile", () -> log("after /reload with Gatekeeper now requiring Bastion (graph revision "
-                + ClientSkillState.graphRevision() + "): allocations " + allocatedBeforeDeath + " -> " + state().allocations().size()
-                + ", available " + availableBeforeReload + " -> " + state().availablePoints() + " (recorded price 2 refunded once)"
-                + ", max health=" + maxHealth() + " (expected 25), ledger ok=" + state().ledgerHolds()),
-                () -> true, 5);
+        }, () -> ClientSkillState.ready() && ClientSkillState.graphRevision() > before.graphRevision()
+                && !state().isAllocated(GATEKEEPER) && maxHealth() < before.maxHealth(), RELOAD_TICKS);
+        script.then("check the reconciliation", () -> {
+            PlayerSkillState state = state();
+            script.note("after the reload: skills " + before.allocations() + " -> " + state.allocations().size() + ", available "
+                    + before.available() + " -> " + state.availablePoints() + ", max health " + before.maxHealth() + " -> " + maxHealth());
+            script.expect("Gatekeeper left the tree", !graph().contains(GATEKEEPER));
+            script.expect("its recorded price of " + expectedCost + " came back", state.availablePoints() >= before.available() + expectedCost);
+            script.expect("no point was created or lost", before.available() + before.spent(),
+                    state.availablePoints() + state.activeSpentPoints());
+            script.expect("points purchased after the reload", before.purchased(), state.purchasedPoints());
+            script.expect("ledger holds after the reload", state.ledgerHolds());
+        });
     }
 
-    private static void addResetSteps() {
-        step("give orb", () -> command("give @s nostalgiaskills:orb_of_reconfiguration 1"),
-                () -> orbs() == 1, 200);
-        step("reset with orb", () -> {
-            log("before reset: orbs=" + orbs() + ", allocations=" + state().allocations().size() + ", available=" + state().availablePoints()
-                    + ", purchased=" + state().purchasedPoints());
+    private static void writeCatalogWithoutGatekeeper() {
+        Path pack = minecraft().getSingleplayerServer().getWorldPath(LevelResource.DATAPACK_DIR).resolve(RECONCILE_PACK);
+        Path theme = pack.resolve(GATEKEEPER_THEME);
+        try (InputStream bundled = InWorldQa.class.getResourceAsStream("/" + GATEKEEPER_THEME)) {
+            if (bundled == null) {
+                throw new IllegalStateException("the mod no longer ships " + GATEKEEPER_THEME);
+            }
+            JsonObject json = JsonParser.parseString(new String(bundled.readAllBytes(), StandardCharsets.UTF_8)).getAsJsonObject();
+            json.getAsJsonArray("notables").asList().removeIf(notable -> GATEKEEPER.endsWith("/" + notable.getAsJsonObject().get("id").getAsString()));
+            Files.createDirectories(theme.getParent());
+            Files.writeString(pack.resolve("pack.mcmeta"), PACK_META);
+            Files.writeString(theme, json.toString());
+        } catch (IOException unwritable) {
+            throw new UncheckedIOException(unwritable);
+        }
+    }
+
+    private void addResetSteps() {
+        script.step("receive an Orb of Reconfiguration", () -> command("give @s nostalgiaskills:orb_of_reconfiguration 1"),
+                () -> orbs() == 1, COMMAND_TICKS);
+        script.step("reset the build with the orb", () -> {
+            remember();
             screen().openResetPanel();
             screen().qaReset();
-        }, () -> state().allocations().isEmpty(), 400);
-        step("after reset", () -> { }, () -> orbs() == 0 && maxHealth() == healthBefore, 200);
-        step("report reset", () -> log("after reset: orbs=" + orbs() + ", allocations=" + state().allocations().size()
-                + ", available=" + state().availablePoints() + ", purchased=" + state().purchasedPoints() + ", next cost="
-                + ClientSkillState.economy().nextPointCost() + " (curve not restarted: purchased stays " + purchasedBeforeSpam + "), max health="
-                + maxHealth() + ", starting root free again=" + state().startingRoot().isEmpty()
-                + ", ledger ok=" + state().ledgerHolds()), () -> true, 5);
+        }, () -> state().allocations().isEmpty(), SERVER_ANSWER_TICKS);
+        script.waitFor("the orb is consumed and the effects leave", () -> orbs() == 0 && healthIs(healthAtJoin), COMMAND_TICKS);
+        script.then("check the reset", () -> {
+            PlayerSkillState state = state();
+            script.expect("points available after the reset", before.available() + before.spent(), state.availablePoints());
+            script.expect("points purchased after the reset", before.purchased(), state.purchasedPoints());
+            script.expect("the price curve does not restart", ClientSkillState.curve().cost(before.purchased()),
+                    ClientSkillState.economy().nextPointCost());
+            script.expect("a new starting hub may be chosen", state.startingRoot().isEmpty());
+            script.expect("ledger holds after the reset", state.ledgerHolds());
+        });
     }
 
-    private static void addRefundSteps() {
-        step("grant points for the refund test",
-                () -> command("nostalgiaskills points add @s 10"),
-                () -> state().availablePoints() >= 10, 200);
-        step("rebuild a guardian route", () -> {
-            RESULTS.clear();
-            ClientSkillState.setListeners(r -> RESULTS.add(r.messageKey() + " " + r.detail()), () -> { });
-            List<String> pending = routeTo("guardian/vitality_3");
-            screen().qaSetup(pending, false, false);
-            screen().qaConfirm();
-            log("refund test: confirm sent for " + pending.size() + " nodes: " + pending);
-        }, () -> {
-            if (state().allocations().size() >= 4) {
-                ClientSkillState.clearListeners();
-                log("refund test: build ready with " + state().allocations().size() + " allocations, server said " + RESULTS);
-                return true;
-            }
-            if (RESULTS.stream().anyMatch(r -> r.startsWith("error.")) && !ClientSkillState.requestInFlight()) {
-                log("refund test: confirm rejected with " + RESULTS + "; retrying");
-                RESULTS.clear();
-                screen().qaSetup(routeTo("guardian/vitality_3"), false, false);
-                screen().qaConfirm();
-            }
-            return false;
-        }, 400);
-        step("refund one leaf skill", () -> {
-            availableBeforeReload = state().availablePoints();
-            allocatedBeforeDeath = state().allocations().size();
-            healthBeforeRefund = maxHealth();
-            refundTarget = state().orderedAllocations().get(allocatedBeforeDeath - 1).nodeId();
-            refundCost = state().allocations().get(refundTarget).paidCost();
-            log("refunding the last-acquired skill " + refundTarget + " (paid " + refundCost + "); preview says "
-                    + screen().qaRefundPreview(refundTarget));
-            screen().qaRefund(refundTarget);
+    private void addRefundSteps() {
+        script.step("receive points from an operator", () -> {
+            remember();
+            command("nostalgiaskills points add @s " + GRANTED_POINTS);
+        }, () -> state().availablePoints() == before.available() + GRANTED_POINTS, COMMAND_TICKS);
+        script.step("learn the cheapest guardian notable", () -> {
+            remember();
+            route = routeTo(cheapestGuardianNotable());
+            expectedCost = costOf(route);
+            confirm(route);
+            script.note("confirm sent for " + route);
+        }, this::learnedRoute, SERVER_ANSWER_TICKS);
+        script.then("check the new build", () -> script.expect("points available after paying " + expectedCost,
+                before.available() - expectedCost, state().availablePoints()));
+        script.step("refund the newest skill", () -> {
+            remember();
+            List<Allocation> learned = state().orderedAllocations();
+            target = learned.get(learned.size() - 1).nodeId();
+            expectedCost = state().allocations().get(target).paidCost();
+            script.note("refund preview for " + target + ": " + screen().qaRefundPreview(target));
+            screen().qaRefund(target);
             screen().qaConfirmRefund();
-        }, () -> !state().isAllocated(refundTarget), 400);
-        step("report leaf refund", () -> log("after refunding one skill: allocations "
-                + allocatedBeforeDeath + " -> " + state().allocations().size() + ", available " + availableBeforeReload
-                + " -> " + state().availablePoints() + " (recorded cost " + refundCost + " returned), max health "
-                + healthBeforeRefund + " -> " + maxHealth()
-                + ", purchased stays " + state().purchasedPoints() + ", ledger ok=" + state().ledgerHolds()), () -> true, 5);
-        step("refund a skill the rest of the branch depends on", () -> {
-            availableBeforeReload = state().availablePoints();
-            allocatedBeforeDeath = state().allocations().size();
-            refundTarget = state().orderedAllocations().get(1).nodeId();
-            refundCost = state().activeSpentPoints();
-            log("refunding " + refundTarget + " next to the hub; preview says " + screen().qaRefundPreview(refundTarget));
-            screen().qaRefund(refundTarget);
+        }, () -> !state().isAllocated(target), SERVER_ANSWER_TICKS);
+        script.then("check the single refund", () -> {
+            PlayerSkillState state = state();
+            script.expect("skills learned after one refund", before.allocations() - 1, state.allocations().size());
+            script.expect("points available after refunding " + expectedCost, before.available() + expectedCost, state.availablePoints());
+            script.expect("points purchased after one refund", before.purchased(), state.purchasedPoints());
+            script.expect("its bonus is gone", maxHealth() <= before.maxHealth());
+            script.expect("ledger holds after one refund", state.ledgerHolds());
+        });
+        script.step("refund the skill next to the hub", () -> {
+            remember();
+            target = state().orderedAllocations().get(1).nodeId();
+            script.note("refund preview for " + target + ": " + screen().qaRefundPreview(target));
+            screen().qaRefund(target);
             screen().qaConfirmRefund();
-        }, () -> state().allocations().size() == 1, 400);
-        step("report chain refund", () -> log("after refunding the hub-adjacent skill: allocations "
-                + allocatedBeforeDeath + " -> " + state().allocations().size() + " (only the free hub "
-                + state().startingRoot().orElse("?") + " left), available " + availableBeforeReload + " -> "
-                + state().availablePoints() + " (all " + refundCost + " paid points back), max health="
-                + maxHealth() + ", ledger ok=" + state().ledgerHolds()),
-                () -> true, 5);
-        step("the starting hub itself is not refundable", () -> {
-            String hub = state().startingRoot().orElseThrow();
-            log("asking to refund the starting hub " + hub + ": " + screen().qaRefundPreview(hub));
-        }, () -> true, 5);
+        }, () -> state().allocations().size() == 1, SERVER_ANSWER_TICKS);
+        script.then("check the chained refund", () -> {
+            PlayerSkillState state = state();
+            script.expect("points available after the whole branch came back", before.available() + before.spent(), state.availablePoints());
+            script.expect("only the free hub is left", HUB, state.startingRoot().orElse(""));
+            script.expect("the starting hub cannot be refunded alone", ROOT_NEEDS_RESET, screen().qaRefundPreview(HUB));
+            script.expect("ledger holds after the chained refund", state.ledgerHolds());
+        });
     }
 
-    private static void addBulkPurchaseSteps() {
-        step("xp for the bulk purchase", () -> command("xp set @s 0 levels"),
-                () -> minecraft().player.experienceLevel == 0, 200);
-        step("xp for the bulk purchase (points)", () -> command("xp set @s 0 points"),
-                () -> ClientSkillState.xpBalance() == 0, 200);
-        step("xp for the bulk purchase (grant)", () -> command("xp add @s 2000 points"),
-                () -> ClientSkillState.xpBalance() == 2000, 200);
-        step("buy 3 points in one request", () -> {
-            RESULTS.clear();
-            ClientSkillState.setListeners(r -> RESULTS.add(r.messageKey() + " " + r.detail()), () -> { });
-            purchasedBeforeSpam = state().purchasedPoints();
-            log("bulk buy: purchased " + purchasedBeforeSpam + ", xp " + ClientSkillState.xpBalance() + ", expected cost of 3 = "
-                    + ClientSkillState.curve().totalCost(purchasedBeforeSpam, 3));
-            screen().qaBuyMany(3);
-        }, () -> !RESULTS.isEmpty() && !ClientSkillState.requestInFlight(), 400);
-        step("report bulk buy", () -> {
-            log("bulk buy of 3: purchased " + purchasedBeforeSpam + " -> " + state().purchasedPoints() + ", xp left "
-                    + ClientSkillState.xpBalance() + ", server said " + RESULTS + ", ledger ok=" + state().ledgerHolds());
-            RESULTS.clear();
-            purchasedBeforeSpam = state().purchasedPoints();
-            log("bulk buy beyond the balance: asking for 120 with xp " + ClientSkillState.xpBalance() + ", affordable = "
-                    + ClientSkillState.curve().affordableCount(purchasedBeforeSpam, ClientSkillState.xpBalance(), 120));
-            screen().qaBuyMany(120);
-        }, () -> !RESULTS.isEmpty() && !ClientSkillState.requestInFlight(), 400);
-        step("report partial bulk buy", () -> {
-            ClientSkillState.clearListeners();
-            log("bulk buy of 120: purchased " + purchasedBeforeSpam + " -> " + state().purchasedPoints() + ", xp left "
-                    + ClientSkillState.xpBalance() + " (next cost " + ClientSkillState.economy().nextPointCost() + "), server said "
-                    + RESULTS + ", ledger ok=" + state().ledgerHolds());
-        }, () -> true, 5);
+    private void addBulkPurchaseSteps() {
+        script.step("empty the experience levels", () -> command("xp set @s 0 levels"), () -> player().experienceLevel == 0, COMMAND_TICKS);
+        script.step("empty the experience bar", () -> command("xp set @s 0 points"), () -> ClientSkillState.xpBalance() == 0, COMMAND_TICKS);
+        script.step("receive " + BULK_XP + " XP", () -> command("xp add @s " + BULK_XP + " points"),
+                () -> ClientSkillState.xpBalance() == BULK_XP, COMMAND_TICKS);
+        script.step("buy " + BULK_PURCHASE + " points in one request", () -> {
+            remember();
+            screen().qaBuyMany(BULK_PURCHASE);
+        }, () -> state().purchasedPoints() == before.purchased() + BULK_PURCHASE && !ClientSkillState.requestInFlight(), SERVER_ANSWER_TICKS);
+        script.then("check the bulk purchase", () -> {
+            long cost = ClientSkillState.curve().totalCost(before.purchased(), BULK_PURCHASE);
+            script.expect("XP left after paying " + cost + " at once", before.xp() - cost, ClientSkillState.xpBalance());
+            script.expect("ledger holds after the bulk purchase", state().ledgerHolds());
+        });
+        script.step("ask for " + GREEDY_PURCHASE + " points with too little XP", () -> {
+            remember();
+            expectedBought = ClientSkillState.curve().affordableCount(before.purchased(), before.xp(), GREEDY_PURCHASE);
+            screen().qaBuyMany(GREEDY_PURCHASE);
+        }, () -> state().purchasedPoints() == before.purchased() + expectedBought && !ClientSkillState.requestInFlight(), SERVER_ANSWER_TICKS);
+        script.then("check the partial purchase", () -> {
+            long cost = ClientSkillState.curve().totalCost(before.purchased(), expectedBought);
+            script.note("the balance of " + before.xp() + " XP affords " + expectedBought + " point(s)");
+            script.expect("XP left after buying what the balance allows", before.xp() - cost, ClientSkillState.xpBalance());
+            script.expect("the next point is out of reach", ClientSkillState.xpBalance() < ClientSkillState.economy().nextPointCost());
+            script.expect("ledger holds after the partial purchase", state().ledgerHolds());
+        });
     }
 
-    private static void addPendingStatsSteps() {
-        step("pending route with the stats panel open", () -> {
-            screen().qaSetup(routeTo("guardian/vitality_3"), false, false);
+    private void addPendingStatsSteps() {
+        show("stats_pending", () -> {
+            screen().qaSetup(routeTo(cheapestGuardianNotable()), false, false);
             screen().qaShowStats();
             screen().qaZoom(0.6, "guardian/hub");
-        }, () -> true, 30);
-        step("capture pending stats", () -> {
-            log("pending " + screen().qaPending() + ", available " + state().availablePoints());
-            screen().qaStatsText().stream().filter(l -> l.contains("→")).forEach(l -> log("stats before -> after: " + l.trim()));
-            Screenshot.grab(minecraft().gameDirectory, "nostalgiaskills_qa_ingame_stats_pending_1280x720.png", minecraft().getMainRenderTarget(), m -> { });
-        }, () -> true, 10);
+        });
+        script.then("check the stats preview", () -> {
+            List<String> previews = screen().qaStatsText().stream().filter(line -> line.contains("→")).map(String::trim).toList();
+            script.note("selection " + screen().qaPending() + " previews " + previews);
+            script.expect("the stats panel previews the selected route", !previews.isEmpty());
+            screen().qaSetup(List.of(), false, false);
+        });
     }
 
-    private static boolean eclipseShown() {
-        return ClientSkillState.worldRules().skyEvent() == SkyEvent.ECLIPSE;
+    private void addBirthSignSteps() {
+        script.then("find the birth sign in the stats panel", () -> {
+            String signName = state().sign().map(signId -> I18n.get(SkillSign.nameKey(signId))).orElse("no sign");
+            script.expect("the stats panel names the birth sign " + signName,
+                    screen().qaStatsText().stream().anyMatch(line -> line.contains(signName)));
+            script.expect("signs known to the client", !ClientSkillState.worldRules().signIds().isEmpty());
+        });
+        show("birth_chart", () -> screen().qaOpenSign());
     }
 
-    private static void addSkySteps() {
-        step("eclipse at noon", () -> {
+    private void addEclipseSteps() {
+        script.step("start an eclipse", () -> {
+            remember();
+            command("nostalgiaskills eclipse start");
+        }, () -> skyEvent() == SkyEvent.ECLIPSE, COMMAND_TICKS);
+        show("eclipse_reset", () -> {
+            script.expect("no orb is asked for during an eclipse", !ClientSkillState.economy().orbRequired());
+            screen().qaSetup(List.of(), false, true);
+        });
+        script.step("stop the eclipse", () -> {
+            screen().qaSetup(List.of(), false, false);
+            command("nostalgiaskills eclipse stop");
+        }, () -> skyEvent() == SkyEvent.NONE, COMMAND_TICKS);
+        script.then("check the orb rule", () -> script.expect("the orb rule returns after the eclipse", before.orbRequired(),
+                ClientSkillState.economy().orbRequired()));
+    }
+
+    private void addCommunitySteps() {
+        script.step("receive XP to donate", () -> command("xp add @s " + 2 * DONATION + " points"),
+                () -> ClientSkillState.xpBalance() >= DONATION, COMMAND_TICKS);
+        script.step("donate to the shared constellation", () -> {
+            remember();
+            screen().qaOpenCommunity().qaDonate(DONATION);
+        }, () -> ClientSkillState.worldRules().communityXp() == before.communityXp() + DONATION && !ClientSkillState.requestInFlight(),
+                SERVER_ANSWER_TICKS);
+        script.then("check the donation", () -> {
+            script.expect("XP left after donating", before.xp() - DONATION, ClientSkillState.xpBalance());
+            script.expect("community tiers known to the client", !ClientSkillState.worldRules().communityTiers().isEmpty());
+        });
+        script.pause("let the community panel draw", SETTLE_TICKS);
+        script.then("capture community", () -> script.capture(SHOT_PREFIX + "community" + SHOT_SUFFIX));
+        script.step("light the first tiers", () -> command("nostalgiaskills community set " + LIT_COMMUNITY_XP),
+                () -> ClientSkillState.worldRules().communityXp() == LIT_COMMUNITY_XP, COMMAND_TICKS);
+        script.pause("let the lit tiers draw", SETTLE_TICKS);
+        script.then("capture community_lit", () -> script.capture(SHOT_PREFIX + "community_lit" + SHOT_SUFFIX));
+    }
+
+    private void addSkySteps() {
+        script.step("eclipse at noon", () -> {
             minecraft().setScreen(null);
-            minecraft().player.setXRot(SKY_PITCH);
+            player().setXRot(SKY_PITCH);
             command("time set noon");
             command("nostalgiaskills eclipse start");
-        }, () -> eclipseShown() && ticks >= SKY_FADE_TICKS, 2 * SKY_FADE_TICKS);
-        skyShot("eclipse_sky");
-        step("star shower at midnight", () -> {
+        }, () -> skyEvent() == SkyEvent.ECLIPSE && script.ticks() >= SKY_FADE_TICKS, 2 * SKY_FADE_TICKS);
+        script.then("capture eclipse_sky", () -> script.capture(SHOT_PREFIX + "eclipse_sky" + SHOT_SUFFIX));
+        script.step("star shower at midnight", () -> {
             command("nostalgiaskills eclipse stop");
             command("time set midnight");
             command("nostalgiaskills shower start");
-        }, () -> ClientSkillState.worldRules().skyEvent() == SkyEvent.STAR_SHOWER && ticks >= SKY_FADE_TICKS, 2 * SKY_FADE_TICKS);
-        step("call falling stars", () -> {
-            for (int i = 0; i < QA_STARS; i++) {
+        }, () -> skyEvent() == SkyEvent.STAR_SHOWER && script.ticks() >= SKY_FADE_TICKS, 2 * SKY_FADE_TICKS);
+        script.step("call falling stars", () -> {
+            for (int star = 0; star < FALLING_STARS; star++) {
                 command("nostalgiaskills star @s");
             }
-        }, () -> ticks >= STAR_FLIGHT_TICKS, 2 * STAR_FLIGHT_TICKS);
-        skyShot("falling_stars");
-        step("stop the star shower", () -> command("nostalgiaskills shower stop"),
-                () -> ClientSkillState.worldRules().skyEvent() == SkyEvent.NONE, 200);
-    }
-
-    private static void skyShot(String name) {
-        step("capture " + name, () -> {
-            log("sky event " + ClientSkillState.worldRules().skyEvent() + " captured as " + name);
-            Screenshot.grab(minecraft().gameDirectory, "nostalgiaskills_qa_ingame_" + name + "_1280x720.png",
-                    minecraft().getMainRenderTarget(), message -> { });
-        }, () -> true, 10);
-    }
-
-    private static void addWorldEventSteps() {
-        step("birth sign and shooting star", () -> {
-            String signName = state().sign().map(signId -> I18n.get(SkillSign.nameKey(signId))).orElse("none");
-            log("birth sign: " + state().sign().orElse("none") + "; stats line: "
-                    + screen().qaStatsText().stream().filter(line -> line.contains(signName)).findFirst().orElse("missing"));
-            command("nostalgiaskills star @s");
-        }, () -> true, 40);
-        step("start an eclipse", () -> command("nostalgiaskills eclipse start"),
-                () -> eclipseShown(), 200);
-        step("reset panel during the eclipse", () -> {
-            log("eclipse active=" + eclipseShown() + ", orb required for reset="
-                    + ClientSkillState.economy().orbRequired());
-            screen().qaSetup(List.of(), false, true);
-        }, () -> true, 30);
-        step("capture eclipse reset panel", () -> Screenshot.grab(minecraft().gameDirectory,
-                "nostalgiaskills_qa_ingame_eclipse_reset_1280x720.png", minecraft().getMainRenderTarget(), message -> { }), () -> true, 10);
-        step("stop the eclipse", () -> {
-            screen().qaSetup(List.of(), false, false);
-            command("nostalgiaskills eclipse stop");
-        }, () -> !eclipseShown(), 200);
-        step("xp for the donation", () -> command("xp add @s 400 points"), () -> ClientSkillState.xpBalance() >= 400, 200);
-        step("donate to the shared constellation", () -> {
-            log("orb required again=" + ClientSkillState.economy().orbRequired() + "; community tiers known to the client: "
-                    + ClientSkillState.worldRules().communityTiers().size() + ", xp before donating " + ClientSkillState.xpBalance());
-            screen().qaOpenCommunity().qaDonate(120);
-        }, () -> ClientSkillState.worldRules().communityXp() == 120 && !ClientSkillState.requestInFlight(), 400);
-        step("community panel", () -> {
-            log("donated: community progress " + ClientSkillState.worldRules().communityXp() + ", xp left " + ClientSkillState.xpBalance()
-                    + ", signs known to the client: " + ClientSkillState.worldRules().signIds().size());
-        }, () -> true, 30);
-        step("capture community panel", () -> Screenshot.grab(minecraft().gameDirectory,
-                "nostalgiaskills_qa_ingame_community_1280x720.png", minecraft().getMainRenderTarget(), message -> { }), () -> true, 10);
-        step("light two tiers", () -> command("nostalgiaskills community set 9000"),
-                () -> ClientSkillState.worldRules().communityXp() == 9000, 200);
-        step("capture lit community", () -> Screenshot.grab(minecraft().gameDirectory,
-                "nostalgiaskills_qa_ingame_community_lit_1280x720.png", minecraft().getMainRenderTarget(), message -> { }), () -> true, 10);
-        step("birth chart", () -> screen().qaOpenSign(), () -> true, 30);
-        step("capture birth chart", () -> Screenshot.grab(minecraft().gameDirectory,
-                "nostalgiaskills_qa_ingame_birth_chart_1280x720.png", minecraft().getMainRenderTarget(), message -> { }), () -> true, 10);
-    }
-
-    private static void runAllSteps() {
-        addPurchaseSteps();
-        addAllocationSteps();
-        addDeathAndDimensionSteps();
-        addRequestSpamSteps();
-        addWorldRestartSteps();
-        addReloadSteps();
-        addResetSteps();
-        addRefundSteps();
-        addBulkPurchaseSteps();
-        addPendingStatsSteps();
-        addWorldEventSteps();
-        addSkySteps();
-        step("finish", InWorldQa::finish, () -> true, 5);
-        next();
-    }
-
-    private static List<String> guardianRoute() {
-        SkillGraphSnapshot graph = ClientSkillState.graph().orElseThrow();
-        PlayerSkillState state = state().copy();
-        String hub = "nostalgiaskills:guardian/hub";
-        AllocationService.confirm(graph, state, List.of(hub));
-        List<String> out = new ArrayList<>();
-        out.add(hub);
-        PathFinder.route(graph, state, List.of(), "nostalgiaskills:guardian/gatekeeper").ifPresent(r -> out.addAll(r.newNodes()));
-        return out;
-    }
-
-    private static List<String> routeTo(String... targets) {
-        SkillGraphSnapshot graph = ClientSkillState.graph().orElseThrow();
-        PlayerSkillState state = state().copy();
-        String hub = "nostalgiaskills:guardian/hub";
-        List<String> out = new ArrayList<>();
-        if (state.startingRoot().isEmpty()) {
-            AllocationService.confirm(graph, state, List.of(hub));
-            out.add(hub);
-        }
-        for (String target : targets) {
-            PathFinder.route(graph, state, List.of(), "nostalgiaskills:" + target)
-                    .filter(PathFinder.Route::valid)
-                    .ifPresentOrElse(r -> {
-                        out.addAll(r.newNodes());
-                        AllocationService.confirm(graph, state, r.newNodes());
-                    }, () -> log("refund test: no valid route to " + target + " (skipped)"));
-        }
-        return out;
-    }
-
-    private static void next() {
-        step++;
-        ticks = 0;
-        started = false;
-    }
-
-    private static void finish() {
-        try {
-            Files.write(minecraft().gameDirectory.toPath().resolve("nostalgiaskills_qa_ingame.txt"), REPORT);
-        } catch (IOException e) {
-            NostalgiaSkills.LOGGER.error("could not write QA report", e);
-        }
-        NostalgiaSkills.LOGGER.info("In-world QA: finished");
-        active = false;
-        minecraft().stop();
-    }
-
-    @SubscribeEvent
-    public static void tick(ClientTickEvent.Post e) {
-        if (!active || step >= STEPS.size()) {
-            return;
-        }
-        Step s = STEPS.get(step);
-        try {
-            if (!started) {
-                started = true;
-                s.action().run();
-                return;
-            }
-            ticks++;
-            if (s.done().getAsBoolean()) {
-                next();
-            } else if (ticks > s.timeoutTicks()) {
-                log("FAILED (timeout): " + s.name());
-                step = STEPS.size() - 2;
-                next();
-            }
-        } catch (Exception ex) {
-            log("FAILED (exception) in " + s.name() + ": " + ex);
-            NostalgiaSkills.LOGGER.error("In-world QA step failed", ex);
-            step = STEPS.size() - 2;
-            next();
-        }
+        }, () -> script.ticks() >= STAR_FLIGHT_TICKS, 2 * STAR_FLIGHT_TICKS);
+        script.then("capture falling_stars", () -> script.capture(SHOT_PREFIX + "falling_stars" + SHOT_SUFFIX));
+        script.step("stop the star shower", () -> command("nostalgiaskills shower stop"), () -> skyEvent() == SkyEvent.NONE, COMMAND_TICKS);
     }
 }
