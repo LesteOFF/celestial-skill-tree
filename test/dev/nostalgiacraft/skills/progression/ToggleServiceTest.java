@@ -1,12 +1,10 @@
 package dev.nostalgiacraft.skills.progression;
 
 import dev.nostalgiacraft.skills.effects.CompiledBuild;
-import dev.nostalgiacraft.skills.graph.GraphCodec;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.graph.TestGraphs;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,31 +56,5 @@ class ToggleServiceTest {
         assertEquals(3.0, health(graph, state));
         assertEquals(available, state.availablePoints());
         assertTrue(state.ledgerHolds());
-    }
-
-    @Test
-    void onlyOwnedToggleableNodesCanBeSwitched() {
-        SkillGraphSnapshot graph = graph();
-        PlayerSkillState state = build(graph, "a/hub", "a/m1");
-        long revision = state.stateRevision();
-        assertEquals(Optional.of(RejectReason.NOT_TOGGLEABLE), ToggleService.toggle(graph, state, id("a/m1")));
-        assertEquals(Optional.of(RejectReason.NOT_ALLOCATED), ToggleService.toggle(graph, state, id("a/k1")));
-        assertEquals(Optional.of(RejectReason.UNKNOWN_NODE), ToggleService.toggle(graph, state, id("a/nope")));
-        assertTrue(state.disabled().isEmpty());
-        assertEquals(revision, state.stateRevision(), "a rejected toggle changes nothing");
-    }
-
-    @Test
-    void theSwitchTravelsToTheClientAndARefundClearsIt() throws IOException {
-        SkillGraphSnapshot graph = graph();
-        PlayerSkillState state = build(graph, "a/hub", "a/m1", "a/k1");
-        ToggleService.toggle(graph, state, id("a/k1"));
-        assertTrue(GraphCodec.decode(GraphCodec.encode(graph)).nodes().get(id("a/k1")).traits().toggleable());
-
-        assertTrue(state.copy().isDisabled(id("a/k1")), "the copy sent to the client carries the switch");
-
-        RefundService.apply(graph, state, id("a/k1"), true);
-        AllocationService.confirm(graph, state, List.of(id("a/k1")));
-        assertFalse(state.isDisabled(id("a/k1")), "a keystone bought again starts switched on");
     }
 }

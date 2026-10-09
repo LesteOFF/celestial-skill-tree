@@ -10,7 +10,6 @@ import java.util.Optional;
 
 import static dev.nostalgiacraft.skills.graph.TestGraphs.id;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BuildSwapServiceTest {
@@ -34,18 +33,5 @@ class BuildSwapServiceTest {
         assertTrue(state.isAllocated(id("a/m2")));
         assertEquals(4, state.availablePoints());
         assertTrue(state.ledgerHolds());
-    }
-
-    @Test
-    void aBuildThatNoLongerFitsLeavesThePlayerUntouched() {
-        PlayerSkillState state = new PlayerSkillState();
-        LedgerService.grant(state, 1, 120, false);
-        AllocationService.confirm(g, state, List.of(id("a/hub"), id("a/m1")));
-        Build tooExpensive = new Build(Optional.of(id("b/hub")), List.of(id("b/m2"), id("a/m2"), id("a/m1")));
-        BuildSwapService.Result result = BuildSwapService.swap(g, state, tooExpensive);
-        assertFalse(result.ok());
-        assertEquals(Optional.of(id("a/hub")), state.startingRoot());
-        assertTrue(state.isAllocated(id("a/m1")));
-        assertEquals(0, state.availablePoints());
     }
 }

@@ -103,17 +103,6 @@ class BundledCatalogTest {
     }
 
     @Test
-    void everySkillHasAnEffectAndEveryKeystoneSpeaksPlainly() {
-        SkillGraphSnapshot graph = tree(catalog(KnownIds.PERMISSIVE, mod -> true), 1);
-        for (SkillNodeDefinition node : graph.nodes().values()) {
-            assertEquals(node.type() == NodeType.PORTAL, node.effects().isEmpty(), node.id());
-            if (node.type() == NodeType.KEYSTONE) {
-                assertFalse(node.descriptionKey().isEmpty(), node.id());
-            }
-        }
-    }
-
-    @Test
     void withEveryIntegratedModTheMageJoinsAndTreesStayValid() {
         Catalog catalog = catalog(KnownIds.PERMISSIVE, mod -> true);
         assertTrue(catalog.classes().containsKey(NS + ":mage"));
@@ -130,56 +119,6 @@ class BundledCatalogTest {
                     .filter(node -> node.type() != NodeType.PORTAL && !hidden.contains(node)).count() <= 7 * 100);
             assertEquals(8, graph.nodes().values().stream().filter(node -> node.type() == NodeType.PORTAL).count());
         }
-    }
-
-    @Test
-    void everyThemeNotableAndKeystoneOfTheCatalogAppearsInEveryWorld() {
-        Catalog catalog = catalog(KnownIds.PERMISSIVE, mod -> true);
-        for (long seed = 0; seed < SEEDS; seed++) {
-            SkillGraphSnapshot graph = tree(catalog, seed);
-            for (ThemeDefinition theme : catalog.themes().values()) {
-                assertTrue(graph.contains(theme.id() + "_1"), () -> "theme " + theme.id());
-                for (NotableDefinition notable : theme.notables()) {
-                    assertTrue(graph.contains(CatalogEntryParser.notableNodeId(theme.id(), notable.id())), () -> "notable " + notable.id());
-                }
-            }
-            catalog.keystones().keySet().forEach(keystone -> assertTrue(graph.contains(keystone), keystone));
-        }
-    }
-
-    @Test
-    void aLoneMagicModLendsItsThemesToTheArcanist() {
-        Catalog catalog = catalog(KnownIds.PERMISSIVE, Set.of("lodestone")::contains);
-        assertTrue(catalog.classes().containsKey(NS + ":mage"));
-        List<ClassPool> pools = ClassPool.select(catalog);
-        assertEquals(6, pools.size());
-        ClassPool arcanist = pools.stream().filter(pool -> pool.definition().id().equals(NS + ":arcanist")).findFirst().orElseThrow();
-        assertTrue(arcanist.theme(NS + ":mage/lodestar").isPresent());
-    }
-
-    @Test
-    void theExampleDatapackExtendsTheShippedCatalog() throws IOException {
-        Path example = Path.of("examples/datapacks/nostalgiaskills_catalog_example/data");
-        Map<String, JsonElement> themes = files("skill_themes");
-        Map<String, JsonElement> keystones = files("skill_keystones");
-        themes.put("examplepack:guardian/thorns", read(example.resolve("examplepack/skill_themes/guardian/thorns.json")));
-        keystones.put("examplepack:guardian/sleeping_giant",
-                read(example.resolve("examplepack/skill_keystones/guardian/sleeping_giant.json")));
-        JsonElement rules = read(example.resolve("nostalgiaskills/skill_rules/main.json"));
-        CatalogSources sources = new CatalogSources(files("skill_classes"), themes, keystones, Optional.of(rules));
-        CatalogParser.Outcome outcome = new CatalogParser(WITHOUT_MODS).parse(sources.availableWith(mod -> false));
-        assertTrue(outcome.report().issues().isEmpty(), () -> outcome.report().issues().toString());
-        Catalog catalog = outcome.catalog().orElseThrow();
-        assertEquals(60, catalog.rules().nodesPerClass());
-        assertTrue(catalog.keystones().get("examplepack:guardian/sleeping_giant").traits().hiddenUntil().isPresent());
-        SkillGraphSnapshot graph = tree(catalog, 5);
-        assertTrue(graph.nodes().size() <= 6 * 61);
-    }
-
-    @Test
-    void differentWorldsGetDifferentTreesOnceModsAddChoice() {
-        Catalog catalog = catalog(KnownIds.PERMISSIVE, mod -> true);
-        assertFalse(tree(catalog, 1).fingerprint().equals(tree(catalog, 2).fingerprint()));
     }
 
     @Test

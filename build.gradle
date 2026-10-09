@@ -104,6 +104,8 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+sourceSets.test.java.srcDirs = ['test']
+
 test {
     useJUnitPlatform()
     systemProperty 'nostalgiaskills.dataRoot', file('src/main/resources/data/nostalgiaskills').absolutePath

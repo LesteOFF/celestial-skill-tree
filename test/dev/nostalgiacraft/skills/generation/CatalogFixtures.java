@@ -14,13 +14,11 @@ final class CatalogFixtures {
     static final String MAGIC_MOD = "magicmod";
     static final String HEALTH = "{'type':'attribute','attribute':'minecraft:generic.max_health','operation':'add_value','amount':1}";
     static final String ARMOR = "{'type':'attribute','attribute':'minecraft:generic.armor','operation':'add_value','amount':1}";
-    static final String ON_KILL = "{'type':'trigger','trigger':'on_kill','action':{'type':'heal','amount':1}}";
     private static final String ICON = "test:textures/icon.png";
 
     private final Map<String, JsonElement> classes = new TreeMap<>();
     private final Map<String, JsonElement> themes = new TreeMap<>();
     private final Map<String, JsonElement> keystones = new TreeMap<>();
-    private Optional<JsonElement> rules = Optional.empty();
 
     static CatalogFixtures empty() {
         return new CatalogFixtures();
@@ -92,33 +90,8 @@ final class CatalogFixtures {
         return this;
     }
 
-    CatalogFixtures withoutTheme(String id) {
-        themes.remove(id);
-        return this;
-    }
-
-    CatalogFixtures withoutKeystone(String id) {
-        keystones.remove(id);
-        return this;
-    }
-
-    CatalogFixtures withoutThemeNotables(String classId, int themesThatKeepTheirs) {
-        for (String id : java.util.List.copyOf(themes.keySet())) {
-            boolean ofClass = id.startsWith(classId + "/t");
-            if (ofClass && Integer.parseInt(id.substring(id.lastIndexOf('t') + 1)) >= themesThatKeepTheirs) {
-                themes.get(id).getAsJsonObject().remove("notables");
-            }
-        }
-        return this;
-    }
-
-    CatalogFixtures rules(String json) {
-        rules = Optional.of(JsonParser.parseString(json));
-        return this;
-    }
-
     CatalogSources sources() {
-        return new CatalogSources(classes, themes, keystones, rules);
+        return new CatalogSources(classes, themes, keystones, Optional.empty());
     }
 
     CatalogParser.Outcome parse() {

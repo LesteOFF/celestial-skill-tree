@@ -60,5 +60,4 @@ final class ConnectionParser {
         }
         return List.copyOf(points);
     }
-
 }
