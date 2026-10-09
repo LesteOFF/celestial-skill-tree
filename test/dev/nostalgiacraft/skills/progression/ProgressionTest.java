@@ -24,15 +24,23 @@ class ProgressionTest {
     @Test
     void anEclipseLastsTheDaylightOfItsDayAndAShowerItsNight() {
         long day7 = 7 * 24_000L;
-        assertEquals(SkyEvent.ECLIPSE, SkyEventSchedule.current(7, 7, day7));
-        assertEquals(SkyEvent.ECLIPSE, SkyEventSchedule.current(7, 9, day7 + 12_541));
-        assertEquals(SkyEvent.NONE, SkyEventSchedule.current(7, 9, day7 + 12_542));
-        assertEquals(SkyEvent.NONE, SkyEventSchedule.current(7, 9, day7 + 23_999));
-        assertEquals(SkyEvent.NONE, SkyEventSchedule.current(7, 9, day7 + 24_000));
-        assertEquals(SkyEvent.STAR_SHOWER, SkyEventSchedule.current(7, 7, day7 + 12_542));
-        assertEquals(SkyEvent.STAR_SHOWER, SkyEventSchedule.current(9, 7, day7 + 23_459));
-        assertEquals(SkyEvent.NONE, SkyEventSchedule.current(9, 7, day7 + 23_460));
-        assertEquals(SkyEvent.NONE, SkyEventSchedule.current(9, 7, day7 + 6_000));
-        assertEquals(SkyEvent.NONE, SkyEventSchedule.current(SkyEventSchedule.UNSCHEDULED, SkyEventSchedule.UNSCHEDULED, day7));
+        assertEquals(SkyEvent.ECLIPSE, SkyEventSchedule.current(7, 7, 7, day7));
+        assertEquals(SkyEvent.ECLIPSE, SkyEventSchedule.current(7, 9, 7, day7 + 12_541));
+        assertEquals(SkyEvent.NONE, SkyEventSchedule.current(7, 9, 7, day7 + 12_542));
+        assertEquals(SkyEvent.NONE, SkyEventSchedule.current(7, 9, 7, day7 + 23_999));
+        assertEquals(SkyEvent.NONE, SkyEventSchedule.current(7, 9, 8, day7 + 24_000));
+        assertEquals(SkyEvent.STAR_SHOWER, SkyEventSchedule.current(7, 7, 7, day7 + 12_542));
+        assertEquals(SkyEvent.STAR_SHOWER, SkyEventSchedule.current(9, 7, 7, day7 + 23_459));
+        assertEquals(SkyEvent.NONE, SkyEventSchedule.current(9, 7, 7, day7 + 23_460));
+        assertEquals(SkyEvent.NONE, SkyEventSchedule.current(9, 7, 7, day7 + 6_000));
+        assertEquals(SkyEvent.NONE, SkyEventSchedule.current(SkyEventSchedule.UNSCHEDULED, SkyEventSchedule.UNSCHEDULED, 7, day7));
+    }
+
+    @Test
+    void aClockSetBackStillCountsANewDay() {
+        assertEquals(3, SkyEventSchedule.dayAfter(3, 6_000, 6_020));
+        assertEquals(4, SkyEventSchedule.dayAfter(3, 23_990, 10));
+        assertEquals(4, SkyEventSchedule.dayAfter(3, 14_000, 1_000));
+        assertEquals(SkyEvent.ECLIPSE, SkyEventSchedule.current(4, 9, 4, 1_000));
     }
 }

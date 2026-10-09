@@ -21,7 +21,7 @@ public final class WorldClock {
         return time >= NIGHT_START && time < NIGHT_END;
     }
 
-    private static long timeOfDay(long dayTime) {
+    public static long timeOfDay(long dayTime) {
         return Math.floorMod(dayTime, TICKS_PER_DAY);
     }
 }

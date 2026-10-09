@@ -6,8 +6,11 @@ public final class SkyEventSchedule {
     private SkyEventSchedule() {
     }
 
-    public static SkyEvent current(long eclipseDay, long showerDay, long dayTime) {
-        long today = WorldClock.day(dayTime);
+    public static long dayAfter(long day, long timeOfDayBefore, long timeOfDayNow) {
+        return timeOfDayNow < timeOfDayBefore ? day + 1 : day;
+    }
+
+    public static SkyEvent current(long eclipseDay, long showerDay, long today, long dayTime) {
         if (eclipseDay == today && WorldClock.isDaylight(dayTime)) {
             return SkyEvent.ECLIPSE;
         }

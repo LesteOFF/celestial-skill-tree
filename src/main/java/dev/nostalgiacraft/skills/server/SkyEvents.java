@@ -6,7 +6,6 @@ import dev.nostalgiacraft.skills.config.ServerConfig;
 import dev.nostalgiacraft.skills.data.WorldSkillData;
 import dev.nostalgiacraft.skills.progression.SkyEvent;
 import dev.nostalgiacraft.skills.progression.SkyEventSchedule;
-import dev.nostalgiacraft.skills.progression.WorldClock;
 import dev.nostalgiacraft.skills.registry.ModSounds;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -83,7 +82,7 @@ public final class SkyEvents {
     private static void update(MinecraftServer server) {
         WorldSkillData data = WorldSkillData.of(server);
         ServerLevel overworld = server.overworld();
-        long today = WorldClock.day(overworld.getDayTime());
+        long today = data.skyDay(overworld.getDayTime());
         boolean eclipses = ServerConfig.ECLIPSE_ENABLED.get();
         boolean showers = ServerConfig.STAR_SHOWER_ENABLED.get();
         if (eclipses && SkyEventSchedule.needsScheduling(data.eclipseDay(), today)) {
@@ -93,7 +92,7 @@ public final class SkyEvents {
             data.setShowerDay(nextDay(overworld, today, ServerConfig.STAR_SHOWER_AVERAGE_DAYS.get()));
         }
         SkyEvent natural = SkyEventSchedule.current(eclipses ? data.eclipseDay() : SkyEventSchedule.UNSCHEDULED,
-                showers ? data.showerDay() : SkyEventSchedule.UNSCHEDULED, overworld.getDayTime());
+                showers ? data.showerDay() : SkyEventSchedule.UNSCHEDULED, today, overworld.getDayTime());
         setCurrent(server, data.forcedEvent() == SkyEvent.NONE ? natural : data.forcedEvent());
     }
 
