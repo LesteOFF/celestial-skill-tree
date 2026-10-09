@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ABA",
+    "BFB",
+    "ABA"
+  ],
+  "key": {
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "B": {
+      "item": "minecraft:experience_bottle"
+    },
+    "F": {
+      "item": "nostalgiaskills:star_fragment"
+    }
+  },
+  "result": {
+    "id": "nostalgiaskills:living_fragment",
+    "count": 1
+  }
+}
