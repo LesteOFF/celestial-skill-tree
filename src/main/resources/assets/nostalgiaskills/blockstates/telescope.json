@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "nostalgiaskills:block/telescope"
+    },
+    "facing=east": {
+      "model": "nostalgiaskills:block/telescope",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "nostalgiaskills:block/telescope",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "nostalgiaskills:block/telescope",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "nostalgiaskills:block/stellar_condenser_top",
+    "side": "nostalgiaskills:block/stellar_condenser_side"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "nostalgiaskills:block/community_basin_top",
+    "side": "nostalgiaskills:block/community_basin_side"
+  }
+}
