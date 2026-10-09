@@ -25,7 +25,7 @@ config/       ServerConfig (gameplay, synced), ClientConfig (presentation only)
 client/       ClientSkillState, ClientSetup (key mapping), screen/, render/, VisualQa + InWorldQa (dev harness)
 ```
 
-`graph` and `progression` contain no Minecraft classes; they are unit-tested directly (`./gradlew test`, 174 tests,
+`graph` and `progression` contain no Minecraft classes; they are unit-tested directly (`./gradlew test`, 176 tests,
 including trees generated from the shipped catalog for many seeds). The same classes run on the server (authoritative) and
 on the client (previews only), so the client shows exactly the rules the server enforces.
 
@@ -42,6 +42,9 @@ The tree is not authored node by node. `SkillTreeReloadListener` reads the catal
 `TreeDrawer` gives each rib a notable and lets `MinorDeck` fill trunk and ribs with minor skills that do not repeat inside a run, at
 most `max_copies_per_skill` of each, keeping every previous choice that is still valid; the class budget shrinks
 until its themes can fill it;
+`HiddenSection` places every keystone with `hidden_until` in fixed rows below the shape, outside the draw and the
+class budget (`ClassPool.hidden`), unlinked and in the rootless `nostalgiaskills:hidden` sector
+(`NodeTraits.standsAlone` waives the connection rule);
 `TreeAssembler` turns slots into `SkillNodeDefinition`s and connections; `GraphValidator` has the last word. Skill
 ids come from the catalog entry (`<theme>_<n>`, not from the position), so `Reconciler` refunds exactly what
 disappeared.
@@ -185,7 +188,8 @@ Dist.CLIENT)` classes, which is why the dedicated server starts without loading 
 - **Extra effect sources** (`effects/ExtraEffects`): `CompiledBuild.compile` takes extra named effect lists beside the
   allocated nodes. The player's birth sign and every reached shared-constellation tier are such sources, so
   `EffectEngine`, `GameplayEvents` and `Triggers` need no special cases.
-- **Birth sign**: `SignParser` reads `skill_signs`; `SignService.assignIfMissing` picks by world day on login; the id is
+- **Birth sign**: `SignParser` reads `skill_signs`, swapping in the first `partner_effects` entry whose mod is loaded
+  (its description key reaches the client in `WorldRules.signs`); `SignService.assignIfMissing` picks by world day plus player UUID on login; the id is
   stored in `PlayerSkillState.sign` (optional codec field, old saves load unchanged).
 - **World data** (`data/WorldSkillData`, a `SavedData` on the Overworld): next eclipse day, next star shower day,
   forced sky event and donated XP.
@@ -210,11 +214,29 @@ Dist.CLIENT)` classes, which is why the dedicated server starts without loading 
 - **Fallen Star**: `FallenStarService.dropNewest` forfeits the newest allocation whose refund plan is not chained,
   taking its paid points out of the ledger (`available + spent = purchased + granted` still holds). The item carries
   owner, node and paid cost in `CUSTOM_DATA`; the owner re-learns it, anyone else is granted the points.
-- **Node traits** (`graph/NodeTraits`): `neighbour_multiplier` and `hidden_until` travel through `NodeParser`,
-  `GraphCodec` (format 2) and `GraphValidator`. `Holdings` answers both rules for `AllocationService.rejectionOf`
+- **Node traits** (`graph/NodeTraits`): `neighbour_multiplier`, `hidden_until` and `toggleable` travel through `NodeParser`,
+  `GraphCodec` (format 3) and `GraphValidator`. A toggleable node the player switched off stays in
+  `PlayerSkillState.disabled` (`ToggleService`, `Payloads.ToggleNode`) and `CompiledBuild` skips its effects. `Holdings` answers both rules for `AllocationService.rejectionOf`
   (`UNDISCOVERED`, `CONSUMED`); `Reconciler` replays with everything discovered so learned skills are never lost.
   `server/Discoveries` records advancements as they are earned and on login; the client hides `NodeState.HIDDEN` nodes
   and their edges.
+
+## Hooks other integrations plug into
+
+- `effects/BorrowedNodes`: lenders return node ids equipment lends to a player; they become extra
+  effect sources, on top of the node itself when the player also learned it, and the build is recompiled when the lent set changes.
+- `effects/StolenNodes`: node ids silenced until a game time; `CompiledBuild.compile` skips them.
+- `server/XpWallets`: sources of experience outside the player's bar (`FluidXpWallet`, the XP Scroll); the purchase
+  spends the player's experience first and takes only the shortfall, and a wallet may overpay (the change returns as
+  experience).
+- `registry/WornItems`: stacks carried outside the vanilla inventory (Curios).
+- `server/Discoveries.reveal`: discovery keys that are not advancements (`spell/`, `worn/`, `kill/`).
+- `effects/EliteMobs.registerRival` and `registerNodeBonus`: other elite systems claim a monster or enlarge its
+  constellation; a Constellated monster remembers its own UUID, so a copy is demoted.
+- `effects/PetInheritance`: owned creatures of `#nostalgiaskills:inherits_tree` copy a share of the owner's summed
+  attribute modifiers.
+- `block/XpBasinBlockEntity`: one block entity for the Stellar Condenser and the Community Basin, exposing a fluid
+  tank and an extract-only item slot as capabilities.
 
 ## Development harness (not part of gameplay)
 

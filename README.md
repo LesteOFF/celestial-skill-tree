@@ -26,11 +26,11 @@ the only optional integration.
 ## Building
 
 ```bash
-./gradlew build            # Windows: gradlew.bat build  → build/libs/nostalgiaskills-0.5.0.jar
-./gradlew test             # 174 unit tests, including trees generated from the shipped catalog
+./gradlew build            # Windows: gradlew.bat build  → build/libs/nostalgiaskills-1.4.0.jar
+./gradlew test             # 176 unit tests, including trees generated from the shipped catalog
 ./gradlew validateTree     # validates the catalog and generates one tree outside the game
 ./gradlew previewTree      # draws the tree shape to build/preview/tree.png
-./gradlew runGameTestServer  # 12 in-game tests on a real server with mock players
+./gradlew runGameTestServer  # 13 in-game tests on a real server with mock players
 ./gradlew runClient / runServer
 ```
 
@@ -72,7 +72,7 @@ Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256
 
 ### World features
 
-- **Birth sign.** On your first login the world day decides one of twelve signs. Its small passive bonus is permanent,
+- **Birth sign.** On your first login the world day and who you are decide one of twelve signs. Its small passive bonus is permanent,
   survives resets and is listed in **Show Stats**. The **Birth Sign** button (bottom left) opens your birth chart: a
   wheel of the twelve constellations with yours at the top; hover any sign to read its bonus.
 - **Falling stars.** At night a falling star occasionally crosses the sky near a player in the Overworld: a bright
@@ -81,7 +81,9 @@ Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256
 - **Star shower.** Some nights are announced as a star shower: the sky and clouds are tinted, the stars shine
   brighter and falling stars come several times a minute until dawn.
 - **Constellated monsters.** Rarely a monster spawns Constellated: +50% health, +25% damage and the attribute bonuses of
-  a small random constellation. It drops a Star Fragment. Only monsters the world spawns on its own qualify (natural,
+  a small random constellation. It drops a Star Fragment, but only when a real player kills it: lava, falls and
+  fake players (machines) get nothing. With `eliteRadarTeam` it joins a light purple scoreboard team, which radar mods
+  such as Xaero's Minimap list as another team. Only monsters the world spawns on its own qualify (natural,
   world generation, structures, patrols, raids, reinforcements, jockeys); spawners, trial spawners, spawn eggs,
   commands and machines never produce one.
 - **Eclipse.** Some days the moon slides over the sun at dawn and stays until dusk. The sky, clouds and fog turn
@@ -155,7 +157,7 @@ The tree is generated from a **catalog** of ordinary data files, then saved with
 |---|---|
 | `data/<ns>/skill_classes/<id>.json` | a class: `name`, `icon`, `hub` (its effects), `trunk` (`name` and effects of the skill repeated along the trunk); optional `priority`, `fallback_class`, `nodes` |
 | `data/<ns>/skill_themes/<path>.json` | a branch theme: `class`, `name`, `icon`, `minor` (effects of the numbered skills), optional `weight` and `notables` (`id`, `name`, effects) |
-| `data/<ns>/skill_keystones/<path>.json` | a keystone: `class`, `name`, `text` (required plain-language sentence), effects; optional `icon`, `weight`, `neighbour_multiplier`, `hidden_until` |
+| `data/<ns>/skill_keystones/<path>.json` | a keystone: `class`, `name`, `text` (required plain-language sentence), effects; optional `icon`, `weight`, `neighbour_multiplier`, `hidden_until`, `toggleable` (the owner switches it off and on for free) |
 | `data/nostalgiaskills/skill_rules/main.json` | `nodes_per_class` (12 to 100, default 100), `max_classes` (default 10), `min_themes_for_own_class` (default 4), `max_copies_per_skill` (default 5), `vary_by_seed`, `portals` |
 
 - **Mods.** Any file may carry `"requires_mod"` (one id or a list, all needed) or `"requires_any_mod"` (one of the list
@@ -182,7 +184,9 @@ The tree is generated from a **catalog** of ordinary data files, then saved with
 Skill ids are `<class>/hub`, `<class>/trunk_<n>`, `<theme>_<n>`, `<theme folder>/<notable id>`, the keystone file id and
 `<class>/portal`.
 
-Birth signs live in `skill_signs` (`effects` only) and shared-constellation tiers in `skill_community` (`xp_required`
+Birth signs live in `skill_signs` (`effects`, plus an optional `partner_effects` list of
+`{ "requires_mod", "description", "effects" }`: the first entry whose mod is installed replaces the sign's effects and
+description text) and shared-constellation tiers in `skill_community` (`xp_required`
 plus `effects`); both use the same effect vocabulary and take their texts from `sign.<ns>.<id>.name` /
 `.description` and `community.<ns>.<id>.name` / `.description`. `skill_migrations` renames skill ids.
 
@@ -227,19 +231,30 @@ An optional KubeJS integration ships (see below); packs and addons can build any
 - **Pufferfish's Attributes.** Lifesteal, mining speed, healing received and projectile damage are redirected the same
   way (`redirectToPuffishAttributes`); a flat bonus becomes a multiplier there, because those attributes scale another
   value. Apothic Attributes wins where both mods overlap. Resistances are not redirected: their formulas differ.
-- **Combat mods.** Better Combat fires `nostalgiaskills:on_combo_finisher` on the last hit of a combo. Scorched Guns
+- **Combat mods.** Better Combat fires `nostalgiaskills:on_combo_finisher` on the last hit of a combo, and its weapon
+  category classifies any weapon that is in neither the light nor the heavy weapon tag (the tag always wins): `sword`,
+  `cutlass`, `dagger`, `rapier`, `sickle`, `claw`, `fist`, `katana`, `twin_blade`, `soul_knife` and `coral_blade` are
+  light; `claymore`, `hammer`, `mace`, `axe`, `double_axe`, `heavy_axe`, `halberd`, `glaive`, `scythe`, `spear`, `lance`,
+  `trident`, `anchor` and `battlestaff` are heavy. Scorched Guns
   fires `nostalgiaskills:on_headshot` and `nostalgiaskills:on_reload`, and its bullets count as the player's projectiles
-  through `#nostalgiaskills:counts_as_projectile` (add other guns' damage types there). ParCool fires
+  through `#nostalgiaskills:counts_as_projectile` (add other guns' damage types there; a type in that tag counts even
+  when the player is the direct attacker, which is how L2Complements' Sonic Shooter and its `minecraft:sonic_boom`
+  get in). ParCool fires
   `nostalgiaskills:on_wall_jump`, `nostalgiaskills:on_roll` (breakfall) and the built-in `on_dodge`. Dummmmmmy shows a
   critical hit rolled by the tree as a critical number.
 - **Curios.** An attribute effect on `curios:<slot>` (for example `curios:ring`) adds or removes slots of that type.
 - **Other elite systems.** With `eliteStacking = EXCLUSIVE` (default) a monster that Champions or L2Hostility already
-  made special is not Constellated as well; `STACK` keeps the rolls independent.
+  made special, or that is an Apotheosis boss, is not Constellated as well; `STACK` keeps the rolls independent.
+- **Tons of Enchants.** XP Sword Master, XP Mining Master and XP Bow Master only raise the experience earned; the
+  price of a point does not change. Its Lifesteal is a bow enchantment that heals through the mod's own code, so it
+  adds to the tree's lifesteal and is not limited by the 10% cap, which only clamps what the tree grants.
 - **Events.** `SkillEvents.TreeCriticalHit` (`getPlayer`, `getVictim`, `getMultiplier`) is posted for every critical
   hit rolled by the tree.
 - **Data for other mods.** The jar ships content that only the matching mod reads: an Apotheosis gem (`gems/stellar`)
   and affix (`affixes/constellation`), L2Artifacts stat types, a Truly Modular material made of Star Fragments and
-  Iron's Jewelry materials. The `astral` enchantment is plain vanilla data. All of them grant this mod's own
+  Iron's Jewelry materials. The `astral` enchantment is plain vanilla data. The Apotheosis gem and affix grant
+  Apothic's critical chance, critical damage and dodge, since Apotheosis always ships with Apothic Attributes; the gem's
+  model lives in `assets/apotheosis/models/item/gems`, the only place Apotheosis looks. The others grant this mod's own
   attributes directly, so they are not covered by the Apothic or Pufferfish redirection above. Apothic's attribute
   screen shows every attribute of this mod with a description.
 - **Boss constellations.** With the matching mod installed, 27 keystones stay hidden until the player earns the
@@ -248,7 +263,16 @@ An optional KubeJS integration ships (see below); packs and addons can build any
   (Frostmaw, Ferrous Wroughtnaut, Umvuthi), Block Factory's Bosses (Kraken, Sandworm, Underworld Knight), Born in Chaos
   (Spider Warlord, Pumpkin Lord) and Aquamirae (Shipbreaker). A class holds up to 100 keystones; beyond the
   first nine they sit in wider rows of the crown, and every keystone takes one of the class's node slots.
-- **World themes.** `skyborn` (Artificer, Aether), `frostborn` (Guardian, cold biomes), `dune_runner` (Marksman, deserts)
+- **Hidden Sky.** A keystone with `hidden_until` is never drawn by the procedural generator and takes no node slot of
+  its class. All of them sit in a fixed section far below the tree, one row per class in id order, so they are in the
+  same place in every world. They belong to a sector of their own, **Hidden Sky**, and hang from nothing: a hidden
+  keystone can be learned as soon as it is discovered, whatever the player owns of its class (this holds for any skill
+  with `hidden_until`, hand-written trees included). A file whose `requires_mod` is missing is dropped before the tree is built, so the section only holds
+  what the installed mods can unlock, and it does not exist at all when nothing qualifies. The **Hidden Sky** button
+  (bottom left, shown only when the section exists) flies the camera there and back; the section is drawn in dark
+  violet, undiscovered keystones show as dark silhouettes, and Fit frames only the main tree.
+- **World themes.** `twilit` (Duelist, Twilight Forest), `faewild` (Arcanist, biomes of `c:is_magical`) and
+  `otherworldly` (Artificer, Allthemodium's three dimensions) join `skyborn` (Artificer, Aether), `frostborn` (Guardian, cold biomes), `dune_runner` (Marksman, deserts)
   and `nether_forged` (Berserker, Nether) use `in_dimension` and `in_biome_tag` through the common tags `c:is_cold`,
   `c:is_desert` and `minecraft:is_nether`. `hearty_table` (Guardian, Farmer's Delight) fires Farmer's Delight's
   Comfort and Nourishment from triggers.
@@ -256,14 +280,100 @@ An optional KubeJS integration ships (see below); packs and addons can build any
   structures of `#nostalgiaskills:loot_structures` (vanilla, Moog's, Formations, Luki's and Aether Villages; Lootr uses
   the same loot tables), and 1% of a fragment per night catch with a fishing rod. Starcatcher gets a night-only epic
   catch (`starcatcher/fish/star_fragment`). Selling Bin is told the three items are worth 0, so they cannot be sold.
+- **Other pack mods.** FTB Ultimine's `ftbultimine:max_blocks_modifier` is a skill effect (`veinbreaker`).
+  Starcatcher's minigame attributes feed the `angler` theme. Tool Preservation now rolls
+  once per block, so it also protects the tool when FTB Ultimine breaks many blocks in one tick.
+- **Eating.** The `on_eat` trigger fires after any food or drink; Potion Duration lengthens the beneficial effects of
+  food and wine too (Farmer's Delight, Vinery), the food tooltip says by how much, and the `gourmet` theme (Arcanist)
+  builds on both.
+- **Jade.** Looking at a player shows their sign and skill points spent; looking at a Constellated monster lists its
+  bonuses. Everyone with the tree open gets "(looking at the stars: <class>)" beside their name tag, naming the class at the
+  centre of their view, with or without WATUT. Looking at a Stellar Condenser or a Community Basin shows the points
+  absorbed towards the next fragment or waiting to be donated; the tank and the output slot come from Jade itself.
+- **Sky events** (eclipse, star showers) and the `sky_event` condition only exist in the Overworld, so the Twilight
+  Forest, the Aether and the other dimensions keep their own skies.
 - **Tooltips.** Obscure Tooltips draws every item of this mod with a violet and gold frame (`tooltips/` in the assets).
-- **Item tags.** `#nostalgiaskills:firearms` (Scorched Guns tiers by default) is meant for `holding`. Truly Modular
-  weapons and tools are listed in the weapon, bow, crossbow and mining tool tags.
+  Simply Tooltips gives them its own `cosmic` theme (`assets/simplytooltips/item_themes/nostalgiaskills.json`).
+- **Item tags.** `#nostalgiaskills:firearms` (Scorched Guns tiers and the Meka-Gun by default) is meant for `holding`.
+  Truly Modular weapons and tools are listed in the weapon, bow, crossbow and mining tool tags; its modular armour
+  matches `wearing` through miapi's own tags (`#miapi:armor`, `#miapi:helmets`, `#miapi:chestplates`,
+  `#miapi:leggings`, `#miapi:boots`). Simply Swords follows its own tiers (light and medium weapons and the uniques
+  are light, heavy weapons are heavy), Simply Cataclysm's claymores, greataxes, greathammers, glaives, halberds and
+  scythes are heavy as well as light, and Mekanism Weapons' Meka-Tana and Meka-Bow are a light weapon and a bow. The
+  Meka-Gun's laser names no attacker, so its shots get no projectile bonus. Farmer's Delight knives are light
+  weapons. Three armour set tags ship for `wearing`, used by no bundled skill yet: `#nostalgiaskills:armor/aredrite`
+  (Oathbound Relics), `armor/terrible` and `armor/abyssal` (Aquamirae) and `armor/infinity` (Re-Avaritia).
+- **Machines and farms.** A Constellated monster killed by a damage type of `#nostalgiaskills:machine_damage` (LTX
+  Industries turrets, which hurt in their owner's name) drops no fragment. A monster that spawns on a block of
+  `#nostalgiaskills:counts_as_spawner` (Excessive Utilities' Cursed Earth) follows `eliteSpawnerMobs` like a spawner
+  mob. Fake players never fire `on_block_break`. Does Potato Tick stops block entities in the chunks it freezes, so a
+  Stellar Condenser or Community Basin there stops absorbing until the chunk ticks again.
 - **AttributeFix.** No conflict: it leaves the range of this mod's attributes untouched unless its own config says
   otherwise, and the caps in this mod's config only limit what the tree contributes.
-- **Entity type tags.** `#nostalgiaskills:never_constellated` keeps a monster from ever being Constellated (bosses).
-  `#nostalgiaskills:always_drops_fragment` makes every kill by a player drop a Star Fragment; if that mob can be
-  farmed, so can skill points. Both ship empty.
+- **Entity type tags.** `#nostalgiaskills:never_constellated` keeps a monster from ever being Constellated; it ships
+  with `#c:bosses`, the Wither, the Ender Dragon, the Warden and the Elder Guardian.
+  `#nostalgiaskills:first_kill_fragment` (same list plus Ice and Fire dragons and Aquamirae bosses) gives
+  `bossFragments` Star Fragments (2 by default) the first time each player kills each of those monsters, straight to
+  their inventory; the kill is remembered per player and survives death. `#nostalgiaskills:always_drops_fragment`
+  makes every kill by a player drop a Star Fragment; if that mob can be farmed, so can skill points. It ships empty.
+
+- **Hidden keys beyond advancements.** `hidden_until` also takes `nostalgiaskills:spell/<namespace>/<spell>` (the
+  player casts that Iron's spell), `nostalgiaskills:worn/<namespace>/<item>` (the player wears that item, as armour,
+  as a curio or as a charm inside a worn Pandora necklace or bracelet; `has_curio` sees those charms too) and `nostalgiaskills:kill/<namespace>/<entity>` (the player kills that creature; with L2Hostility,
+  `nostalgiaskills:kill/l2hostility/<trait>` is also revealed for every trait of the slain mob). Shipped: `void_whisper`
+  (Eldritch Blast), seven `stigma_of_*` keystones (one per Curse of Pandora curse, active only while the curse is
+  worn), `chaos_heart` (Draconic Evolution's Chaos Guardian), `undying_spite` (a mob with L2Hostility's Undying
+  trait) and over forty more gated on spells, bosses, artifacts, etchings, vestiges and runes of the pack's mods;
+  `docs/integracoes/compatibilidade.md` lists each one with its key.
+- **Boss boons.** Trigger actions beside `heal`, `self_effect` and `target_effect`: `raise_ally` (`entity`,
+  `duration_ticks`: a tamable creature rises where the trigger's target stood, tamed to the player, with Strength for
+  that long), `ignite_target` (`duration_ticks`), `gust` and `pull` (`amount` is the radius; enemies around are thrown back or
+  dragged in), `burst` (`amount` of blast damage around the target), `stacking_self_effect` (as `self_effect`, one level higher
+  each time up to `amplifier`), `blink_behind_target`, `launch_target` (`amount` is the upward speed), `smite_target` (a lightning bolt for
+  `amount` damage), `lunge` (the player is thrown where they look at `amount` speed), `chaos_target` (at random:
+  lightning, a launch, fire or a blast around the target), `area_effect` (a `target_effect` on every enemy within `amount` blocks), `web_target` (a
+  cobweb at the target's feet), `cheat_death` (`amount` is the health left) and, with Mowzie's Mobs, `sunstrike` (`amount` is the reach).
+  `on_kill` passes the victim as target; `nostalgiaskills:on_boon_key` fires when the player presses the Hidden Power
+  key (G by default) and `nostalgiaskills:on_fatal_blow` when damage would kill them. The condition `wet` holds in
+  water or rain, and a trigger may carry a `condition` of its own.
+- **Iron's keystones.** `blood_for_mana` (action `blood_for_mana`: when mana runs out, health becomes mana) and
+  `stellar_echo` (attribute `nostalgiaskills:spell_echo_chance`, the chance a spell skips its cooldown).
+- **Occultism.** The ritual `recipe/occultism/summon_constellated.json` runs `/nostalgiaskills constellate`, which
+  summons a monster of `#nostalgiaskills:ritual_constellated` already Constellated. Sneak-using an Orb of
+  Reconfiguration on your own familiar swaps your build with the one it keeps (`familiarSwapCooldownSeconds`).
+- **Borrowed keystones.** Apotheosis affixes named `<namespace>:keystone/<path>` lend the keystone
+  `<namespace>:<path>` while the item is equipped; 22 mythic affixes ship, four of them only with Curios or Iron's Spellbooks installed
+  (`neoforge:conditions`). For a player who already learned it the lent
+  keystone counts as one rank past the limit (shown as 2/1) and its effects apply twice; several items with the same
+  affix still lend a single rank.
+- **Other elite systems, continued.** A Constellated monster learns one more skill per `l2hostilityLevelsPerNode`
+  L2Hostility levels, attacks faster in Better Mob Combat Reimagined, and shows a boss bar (`eliteBossBar`) that
+  Enhanced Boss Bars draws with this mod's frame. Champions (Unofficial) gets a real affix, `nostalgiaskills:astral`:
+  each hit silences the newest skill of the player for a while. A copy of a Constellated monster (Industrial
+  Foregoing's Mob Duplicator) loses the status.
+- **Experience.** Relics share `relicXpShare` of their experience with the bearer. Enigmatic Legacy+'s XP Scroll and
+  Scroll of Ignorance Curse, Reliquary's Hero's Medallion, Forbidden Arcanus' Xpetrified Orb (whole orbs are broken
+  and the change comes back as experience) and
+  any carried tank of a `#c:experience` fluid (`liquidXpMbPerPoint`) count towards buying points: the player's own
+  experience is spent first. The Ring of the Seven Curses lends `cursedRingPoints` points while worn.
+- **Items and blocks.** Living Fragment (grows with the experience you collect, then worth 2 points), Stellar Ammo
+  (Scorched Guns: empowers the next gunshots), Stellar Condenser (liquid experience in, Star Fragments out; this
+  automates points, `condenserXpPerFragment = 0` disables it), Community Basin (liquid experience to the shared
+  constellation) and Telescope (at night under open sky it opens the tree over the real sky). With Create, the orb
+  and Stellar Ammo also have Sequenced Assembly recipes (`recipe/create/`).
+- **Bosses and pets.** Every player who damaged a `#nostalgiaskills:first_kill_fragment` monster gets its first-kill
+  fragments. Tamed creatures of `#nostalgiaskills:inherits_tree` (Ice and Fire dragons, Companions) receive
+  `petTreeShare` of their owner's tree bonuses. The condition `target_type` (`tag`, an entity type tag) and the theme
+  `dragon_slayer` add damage against `#nostalgiaskills:dragons`; dragon scales craft the orb.
+- **Small ones.** `essence_tender` (Mystical Agriculture, attribute `nostalgiaskills:harvest_bonus`); a second birth
+  sign while `lastLifeObjective` says the player is on their last life (or `/nostalgiaskills extrasign`); gestures
+  with playerAnimator when a keystone is learned, the orb is used or a falling star appears over a player under open
+  sky; a Supplementaries globe named "Celestial" shows
+  the sky events.
+
+None of the integrations in this second list has been run with its partner mod installed. Each was written against
+the classes, ids and data formats of the partner's jar (or source), compiles, and switches itself off with one
+warning if the installed version differs; `docs/integracoes/M-medio.md` says, item by item, what was checked.
 
 ### KubeJS
 
@@ -278,7 +388,8 @@ the mod keeps working.
   `pointsReturned`), `skyEventChanged` (`server`, `before`, `now` as `none`, `eclipse` or `star_shower`),
   `starLanded` (`level`, `fragment`) and `eliteSpawned` (`monster`).
 - **Binding** (`NostalgiaSkills`, server scripts): `hasNode(player, nodeId)`, `learnedNodes(player)`,
-  `availablePoints(player)`, `sign(player)` (`null` before a sign is assigned), `skyEvent()` and
+  `availablePoints(player)`, `sign(player)` (`null` before a sign is assigned), `hasExtraSign(player)`,
+  `setExtraSign(player, granted)`, `skyEvent()`, `isConstellated(entity)` (for LootJS entity predicates) and
   `fireTrigger(player, trigger[, target])`, which runs every owned skill listening to that namespaced trigger.
 - **Changing a build** from a script goes through the admin commands, e.g.
   `server.runCommandSilent('nostalgiaskills unlock ' + player.username + ' nostalgiaskills:some_node')`, so the
