@@ -1,0 +1,28 @@
+{
+  "class": "nostalgiaskills:guardian",
+  "requires_mod": "vp",
+  "hidden_until": "nostalgiaskills:worn/vp/atlas",
+  "name": "skill.nostalgiaskills.guardian.atlas_burden.name",
+  "text": "skill.nostalgiaskills.guardian.atlas_burden.text",
+  "icon": "nostalgiaskills:textures/skill_icons/pillar.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.knockback_resistance",
+      "operation": "add_value",
+      "amount": 0.3
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.armor",
+      "operation": "add_value",
+      "amount": 3
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.movement_speed",
+      "operation": "add_multiplied_base",
+      "amount": -0.05
+    }
+  ]
+}

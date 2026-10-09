@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:mage",
+  "requires_mod": "irons_spellbooks",
+  "hidden_until": "nostalgiaskills:kill/irons_spellbooks/dead_king",
+  "name": "skill.nostalgiaskills.mage.kings_decree.name",
+  "text": "skill.nostalgiaskills.mage.kings_decree.text",
+  "icon": "nostalgiaskills:textures/skill_icons/soul.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "irons_spellbooks:summon_damage",
+      "operation": "add_multiplied_base",
+      "amount": 0.3
+    },
+    {
+      "type": "attribute",
+      "attribute": "irons_spellbooks:blood_spell_power",
+      "operation": "add_multiplied_base",
+      "amount": 0.1
+    }
+  ]
+}

@@ -2,21 +2,19 @@
   "class": "nostalgiaskills:artificer",
   "requires_mod": "block_factorys_bosses",
   "hidden_until": "block_factorys_bosses:kill_kraken",
+  "toggleable": true,
   "name": "skill.nostalgiaskills.artificer.kraken_tide.name",
   "text": "skill.nostalgiaskills.artificer.kraken_tide.text",
   "icon": "nostalgiaskills:textures/skill_icons/wave.png",
   "effects": [
     {
-      "type": "attribute",
-      "attribute": "minecraft:player.submerged_mining_speed",
-      "operation": "add_multiplied_base",
-      "amount": 0.5
-    },
-    {
-      "type": "attribute",
-      "attribute": "minecraft:generic.oxygen_bonus",
-      "operation": "add_value",
-      "amount": 3
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 200,
+      "action": {
+        "type": "pull",
+        "amount": 8
+      }
     }
   ]
 }

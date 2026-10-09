@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:duelist",
+  "requires_mod": "twilightforest",
+  "hidden_until": "nostalgiaskills:kill/twilightforest/alpha_yeti",
+  "toggleable": true,
+  "name": "skill.nostalgiaskills.duelist.alpha_grip.name",
+  "text": "skill.nostalgiaskills.duelist.alpha_grip.text",
+  "icon": "nostalgiaskills:textures/skill_icons/grip_light.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 160,
+      "action": {
+        "type": "target_effect",
+        "effect": "minecraft:slowness",
+        "duration_ticks": 60,
+        "amplifier": 3
+      }
+    }
+  ]
+}

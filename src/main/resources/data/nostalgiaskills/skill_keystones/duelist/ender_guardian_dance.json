@@ -2,21 +2,18 @@
   "class": "nostalgiaskills:duelist",
   "requires_mod": "cataclysm",
   "hidden_until": "cataclysm:kill_ender_guardian",
+  "toggleable": true,
   "name": "skill.nostalgiaskills.duelist.ender_guardian_dance.name",
   "text": "skill.nostalgiaskills.duelist.ender_guardian_dance.text",
   "icon": "nostalgiaskills:textures/skill_icons/dodge.png",
   "effects": [
     {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:dodge_chance",
-      "operation": "add_value",
-      "amount": 0.05
-    },
-    {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:crit_damage",
-      "operation": "add_value",
-      "amount": 0.15
+      "type": "trigger",
+      "trigger": "on_hurt",
+      "cooldown_ticks": 240,
+      "action": {
+        "type": "blink_behind_target"
+      }
     }
   ]
 }

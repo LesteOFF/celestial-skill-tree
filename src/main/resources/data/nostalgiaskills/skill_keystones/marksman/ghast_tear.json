@@ -7,16 +7,15 @@
   "icon": "nostalgiaskills:textures/skill_icons/bomb.png",
   "effects": [
     {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:projectile_damage",
-      "operation": "add_value",
-      "amount": 0.15
-    },
-    {
-      "type": "damage_modifier",
-      "direction": "dealt",
-      "scope": "fire",
-      "amount": 0.1
+      "type": "trigger",
+      "trigger": "on_projectile_kill",
+      "cooldown_ticks": 0,
+      "action": {
+        "type": "self_effect",
+        "effect": "minecraft:regeneration",
+        "duration_ticks": 100,
+        "amplifier": 1
+      }
     }
   ]
 }

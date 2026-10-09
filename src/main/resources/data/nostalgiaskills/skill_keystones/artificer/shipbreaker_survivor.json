@@ -7,16 +7,13 @@
   "icon": "nostalgiaskills:textures/skill_icons/keystone_wayfinder.png",
   "effects": [
     {
-      "type": "attribute",
-      "attribute": "minecraft:generic.max_health",
-      "operation": "add_value",
-      "amount": 4
-    },
-    {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:tool_preservation",
-      "operation": "add_value",
-      "amount": 0.1
+      "type": "trigger",
+      "trigger": "nostalgiaskills:on_fatal_blow",
+      "cooldown_ticks": 6000,
+      "action": {
+        "type": "cheat_death",
+        "amount": 2
+      }
     }
   ]
 }

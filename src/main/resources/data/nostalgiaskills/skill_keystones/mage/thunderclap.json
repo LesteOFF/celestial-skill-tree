@@ -1,0 +1,20 @@
+{
+  "class": "nostalgiaskills:mage",
+  "requires_mod": "irons_spellbooks",
+  "hidden_until": "nostalgiaskills:spell/irons_spellbooks/sonic_boom",
+  "toggleable": true,
+  "name": "skill.nostalgiaskills.mage.thunderclap.name",
+  "text": "skill.nostalgiaskills.mage.thunderclap.text",
+  "icon": "nostalgiaskills:textures/skill_icons/echo.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "nostalgiaskills:on_spell_cast",
+      "cooldown_ticks": 200,
+      "action": {
+        "type": "gust",
+        "amount": 6
+      }
+    }
+  ]
+}

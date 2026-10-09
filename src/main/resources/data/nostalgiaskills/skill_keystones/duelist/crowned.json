@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:duelist",
+  "requires_mod": "vp",
+  "hidden_until": "nostalgiaskills:worn/vp/crown",
+  "name": "skill.nostalgiaskills.duelist.crowned.name",
+  "text": "skill.nostalgiaskills.duelist.crowned.text",
+  "icon": "nostalgiaskills:textures/skill_icons/halo.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.attack_damage",
+      "operation": "add_value",
+      "amount": 1
+    },
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:crit_chance",
+      "operation": "add_value",
+      "amount": 0.04
+    }
+  ]
+}

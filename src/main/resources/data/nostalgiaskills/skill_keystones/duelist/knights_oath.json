@@ -7,16 +7,14 @@
   "icon": "nostalgiaskills:textures/skill_icons/parry.png",
   "effects": [
     {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:damage_reduction",
-      "operation": "add_value",
-      "amount": 0.04
-    },
-    {
-      "type": "attribute",
-      "attribute": "minecraft:generic.attack_damage",
-      "operation": "add_multiplied_total",
-      "amount": 0.05
+      "type": "damage_modifier",
+      "direction": "dealt",
+      "scope": "all",
+      "amount": 0.5,
+      "condition": {
+        "type": "target_health_above",
+        "fraction": 0.99
+      }
     }
   ]
 }

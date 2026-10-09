@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:duelist",
+  "requires_mod": "celestial_artifacts",
+  "hidden_until": "nostalgiaskills:worn/celestial_artifacts/origin_etching",
+  "name": "skill.nostalgiaskills.duelist.mark_of_origin.name",
+  "text": "skill.nostalgiaskills.duelist.mark_of_origin.text",
+  "icon": "nostalgiaskills:textures/skill_icons/attack_speed.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.attack_speed",
+      "operation": "add_multiplied_base",
+      "amount": 0.1
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.movement_speed",
+      "operation": "add_multiplied_base",
+      "amount": 0.05
+    }
+  ]
+}

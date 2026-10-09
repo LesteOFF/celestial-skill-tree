@@ -8,15 +8,21 @@
   "effects": [
     {
       "type": "attribute",
-      "attribute": "minecraft:generic.attack_speed",
-      "operation": "add_multiplied_base",
-      "amount": 0.1
+      "attribute": "minecraft:player.entity_interaction_range",
+      "operation": "add_value",
+      "amount": 2
     },
     {
       "type": "attribute",
-      "attribute": "nostalgiaskills:dodge_chance",
+      "attribute": "minecraft:player.block_interaction_range",
       "operation": "add_value",
-      "amount": 0.06
+      "amount": 2
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.fall_damage_multiplier",
+      "operation": "add_value",
+      "amount": -1
     }
   ]
 }

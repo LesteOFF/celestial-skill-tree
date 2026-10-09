@@ -1,0 +1,26 @@
+{
+  "class": "nostalgiaskills:berserker",
+  "requires_mod": "block_factorys_bosses",
+  "hidden_until": "nostalgiaskills:kill/block_factorys_bosses/infernal_dragon",
+  "toggleable": true,
+  "name": "skill.nostalgiaskills.berserker.infernal_breath.name",
+  "text": "skill.nostalgiaskills.berserker.infernal_breath.text",
+  "icon": "nostalgiaskills:textures/skill_icons/fire.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 160,
+      "action": {
+        "type": "ignite_target",
+        "duration_ticks": 160
+      }
+    },
+    {
+      "type": "damage_modifier",
+      "direction": "taken",
+      "scope": "fire",
+      "amount": -0.5
+    }
+  ]
+}

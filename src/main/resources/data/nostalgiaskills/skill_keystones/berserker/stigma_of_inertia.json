@@ -1,0 +1,29 @@
+{
+  "class": "nostalgiaskills:berserker",
+  "requires_mod": [
+    "curseofpandora",
+    "curios"
+  ],
+  "hidden_until": "nostalgiaskills:worn/curseofpandora/curse_of_inertia",
+  "toggleable": true,
+  "name": "skill.nostalgiaskills.berserker.stigma_of_inertia.name",
+  "text": "skill.nostalgiaskills.berserker.stigma_of_inertia.text",
+  "icon": "nostalgiaskills:textures/skill_icons/heavy_weapon.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 200,
+      "action": {
+        "type": "target_effect",
+        "effect": "l2complements:incarceration",
+        "duration_ticks": 40,
+        "amplifier": 0
+      },
+      "condition": {
+        "type": "has_curio",
+        "tag": "nostalgiaskills:curse/inertia"
+      }
+    }
+  ]
+}

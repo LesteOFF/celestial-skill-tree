@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:guardian",
+  "requires_mod": "artifacts",
+  "hidden_until": "nostalgiaskills:worn/artifacts/crystal_heart",
+  "name": "skill.nostalgiaskills.guardian.crystal_resolve.name",
+  "text": "skill.nostalgiaskills.guardian.crystal_resolve.text",
+  "icon": "nostalgiaskills:textures/skill_icons/big_heart.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.max_health",
+      "operation": "add_value",
+      "amount": 4
+    },
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:damage_reduction",
+      "operation": "add_value",
+      "amount": 0.05
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "class": "nostalgiaskills:artificer",
+  "requires_mod": "celestial_artifacts",
+  "hidden_until": "nostalgiaskills:worn/celestial_artifacts/desire_etching",
+  "name": "skill.nostalgiaskills.artificer.mark_of_desire.name",
+  "text": "skill.nostalgiaskills.artificer.mark_of_desire.text",
+  "icon": "nostalgiaskills:textures/skill_icons/dice.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.luck",
+      "operation": "add_value",
+      "amount": 2
+    }
+  ]
+}

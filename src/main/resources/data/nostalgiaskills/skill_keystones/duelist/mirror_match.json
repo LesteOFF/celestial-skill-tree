@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:duelist",
+  "requires_mod": "darkdoppelganger",
+  "hidden_until": "darkdoppelganger:kill",
+  "name": "skill.nostalgiaskills.duelist.mirror_match.name",
+  "text": "skill.nostalgiaskills.duelist.mirror_match.text",
+  "icon": "nostalgiaskills:textures/skill_icons/reflex.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:dodge_chance",
+      "operation": "add_value",
+      "amount": 0.08
+    },
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:crit_chance",
+      "operation": "add_value",
+      "amount": 0.05
+    }
+  ]
+}

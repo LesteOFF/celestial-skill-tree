@@ -1,0 +1,21 @@
+{
+  "class": "nostalgiaskills:mage",
+  "requires_mod": "irons_spellbooks",
+  "hidden_until": "nostalgiaskills:spell/irons_spellbooks/eldritch_blast",
+  "name": "skill.nostalgiaskills.mage.void_whisper.name",
+  "text": "skill.nostalgiaskills.mage.void_whisper.text",
+  "icon": "nostalgiaskills:textures/skill_icons/school_eldritch.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "nostalgiaskills:on_spell_cast",
+      "cooldown_ticks": 240,
+      "action": {
+        "type": "self_effect",
+        "effect": "irons_spellbooks:abyssal_shroud",
+        "duration_ticks": 40,
+        "amplifier": 0
+      }
+    }
+  ]
+}

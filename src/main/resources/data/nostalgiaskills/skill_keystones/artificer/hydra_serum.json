@@ -7,16 +7,24 @@
   "icon": "nostalgiaskills:textures/skill_icons/antidote.png",
   "effects": [
     {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:potion_duration",
-      "operation": "add_value",
-      "amount": 0.25
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 100,
+      "action": {
+        "type": "target_effect",
+        "effect": "minecraft:poison",
+        "duration_ticks": 100,
+        "amplifier": 1
+      }
     },
     {
-      "type": "attribute",
-      "attribute": "minecraft:generic.luck",
-      "operation": "add_value",
-      "amount": 1
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 100,
+      "action": {
+        "type": "heal",
+        "amount": 2
+      }
     }
   ]
 }

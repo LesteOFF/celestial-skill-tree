@@ -1,0 +1,30 @@
+{
+  "class": "nostalgiaskills:duelist",
+  "requires_mod": [
+    "curseofpandora",
+    "curios"
+  ],
+  "hidden_until": "nostalgiaskills:worn/curseofpandora/curse_of_tension",
+  "toggleable": true,
+  "name": "skill.nostalgiaskills.duelist.stigma_of_tension.name",
+  "text": "skill.nostalgiaskills.duelist.stigma_of_tension.text",
+  "icon": "nostalgiaskills:textures/skill_icons/risk.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 200,
+      "action": {
+        "type": "area_effect",
+        "effect": "minecraft:weakness",
+        "duration_ticks": 80,
+        "amplifier": 1,
+        "amount": 5
+      },
+      "condition": {
+        "type": "has_curio",
+        "tag": "nostalgiaskills:curse/tension"
+      }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "class": "nostalgiaskills:marksman",
+  "requires_mod": "mowziesmobs",
+  "hidden_until": "nostalgiaskills:kill/mowziesmobs/naga",
+  "name": "skill.nostalgiaskills.marksman.naga_spit.name",
+  "text": "skill.nostalgiaskills.marksman.naga_spit.text",
+  "icon": "nostalgiaskills:textures/skill_icons/antidote.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_full_charge_hit",
+      "cooldown_ticks": 100,
+      "action": {
+        "type": "target_effect",
+        "effect": "minecraft:poison",
+        "duration_ticks": 100,
+        "amplifier": 1
+      }
+    }
+  ]
+}

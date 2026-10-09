@@ -1,0 +1,20 @@
+{
+  "class": "nostalgiaskills:arcanist",
+  "requires_mod": "born_in_chaos_v1",
+  "hidden_until": "nostalgiaskills:kill/born_in_chaos_v1/lifestealer_true_form",
+  "toggleable": true,
+  "name": "skill.nostalgiaskills.arcanist.stolen_breath.name",
+  "text": "skill.nostalgiaskills.arcanist.stolen_breath.text",
+  "icon": "nostalgiaskills:textures/skill_icons/healing.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_kill",
+      "cooldown_ticks": 40,
+      "action": {
+        "type": "heal",
+        "amount": 2
+      }
+    }
+  ]
+}

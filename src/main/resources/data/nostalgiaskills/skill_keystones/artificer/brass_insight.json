@@ -2,21 +2,19 @@
   "class": "nostalgiaskills:artificer",
   "requires_mod": "deep_aether",
   "hidden_until": "deep_aether:brass_dungeon",
+  "toggleable": true,
   "name": "skill.nostalgiaskills.artificer.brass_insight.name",
   "text": "skill.nostalgiaskills.artificer.brass_insight.text",
   "icon": "nostalgiaskills:textures/skill_icons/tools.png",
   "effects": [
     {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:mining_speed",
-      "operation": "add_value",
-      "amount": 0.2
-    },
-    {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:tool_preservation",
-      "operation": "add_value",
-      "amount": 0.15
+      "type": "trigger",
+      "trigger": "on_hurt",
+      "cooldown_ticks": 160,
+      "action": {
+        "type": "gust",
+        "amount": 6
+      }
     }
   ]
 }

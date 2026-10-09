@@ -2,21 +2,21 @@
   "class": "nostalgiaskills:berserker",
   "requires_mod": "iceandfire",
   "hidden_until": "iceandfire:iceandfire/kill_if_dragon",
+  "toggleable": true,
   "name": "skill.nostalgiaskills.berserker.dragonbane.name",
   "text": "skill.nostalgiaskills.berserker.dragonbane.text",
   "icon": "nostalgiaskills:textures/skill_icons/keystone_juggernaut.png",
   "effects": [
     {
-      "type": "attribute",
-      "attribute": "minecraft:generic.attack_damage",
-      "operation": "add_multiplied_total",
-      "amount": 0.1
-    },
-    {
-      "type": "attribute",
-      "attribute": "minecraft:generic.armor",
-      "operation": "add_value",
-      "amount": 3
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 300,
+      "action": {
+        "type": "target_effect",
+        "effect": "iceandfire:frozen",
+        "duration_ticks": 60,
+        "amplifier": 0
+      }
     }
   ]
 }

@@ -7,16 +7,22 @@
   "icon": "nostalgiaskills:textures/skill_icons/plate.png",
   "effects": [
     {
-      "type": "attribute",
-      "attribute": "minecraft:generic.armor",
-      "operation": "add_multiplied_total",
-      "amount": 0.1
+      "type": "damage_modifier",
+      "direction": "dealt",
+      "scope": "melee",
+      "amount": 0.3,
+      "condition": {
+        "type": "sprinting"
+      }
     },
     {
-      "type": "attribute",
-      "attribute": "minecraft:generic.max_health",
+      "type": "conditional_attribute",
+      "attribute": "minecraft:generic.attack_knockback",
       "operation": "add_value",
-      "amount": 4
+      "amount": 2.0,
+      "condition": {
+        "type": "sprinting"
+      }
     }
   ]
 }

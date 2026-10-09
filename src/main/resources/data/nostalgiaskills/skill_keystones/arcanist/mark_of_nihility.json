@@ -1,0 +1,16 @@
+{
+  "class": "nostalgiaskills:arcanist",
+  "requires_mod": "celestial_artifacts",
+  "hidden_until": "nostalgiaskills:worn/celestial_artifacts/nihility_etching",
+  "name": "skill.nostalgiaskills.arcanist.mark_of_nihility.name",
+  "text": "skill.nostalgiaskills.arcanist.mark_of_nihility.text",
+  "icon": "nostalgiaskills:textures/skill_icons/rune_shield.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:magic_resistance",
+      "operation": "add_value",
+      "amount": 0.2
+    }
+  ]
+}

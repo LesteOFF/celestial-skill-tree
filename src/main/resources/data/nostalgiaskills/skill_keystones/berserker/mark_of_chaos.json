@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:berserker",
+  "requires_mod": "celestial_artifacts",
+  "hidden_until": "nostalgiaskills:worn/celestial_artifacts/chaotic_etching",
+  "name": "skill.nostalgiaskills.berserker.mark_of_chaos.name",
+  "text": "skill.nostalgiaskills.berserker.mark_of_chaos.text",
+  "icon": "nostalgiaskills:textures/skill_icons/risk.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:crit_damage",
+      "operation": "add_value",
+      "amount": 0.3
+    },
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:damage_reduction",
+      "operation": "add_value",
+      "amount": -0.1
+    }
+  ]
+}

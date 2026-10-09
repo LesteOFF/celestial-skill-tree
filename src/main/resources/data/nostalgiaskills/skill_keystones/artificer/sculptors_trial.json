@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:artificer",
+  "requires_mod": "mowziesmobs",
+  "hidden_until": "nostalgiaskills:kill/mowziesmobs/sculptor",
+  "name": "skill.nostalgiaskills.artificer.sculptors_trial.name",
+  "text": "skill.nostalgiaskills.artificer.sculptors_trial.text",
+  "icon": "nostalgiaskills:textures/skill_icons/stairs.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.step_height",
+      "operation": "add_value",
+      "amount": 0.5
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.safe_fall_distance",
+      "operation": "add_value",
+      "amount": 5
+    }
+  ]
+}

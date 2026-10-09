@@ -1,0 +1,21 @@
+{
+  "class": "nostalgiaskills:arcanist",
+  "requires_mod": "iceandfire",
+  "hidden_until": "nostalgiaskills:kill/iceandfire/dread_lich",
+  "name": "skill.nostalgiaskills.arcanist.dread_harvest.name",
+  "text": "skill.nostalgiaskills.arcanist.dread_harvest.text",
+  "icon": "nostalgiaskills:textures/skill_icons/soul.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_kill",
+      "cooldown_ticks": 100,
+      "action": {
+        "type": "self_effect",
+        "effect": "minecraft:absorption",
+        "duration_ticks": 200,
+        "amplifier": 1
+      }
+    }
+  ]
+}

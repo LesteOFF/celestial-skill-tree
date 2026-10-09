@@ -7,16 +7,26 @@
   "icon": "nostalgiaskills:textures/skill_icons/insight.png",
   "effects": [
     {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:long_range_damage",
-      "operation": "add_value",
-      "amount": 0.15
+      "type": "trigger",
+      "trigger": "on_full_charge_hit",
+      "cooldown_ticks": 0,
+      "action": {
+        "type": "target_effect",
+        "effect": "minecraft:glowing",
+        "duration_ticks": 200,
+        "amplifier": 0
+      }
     },
     {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:crossbow_damage",
-      "operation": "add_value",
-      "amount": 0.1
+      "type": "trigger",
+      "trigger": "on_full_charge_hit",
+      "cooldown_ticks": 0,
+      "action": {
+        "type": "target_effect",
+        "effect": "minecraft:wither",
+        "duration_ticks": 120,
+        "amplifier": 1
+      }
     }
   ]
 }

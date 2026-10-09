@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:guardian",
+  "requires_mod": "celestial_artifacts",
+  "hidden_until": "nostalgiaskills:worn/celestial_artifacts/life_etching",
+  "name": "skill.nostalgiaskills.guardian.mark_of_life.name",
+  "text": "skill.nostalgiaskills.guardian.mark_of_life.text",
+  "icon": "nostalgiaskills:textures/skill_icons/heart_plus.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.max_health",
+      "operation": "add_value",
+      "amount": 6
+    },
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:healing_received",
+      "operation": "add_value",
+      "amount": 0.15
+    }
+  ]
+}

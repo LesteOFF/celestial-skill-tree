@@ -2,21 +2,21 @@
   "class": "nostalgiaskills:arcanist",
   "requires_mod": "cataclysm",
   "hidden_until": "cataclysm:kill_maledictus",
+  "toggleable": true,
   "name": "skill.nostalgiaskills.arcanist.maledictus_hex.name",
   "text": "skill.nostalgiaskills.arcanist.maledictus_hex.text",
   "icon": "nostalgiaskills:textures/skill_icons/soul.png",
   "effects": [
     {
-      "type": "damage_modifier",
-      "direction": "dealt",
-      "scope": "magic",
-      "amount": 0.15
-    },
-    {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:lifesteal",
-      "operation": "add_value",
-      "amount": 0.02
+      "type": "trigger",
+      "trigger": "on_low_health",
+      "cooldown_ticks": 3600,
+      "action": {
+        "type": "self_effect",
+        "effect": "cataclysm:ghost_form",
+        "duration_ticks": 80,
+        "amplifier": 0
+      }
     }
   ]
 }

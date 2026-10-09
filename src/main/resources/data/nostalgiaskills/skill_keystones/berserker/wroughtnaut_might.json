@@ -7,16 +7,22 @@
   "icon": "nostalgiaskills:textures/skill_icons/heavy_weapon.png",
   "effects": [
     {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:heavy_weapon_damage",
-      "operation": "add_value",
-      "amount": 0.15
+      "type": "damage_modifier",
+      "direction": "taken",
+      "scope": "melee",
+      "amount": -0.6,
+      "condition": {
+        "type": "sneaking"
+      }
     },
     {
-      "type": "attribute",
+      "type": "conditional_attribute",
       "attribute": "minecraft:generic.knockback_resistance",
       "operation": "add_value",
-      "amount": 0.25
+      "amount": 1.0,
+      "condition": {
+        "type": "sneaking"
+      }
     }
   ]
 }

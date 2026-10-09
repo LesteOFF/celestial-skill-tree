@@ -7,16 +7,14 @@
   "icon": "nostalgiaskills:textures/skill_icons/keystone_bastion.png",
   "effects": [
     {
-      "type": "attribute",
-      "attribute": "minecraft:generic.armor_toughness",
+      "type": "conditional_attribute",
+      "attribute": "minecraft:generic.attack_damage",
       "operation": "add_value",
-      "amount": 2
-    },
-    {
-      "type": "attribute",
-      "attribute": "minecraft:generic.knockback_resistance",
-      "operation": "add_value",
-      "amount": 0.3
+      "amount": 6.0,
+      "condition": {
+        "type": "holding",
+        "tag": "minecraft:pickaxes"
+      }
     }
   ]
 }

@@ -1,0 +1,21 @@
+{
+  "class": "nostalgiaskills:duelist",
+  "requires_mod": "block_factorys_bosses",
+  "hidden_until": "nostalgiaskills:kill/block_factorys_bosses/pirate_captain",
+  "name": "skill.nostalgiaskills.duelist.captains_flourish.name",
+  "text": "skill.nostalgiaskills.duelist.captains_flourish.text",
+  "icon": "nostalgiaskills:textures/skill_icons/dodge.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_dodge",
+      "cooldown_ticks": 100,
+      "action": {
+        "type": "self_effect",
+        "effect": "minecraft:speed",
+        "duration_ticks": 60,
+        "amplifier": 1
+      }
+    }
+  ]
+}

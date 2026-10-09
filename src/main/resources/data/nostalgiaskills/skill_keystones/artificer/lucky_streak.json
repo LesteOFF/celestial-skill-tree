@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:artificer",
+  "requires_mod": "artifacts",
+  "hidden_until": "nostalgiaskills:worn/artifacts/lucky_scarf",
+  "name": "skill.nostalgiaskills.artificer.lucky_streak.name",
+  "text": "skill.nostalgiaskills.artificer.lucky_streak.text",
+  "icon": "nostalgiaskills:textures/skill_icons/luck.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.luck",
+      "operation": "add_value",
+      "amount": 1
+    },
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:tool_preservation",
+      "operation": "add_value",
+      "amount": 0.1
+    }
+  ]
+}

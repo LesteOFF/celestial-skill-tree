@@ -2,21 +2,22 @@
   "class": "nostalgiaskills:guardian",
   "requires_mod": "cataclysm",
   "hidden_until": "cataclysm:kill_leviathan",
+  "toggleable": true,
   "name": "skill.nostalgiaskills.guardian.leviathan_hide.name",
   "text": "skill.nostalgiaskills.guardian.leviathan_hide.text",
   "icon": "nostalgiaskills:textures/skill_icons/health.png",
   "effects": [
     {
-      "type": "attribute",
-      "attribute": "minecraft:generic.max_health",
-      "operation": "add_multiplied_base",
-      "amount": 0.08
-    },
-    {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:damage_reduction",
-      "operation": "add_value",
-      "amount": 0.04
+      "type": "trigger",
+      "trigger": "on_hurt",
+      "cooldown_ticks": 200,
+      "action": {
+        "type": "area_effect",
+        "effect": "cataclysm:abyssal_burn",
+        "duration_ticks": 100,
+        "amplifier": 0,
+        "amount": 5
+      }
     }
   ]
 }

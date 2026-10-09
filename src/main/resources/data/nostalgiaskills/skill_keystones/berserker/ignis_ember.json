@@ -2,21 +2,30 @@
   "class": "nostalgiaskills:berserker",
   "requires_mod": "cataclysm",
   "hidden_until": "cataclysm:kill_ignis",
+  "toggleable": true,
   "name": "skill.nostalgiaskills.berserker.ignis_ember.name",
   "text": "skill.nostalgiaskills.berserker.ignis_ember.text",
   "icon": "nostalgiaskills:textures/skill_icons/fire.png",
   "effects": [
     {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:heavy_weapon_damage",
-      "operation": "add_value",
-      "amount": 0.12
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 0,
+      "action": {
+        "type": "target_effect",
+        "effect": "cataclysm:blazing_brand",
+        "duration_ticks": 200,
+        "amplifier": 0
+      }
     },
     {
-      "type": "damage_modifier",
-      "direction": "dealt",
-      "scope": "fire",
-      "amount": 0.15
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 0,
+      "action": {
+        "type": "ignite_target",
+        "duration_ticks": 100
+      }
     }
   ]
 }

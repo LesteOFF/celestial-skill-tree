@@ -1,0 +1,27 @@
+{
+  "class": "nostalgiaskills:marksman",
+  "requires_mod": [
+    "curseofpandora",
+    "curios"
+  ],
+  "hidden_until": "nostalgiaskills:worn/curseofpandora/curse_of_prudence",
+  "toggleable": true,
+  "name": "skill.nostalgiaskills.marksman.stigma_of_prudence.name",
+  "text": "skill.nostalgiaskills.marksman.stigma_of_prudence.text",
+  "icon": "nostalgiaskills:textures/skill_icons/range.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_full_charge_hit",
+      "cooldown_ticks": 100,
+      "action": {
+        "type": "burst",
+        "amount": 6
+      },
+      "condition": {
+        "type": "has_curio",
+        "tag": "nostalgiaskills:curse/prudence"
+      }
+    }
+  ]
+}

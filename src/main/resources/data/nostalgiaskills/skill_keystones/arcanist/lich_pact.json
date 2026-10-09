@@ -2,21 +2,20 @@
   "class": "nostalgiaskills:arcanist",
   "requires_mod": "twilightforest",
   "hidden_until": "twilightforest:progress_lich",
+  "toggleable": true,
   "name": "skill.nostalgiaskills.arcanist.lich_pact.name",
   "text": "skill.nostalgiaskills.arcanist.lich_pact.text",
   "icon": "nostalgiaskills:textures/skill_icons/rune_shield.png",
   "effects": [
     {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:potion_duration",
-      "operation": "add_value",
-      "amount": 0.35
-    },
-    {
-      "type": "damage_modifier",
-      "direction": "dealt",
-      "scope": "magic",
-      "amount": 0.1
+      "type": "trigger",
+      "trigger": "nostalgiaskills:on_boon_key",
+      "cooldown_ticks": 400,
+      "action": {
+        "type": "raise_ally",
+        "entity": "twilightforest:loyal_zombie",
+        "duration_ticks": 600
+      }
     }
   ]
 }

@@ -2,21 +2,22 @@
   "class": "nostalgiaskills:guardian",
   "requires_mod": "mowziesmobs",
   "hidden_until": "mowziesmobs:kill_frostmaw",
+  "toggleable": true,
   "name": "skill.nostalgiaskills.guardian.frostmaw_chill.name",
   "text": "skill.nostalgiaskills.guardian.frostmaw_chill.text",
   "icon": "nostalgiaskills:textures/skill_icons/school_ice_ward.png",
   "effects": [
     {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:damage_reduction",
-      "operation": "add_value",
-      "amount": 0.05
-    },
-    {
-      "type": "attribute",
-      "attribute": "minecraft:generic.armor",
-      "operation": "add_value",
-      "amount": 3
+      "type": "trigger",
+      "trigger": "nostalgiaskills:on_boon_key",
+      "cooldown_ticks": 600,
+      "action": {
+        "type": "area_effect",
+        "effect": "mowziesmobs:frozen",
+        "duration_ticks": 60,
+        "amplifier": 0,
+        "amount": 6
+      }
     }
   ]
 }

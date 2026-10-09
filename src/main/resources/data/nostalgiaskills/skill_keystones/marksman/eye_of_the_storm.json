@@ -1,0 +1,20 @@
+{
+  "class": "nostalgiaskills:marksman",
+  "requires_mod": "deep_aether",
+  "hidden_until": "nostalgiaskills:kill/deep_aether/eots_controller",
+  "toggleable": true,
+  "name": "skill.nostalgiaskills.marksman.eye_of_the_storm.name",
+  "text": "skill.nostalgiaskills.marksman.eye_of_the_storm.text",
+  "icon": "nostalgiaskills:textures/skill_icons/wave.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_full_charge_hit",
+      "cooldown_ticks": 200,
+      "action": {
+        "type": "gust",
+        "amount": 6
+      }
+    }
+  ]
+}

@@ -2,21 +2,19 @@
   "class": "nostalgiaskills:marksman",
   "requires_mod": "cataclysm",
   "hidden_until": "cataclysm:kill_scylla",
+  "toggleable": true,
   "name": "skill.nostalgiaskills.marksman.scylla_storm.name",
   "text": "skill.nostalgiaskills.marksman.scylla_storm.text",
   "icon": "nostalgiaskills:textures/skill_icons/school_lightning.png",
   "effects": [
     {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:charged_shot_damage",
-      "operation": "add_value",
-      "amount": 0.15
-    },
-    {
-      "type": "attribute",
-      "attribute": "nostalgiaskills:projectile_damage",
-      "operation": "add_value",
-      "amount": 0.08
+      "type": "trigger",
+      "trigger": "on_full_charge_hit",
+      "cooldown_ticks": 160,
+      "action": {
+        "type": "smite_target",
+        "amount": 10
+      }
     }
   ]
 }

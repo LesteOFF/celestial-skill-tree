@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:artificer",
+  "requires_mod": "aquamirae",
+  "hidden_until": "nostalgiaskills:kill/aquamirae/captain_cornelia",
+  "name": "skill.nostalgiaskills.artificer.captains_compass.name",
+  "text": "skill.nostalgiaskills.artificer.captains_compass.text",
+  "icon": "nostalgiaskills:textures/skill_icons/diver.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "neoforge:swim_speed",
+      "operation": "add_multiplied_base",
+      "amount": 0.3
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.oxygen_bonus",
+      "operation": "add_value",
+      "amount": 2
+    }
+  ]
+}

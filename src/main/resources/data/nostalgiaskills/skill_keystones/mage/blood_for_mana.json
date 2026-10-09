@@ -1,0 +1,24 @@
+{
+  "class": "nostalgiaskills:mage",
+  "requires_mod": "irons_spellbooks",
+  "name": "skill.nostalgiaskills.mage.blood_for_mana.name",
+  "text": "skill.nostalgiaskills.mage.blood_for_mana.text",
+  "icon": "nostalgiaskills:textures/skill_icons/school_blood.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "nostalgiaskills:on_mana_empty",
+      "cooldown_ticks": 20,
+      "action": {
+        "type": "blood_for_mana",
+        "amount": 60
+      }
+    },
+    {
+      "type": "attribute",
+      "attribute": "irons_spellbooks:mana_regen",
+      "operation": "add_multiplied_total",
+      "amount": -0.25
+    }
+  ]
+}

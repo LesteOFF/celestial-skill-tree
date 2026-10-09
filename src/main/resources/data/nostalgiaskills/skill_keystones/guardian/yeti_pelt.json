@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:guardian",
+  "requires_mod": "block_factorys_bosses",
+  "hidden_until": "nostalgiaskills:kill/block_factorys_bosses/yeti",
+  "name": "skill.nostalgiaskills.guardian.yeti_pelt.name",
+  "text": "skill.nostalgiaskills.guardian.yeti_pelt.text",
+  "icon": "nostalgiaskills:textures/skill_icons/armor.png",
+  "effects": [
+    {
+      "type": "damage_modifier",
+      "direction": "taken",
+      "scope": "#minecraft:is_freezing",
+      "amount": -0.8
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.armor",
+      "operation": "add_value",
+      "amount": 2
+    }
+  ]
+}
