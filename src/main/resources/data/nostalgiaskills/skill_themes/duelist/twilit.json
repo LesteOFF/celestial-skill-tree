@@ -1,0 +1,54 @@
+{
+  "class": "nostalgiaskills:duelist",
+  "requires_mod": "twilightforest",
+  "name": "theme.nostalgiaskills.duelist.twilit",
+  "icon": "nostalgiaskills:textures/skill_icons/leaf.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.movement_speed",
+        "operation": "add_multiplied_base",
+        "amount": 0.02,
+        "condition": {
+          "type": "in_dimension",
+          "dimension": "twilightforest:twilight_forest"
+        }
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "canopy_runner",
+      "name": "skill.nostalgiaskills.duelist.canopy_runner.name",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.attack_speed",
+          "operation": "add_multiplied_base",
+          "amount": 0.06,
+          "condition": {
+            "type": "in_dimension",
+            "dimension": "twilightforest:twilight_forest"
+          }
+        }
+      ]
+    },
+    {
+      "id": "gloom_stalker",
+      "name": "skill.nostalgiaskills.duelist.gloom_stalker.name",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "nostalgiaskills:crit_chance",
+          "operation": "add_value",
+          "amount": 0.04,
+          "condition": {
+            "type": "in_dimension",
+            "dimension": "twilightforest:twilight_forest"
+          }
+        }
+      ]
+    }
+  ]
+}

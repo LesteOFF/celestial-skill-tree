@@ -1,0 +1,54 @@
+{
+  "class": "nostalgiaskills:arcanist",
+  "requires_mod": "biomeswevegone",
+  "name": "theme.nostalgiaskills.arcanist.faewild",
+  "icon": "nostalgiaskills:textures/skill_icons/leaf.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "nostalgiaskills:magic_resistance",
+        "operation": "add_value",
+        "amount": 0.01,
+        "condition": {
+          "type": "in_biome_tag",
+          "tag": "c:is_magical"
+        }
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "fae_touched",
+      "name": "skill.nostalgiaskills.arcanist.fae_touched.name",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.luck",
+          "operation": "add_value",
+          "amount": 1,
+          "condition": {
+            "type": "in_biome_tag",
+            "tag": "c:is_magical"
+          }
+        }
+      ]
+    },
+    {
+      "id": "glade_ward",
+      "name": "skill.nostalgiaskills.arcanist.glade_ward.name",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "nostalgiaskills:healing_received",
+          "operation": "add_value",
+          "amount": 0.08,
+          "condition": {
+            "type": "in_biome_tag",
+            "tag": "c:is_magical"
+          }
+        }
+      ]
+    }
+  ]
+}

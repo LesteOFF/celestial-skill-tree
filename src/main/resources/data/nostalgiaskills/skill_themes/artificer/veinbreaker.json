@@ -1,0 +1,30 @@
+{
+  "class": "nostalgiaskills:artificer",
+  "requires_mod": "ftbultimine",
+  "name": "theme.nostalgiaskills.artificer.veinbreaker",
+  "icon": "nostalgiaskills:textures/skill_icons/cracked_block.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "ftbultimine:max_blocks_modifier",
+        "operation": "add_value",
+        "amount": 1
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "wide_reach",
+      "name": "skill.nostalgiaskills.artificer.wide_reach.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "ftbultimine:max_blocks_modifier",
+          "operation": "add_value",
+          "amount": 5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "class": "nostalgiaskills:berserker",
+  "requires_mod": "iceandfire",
+  "name": "theme.nostalgiaskills.berserker.dragon_slayer",
+  "icon": "nostalgiaskills:textures/skill_icons/fire.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "damage_modifier",
+        "direction": "dealt",
+        "scope": "all",
+        "amount": 0.03,
+        "condition": {
+          "type": "target_type",
+          "tag": "nostalgiaskills:dragons"
+        }
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "wyrmbane",
+      "name": "skill.nostalgiaskills.berserker.wyrmbane.name",
+      "effects": [
+        {
+          "type": "damage_modifier",
+          "direction": "dealt",
+          "scope": "all",
+          "amount": 0.15,
+          "condition": {
+            "type": "target_type",
+            "tag": "nostalgiaskills:dragons"
+          }
+        },
+        {
+          "type": "damage_modifier",
+          "direction": "taken",
+          "scope": "fire",
+          "amount": -0.1
+        }
+      ]
+    }
+  ]
+}

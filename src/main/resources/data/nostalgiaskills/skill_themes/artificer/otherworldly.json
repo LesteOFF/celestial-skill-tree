@@ -1,0 +1,54 @@
+{
+  "class": "nostalgiaskills:artificer",
+  "requires_mod": "allthemodium",
+  "name": "theme.nostalgiaskills.artificer.otherworldly",
+  "icon": "nostalgiaskills:textures/skill_icons/depth.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "nostalgiaskills:mining_speed",
+        "operation": "add_value",
+        "amount": 0.02,
+        "condition": {
+          "type": "in_dimension",
+          "dimension": "allthemodium:mining"
+        }
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "other_walker",
+      "name": "skill.nostalgiaskills.artificer.other_walker.name",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "nostalgiaskills:damage_reduction",
+          "operation": "add_value",
+          "amount": 0.04,
+          "condition": {
+            "type": "in_dimension",
+            "dimension": "allthemodium:the_other"
+          }
+        }
+      ]
+    },
+    {
+      "id": "beyond_reach",
+      "name": "skill.nostalgiaskills.artificer.beyond_reach.name",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.attack_damage",
+          "operation": "add_multiplied_total",
+          "amount": 0.06,
+          "condition": {
+            "type": "in_dimension",
+            "dimension": "allthemodium:the_beyond"
+          }
+        }
+      ]
+    }
+  ]
+}
