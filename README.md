@@ -27,10 +27,10 @@ the only optional integration.
 
 ```bash
 ./gradlew build            # Windows: gradlew.bat build  → build/libs/nostalgiaskills-1.4.0.jar
-./gradlew test             # 176 unit tests, including trees generated from the shipped catalog
+./gradlew test             # 28 unit tests in test/, including trees generated from the shipped catalog
 ./gradlew validateTree     # validates the catalog and generates one tree outside the game
 ./gradlew previewTree      # draws the tree shape to build/preview/tree.png
-./gradlew runGameTestServer  # 13 in-game tests on a real server with mock players
+./gradlew runGameTestServer  # 34 in-game tests on a real server with mock players
 ./gradlew runClient / runServer
 ```
 
