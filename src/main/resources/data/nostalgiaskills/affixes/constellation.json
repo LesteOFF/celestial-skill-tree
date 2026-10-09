@@ -1,6 +1,6 @@
 {
   "type": "apotheosis:attribute",
-  "attribute": "nostalgiaskills:crit_damage",
+  "attribute": "apothic_attributes:crit_damage",
   "categories": [
     "apotheosis:melee_weapon"
   ],

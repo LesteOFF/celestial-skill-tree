@@ -8,7 +8,7 @@
   "bonuses": [
     {
       "type": "apotheosis:attribute",
-      "attribute": "nostalgiaskills:crit_chance",
+      "attribute": "apothic_attributes:crit_chance",
       "gem_class": "apotheosis:melee_weapon",
       "operation": "add_value",
       "values": {
@@ -22,7 +22,7 @@
     },
     {
       "type": "apotheosis:attribute",
-      "attribute": "nostalgiaskills:dodge_chance",
+      "attribute": "apothic_attributes:dodge_chance",
       "gem_class": {
         "key": "core_armor",
         "types": [

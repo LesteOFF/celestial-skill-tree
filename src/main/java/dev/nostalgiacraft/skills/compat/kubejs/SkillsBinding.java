@@ -1,7 +1,9 @@
 package dev.nostalgiacraft.skills.compat.kubejs;
 
+import dev.nostalgiacraft.skills.effects.EliteMobs;
 import dev.nostalgiacraft.skills.effects.Triggers;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
+import dev.nostalgiacraft.skills.server.ExtraSign;
 import dev.nostalgiacraft.skills.server.SkyEvents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -26,6 +28,18 @@ public final class SkillsBinding {
 
     public static String sign(ServerPlayer player) {
         return ModAttachments.state(player).sign().orElse(null);
+    }
+
+    public static boolean hasExtraSign(ServerPlayer player) {
+        return ExtraSign.isActive(player);
+    }
+
+    public static void setExtraSign(ServerPlayer player, boolean granted) {
+        ExtraSign.setGranted(player, granted);
+    }
+
+    public static boolean isConstellated(LivingEntity entity) {
+        return EliteMobs.isElite(entity);
     }
 
     public static String skyEvent() {

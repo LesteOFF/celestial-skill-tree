@@ -1,6 +1,8 @@
 package dev.nostalgiacraft.skills.compat;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 
 public final class Reflection {
@@ -23,6 +25,26 @@ public final class Reflection {
         return readField(type(className), null, name);
     }
 
+    public static Object hiddenStaticField(String className, String name) {
+        try {
+            Field field = type(className).getDeclaredField(name);
+            field.setAccessible(true);
+            return field.get(null);
+        } catch (ReflectiveOperationException | RuntimeException failure) {
+            throw new IllegalStateException("cannot read " + className + "." + name, failure);
+        }
+    }
+
+    public static Object construct(String className, Object... arguments) {
+        Class<?> owner = type(className);
+        try {
+            return Arrays.stream(owner.getConstructors()).filter(candidate -> accepts(candidate.getParameterTypes(), arguments))
+                    .findFirst().orElseThrow(() -> new NoSuchMethodException(className)).newInstance(arguments);
+        } catch (ReflectiveOperationException failure) {
+            throw new IllegalStateException("cannot construct " + className, failure);
+        }
+    }
+
     public static boolean exists(String className) {
         try {
             Class.forName(className);
@@ -36,7 +58,7 @@ public final class Reflection {
         return type(className).isInstance(candidate);
     }
 
-    private static Class<?> type(String className) {
+    public static Class<?> type(String className) {
         try {
             return Class.forName(className);
         } catch (ClassNotFoundException failure) {
@@ -55,7 +77,22 @@ public final class Reflection {
     private static Method find(Class<?> owner, String name, Object[] arguments) throws NoSuchMethodException {
         return Arrays.stream(owner.getMethods())
                 .filter(method -> method.getName().equals(name) && accepts(method.getParameterTypes(), arguments))
-                .findFirst().orElseThrow(() -> new NoSuchMethodException(owner.getName() + "." + name));
+                .findFirst().map(method -> publicDeclaration(owner, method))
+                .orElseThrow(() -> new NoSuchMethodException(owner.getName() + "." + name));
+    }
+
+    private static Method publicDeclaration(Class<?> owner, Method method) {
+        if (Modifier.isPublic(method.getDeclaringClass().getModifiers())) {
+            return method;
+        }
+        for (Class<?> contract : owner.getInterfaces()) {
+            try {
+                return contract.getMethod(method.getName(), method.getParameterTypes());
+            } catch (NoSuchMethodException notDeclaredHere) {
+                continue;
+            }
+        }
+        return method;
     }
 
     private static boolean accepts(Class<?>[] parameters, Object[] arguments) {
@@ -63,7 +100,7 @@ public final class Reflection {
             return false;
         }
         for (int i = 0; i < parameters.length; i++) {
-            if (!parameters[i].isPrimitive() && !parameters[i].isInstance(arguments[i])) {
+            if (!parameters[i].isPrimitive() && arguments[i] != null && !parameters[i].isInstance(arguments[i])) {
                 return false;
             }
         }

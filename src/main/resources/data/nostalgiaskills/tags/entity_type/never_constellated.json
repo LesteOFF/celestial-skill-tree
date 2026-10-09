@@ -1,3 +1,185 @@
 {
-  "values": []
+  "values": [
+    "#c:bosses",
+    "minecraft:wither",
+    "minecraft:ender_dragon",
+    "minecraft:warden",
+    "minecraft:elder_guardian",
+    {
+      "id": "occultism:wild_hunt_skeleton",
+      "required": false
+    },
+    {
+      "id": "occultism:wild_hunt_wither_skeleton",
+      "required": false
+    },
+    {
+      "id": "occultism:possessed_bee",
+      "required": false
+    },
+    {
+      "id": "occultism:possessed_blaze",
+      "required": false
+    },
+    {
+      "id": "occultism:possessed_breeze",
+      "required": false
+    },
+    {
+      "id": "occultism:possessed_elder_guardian",
+      "required": false
+    },
+    {
+      "id": "occultism:possessed_enderman",
+      "required": false
+    },
+    {
+      "id": "occultism:possessed_endermite",
+      "required": false
+    },
+    {
+      "id": "occultism:possessed_evoker",
+      "required": false
+    },
+    {
+      "id": "occultism:possessed_ghast",
+      "required": false
+    },
+    {
+      "id": "occultism:possessed_guardian",
+      "required": false
+    },
+    {
+      "id": "occultism:possessed_hoglin",
+      "required": false
+    },
+    {
+      "id": "occultism:possessed_phantom",
+      "required": false
+    },
+    {
+      "id": "occultism:possessed_shulker",
+      "required": false
+    },
+    {
+      "id": "occultism:possessed_skeleton",
+      "required": false
+    },
+    {
+      "id": "occultism:possessed_strong_breeze",
+      "required": false
+    },
+    {
+      "id": "occultism:possessed_warden",
+      "required": false
+    },
+    {
+      "id": "occultism:possessed_weak_breeze",
+      "required": false
+    },
+    {
+      "id": "occultism:possessed_weak_shulker",
+      "required": false
+    },
+    {
+      "id": "occultism:possessed_witch",
+      "required": false
+    },
+    {
+      "id": "occultism:possessed_zombie_piglin",
+      "required": false
+    },
+    {
+      "id": "forbidden_arcanus:lost_soul",
+      "required": false
+    },
+    {
+      "id": "forbidden_arcanus:corrupt_lost_soul",
+      "required": false
+    },
+    {
+      "id": "forbidden_arcanus:enchanted_lost_soul",
+      "required": false
+    },
+    {
+      "id": "artifacts:mimic",
+      "required": false
+    },
+    {
+      "id": "aether:sentry",
+      "required": false
+    },
+    {
+      "id": "aether:mimic",
+      "required": false
+    },
+    {
+      "id": "aether:cloud_minion",
+      "required": false
+    },
+    {
+      "id": "cataclysm:the_prowler",
+      "required": false
+    },
+    {
+      "id": "cataclysm:the_watcher",
+      "required": false
+    },
+    {
+      "id": "born_in_chaos_v1:baby_spider_controlled",
+      "required": false
+    },
+    {
+      "id": "born_in_chaos_v1:mr_pumpkin_controlled",
+      "required": false
+    },
+    {
+      "id": "born_in_chaos_v1:bonescaller_not_despawn",
+      "required": false
+    },
+    {
+      "id": "born_in_chaos_v1:decaying_zombie_not_despawn",
+      "required": false
+    },
+    {
+      "id": "born_in_chaos_v1:door_knight_not_despawn",
+      "required": false
+    },
+    {
+      "id": "born_in_chaos_v1:dread_hound_not_despawn",
+      "required": false
+    },
+    {
+      "id": "born_in_chaos_v1:firelight_not_despawn",
+      "required": false
+    },
+    {
+      "id": "born_in_chaos_v1:seared_spirit_not_despawn",
+      "required": false
+    },
+    {
+      "id": "born_in_chaos_v1:skeleton_thrasher_not_despawn",
+      "required": false
+    },
+    {
+      "id": "born_in_chaos_v1:supreme_bonescaller_not_despawn",
+      "required": false
+    },
+    {
+      "id": "born_in_chaos_v1:zombie_clown_not_despawn",
+      "required": false
+    },
+    {
+      "id": "rottencreatures:skeleton_lackey",
+      "required": false
+    },
+    {
+      "id": "rottencreatures:zombie_lackey",
+      "required": false
+    },
+    {
+      "id": "minecraft:creaking",
+      "required": false
+    }
+  ]
 }

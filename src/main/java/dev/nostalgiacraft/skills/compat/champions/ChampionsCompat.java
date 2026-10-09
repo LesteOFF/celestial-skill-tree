@@ -4,6 +4,7 @@ import dev.nostalgiacraft.skills.compat.OptionalEvents;
 import dev.nostalgiacraft.skills.compat.Reflection;
 import dev.nostalgiacraft.skills.effects.EliteMobs;
 import net.minecraft.world.entity.monster.Monster;
+import net.neoforged.fml.ModLoadingContext;
 
 import java.util.Optional;
 
@@ -17,6 +18,9 @@ public final class ChampionsCompat {
 
     public static void register() {
         boolean hasApi = Reflection.exists(API);
+        if (hasApi) {
+            AstralAffix.register(ModLoadingContext.get().getActiveContainer().getEventBus());
+        }
         EliteMobs.registerRival(monster -> OptionalEvents.guarded(MOD_ID, false,
                 () -> hasApi ? isChampion(monster) : isLegacyChampion(monster)));
     }

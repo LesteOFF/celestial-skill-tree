@@ -1,0 +1,60 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "occultism"
+    }
+  ],
+  "type": "occultism:ritual",
+  "ritual_type": "occultism:execute_command",
+  "activation_item": {
+    "item": "nostalgiaskills:star_fragment"
+  },
+  "pentacle_id": "occultism:contact_wild_spirit",
+  "duration": 60,
+  "entity_to_sacrifice": {
+    "tag": "occultism:humans",
+    "display_name": "ritual.occultism.sacrifice.humans"
+  },
+  "ingredients": [
+    {
+      "item": "minecraft:amethyst_shard"
+    },
+    {
+      "item": "minecraft:bone"
+    },
+    {
+      "item": "minecraft:ender_eye"
+    },
+    {
+      "item": "minecraft:rotten_flesh"
+    },
+    {
+      "item": "minecraft:amethyst_shard"
+    },
+    {
+      "item": "minecraft:bone"
+    },
+    {
+      "item": "minecraft:glowstone_dust"
+    },
+    {
+      "item": "minecraft:rotten_flesh"
+    }
+  ],
+  "ritual_dummy": {
+    "id": "occultism:ritual_dummy/custom_ritual_summon",
+    "count": 1,
+    "components": {
+      "minecraft:item_name": "{\"translate\":\"ritual.nostalgiaskills.summon_constellated\"}",
+      "minecraft:lore": [
+        "{\"translate\":\"ritual.nostalgiaskills.summon_constellated.tooltip\"}"
+      ]
+    }
+  },
+  "result": {
+    "id": "occultism:jei_dummy/none",
+    "count": 1
+  },
+  "command": "nostalgiaskills constellate"
+}

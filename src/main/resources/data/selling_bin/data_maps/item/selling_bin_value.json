@@ -11,6 +11,14 @@
     "nostalgiaskills:fallen_star": {
       "base_value": 0,
       "processors": []
+    },
+    "nostalgiaskills:living_fragment": {
+      "base_value": 0,
+      "processors": []
+    },
+    "nostalgiaskills:stellar_ammo": {
+      "base_value": 0,
+      "processors": []
     }
   }
 }

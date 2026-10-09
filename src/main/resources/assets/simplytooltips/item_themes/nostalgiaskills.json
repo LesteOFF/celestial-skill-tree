@@ -1,0 +1,36 @@
+{
+  "items": {
+    "nostalgiaskills:star_fragment": {
+      "theme": "cosmic",
+      "badges": []
+    },
+    "nostalgiaskills:living_fragment": {
+      "theme": "cosmic",
+      "badges": []
+    },
+    "nostalgiaskills:fallen_star": {
+      "theme": "cosmic",
+      "badges": []
+    },
+    "nostalgiaskills:orb_of_reconfiguration": {
+      "theme": "cosmic",
+      "badges": []
+    },
+    "nostalgiaskills:stellar_ammo": {
+      "theme": "cosmic",
+      "badges": []
+    },
+    "nostalgiaskills:telescope": {
+      "theme": "cosmic",
+      "badges": []
+    },
+    "nostalgiaskills:stellar_condenser": {
+      "theme": "cosmic",
+      "badges": []
+    },
+    "nostalgiaskills:community_basin": {
+      "theme": "cosmic",
+      "badges": []
+    }
+  }
+}
