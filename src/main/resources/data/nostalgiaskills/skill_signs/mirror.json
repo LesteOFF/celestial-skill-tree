@@ -7,5 +7,19 @@
       "operation": "add_value",
       "amount": 0.08
     }
+  ],
+  "partner_effects": [
+    {
+      "requires_mod": "lodestone",
+      "description": "sign.nostalgiaskills.mirror.description.lodestone",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "lodestone:magic_resistance",
+          "operation": "add_value",
+          "amount": 0.5
+        }
+      ]
+    }
   ]
 }

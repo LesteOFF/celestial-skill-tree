@@ -7,5 +7,19 @@
       "operation": "add_value",
       "amount": 0.08
     }
+  ],
+  "partner_effects": [
+    {
+      "requires_mod": "apothic_attributes",
+      "description": "sign.nostalgiaskills.fang.description.apothic_attributes",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "apothic_attributes:current_hp_damage",
+          "operation": "add_value",
+          "amount": 0.01
+        }
+      ]
+    }
   ]
 }

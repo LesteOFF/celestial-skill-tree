@@ -7,5 +7,19 @@
       "operation": "add_multiplied_base",
       "amount": 0.03
     }
+  ],
+  "partner_effects": [
+    {
+      "requires_mod": "irons_spellbooks",
+      "description": "sign.nostalgiaskills.gale.description.irons_spellbooks",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "irons_spellbooks:cooldown_reduction",
+          "operation": "add_multiplied_base",
+          "amount": 0.03
+        }
+      ]
+    }
   ]
 }

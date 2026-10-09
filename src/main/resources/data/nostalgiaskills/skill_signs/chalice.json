@@ -7,5 +7,19 @@
       "operation": "add_value",
       "amount": 0.08
     }
+  ],
+  "partner_effects": [
+    {
+      "requires_mod": "apothic_attributes",
+      "description": "sign.nostalgiaskills.chalice.description.apothic_attributes",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "apothic_attributes:overheal",
+          "operation": "add_value",
+          "amount": 0.04
+        }
+      ]
+    }
   ]
 }

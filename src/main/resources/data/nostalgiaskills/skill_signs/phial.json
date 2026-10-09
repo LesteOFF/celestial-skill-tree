@@ -7,5 +7,19 @@
       "operation": "add_value",
       "amount": 0.06
     }
+  ],
+  "partner_effects": [
+    {
+      "requires_mod": "apothic_attributes",
+      "description": "sign.nostalgiaskills.phial.description.apothic_attributes",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "apothic_attributes:experience_gained",
+          "operation": "add_value",
+          "amount": 0.03
+        }
+      ]
+    }
   ]
 }

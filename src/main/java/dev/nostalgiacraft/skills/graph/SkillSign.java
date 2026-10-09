@@ -2,12 +2,12 @@ package dev.nostalgiacraft.skills.graph;
 
 import java.util.List;
 
-public record SkillSign(String id, List<SkillEffect> effects) {
+public record SkillSign(String id, List<SkillEffect> effects, String descriptionKey) {
     public static String nameKey(String signId) {
         return translationKey(signId, "name");
     }
 
-    public static String descriptionKey(String signId) {
+    public static String defaultDescriptionKey(String signId) {
         return translationKey(signId, "description");
     }
 

@@ -161,7 +161,7 @@ public final class BirthSignScreen extends Screen {
         graphics.pose().scale(TITLE_SCALE, TITLE_SCALE, 1f);
         graphics.drawCenteredString(font, Component.translatable(SkillSign.nameKey(own.get())).withStyle(ChatFormatting.GOLD), 0, 0, TEXT_COLOR);
         graphics.pose().popPose();
-        graphics.drawCenteredString(font, Component.translatable(SkillSign.descriptionKey(own.get())).withStyle(ChatFormatting.GREEN),
+        graphics.drawCenteredString(font, description(own.get()),
                 centerX, textTop + 16, TEXT_COLOR);
     }
 
@@ -169,7 +169,11 @@ public final class BirthSignScreen extends Screen {
         boolean own = ownSign().filter(signId::equals).isPresent();
         return Component.empty()
                 .append(Component.translatable(SkillSign.nameKey(signId)).withStyle(own ? ChatFormatting.GOLD : ChatFormatting.AQUA))
-                .append("\n").append(Component.translatable(SkillSign.descriptionKey(signId)).withStyle(ChatFormatting.GREEN))
+                .append("\n").append(description(signId))
                 .append("\n").append(GuiText.of(own ? "sign.yours" : "sign.other").withStyle(ChatFormatting.GRAY));
+    }
+
+    private static Component description(String signId) {
+        return Component.translatable(ClientSkillState.worldRules().signDescriptionKey(signId)).withStyle(ChatFormatting.GREEN);
     }
 }

@@ -8,12 +8,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.function.Predicate;
 
 public final class SignParser {
-    private final EffectParser effectParser;
+    private static final String PARTNER_EFFECTS = "partner_effects";
 
-    public SignParser(KnownIds known) {
+    private final EffectParser effectParser;
+    private final Predicate<String> isModLoaded;
+
+    public SignParser(KnownIds known, Predicate<String> isModLoaded) {
         this.effectParser = new EffectParser(known);
+        this.isModLoaded = isModLoaded;
     }
 
     public List<SkillSign> parse(Map<String, JsonElement> files, ValidationReport report) {
@@ -40,14 +45,23 @@ public final class SignParser {
         if (!Ids.isValid(id)) {
             sign.error("id", "invalid id derived from path: '" + id + "'");
         }
-        List<SkillEffect> effects = new ArrayList<>();
-        JsonArray array = sign.array("effects").orElseGet(JsonArray::new);
-        if (array.size() > GraphParser.MAX_EFFECTS) {
-            sign.error("effects", "at most " + GraphParser.MAX_EFFECTS + " effects");
+        JsonFields active = activePartner(sign).orElse(sign);
+        String descriptionKey = active.optionalText("description").orElse(SkillSign.defaultDescriptionKey(id));
+        List<SkillEffect> effects = effectParser.parseAll(active);
+        return report.errors().size() > errorsBefore ? Optional.empty() : Optional.of(new SkillSign(id, effects, descriptionKey));
+    }
+
+    private Optional<JsonFields> activePartner(JsonFields sign) {
+        if (!sign.has(PARTNER_EFFECTS)) {
+            return Optional.empty();
         }
-        for (int i = 0; i < array.size(); i++) {
-            effectParser.parse(sign.child(array.get(i).getAsJsonObject(), "effects[" + i + "].")).ifPresent(effects::add);
+        JsonArray partners = sign.array(PARTNER_EFFECTS).orElseGet(JsonArray::new);
+        for (int i = 0; i < partners.size(); i++) {
+            JsonElement partner = partners.get(i);
+            if (partner.isJsonObject() && ModRequirement.isMet(partner, isModLoaded)) {
+                return Optional.of(sign.child(partner.getAsJsonObject(), PARTNER_EFFECTS + "[" + i + "]."));
+            }
         }
-        return report.errors().size() > errorsBefore ? Optional.empty() : Optional.of(new SkillSign(id, List.copyOf(effects)));
+        return Optional.empty();
     }
 }
