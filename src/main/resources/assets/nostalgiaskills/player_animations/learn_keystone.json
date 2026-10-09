@@ -1,0 +1,123 @@
+{
+  "version": 3,
+  "name": "learn_keystone",
+  "author": "Nostalgia Skills",
+  "description": "Both arms rise to the sky when a keystone is learned.",
+  "emote": {
+    "beginTick": 0,
+    "endTick": 34,
+    "stopTick": 44,
+    "isLoop": false,
+    "returnTick": 0,
+    "nsfw": false,
+    "degrees": true,
+    "moves": [
+      {
+        "tick": 0,
+        "easing": "EASEINOUTQUAD",
+        "rightArm": {
+          "pitch": 0,
+          "roll": 0
+        }
+      },
+      {
+        "tick": 0,
+        "easing": "EASEINOUTQUAD",
+        "leftArm": {
+          "pitch": 0,
+          "roll": 0
+        }
+      },
+      {
+        "tick": 0,
+        "easing": "EASEINOUTQUAD",
+        "head": {
+          "pitch": 0
+        }
+      },
+      {
+        "tick": 10,
+        "easing": "EASEINOUTQUAD",
+        "rightArm": {
+          "pitch": -165,
+          "roll": -12
+        }
+      },
+      {
+        "tick": 10,
+        "easing": "EASEINOUTQUAD",
+        "leftArm": {
+          "pitch": -165,
+          "roll": 12
+        }
+      },
+      {
+        "tick": 10,
+        "easing": "EASEINOUTQUAD",
+        "head": {
+          "pitch": -25
+        }
+      },
+      {
+        "tick": 14,
+        "easing": "EASEINOUTQUAD",
+        "torso": {
+          "pitch": -6
+        }
+      },
+      {
+        "tick": 26,
+        "easing": "EASEINOUTQUAD",
+        "rightArm": {
+          "pitch": -165,
+          "roll": -12
+        }
+      },
+      {
+        "tick": 26,
+        "easing": "EASEINOUTQUAD",
+        "leftArm": {
+          "pitch": -165,
+          "roll": 12
+        }
+      },
+      {
+        "tick": 26,
+        "easing": "EASEINOUTQUAD",
+        "head": {
+          "pitch": -25
+        }
+      },
+      {
+        "tick": 34,
+        "easing": "EASEINOUTQUAD",
+        "rightArm": {
+          "pitch": 0,
+          "roll": 0
+        }
+      },
+      {
+        "tick": 34,
+        "easing": "EASEINOUTQUAD",
+        "leftArm": {
+          "pitch": 0,
+          "roll": 0
+        }
+      },
+      {
+        "tick": 34,
+        "easing": "EASEINOUTQUAD",
+        "head": {
+          "pitch": 0
+        }
+      },
+      {
+        "tick": 34,
+        "easing": "EASEINOUTQUAD",
+        "torso": {
+          "pitch": 0
+        }
+      }
+    ]
+  }
+}
