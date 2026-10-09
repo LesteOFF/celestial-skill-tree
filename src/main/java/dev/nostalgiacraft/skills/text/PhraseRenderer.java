@@ -46,6 +46,7 @@ public final class PhraseRenderer {
             case ATTRIBUTE -> lookup.attributeName(named.id());
             case MOB_EFFECT -> lookup.mobEffectName(named.id());
             case ITEM_TAG -> lookup.translate(KEY_PREFIX + "item_tag." + dotted(named.id()), "#" + named.id());
+            case ENTITY_TAG -> lookup.translate(KEY_PREFIX + "entity_tag." + dotted(named.id()), "#" + named.id());
             case TRIGGER -> lookup.translate(KEY_PREFIX + "trigger." + dotted(named.id()), named.id());
             case DAMAGE_SCOPE -> lookup.translate(KEY_PREFIX + "damage_scope." + named.id(), named.id());
         };

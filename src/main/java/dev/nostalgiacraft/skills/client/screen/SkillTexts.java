@@ -24,7 +24,8 @@ public final class SkillTexts {
         @Override
         public String attributeName(String id) {
             return BuiltInRegistries.ATTRIBUTE.getOptional(ResourceLocation.parse(id))
-                    .map(attribute -> translate(attribute.getDescriptionId(), id)).orElse(id);
+                    .map(attribute -> translate(attribute.getDescriptionId(), id))
+                    .orElseGet(() -> translate("attribute.name." + id.replace(':', '.'), id));
         }
 
         @Override

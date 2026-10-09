@@ -12,6 +12,7 @@ import java.util.Set;
 
 public final class EffectPhrases {
     private static final String MAX_HEALTH = "minecraft:generic.max_health";
+    public static final double MANA_PER_HEALTH = 10;
     private static final double HEALTH_PER_HEART = 2;
     private static final double TICKS_PER_SECOND = 20;
     private static final Set<String> ITEM_TAG_CONDITIONS = Set.of("holding", "wearing", "has_curio");
@@ -67,10 +68,10 @@ public final class EffectPhrases {
     private static Phrase trigger(SkillEffect.Trigger trigger) {
         Named name = new Named(Named.Kind.TRIGGER, trigger.trigger());
         Phrase action = action(trigger.action());
-        if (trigger.cooldownTicks() <= 0) {
-            return Phrase.of("effect.trigger.always", name, action);
-        }
-        return Phrase.of("effect.trigger", name, action, seconds(trigger.cooldownTicks()));
+        Phrase whole = trigger.cooldownTicks() <= 0 ? Phrase.of("effect.trigger.always", name, action)
+                : Phrase.of("effect.trigger", name, action, seconds(trigger.cooldownTicks()));
+        return trigger.condition().map(EffectPhrases::condition).map(when -> Phrase.of("effect.conditional", whole, when))
+                .orElse(whole);
     }
 
     private static Phrase action(SkillEffect.Action action) {
@@ -78,6 +79,16 @@ public final class EffectPhrases {
             case "heal" -> Phrase.of(countedHearts("effect.action.heal", action.amount()), plain(action.amount()),
                     plain(action.amount() / HEALTH_PER_HEART));
             case "restore_mana" -> Phrase.of("effect.action.restore_mana", plain(action.amount()));
+            case "blood_for_mana" -> Phrase.of("effect.action.blood_for_mana", plain(action.amount()),
+                    plain(action.amount() / MANA_PER_HEALTH / HEALTH_PER_HEART));
+            case "blink_behind_target", "web_target" -> Phrase.of("effect.action." + action.type());
+            case "area_effect" -> Phrase.of("effect.action.area_effect", new Named(Named.Kind.MOB_EFFECT, action.effect()),
+                    new Literal(Numbers.roman(action.amplifier() + 1)), seconds(action.durationTicks()), plain(action.amount()));
+            case "gust", "pull", "sunstrike", "burst", "launch_target", "smite_target", "lunge", "chaos_target" -> Phrase.of("effect.action." + action.type(), plain(action.amount()));
+            case "cheat_death" -> Phrase.of(countedHearts("effect.action.cheat_death", action.amount()), plain(action.amount()),
+                    plain(action.amount() / HEALTH_PER_HEART));
+            case "ignite_target" -> Phrase.of("effect.action.ignite_target", seconds(action.durationTicks()));
+            case "raise_ally" -> Phrase.of("effect.action.raise_ally", new Literal(action.effect()), seconds(action.durationTicks()));
             default -> Phrase.of("effect.action." + action.type(), new Named(Named.Kind.MOB_EFFECT, action.effect()),
                     new Literal(Numbers.roman(action.amplifier() + 1)), seconds(action.durationTicks()));
         };
@@ -97,6 +108,7 @@ public final class EffectPhrases {
         }
         return switch (type) {
             case "below_y" -> Phrase.of(key, plain(condition.number("y")));
+            case "target_type" -> Phrase.of(key, new Named(Named.Kind.ENTITY_TAG, condition.string("tag")));
             case "in_dimension" -> Phrase.of(key, new Literal(condition.string("dimension")));
             case "in_biome_tag" -> Phrase.of(key, new Literal(condition.string("tag")));
             case "sky_event" -> Phrase.of(key + "." + condition.string("event"));

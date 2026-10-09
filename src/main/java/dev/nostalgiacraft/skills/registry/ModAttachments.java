@@ -1,5 +1,6 @@
 package dev.nostalgiacraft.skills.registry;
 
+import com.mojang.serialization.Codec;
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import net.minecraft.world.entity.player.Player;
@@ -8,6 +9,9 @@ import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public final class ModAttachments {
@@ -19,6 +23,11 @@ public final class ModAttachments {
 
     public static final Supplier<AttachmentType<SkillCooldowns>> COOLDOWNS = TYPES.register("cooldowns",
             () -> AttachmentType.builder(SkillCooldowns::new).serialize(SkillCooldowns.CODEC).copyOnDeath().build());
+
+    public static final Supplier<AttachmentType<Set<String>>> BOSS_KILLS = TYPES.register("boss_kills",
+            () -> AttachmentType.builder((Supplier<Set<String>>) HashSet::new)
+                    .serialize(Codec.STRING.listOf().xmap(list -> (Set<String>) new HashSet<>(list), ArrayList::new))
+                    .copyOnDeath().build());
 
     private ModAttachments() {
     }

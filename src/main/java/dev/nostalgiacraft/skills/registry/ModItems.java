@@ -2,6 +2,7 @@ package dev.nostalgiacraft.skills.registry;
 
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.network.Payloads;
+import dev.nostalgiacraft.skills.server.Gestures;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -33,6 +34,12 @@ public final class ModItems {
     public static final DeferredItem<Item> FALLEN_STAR = ITEMS.registerItem("fallen_star", FallenStarItem::new,
             new Item.Properties().stacksTo(1).rarity(Rarity.EPIC).fireResistant());
 
+    public static final DeferredItem<Item> LIVING_FRAGMENT = ITEMS.registerItem("living_fragment", LivingFragmentItem::new,
+            new Item.Properties().stacksTo(1).rarity(Rarity.RARE).fireResistant());
+
+    public static final DeferredItem<Item> STELLAR_AMMO = ITEMS.registerItem("stellar_ammo", StellarAmmoItem::new,
+            new Item.Properties().rarity(Rarity.UNCOMMON).fireResistant());
+
     private ModItems() {
     }
 
@@ -45,6 +52,11 @@ public final class ModItems {
         if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
             event.accept(ORB_OF_RECONFIGURATION);
             event.accept(STAR_FRAGMENT);
+            event.accept(LIVING_FRAGMENT);
+            event.accept(STELLAR_AMMO);
+            event.accept(ModBlocks.STELLAR_CONDENSER_ITEM);
+            event.accept(ModBlocks.COMMUNITY_BASIN_ITEM);
+            event.accept(ModBlocks.TELESCOPE_ITEM);
         }
     }
 
@@ -57,6 +69,7 @@ public final class ModItems {
         public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
             if (player instanceof ServerPlayer serverPlayer) {
                 PacketDistributor.sendToPlayer(serverPlayer, new Payloads.OpenScreen(true));
+                Gestures.orbUsed(serverPlayer);
             }
             return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), level.isClientSide());
         }

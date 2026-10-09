@@ -7,6 +7,10 @@ public final class ClientScreens {
     private ClientScreens() {
     }
 
+    public static void stargaze() {
+        Minecraft.getInstance().setScreen(SkillTreeScreen.underTheRealSky());
+    }
+
     public static void open(boolean resetMode) {
         Minecraft minecraft = Minecraft.getInstance();
         SkillTreeScreen screen = new SkillTreeScreen();

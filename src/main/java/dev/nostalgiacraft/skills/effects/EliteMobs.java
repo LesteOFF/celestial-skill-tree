@@ -13,6 +13,7 @@ import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.registry.ModItems;
 import dev.nostalgiacraft.skills.registry.ModTags;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -21,28 +22,35 @@ import net.minecraft.server.TickTask;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Monster;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.Scoreboard;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 
 @EventBusSubscriber(modid = NostalgiaSkills.MODID)
 public final class EliteMobs {
     private static final String ROLLED_KEY = "nostalgiaskills_elite_rolled";
     private static final String ELITE_KEY = "nostalgiaskills_elite";
+    private static final String ORIGINAL_KEY = "nostalgiaskills_elite_original";
+    private static final String RADAR_TEAM = "nostalgiaskills_constellated";
     private static final String MODIFIER_KIND = "elite";
     private static final String BASE_HEALTH = "minecraft:generic.max_health|add_multiplied_base";
     private static final String BASE_DAMAGE = "minecraft:generic.attack_damage|add_multiplied_base";
@@ -55,6 +63,7 @@ public final class EliteMobs {
     private static final Set<MobSpawnType> SPAWNER_SPAWNS = EnumSet.of(MobSpawnType.SPAWNER, MobSpawnType.TRIAL_SPAWNER);
 
     private static final List<Predicate<Monster>> RIVAL_CLAIMS = new CopyOnWriteArrayList<>();
+    private static final List<ToIntFunction<Monster>> NODE_BONUSES = new CopyOnWriteArrayList<>();
 
     public enum Stacking {
         EXCLUSIVE, STACK
@@ -67,6 +76,14 @@ public final class EliteMobs {
         RIVAL_CLAIMS.add(hasClaimed);
     }
 
+    public static void registerNodeBonus(ToIntFunction<Monster> extraNodes) {
+        NODE_BONUSES.add(extraNodes);
+    }
+
+    private static int nodeCount(Monster monster) {
+        return ServerConfig.ELITE_MOB_NODES.get() + NODE_BONUSES.stream().mapToInt(bonus -> bonus.applyAsInt(monster)).sum();
+    }
+
     @SubscribeEvent
     public static void onJoin(EntityJoinLevelEvent event) {
         boolean freshMonster = !event.getLevel().isClientSide() && !event.loadedFromDisk() && event.getEntity() instanceof Monster;
@@ -74,7 +91,7 @@ public final class EliteMobs {
             return;
         }
         Monster monster = (Monster) event.getEntity();
-        if (!mayBeConstellated(monster.getSpawnType()) || monster.getType().is(ModTags.NEVER_CONSTELLATED)) {
+        if (!mayBeConstellated(monster) || monster.getType().is(ModTags.NEVER_CONSTELLATED)) {
             return;
         }
         monster.getPersistentData().putBoolean(ROLLED_KEY, true);
@@ -82,37 +99,128 @@ public final class EliteMobs {
             return;
         }
         MinecraftServer server = monster.getServer();
-        boolean rivalsDecideFirst = !RIVAL_CLAIMS.isEmpty() && ServerConfig.ELITE_STACKING.get() == Stacking.EXCLUSIVE;
-        if (rivalsDecideFirst && server != null) {
+        boolean otherModsActFirst = !RIVAL_CLAIMS.isEmpty() || !NODE_BONUSES.isEmpty();
+        if (otherModsActFirst && server != null) {
             server.tell(new TickTask(server.getTickCount(), () -> empowerUnlessClaimed(monster)));
         } else {
-            empower(monster, monster.getRandom(), ServerConfig.ELITE_MOB_NODES.get());
+            empower(monster, monster.getRandom(), nodeCount(monster));
         }
     }
 
     private static void empowerUnlessClaimed(Monster monster) {
-        boolean claimed = RIVAL_CLAIMS.stream().anyMatch(hasClaimed -> hasClaimed.test(monster));
+        boolean claimed = ServerConfig.ELITE_STACKING.get() == Stacking.EXCLUSIVE
+                && RIVAL_CLAIMS.stream().anyMatch(hasClaimed -> hasClaimed.test(monster));
         if (monster.isAlive() && !claimed) {
-            empower(monster, monster.getRandom(), ServerConfig.ELITE_MOB_NODES.get());
+            empower(monster, monster.getRandom(), nodeCount(monster));
         }
     }
 
-    private static boolean mayBeConstellated(MobSpawnType spawnType) {
-        return WILD_SPAWNS.contains(spawnType) || (SPAWNER_SPAWNS.contains(spawnType) && ServerConfig.ELITE_SPAWNER_MOBS.get());
+    private static boolean mayBeConstellated(Monster monster) {
+        MobSpawnType spawnType = monster.getSpawnType();
+        boolean fromSpawner = SPAWNER_SPAWNS.contains(spawnType)
+                || monster.level().getBlockState(monster.blockPosition().below()).is(ModTags.COUNTS_AS_SPAWNER);
+        return fromSpawner ? ServerConfig.ELITE_SPAWNER_MOBS.get() : WILD_SPAWNS.contains(spawnType);
     }
 
     @SubscribeEvent
     public static void onDrops(LivingDropsEvent event) {
         LivingEntity entity = event.getEntity();
-        boolean taggedKill = entity.getType().is(ModTags.ALWAYS_DROPS_FRAGMENT) && event.getSource().getEntity() instanceof Player;
-        if (isElite(entity) || taggedKill) {
+        boolean killedByPlayer = BossRewards.isRealPlayer(event.getSource().getEntity()) && !event.getSource().is(ModTags.MACHINE_DAMAGE);
+        boolean taggedKill = entity.getType().is(ModTags.ALWAYS_DROPS_FRAGMENT);
+        if (killedByPlayer && (isElite(entity) || taggedKill)) {
             event.getDrops().add(new ItemEntity(entity.level(), entity.getX(), entity.getY(), entity.getZ(),
                     new ItemStack(ModItems.STAR_FRAGMENT.get())));
         }
     }
 
+    @SubscribeEvent
+    public static void onCopiedElite(EntityJoinLevelEvent event) {
+        boolean elite = !event.getLevel().isClientSide() && event.getEntity() instanceof LivingEntity living && isElite(living);
+        if (!elite) {
+            return;
+        }
+        LivingEntity living = (LivingEntity) event.getEntity();
+        if (!living.getPersistentData().hasUUID(ORIGINAL_KEY)) {
+            living.getPersistentData().putUUID(ORIGINAL_KEY, living.getUUID());
+        } else if (!living.getPersistentData().getUUID(ORIGINAL_KEY).equals(living.getUUID())) {
+            demote(living);
+        }
+    }
+
+    private static void demote(LivingEntity copy) {
+        String prefix = MODIFIER_KIND + "/";
+        for (Holder.Reference<Attribute> attribute : BuiltInRegistries.ATTRIBUTE.holders().toList()) {
+            AttributeInstance instance = copy.getAttribute(attribute);
+            if (instance != null) {
+                List.copyOf(instance.getModifiers()).stream().map(AttributeModifier::id)
+                        .filter(id -> id.getNamespace().equals(NostalgiaSkills.MODID) && id.getPath().startsWith(prefix))
+                        .forEach(instance::removeModifier);
+            }
+        }
+        copy.getPersistentData().remove(ELITE_KEY);
+        copy.getPersistentData().remove(ORIGINAL_KEY);
+        copy.setCustomName(null);
+        copy.setHealth(Math.min(copy.getHealth(), copy.getMaxHealth()));
+    }
+
+    @SubscribeEvent
+    public static void onReloadedElite(EntityJoinLevelEvent event) {
+        boolean reloadedElite = !event.getLevel().isClientSide() && event.loadedFromDisk()
+                && event.getEntity() instanceof LivingEntity living && isElite(living);
+        if (reloadedElite) {
+            joinRadarTeam((LivingEntity) event.getEntity());
+        }
+    }
+
+    @SubscribeEvent
+    public static void onLeave(EntityLeaveLevelEvent event) {
+        boolean tracked = !event.getLevel().isClientSide() && event.getEntity() instanceof LivingEntity living && isElite(living);
+        if (tracked) {
+            Scoreboard scoreboard = event.getLevel().getScoreboard();
+            PlayerTeam team = scoreboard.getPlayerTeam(RADAR_TEAM);
+            if (team != null) {
+                scoreboard.removePlayerFromTeam(event.getEntity().getScoreboardName(), team);
+            }
+        }
+    }
+
+    private static void joinRadarTeam(LivingEntity monster) {
+        if (!ServerConfig.ELITE_RADAR_TEAM.get() || monster.getTeam() != null) {
+            return;
+        }
+        Scoreboard scoreboard = monster.level().getScoreboard();
+        PlayerTeam team = scoreboard.getPlayerTeam(RADAR_TEAM);
+        if (team == null) {
+            team = scoreboard.addPlayerTeam(RADAR_TEAM);
+            team.setColor(ChatFormatting.LIGHT_PURPLE);
+        }
+        scoreboard.addPlayerToTeam(monster.getScoreboardName(), team);
+    }
+
+    public record Bonus(String attribute, AttributeModifier.Operation operation, double amount) {
+    }
+
+    public static List<Bonus> bonuses(LivingEntity monster) {
+        String prefix = MODIFIER_KIND + "/";
+        List<Bonus> bonuses = new ArrayList<>();
+        for (Holder.Reference<Attribute> attribute : BuiltInRegistries.ATTRIBUTE.holders().toList()) {
+            AttributeInstance instance = monster.getAttribute(attribute);
+            if (instance != null) {
+                instance.getModifiers().stream()
+                        .filter(modifier -> modifier.id().getNamespace().equals(NostalgiaSkills.MODID) && modifier.id().getPath().startsWith(prefix))
+                        .forEach(modifier -> bonuses.add(new Bonus(attribute.key().location().toString(), modifier.operation(), modifier.amount())));
+            }
+        }
+        return bonuses;
+    }
+
     public static boolean isElite(LivingEntity entity) {
-        return entity.getPersistentData().getBoolean(ELITE_KEY);
+        return entity != null && entity.getPersistentData().getBoolean(ELITE_KEY);
+    }
+
+    public static boolean constellate(Monster monster) {
+        monster.getPersistentData().putBoolean(ROLLED_KEY, true);
+        return empower(monster, monster.getRandom(), nodeCount(monster));
     }
 
     public static boolean empower(Monster monster, RandomSource random, int nodeCount) {
@@ -128,6 +236,8 @@ public final class EliteMobs {
         monster.setCustomName(Component.translatable("entity.nostalgiaskills.elite", monster.getType().getDescription())
                 .withStyle(ChatFormatting.LIGHT_PURPLE));
         monster.getPersistentData().putBoolean(ELITE_KEY, true);
+        monster.getPersistentData().putUUID(ORIGINAL_KEY, monster.getUUID());
+        joinRadarTeam(monster);
         SkillEvents.post(new SkillEvents.EliteSpawned(monster));
         return true;
     }

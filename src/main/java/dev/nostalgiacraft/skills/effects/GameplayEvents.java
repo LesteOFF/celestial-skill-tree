@@ -16,6 +16,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -23,6 +24,7 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.PotionItem;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.level.block.state.BlockState;
@@ -44,6 +46,7 @@ import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -60,6 +63,7 @@ public final class GameplayEvents {
     private static final double NO_SHOT_DISTANCE = -1;
     private static final Map<UUID, Long> VANILLA_CRIT_TICK = new HashMap<>();
     private static final Map<UUID, PendingWear> PENDING_WEAR = new HashMap<>();
+    private static final Map<UUID, Map<Holder<MobEffect>, Integer>> EFFECTS_BEFORE_MEAL = new HashMap<>();
 
     private record PendingWear(ItemStack stack, int damageBefore, double roll) {
     }
@@ -80,7 +84,8 @@ public final class GameplayEvents {
     }
 
     static boolean projectile(DamageSource source, ServerPlayer player) {
-        return source.getEntity() == player && source.getDirectEntity() != player && byProjectile(source);
+        boolean firedShot = source.getDirectEntity() == player ? source.is(ModTags.COUNTS_AS_PROJECTILE) : byProjectile(source);
+        return source.getEntity() == player && firedShot;
     }
 
     static boolean weapon(DamageSource source, ServerPlayer player) {
@@ -221,10 +226,10 @@ public final class GameplayEvents {
     private static double meleeBonus(ServerPlayer attacker) {
         ItemStack weapon = attacker.getMainHandItem();
         double bonus = 0;
-        if (weapon.is(ModTags.itemTag(ServerConfig.LIGHT_WEAPON_TAG.get()))) {
+        if (WeaponClasses.isLight(weapon)) {
             bonus += attributeValue(attacker, ModAttributes.LIGHT_WEAPON_DAMAGE);
         }
-        if (weapon.is(ModTags.itemTag(ServerConfig.HEAVY_WEAPON_TAG.get()))) {
+        if (WeaponClasses.isHeavy(weapon)) {
             bonus += attributeValue(attacker, ModAttributes.HEAVY_WEAPON_DAMAGE);
         }
         if (attacker.getHealth() < attacker.getMaxHealth() * LOW_HEALTH_DAMAGE_FRACTION) {
@@ -316,6 +321,16 @@ public final class GameplayEvents {
     }
 
     @SubscribeEvent
+    public static void onFatalBlow(LivingDeathEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            Triggers.fire(player, Triggers.ON_FATAL_BLOW, null);
+            if (player.getHealth() > 0) {
+                event.setCanceled(true);
+            }
+        }
+    }
+
+    @SubscribeEvent
     public static void onDeath(LivingDeathEvent event) {
         boolean killedByOtherPlayer = !event.getEntity().level().isClientSide()
                 && event.getSource().getEntity() instanceof ServerPlayer && event.getSource().getEntity() != event.getEntity();
@@ -323,7 +338,7 @@ public final class GameplayEvents {
             return;
         }
         ServerPlayer killer = (ServerPlayer) event.getSource().getEntity();
-        Triggers.fire(killer, "on_kill", null);
+        Triggers.fire(killer, "on_kill", event.getEntity());
         if (projectile(event.getSource(), killer)) {
             Triggers.fire(killer, "on_projectile_kill", null);
         }
@@ -339,8 +354,45 @@ public final class GameplayEvents {
         }
     }
 
+    private static boolean isMeal(ItemStack stack) {
+        return !(stack.getItem() instanceof PotionItem)
+                && (stack.has(DataComponents.FOOD) || stack.getUseAnimation() == UseAnim.EAT || stack.getUseAnimation() == UseAnim.DRINK);
+    }
+
+    @SubscribeEvent
+    public static void onUseStart(LivingEntityUseItemEvent.Start event) {
+        if (event.getEntity() instanceof ServerPlayer player && isMeal(event.getItem())) {
+            Map<Holder<MobEffect>, Integer> active = new HashMap<>();
+            player.getActiveEffects().forEach(effect -> active.put(effect.getEffect(), effect.getDuration()));
+            EFFECTS_BEFORE_MEAL.put(player.getUUID(), active);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onUseStop(LivingEntityUseItemEvent.Stop event) {
+        EFFECTS_BEFORE_MEAL.remove(event.getEntity().getUUID());
+    }
+
+    private static void finishMeal(ServerPlayer player, Map<Holder<MobEffect>, Integer> before) {
+        double bonus = attributeValue(player, ModAttributes.POTION_DURATION);
+        if (bonus != 0) {
+            for (MobEffectInstance active : List.copyOf(player.getActiveEffects())) {
+                boolean gainedFromMeal = active.getDuration() > before.getOrDefault(active.getEffect(), 0);
+                if (gainedFromMeal && active.getEffect().value().isBeneficial() && !active.getEffect().value().isInstantenous()) {
+                    player.addEffect(new MobEffectInstance(active.getEffect(), (int) Math.max(1, Math.round(active.getDuration() * (1.0 + bonus))),
+                            active.getAmplifier(), active.isAmbient(), active.isVisible(), active.showIcon()));
+                }
+            }
+        }
+        Triggers.fire(player, "on_eat", null);
+    }
+
     @SubscribeEvent
     public static void onUseFinish(LivingEntityUseItemEvent.Finish event) {
+        if (event.getEntity() instanceof ServerPlayer eater && EFFECTS_BEFORE_MEAL.containsKey(eater.getUUID())) {
+            finishMeal(eater, EFFECTS_BEFORE_MEAL.remove(eater.getUUID()));
+            return;
+        }
         if (!(event.getEntity() instanceof ServerPlayer player) || !(event.getItem().getItem() instanceof PotionItem)) {
             return;
         }
@@ -389,14 +441,19 @@ public final class GameplayEvents {
 
     @SubscribeEvent
     public static void onBlockBreak(BlockEvent.BreakEvent event) {
-        if (!(event.getPlayer() instanceof ServerPlayer player)) {
+        if (!BossRewards.isRealPlayer(event.getPlayer())) {
             return;
         }
+        ServerPlayer player = (ServerPlayer) event.getPlayer();
         ItemStack tool = player.getMainHandItem();
         if (!isEligibleMiningTool(tool, event.getState())) {
             return;
         }
         Triggers.fire(player, "on_block_break", null);
+        PendingWear previousBlock = PENDING_WEAR.remove(player.getUUID());
+        if (previousBlock != null && !previousBlock.stack().isEmpty() && previousBlock.stack().getDamageValue() > previousBlock.damageBefore()) {
+            settleWear(player, previousBlock);
+        }
         if (attributeValue(player, ModAttributes.TOOL_PRESERVATION) != 0 && tool.isDamageableItem()) {
             PENDING_WEAR.put(player.getUUID(), new PendingWear(tool, tool.getDamageValue(), player.getRandom().nextDouble()));
         }
@@ -428,6 +485,7 @@ public final class GameplayEvents {
     @SubscribeEvent
     public static void onEquipmentChange(LivingEquipmentChangeEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
+            BorrowedNodes.refreshIfChanged(player);
             EffectEngine.updateConditionals(player);
         }
     }
@@ -435,5 +493,6 @@ public final class GameplayEvents {
     public static void forget(UUID id) {
         VANILLA_CRIT_TICK.remove(id);
         PENDING_WEAR.remove(id);
+        EFFECTS_BEFORE_MEAL.remove(id);
     }
 }

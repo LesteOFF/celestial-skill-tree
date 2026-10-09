@@ -35,6 +35,9 @@ public final class ModAttributes {
     public static final DeferredHolder<Attribute, Attribute> LIFESTEAL = reg("lifesteal", 0.0, 0.0, 1.0);
     public static final DeferredHolder<Attribute, Attribute> DAMAGE_REDUCTION = reg("damage_reduction", 0.0, -1.0, 0.9);
     public static final DeferredHolder<Attribute, Attribute> LOW_HEALTH_DAMAGE = reg("low_health_damage", 0.0, -1.0, 10.0);
+    public static final DeferredHolder<Attribute, Attribute> SPELL_ECHO_CHANCE = reg("spell_echo_chance", 0.0, 0.0, 1.0);
+    public static final DeferredHolder<Attribute, Attribute> HARVEST_BONUS = reg("harvest_bonus", 0.0, 0.0, 1.0);
+    public static final DeferredHolder<Attribute, Attribute> BORROWED_KEYSTONES = reg("borrowed_keystones", 0.0, 0.0, 16.0);
 
     private ModAttributes() {
     }

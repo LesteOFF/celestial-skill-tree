@@ -8,6 +8,7 @@ import dev.nostalgiacraft.skills.graph.NodeType;
 import dev.nostalgiacraft.skills.graph.SkillEffect;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.graph.SkillNodeDefinition;
+import dev.nostalgiacraft.skills.client.ClientSkillState;
 import dev.nostalgiacraft.skills.graph.SkillSign;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.registry.ModAttributes;
@@ -34,7 +35,7 @@ public final class StatsPanel {
     private static final double BLOCKS_PER_SECOND_PER_SPEED = 43.17;
     private static final String MOD_PREFIX = NostalgiaSkills.MODID + ":";
     private static final List<String> EXTRA_ATTRIBUTES = List.of("charged_shot_damage", "crossbow_damage",
-            "damage_reduction", "dodge_chance", "healing_received", "heavy_weapon_damage", "lifesteal",
+            "damage_reduction", "dodge_chance", "harvest_bonus", "healing_received", "heavy_weapon_damage", "lifesteal",
             "light_weapon_damage", "long_range_damage", "low_health_damage", "magic_resistance", "potion_duration",
             "projectile_damage");
 
@@ -55,7 +56,7 @@ public final class StatsPanel {
             addAttributes(lines, player);
         }
         state.sign().ifPresent(signId -> lines.add(text("sign", Component.translatable(SkillSign.nameKey(signId)),
-                Component.translatable(SkillSign.descriptionKey(signId))).withStyle(ChatFormatting.LIGHT_PURPLE)));
+                Component.translatable(ClientSkillState.worldRules().signDescriptionKey(signId))).withStyle(ChatFormatting.LIGHT_PURPLE)));
         addSection(lines, "conditional", conditionalEffects(state, graph));
         addSection(lines, "keystones", keystones(state, graph));
         lines.add(text("points", state.totalPoints(), state.activeSpentPoints(), state.availablePoints(), pendingCost)

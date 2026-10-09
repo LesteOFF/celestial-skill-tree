@@ -32,11 +32,12 @@ class BundledCatalogTest {
     private static final Path DATA = Path.of(System.getProperty("nostalgiaskills.dataRoot", "src/main/resources/data/nostalgiaskills"));
     private static final Path LANG = Path.of("src/main/resources/assets/nostalgiaskills/lang");
     private static final int SEEDS = 25;
+    private static final Map<String, Integer> NOTABLES_WITHOUT_MODS = Map.of(NS + ":arcanist", 14);
     private static final List<String> BASE_CLASSES = List.of("arcanist", "artificer", "berserker", "duelist", "guardian", "marksman");
     private static final Set<String> OWN_ATTRIBUTES = Set.of("crit_chance", "crit_damage", "dodge_chance",
             "light_weapon_damage", "heavy_weapon_damage", "projectile_damage", "long_range_damage", "crossbow_damage",
             "charged_shot_damage", "mining_speed", "tool_preservation", "potion_duration", "magic_resistance",
-            "healing_received", "lifesteal", "damage_reduction", "low_health_damage");
+            "healing_received", "lifesteal", "damage_reduction", "low_health_damage", "spell_echo_chance", "borrowed_keystones", "harvest_bonus");
     private static final KnownIds WITHOUT_MODS = new KnownIds() {
         @Override
         public boolean isAttribute(String id) {
@@ -93,9 +94,10 @@ class BundledCatalogTest {
             SkillGraphSnapshot graph = tree(catalog, seed);
             assertEquals(6, graph.roots().size());
             for (String classId : catalog.classes().keySet()) {
-                assertEquals(12, count(graph, classId, NodeType.NOTABLE), classId);
+                int notables = NOTABLES_WITHOUT_MODS.getOrDefault(classId, 12);
+                assertEquals(notables, count(graph, classId, NodeType.NOTABLE), classId);
                 assertEquals(3, count(graph, classId, NodeType.KEYSTONE), classId);
-                assertEquals(83, count(graph, classId, NodeType.MINOR), classId);
+                assertEquals(95 - notables, count(graph, classId, NodeType.MINOR), classId);
             }
         }
     }
@@ -118,7 +120,14 @@ class BundledCatalogTest {
         for (long seed = 0; seed < SEEDS; seed++) {
             SkillGraphSnapshot graph = tree(catalog, seed);
             assertEquals(7, graph.roots().size());
-            assertTrue(graph.nodes().values().stream().filter(node -> node.type() != NodeType.PORTAL).count() <= 7 * 100);
+            List<SkillNodeDefinition> hidden = graph.nodes().values().stream()
+                    .filter(node -> node.traits().hiddenUntil().isPresent()).toList();
+            double treeBottom = graph.nodes().values().stream().filter(node -> !hidden.contains(node))
+                    .mapToDouble(node -> node.position().y()).max().orElseThrow();
+            assertFalse(hidden.isEmpty());
+            hidden.forEach(node -> assertTrue(node.position().y() >= treeBottom + HiddenSection.DISTANCE_BELOW_TREE, node.id()));
+            assertTrue(graph.nodes().values().stream()
+                    .filter(node -> node.type() != NodeType.PORTAL && !hidden.contains(node)).count() <= 7 * 100);
             assertEquals(8, graph.nodes().values().stream().filter(node -> node.type() == NodeType.PORTAL).count());
         }
     }

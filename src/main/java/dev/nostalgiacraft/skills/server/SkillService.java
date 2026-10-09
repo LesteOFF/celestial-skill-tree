@@ -20,6 +20,7 @@ import dev.nostalgiacraft.skills.progression.RejectReason;
 import dev.nostalgiacraft.skills.progression.RequestGuard;
 import dev.nostalgiacraft.skills.progression.RespecService;
 import dev.nostalgiacraft.skills.progression.SignService;
+import dev.nostalgiacraft.skills.progression.ToggleService;
 import dev.nostalgiacraft.skills.progression.WorldClock;
 import dev.nostalgiacraft.skills.progression.XpMath;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
@@ -70,8 +71,10 @@ public final class SkillService {
     private static Payloads.WorldRules worldRules(ServerPlayer player) {
         List<Payloads.TierInfo> tiers = SkillTreeManager.communityTiers().stream().limit(Payloads.WorldRules.MAX_TIERS)
                 .map(tier -> new Payloads.TierInfo(tier.id(), tier.xpRequired())).toList();
-        List<String> signIds = SkillTreeManager.sortedSignIds().stream().limit(Payloads.WorldRules.MAX_SIGNS).toList();
-        return new Payloads.WorldRules(SkyEvents.current(), WorldSkillData.of(player.server).communityXp(), tiers, signIds);
+        List<Payloads.SignInfo> signs = SkillTreeManager.sortedSignIds().stream().limit(Payloads.WorldRules.MAX_SIGNS)
+                .flatMap(signId -> SkillTreeManager.sign(signId).stream())
+                .map(sign -> new Payloads.SignInfo(sign.id(), sign.descriptionKey())).toList();
+        return new Payloads.WorldRules(SkyEvents.current(), WorldSkillData.of(player.server).communityXp(), tiers, signs);
     }
 
     static void send(ServerPlayer player, CustomPacketPayload payload) {
@@ -82,7 +85,8 @@ public final class SkillService {
 
     public static void sendState(ServerPlayer player) {
         PlayerSkillState state = ModAttachments.state(player);
-        send(player, new Payloads.StateSync(SkillTreeManager.revision(), state.copy(), economy(state),
+        Payloads.Economy economy = economy(state).withWalletXp(XpWallets.stored(player));
+        send(player, new Payloads.StateSync(SkillTreeManager.revision(), state.copy(), economy,
                 ServerConfig.progression().curve(), worldRules(player)));
     }
 
@@ -116,9 +120,10 @@ public final class SkillService {
 
     private static void assignSign(ServerPlayer player) {
         long worldDay = WorldClock.day(player.serverLevel().getDayTime());
-        SignService.assignIfMissing(ModAttachments.state(player), SkillTreeManager.sortedSignIds(), worldDay)
-                .ifPresent(signId -> player.sendSystemMessage(Component.translatable("message.nostalgiaskills.sign_assigned",
-                        Component.translatable(SkillSign.nameKey(signId)), Component.translatable(SkillSign.descriptionKey(signId)))));
+        SignService.assignIfMissing(ModAttachments.state(player), SkillTreeManager.sortedSignIds(), worldDay, player.getUUID())
+                .flatMap(SkillTreeManager::sign)
+                .ifPresent(sign -> player.sendSystemMessage(Component.translatable("message.nostalgiaskills.sign_assigned",
+                        Component.translatable(SkillSign.nameKey(sign.id())), Component.translatable(sign.descriptionKey()))));
     }
 
     public static void onRequestSync(Payloads.RequestSync requestSync, IPayloadContext context) {
@@ -197,7 +202,8 @@ public final class SkillService {
     private static void buyPoints(Request request, int requestedCount) {
         ServerPlayer player = request.player();
         PlayerSkillState state = ModAttachments.state(player);
-        long balance = XpMath.balance(player.experienceLevel, player.experienceProgress);
+        long carried = XpMath.balance(player.experienceLevel, player.experienceProgress);
+        long balance = carried + XpWallets.stored(player);
         ProgressionService.Settings settings = ServerConfig.progression();
         int count = Math.clamp(requestedCount, 1, settings.pointLimit());
         ProgressionService.BulkPurchaseResult result = ProgressionService.purchasePoints(state, balance, settings, count);
@@ -205,7 +211,8 @@ public final class SkillService {
             request.reject(result.reason().orElseThrow(), settings.curve().cost(state.purchasedPoints()) + "/" + balance);
             return;
         }
-        setExperience(player, result.newXpTotal());
+        long shortfall = Math.max(0, result.totalCost() - carried);
+        setExperience(player, carried + XpWallets.take(player, shortfall) - result.totalCost());
         SkillEvents.post(new SkillEvents.PointsBought(player, result.bought(), result.totalCost()));
         if (result.bought() == 1) {
             request.accept("message.nostalgiaskills.point_bought", result.totalCost() + "/" + result.newXpTotal());
@@ -255,6 +262,7 @@ public final class SkillService {
         }
         EffectEngine.refresh(request.player());
         SkillEvents.post(new SkillEvents.NodesLearned(request.player(), result.nodeIds()));
+        Gestures.keystonesLearned(request.player(), graph, result.nodeIds());
         request.accept("message.nostalgiaskills.allocated", result.accepted().size() + "/" + result.totalCost());
     }
 
@@ -309,6 +317,23 @@ public final class SkillService {
         EffectEngine.refresh(request.player());
         SkillEvents.post(new SkillEvents.NodesRefunded(request.player(), done.removed(), done.refund()));
         request.accept("message.nostalgiaskills.refunded", done.refund() + "/" + done.removed().size());
+    }
+
+    public static void onToggle(Payloads.ToggleNode message, IPayloadContext context) {
+        open(context, message.requestId()).ifPresent(request -> activeGraph(request)
+                .filter(graph -> admitted(request, message.expectedStateRevision(), message.expectedGraphRevision()))
+                .ifPresent(graph -> toggle(request, graph, message.nodeId())));
+    }
+
+    private static void toggle(Request request, SkillGraphSnapshot graph, String nodeId) {
+        PlayerSkillState state = ModAttachments.state(request.player());
+        Optional<RejectReason> rejection = ToggleService.toggle(graph, state, nodeId);
+        if (rejection.isPresent()) {
+            request.reject(rejection.get(), nodeId);
+            return;
+        }
+        EffectEngine.refresh(request.player());
+        request.accept("message.nostalgiaskills.skill_" + (state.isDisabled(nodeId) ? "disabled" : "enabled"), "");
     }
 
     private static Optional<ItemStack> orbToConsume(Request request, boolean orbRequired) {

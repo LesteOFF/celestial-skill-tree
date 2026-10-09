@@ -12,6 +12,7 @@ import dev.nostalgiacraft.skills.api.SkillEvents;
 import dev.nostalgiacraft.skills.config.ServerConfig;
 import dev.nostalgiacraft.skills.data.SkillTreeManager;
 import dev.nostalgiacraft.skills.effects.EffectEngine;
+import dev.nostalgiacraft.skills.effects.EliteMobs;
 import dev.nostalgiacraft.skills.entity.FallingStar;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.graph.ValidationReport;
@@ -23,7 +24,9 @@ import dev.nostalgiacraft.skills.progression.RejectReason;
 import dev.nostalgiacraft.skills.progression.RespecService;
 import dev.nostalgiacraft.skills.progression.SkyEvent;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
+import dev.nostalgiacraft.skills.registry.ModTags;
 import dev.nostalgiacraft.skills.server.CommunityTree;
+import dev.nostalgiacraft.skills.server.ExtraSign;
 import dev.nostalgiacraft.skills.server.SkillService;
 import dev.nostalgiacraft.skills.server.SkyEvents;
 import net.minecraft.commands.CommandSourceStack;
@@ -32,8 +35,15 @@ import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.selector.EntitySelector;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.monster.Monster;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -71,6 +81,9 @@ public final class SkillCommands {
                                 .then(Commands.literal("grant_cost").executes(context -> unlock(context, true))))))
                 .then(admin("reset").then(playerArgument().executes(SkillCommands::reset)))
                 .then(admin("star").then(playerArgument().executes(SkillCommands::star)))
+                .then(admin("constellate").executes(SkillCommands::constellate))
+                .then(admin("extrasign").then(playerArgument()
+                        .then(Commands.argument("granted", BoolArgumentType.bool()).executes(SkillCommands::extraSign))))
                 .then(admin("community").then(Commands.literal("set")
                         .then(Commands.argument("xp", IntegerArgumentType.integer(0)).executes(SkillCommands::community))))
                 .then(admin("eclipse")
@@ -196,6 +209,33 @@ public final class SkillCommands {
         context.getSource().sendSuccess(() -> Component.translatable(fell ? "command.nostalgiaskills.star"
                 : "command.nostalgiaskills.star.unloaded", player.getDisplayName()), true);
         return fell ? 1 : 0;
+    }
+
+    private static int constellate(CommandContext<CommandSourceStack> context) {
+        CommandSourceStack source = context.getSource();
+        Optional<Holder<EntityType<?>>> type = BuiltInRegistries.ENTITY_TYPE.getRandomElementOf(ModTags.RITUAL_CONSTELLATED,
+                source.getLevel().getRandom());
+        Entity summoned = type.map(Holder::value)
+                .map(chosen -> chosen.spawn(source.getLevel(), BlockPos.containing(source.getPosition()), MobSpawnType.COMMAND))
+                .orElse(null);
+        if (summoned instanceof Monster monster && EliteMobs.constellate(monster)) {
+            source.sendSuccess(() -> Component.translatable("command.nostalgiaskills.constellate", monster.getDisplayName()), true);
+            return 1;
+        }
+        if (summoned != null) {
+            summoned.discard();
+        }
+        source.sendFailure(Component.translatable("command.nostalgiaskills.constellate.failed"));
+        return 0;
+    }
+
+    private static int extraSign(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = EntityArgument.getPlayer(context, "player");
+        boolean granted = BoolArgumentType.getBool(context, "granted");
+        ExtraSign.setGranted(player, granted);
+        context.getSource().sendSuccess(() -> Component.translatable(granted ? "command.nostalgiaskills.extrasign.granted"
+                : "command.nostalgiaskills.extrasign.revoked", player.getDisplayName()), true);
+        return 1;
     }
 
     private static int skyEvent(CommandContext<CommandSourceStack> context, SkyEvent event, boolean start) {

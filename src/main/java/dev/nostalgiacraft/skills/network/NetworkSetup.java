@@ -1,11 +1,14 @@
 package dev.nostalgiacraft.skills.network;
 
+import dev.nostalgiacraft.skills.effects.Triggers;
 import dev.nostalgiacraft.skills.server.SkillService;
+import dev.nostalgiacraft.skills.server.TreeViewers;
+import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 public final class NetworkSetup {
-    public static final String VERSION = "5";
+    public static final String VERSION = "8";
 
     private NetworkSetup() {
     }
@@ -17,7 +20,14 @@ public final class NetworkSetup {
         payloadRegistrar.playToServer(Payloads.ConfirmAllocation.TYPE, Payloads.ConfirmAllocation.CODEC, SkillService::onConfirm);
         payloadRegistrar.playToServer(Payloads.RequestReset.TYPE, Payloads.RequestReset.CODEC, SkillService::onReset);
         payloadRegistrar.playToServer(Payloads.RequestRefund.TYPE, Payloads.RequestRefund.CODEC, SkillService::onRefund);
+        payloadRegistrar.playToServer(Payloads.ToggleNode.TYPE, Payloads.ToggleNode.CODEC, SkillService::onToggle);
         payloadRegistrar.playToServer(Payloads.DonateXp.TYPE, Payloads.DonateXp.CODEC, SkillService::onDonate);
+        payloadRegistrar.playToServer(Payloads.TreeViewing.TYPE, Payloads.TreeViewing.CODEC, TreeViewers::onViewing);
+        payloadRegistrar.playToServer(Payloads.UseBoon.TYPE, Payloads.UseBoon.CODEC,
+                (msg, ctx) -> Triggers.fire((ServerPlayer) ctx.player(), Triggers.ON_BOON_KEY, null));
+        payloadRegistrar.playToClient(Payloads.TreeViewer.TYPE, Payloads.TreeViewer.CODEC, (msg, ctx) -> ClientHandlers.viewer(msg));
+        payloadRegistrar.playToClient(Payloads.Gesture.TYPE, Payloads.Gesture.CODEC, (msg, ctx) -> ClientHandlers.gesture(msg));
+        payloadRegistrar.playToClient(Payloads.Stargaze.TYPE, Payloads.Stargaze.CODEC, (msg, ctx) -> ClientHandlers.stargaze());
         payloadRegistrar.playToClient(Payloads.GraphSync.TYPE, Payloads.GraphSync.CODEC, (msg, ctx) -> ClientHandlers.graph(msg));
         payloadRegistrar.playToClient(Payloads.StateSync.TYPE, Payloads.StateSync.CODEC, (msg, ctx) -> ClientHandlers.state(msg));
         payloadRegistrar.playToClient(Payloads.TransactionResult.TYPE, Payloads.TransactionResult.CODEC, (msg, ctx) -> ClientHandlers.result(msg));

@@ -20,6 +20,9 @@ public final class EffectParser {
     private static final double MAX_HEAL = 100;
     private static final double MAX_MANA_RESTORE = 10_000;
     private static final int MAX_DURATION_TICKS = 12_000;
+    private static final double MAX_GUST_RADIUS = 16;
+    private static final double MAX_SUNSTRIKE_RANGE = 64;
+    private static final double MAX_LAUNCH_SPEED = 3;
     private static final int MAX_AMPLIFIER = 4;
 
     private final KnownIds known;
@@ -105,8 +108,9 @@ public final class EffectParser {
                     + " or a namespaced id fired by another mod)");
         }
         int cooldown = effect.integerWithin("cooldown_ticks", 0, 0, MAX_COOLDOWN_TICKS);
+        Optional<Condition> condition = effect.has("condition") ? condition(effect) : Optional.empty();
         return effect.object("action").flatMap(this::action)
-                .map(action -> new SkillEffect.Trigger(trigger, action, cooldown));
+                .map(action -> new SkillEffect.Trigger(trigger, action, cooldown, condition));
     }
 
     private Optional<SkillEffect.Action> action(JsonFields action) {
@@ -117,7 +121,15 @@ public final class EffectParser {
         }
         return Optional.of(switch (type) {
             case "heal" -> amountAction(action, type, MAX_HEAL);
-            case "restore_mana" -> amountAction(action, type, MAX_MANA_RESTORE);
+            case "restore_mana", "blood_for_mana" -> amountAction(action, type, MAX_MANA_RESTORE);
+            case "gust", "pull" -> amountAction(action, type, MAX_GUST_RADIUS);
+            case "cheat_death", "burst", "smite_target", "chaos_target" -> amountAction(action, type, MAX_HEAL);
+            case "launch_target", "lunge" -> amountAction(action, type, MAX_LAUNCH_SPEED);
+            case "blink_behind_target", "web_target" -> new SkillEffect.Action(type, 0, "", 0, 0);
+            case "area_effect" -> areaEffectAction(action, type);
+            case "sunstrike" -> amountAction(action, type, MAX_SUNSTRIKE_RANGE);
+            case "ignite_target" -> new SkillEffect.Action(type, 0, "", duration(action), 0);
+            case "raise_ally" -> new SkillEffect.Action(type, 0, action.id("entity"), duration(action), 0);
             default -> mobEffectAction(action, type);
         });
     }
@@ -135,9 +147,18 @@ public final class EffectParser {
         if (mobEffect != null && !known.isMobEffect(mobEffect)) {
             action.error("effect", "unknown mob effect '" + mobEffect + "'");
         }
-        int duration = action.integerWithin("duration_ticks", 0, 1, MAX_DURATION_TICKS);
         int amplifier = action.integerWithin("amplifier", 0, 0, MAX_AMPLIFIER);
-        return new SkillEffect.Action(type, 0, mobEffect, duration, amplifier);
+        return new SkillEffect.Action(type, 0, mobEffect, duration(action), amplifier);
+    }
+
+    private SkillEffect.Action areaEffectAction(JsonFields action, String type) {
+        SkillEffect.Action onEach = mobEffectAction(action, type);
+        double radius = amountAction(action, type, MAX_GUST_RADIUS).amount();
+        return new SkillEffect.Action(type, radius, onEach.effect(), onEach.durationTicks(), onEach.amplifier());
+    }
+
+    private static int duration(JsonFields action) {
+        return action.integerWithin("duration_ticks", 0, 1, MAX_DURATION_TICKS);
     }
 
     private Optional<Condition> condition(JsonFields owner) {
@@ -173,6 +194,7 @@ public final class EffectParser {
         switch (type) {
             case "holding", "wearing", "has_curio" -> requireId(condition, parameters, "tag", "an item tag id");
             case "in_biome_tag" -> requireId(condition, parameters, "tag", "a biome tag id");
+            case "target_type" -> requireId(condition, parameters, "tag", "an entity type tag id");
             case "in_dimension" -> requireId(condition, parameters, "dimension", "a dimension id");
             case "sky_event" -> {
                 if (!(parameters.get("event") instanceof String event) || !Condition.SKY_EVENTS.contains(event)) {

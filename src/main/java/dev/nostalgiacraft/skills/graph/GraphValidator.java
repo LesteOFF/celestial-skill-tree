@@ -53,6 +53,9 @@ public final class GraphValidator {
             }
             String rootField = "sectors." + sector.id() + ".root";
             SkillNodeDefinition root = graph.nodes().get(sector.root());
+            if (sector.isRootless()) {
+                continue;
+            }
             if (root == null) {
                 report.error(source, rootField, "root node '" + sector.root() + "' does not exist");
             } else if (!root.isRoot()) {
@@ -159,7 +162,7 @@ public final class GraphValidator {
         for (String root : graph.roots()) {
             Set<String> seen = reach(graph, root, Set.of());
             for (String id : graph.ids()) {
-                if (!seen.contains(id)) {
+                if (!seen.contains(id) && !standsAlone(graph, id)) {
                     report.error("skill_nodes/" + id, "", "not reachable from root '" + root + "'");
                     return;
                 }
@@ -176,7 +179,7 @@ public final class GraphValidator {
         for (String root : graph.roots()) {
             Set<String> seen = reach(graph, root, exclusive);
             for (String id : graph.ids()) {
-                if (!exclusive.contains(id) && !seen.contains(id)) {
+                if (!exclusive.contains(id) && !seen.contains(id) && !standsAlone(graph, id)) {
                     report.error("skill_nodes/" + id, "", "only reachable through an exclusive choice (from '" + root + "')");
                     return;
                 }
@@ -207,6 +210,10 @@ public final class GraphValidator {
                 }
             }
         }
+    }
+
+    private static boolean standsAlone(SkillGraphSnapshot graph, String id) {
+        return graph.nodes().get(id).traits().standsAlone();
     }
 
     static Set<String> reach(SkillGraphSnapshot graph, String start, Set<String> blocked) {
@@ -248,7 +255,7 @@ public final class GraphValidator {
                 if (obtainable.contains(node.id())) {
                     continue;
                 }
-                boolean adjacent = graph.accessFrom(node.id()).stream().anyMatch(obtainable::contains);
+                boolean adjacent = node.traits().standsAlone() || graph.accessFrom(node.id()).stream().anyMatch(obtainable::contains);
                 int sectorPoints = sectorCost.getOrDefault(node.sector(), 0);
                 if (adjacent && RequirementCheck.satisfied(graph, node, obtainable, sectorPoints)) {
                     obtainable.add(node.id());

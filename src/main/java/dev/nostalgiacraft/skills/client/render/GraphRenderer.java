@@ -5,6 +5,7 @@ import com.mojang.math.Axis;
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.client.screen.Camera;
 import dev.nostalgiacraft.skills.client.screen.NodeState;
+import dev.nostalgiacraft.skills.client.screen.TreeRegion;
 import dev.nostalgiacraft.skills.config.ClientConfig;
 import dev.nostalgiacraft.skills.graph.NodeType;
 import dev.nostalgiacraft.skills.graph.SkillConnection;
@@ -30,6 +31,10 @@ public final class GraphRenderer {
     private static final int PORTAL_LINK_LANE_HEIGHT = 8;
     private static final int PORTAL_LINK_LANE_GAP = 1;
     private static final double PORTAL_LINK_SPEED = 24;
+    private static final float DISABLED_SHADE = 0.42f;
+    private static final float[] NO_TINT = {1f, 1f, 1f};
+    private static final float[] HIDDEN_TINT = {0.72f, 0.5f, 1f};
+    private static final float[] SILHOUETTE_TINT = {0.2f, 0.1f, 0.34f};
     private static final Map<String, ResourceLocation> CACHE = new HashMap<>();
 
     public interface StateLookup {
@@ -71,7 +76,8 @@ public final class GraphRenderer {
         for (SkillConnection connection : graph.connections()) {
             NodeState a = states.state(connection.a());
             NodeState b = states.state(connection.b());
-            if (connection.isPortal() || a == NodeState.HIDDEN || b == NodeState.HIDDEN) {
+            boolean unseen = a == NodeState.HIDDEN || b == NodeState.HIDDEN;
+            if (connection.isPortal() || unseen || entersHiddenRegion(graph, connection)) {
                 continue;
             }
             if (a == NodeState.ALLOCATED && b == NodeState.ALLOCATED) {
@@ -87,6 +93,10 @@ public final class GraphRenderer {
         }
         inactive.draw();
         active.draw();
+    }
+
+    private static boolean entersHiddenRegion(SkillGraphSnapshot graph, SkillConnection connection) {
+        return TreeRegion.isHidden(graph.nodes().get(connection.a())) != TreeRegion.isHidden(graph.nodes().get(connection.b()));
     }
 
     private static void polyline(LineBatch batch, SkillGraphSnapshot graph, SkillConnection connection, Camera camera,
@@ -157,22 +167,33 @@ public final class GraphRenderer {
     }
 
     public static void node(GuiGraphics graphics, SkillNodeDefinition node, Camera camera, NodeState state,
-                            boolean affordable, boolean focused, boolean searchHit, boolean portalActive, double time) {
+                            boolean affordable, boolean focused, boolean searchHit, boolean portalActive, boolean disabled,
+                            double time) {
         double x = camera.toScreenX(node.position().x());
         double y = camera.toScreenY(node.position().y());
         double radius = screenRadius(node, camera);
         double reach = radius * CULLING_REACH;
         boolean offScreen = x + reach < camera.left() || x - reach > camera.right()
                 || y + reach < camera.top() || y - reach > camera.bottom();
-        if (offScreen || state == NodeState.HIDDEN) {
+        if (offScreen) {
+            return;
+        }
+        boolean inHiddenRegion = TreeRegion.isHidden(node);
+        if (state == NodeState.HIDDEN) {
+            if (inHiddenRegion) {
+                drawSilhouette(graphics, node, x, y, radius);
+            }
             return;
         }
         if (node.type() == NodeType.PORTAL && (portalActive || held(state))) {
             drawPortalSwirl(graphics, x, y, radius, portalActive, time);
         }
-        drawGlow(graphics, state, affordable, x, y, radius, time);
-        float shade = shade(state, affordable);
-        graphics.setColor(shade, shade, shade, 1f);
+        if (!disabled) {
+            drawGlow(graphics, state, affordable, x, y, radius, time);
+        }
+        float shade = disabled ? DISABLED_SHADE : shade(state, affordable);
+        float[] tint = inHiddenRegion ? HIDDEN_TINT : NO_TINT;
+        graphics.setColor(shade * tint[0], shade * tint[1], shade * tint[2], 1f);
         draw(graphics, frameTex(node.frame()), x, y, radius);
         draw(graphics, iconTex(node.icon()), x, y, radius * (node.type() == NodeType.MINOR ? 0.62 : 0.58));
         graphics.setColor(1f, 1f, 1f, 1f);
@@ -183,6 +204,12 @@ public final class GraphRenderer {
         if (focused) {
             draw(graphics, frameTex("focus"), x, y, radius * 1.5 + 2);
         }
+    }
+
+    private static void drawSilhouette(GuiGraphics graphics, SkillNodeDefinition node, double x, double y, double radius) {
+        graphics.setColor(SILHOUETTE_TINT[0], SILHOUETTE_TINT[1], SILHOUETTE_TINT[2], 1f);
+        draw(graphics, frameTex(node.frame()), x, y, radius);
+        graphics.setColor(1f, 1f, 1f, 1f);
     }
 
     private static void drawGlow(GuiGraphics graphics, NodeState state, boolean affordable, double x, double y,

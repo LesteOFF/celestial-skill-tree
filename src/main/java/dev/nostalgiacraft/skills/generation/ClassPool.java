@@ -9,7 +9,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 
-public record ClassPool(ClassDefinition definition, List<ThemeDefinition> themes, List<KeystoneDefinition> keystones) {
+public record ClassPool(ClassDefinition definition, List<ThemeDefinition> themes, List<KeystoneDefinition> keystones,
+                        List<KeystoneDefinition> hidden) {
     public static List<ClassPool> select(Catalog catalog) {
         Set<String> entering = enteringClasses(catalog);
         Map<String, List<ThemeDefinition>> themes = new TreeMap<>();
@@ -19,7 +20,14 @@ public record ClassPool(ClassDefinition definition, List<ThemeDefinition> themes
         catalog.keystones().values().forEach(keystone -> home(keystone.classId(), entering, catalog)
                 .ifPresent(home -> keystones.computeIfAbsent(home, id -> new ArrayList<>()).add(keystone)));
         return entering.stream().sorted().map(id -> new ClassPool(catalog.classes().get(id),
-                List.copyOf(themes.getOrDefault(id, List.of())), List.copyOf(keystones.getOrDefault(id, List.of())))).toList();
+                List.copyOf(themes.getOrDefault(id, List.of())), keystonesOf(keystones, id, false),
+                keystonesOf(keystones, id, true))).toList();
+    }
+
+    private static List<KeystoneDefinition> keystonesOf(Map<String, List<KeystoneDefinition>> byClass, String classId,
+                                                       boolean hidden) {
+        return byClass.getOrDefault(classId, List.of()).stream()
+                .filter(keystone -> keystone.traits().hiddenUntil().isPresent() == hidden).toList();
     }
 
     public Optional<ThemeDefinition> theme(String id) {

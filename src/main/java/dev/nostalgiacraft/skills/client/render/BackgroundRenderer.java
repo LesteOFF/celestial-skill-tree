@@ -21,6 +21,7 @@ public final class BackgroundRenderer {
     static final int BASE_W = 2048;
     static final int BASE_H = 1152;
     private static final double OVERSCAN = 0.06;
+    private static final double VEIL_OPACITY = 0.86;
 
     private BackgroundRenderer() {
     }
@@ -61,6 +62,13 @@ public final class BackgroundRenderer {
         }
         motes(graphics, w, h, still ? 0 : timeSeconds);
         RenderSystem.disableBlend();
+    }
+
+    public static void veil(GuiGraphics graphics, int w, int h, double presence) {
+        int alpha = (int) Math.round(255 * VEIL_OPACITY * Mth.clamp(presence, 0, 1));
+        if (alpha > 0) {
+            graphics.fill(0, 0, w, h, alpha << 24 | Palette.HIDDEN_VEIL);
+        }
     }
 
     private static double offset(double pan, double factor, int size) {

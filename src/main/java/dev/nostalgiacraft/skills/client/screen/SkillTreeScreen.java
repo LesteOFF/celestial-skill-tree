@@ -8,6 +8,7 @@ import dev.nostalgiacraft.skills.client.render.BackgroundRenderer;
 import dev.nostalgiacraft.skills.client.render.GraphRenderer;
 import dev.nostalgiacraft.skills.client.render.Palette;
 import dev.nostalgiacraft.skills.config.ClientConfig;
+import dev.nostalgiacraft.skills.graph.Sector;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.graph.SkillNodeDefinition;
 import dev.nostalgiacraft.skills.network.Payloads;
@@ -16,12 +17,14 @@ import dev.nostalgiacraft.skills.progression.PathFinder;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.progression.RefundService;
 import dev.nostalgiacraft.skills.progression.RejectReason;
+import dev.nostalgiacraft.skills.progression.ToggleService;
 import dev.nostalgiacraft.skills.progression.XpCurve;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
@@ -33,6 +36,7 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -75,6 +79,9 @@ public final class SkillTreeScreen extends Screen {
     private static final int COMMUNITY_BUTTON_WIDTH = 72;
     private static final int COMMUNITY_BUTTON_BOTTOM_OFFSET = 26;
     private static final int SIGN_BUTTON_BOTTOM_OFFSET = 50;
+    private static final int HIDDEN_BUTTON_BOTTOM_OFFSET = 74;
+    private static final float STARGAZING_PITCH = -70f;
+    private static final int REAL_SKY_TINT = 0x40050C10;
     private static final int POINTS_LABEL_SAMPLE = 888;
     private static final int MIN_TOOLTIP_WIDTH = 120;
     private static final int MAX_TOOLTIP_WIDTH = 260;
@@ -121,6 +128,9 @@ public final class SkillTreeScreen extends Screen {
     private Button cancelButton;
     private Button communityButton;
     private Button signButton;
+    private Button hiddenButton;
+    private boolean stargazing;
+    private float pitchBeforeStargazing;
     private EditBox search;
     private int controlsBottom;
 
@@ -129,6 +139,17 @@ public final class SkillTreeScreen extends Screen {
 
     public SkillTreeScreen() {
         super(Component.translatable("gui.nostalgiaskills.title"));
+    }
+
+    public static SkillTreeScreen underTheRealSky() {
+        SkillTreeScreen screen = new SkillTreeScreen();
+        LocalPlayer stargazer = Minecraft.getInstance().player;
+        screen.stargazing = true;
+        screen.pitchBeforeStargazing = stargazer == null ? 0 : stargazer.getXRot();
+        if (stargazer != null) {
+            stargazer.setXRot(STARGAZING_PITCH);
+        }
+        return screen;
     }
 
     private static MutableComponent text(String key, Object... arguments) {
@@ -266,6 +287,9 @@ public final class SkillTreeScreen extends Screen {
         signButton = addRenderableWidget(new SkillButton(MARGIN, height - SIGN_BUTTON_BOTTOM_OFFSET,
                 COMMUNITY_BUTTON_WIDTH, BUTTON_HEIGHT, text("sign"), button -> minecraft.setScreen(new BirthSignScreen(this))));
         signButton.setTooltip(Tooltip.create(text("sign_tooltip")));
+        hiddenButton = addRenderableWidget(new SkillButton(MARGIN, height - HIDDEN_BUTTON_BOTTOM_OFFSET,
+                COMMUNITY_BUTTON_WIDTH, BUTTON_HEIGHT, text("hidden"), button -> toggleHiddenRegion()));
+        hiddenButton.setTooltip(Tooltip.create(text("hidden_tooltip")));
         controlsBottom = (toolsFitBeside ? secondRowY : toolsY) + BUTTON_HEIGHT + ROW_SPACING;
         double centerX = camera.centerX();
         double centerY = camera.centerY();
@@ -317,7 +341,21 @@ public final class SkillTreeScreen extends Screen {
     @Override
     public void removed() {
         ClientSkillState.clearListeners();
+        if (stargazing && minecraft != null && minecraft.player != null) {
+            minecraft.player.setXRot(pitchBeforeStargazing);
+        }
         super.removed();
+    }
+
+    public String viewedSectorKey() {
+        return ClientSkillState.graph().flatMap(graph -> graph.nodes().values().stream()
+                .min(Comparator.comparingDouble(this::distanceToCameraCenter))
+                .flatMap(nearest -> graph.sectors().stream().filter(sector -> sector.id().equals(nearest.sector())).findFirst()))
+                .map(Sector::nameKey).orElse("");
+    }
+
+    private double distanceToCameraCenter(SkillNodeDefinition node) {
+        return Math.hypot(node.position().x() - camera.centerX(), node.position().y() - camera.centerY());
     }
 
     private void placeCamera() {
@@ -343,8 +381,24 @@ public final class SkillTreeScreen extends Screen {
     }
 
     private void fit() {
-        ClientSkillState.graph().ifPresent(
-                graph -> camera.fit(graph.minX(), graph.minY(), graph.maxX(), graph.maxY(), FIT_PADDING));
+        ClientSkillState.graph().flatMap(TreeRegion::main).ifPresent(this::fit);
+    }
+
+    private void fit(TreeRegion region) {
+        camera.fit(region.minX(), region.minY(), region.maxX(), region.maxY(), FIT_PADDING);
+    }
+
+    private void toggleHiddenRegion() {
+        if (hiddenPresence() > 0) {
+            fit();
+        } else {
+            ClientSkillState.graph().flatMap(TreeRegion::hidden).ifPresent(this::fit);
+        }
+    }
+
+    private double hiddenPresence() {
+        return ClientSkillState.graph().flatMap(TreeRegion::hidden)
+                .map(region -> region.presenceAt(camera.centerX(), camera.centerY())).orElse(0.0);
     }
 
     private void refreshStatesIfDirty() {
@@ -412,6 +466,7 @@ public final class SkillTreeScreen extends Screen {
         statsButton.active = ready;
         communityButton.visible = !ClientSkillState.worldRules().communityTiers().isEmpty();
         signButton.visible = state != null && state.sign().isPresent();
+        hiddenButton.visible = ClientSkillState.graph().flatMap(TreeRegion::hidden).isPresent();
     }
 
     private Component confirmTooltip(boolean busy, int available) {
@@ -527,6 +582,20 @@ public final class SkillTreeScreen extends Screen {
         }
         ClientSkillState.state().ifPresent(state -> ClientRequests.send(new Payloads.RequestRefund(ClientRequests.newRequest(), state.stateRevision(),
                 ClientSkillState.graphRevision(), refundOf)));
+    }
+
+    private void sendToggle(String nodeId) {
+        if (nodeId == null || !ClientSkillState.ready() || ClientSkillState.requestInFlight()) {
+            return;
+        }
+        PlayerSkillState state = playerState();
+        Optional<RejectReason> rejection = ToggleService.rejection(graph(), state, nodeId);
+        if (rejection.isPresent()) {
+            flash(error(rejection.get()));
+            return;
+        }
+        ClientRequests.send(new Payloads.ToggleNode(ClientRequests.newRequest(), state.stateRevision(),
+                ClientSkillState.graphRevision(), nodeId));
     }
 
     private void toggle(String nodeId, boolean addRoute) {
@@ -718,6 +787,10 @@ public final class SkillTreeScreen extends Screen {
             search.setFocused(false);
             setFocused(null);
         }
+        if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+            sendToggle(nodeAt(mouseX, mouseY));
+            return true;
+        }
         boolean panButton = button == GLFW.GLFW_MOUSE_BUTTON_LEFT || button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE;
         if (camera.inViewport(mouseX, mouseY) && panButton) {
             pressed = true;
@@ -817,6 +890,7 @@ public final class SkillTreeScreen extends Screen {
             case GLFW.GLFW_KEY_DOWN -> moveFocus(0, 1);
             case GLFW.GLFW_KEY_SPACE -> toggleFocused();
             case GLFW.GLFW_KEY_F -> focusSearchOrFit();
+            case GLFW.GLFW_KEY_T -> sendToggle(focusId);
             default -> {
                 return false;
             }
@@ -854,7 +928,12 @@ public final class SkillTreeScreen extends Screen {
     @Override
     public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         double time = secondsOpen();
-        BackgroundRenderer.render(graphics, width, height, camera.centerX(), camera.centerY(), time);
+        if (stargazing) {
+            graphics.fill(0, 0, width, height, REAL_SKY_TINT);
+        } else {
+            BackgroundRenderer.render(graphics, width, height, camera.centerX(), camera.centerY(), time);
+        }
+        BackgroundRenderer.veil(graphics, width, height, hiddenPresence());
         refreshStatesIfDirty();
         placeCamera();
         if (ClientSkillState.graph().isEmpty() || ClientSkillState.state().isEmpty()) {
@@ -873,7 +952,7 @@ public final class SkillTreeScreen extends Screen {
         for (SkillNodeDefinition node : graph.nodes().values()) {
             boolean highlighted = node.id().equals(focusId) || node.id().equals(hoverId);
             GraphRenderer.node(graphics, node, camera, nodeStates.of(node.id()), affordable(node, state), highlighted,
-                    searchHits.contains(node.id()), activePortals.contains(node.id()), time);
+                    searchHits.contains(node.id()), activePortals.contains(node.id()), state.isDisabled(node.id()), time);
         }
         graphics.setColor(1f, 1f, 1f, 1f);
         RenderSystem.disableBlend();

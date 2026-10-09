@@ -1,6 +1,7 @@
 package dev.nostalgiacraft.skills.registry;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.nostalgiacraft.skills.progression.Allocation;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
@@ -16,7 +17,7 @@ public final class StateCodecs {
             Codec.LONG.fieldOf("order").forGetter(Allocation::acquisitionIndex)
     ).apply(i, Allocation::new));
 
-    public static final Codec<PlayerSkillState> STATE = RecordCodecBuilder.create(i -> i.group(
+    private static final MapCodec<PlayerSkillState> CORE = RecordCodecBuilder.mapCodec(i -> i.group(
             Codec.INT.optionalFieldOf("schema", PlayerSkillState.SCHEMA_VERSION).forGetter(s -> PlayerSkillState.SCHEMA_VERSION),
             Codec.STRING.optionalFieldOf("tree", "nostalgiaskills:main").forGetter(PlayerSkillState::treeId),
             Codec.STRING.optionalFieldOf("starting_root").forGetter(PlayerSkillState::startingRoot),
@@ -34,6 +35,11 @@ public final class StateCodecs {
             Codec.STRING.optionalFieldOf("sign").forGetter(PlayerSkillState::sign),
             Codec.STRING.listOf().optionalFieldOf("discoveries", List.of()).forGetter(s -> List.copyOf(s.discoveries()))
     ).apply(i, StateCodecs::restore));
+
+    public static final Codec<PlayerSkillState> STATE = RecordCodecBuilder.create(i -> i.group(
+            CORE.forGetter(state -> state),
+            Codec.STRING.listOf().optionalFieldOf("disabled", List.of()).forGetter(s -> List.copyOf(s.disabled()))
+    ).apply(i, PlayerSkillState::withRestoredDisabled));
 
     private StateCodecs() {
     }

@@ -30,7 +30,8 @@ public final class ShootingStars {
         double chancePerSecond = starsPerMinute(showering) / SECONDS_PER_MINUTE;
         for (ServerPlayer player : overworld.players()) {
             if (!player.isSpectator() && overworld.getRandom().nextDouble() < chancePerSecond) {
-                FallingStar.spawnNear(player);
+                FallingStar.spawnNear(player).filter(star -> overworld.canSeeSky(player.blockPosition()))
+                        .ifPresent(star -> Gestures.starAppeared(player));
             }
         }
     }

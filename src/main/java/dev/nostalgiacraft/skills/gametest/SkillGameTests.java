@@ -3,6 +3,7 @@ package dev.nostalgiacraft.skills.gametest;
 import com.mojang.authlib.GameProfile;
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.config.ServerConfig;
+import dev.nostalgiacraft.skills.registry.ModTags;
 import dev.nostalgiacraft.skills.data.SkillTreeManager;
 import dev.nostalgiacraft.skills.data.WorldSkillData;
 import dev.nostalgiacraft.skills.effects.EffectEngine;
@@ -52,6 +53,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Cow;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
@@ -320,10 +322,26 @@ public final class SkillGameTests {
         helper.assertFalse(EliteMobs.isElite(zombie), "an ordinary zombie is not elite");
         helper.assertTrue(EliteMobs.empower(zombie, RandomSource.create(42), 8), "empowered");
         helper.assertTrue(EliteMobs.isElite(zombie) && zombie.hasCustomName(), "marked and named");
+        helper.assertTrue(zombie.getTeam() != null && zombie.getTeam().getName().equals("nostalgiaskills_constellated"), "listed in the radar team");
         helper.assertTrue(zombie.getMaxHealth() >= baseHealth * 1.5 - 1e-4, "at least +50% max health: " + zombie.getMaxHealth());
         helper.assertTrue(zombie.getAttributeValue(Attributes.ATTACK_DAMAGE) >= baseDamage * 1.25 - 1e-4, "at least +25% damage");
         near(helper, zombie.getMaxHealth(), zombie.getHealth(), "healed to the new maximum");
         zombie.discard();
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty")
+    public static void bossGivesFragmentsOnlyOnTheFirstKillPerPlayer(GameTestHelper helper) {
+        ServerPlayer player = mockPlayer(helper);
+        player.setGameMode(GameType.SURVIVAL);
+        for (int kill = 0; kill < 2; kill++) {
+            Warden warden = helper.spawn(EntityType.WARDEN, new BlockPos(1, 2, 1));
+            warden.die(player.damageSources().playerAttack(player));
+            warden.discard();
+        }
+        int fragments = player.getInventory().countItem(ModItems.STAR_FRAGMENT.get());
+        helper.assertTrue(fragments == ServerConfig.BOSS_FRAGMENTS.get(), "only the first kill pays: " + fragments);
+        helper.assertTrue(EntityType.WARDEN.is(ModTags.NEVER_CONSTELLATED), "bosses are never Constellated");
         helper.succeed();
     }
 

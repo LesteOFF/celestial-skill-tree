@@ -8,6 +8,7 @@ import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 public record CompiledBuild(Map<String, Double> attributeSums, List<Keyed<SkillEffect.ConditionalAttribute>> conditional,
@@ -27,8 +28,16 @@ public record CompiledBuild(Map<String, Double> attributeSums, List<Keyed<SkillE
 
     public static CompiledBuild compile(SkillGraphSnapshot graph, PlayerSkillState state,
                                         Map<String, List<SkillEffect>> extraSources) {
+        return compile(graph, state, extraSources, Set.of());
+    }
+
+    public static CompiledBuild compile(SkillGraphSnapshot graph, PlayerSkillState state,
+                                        Map<String, List<SkillEffect>> extraSources, Set<String> silenced) {
         Collector collector = new Collector();
         for (String id : state.allocations().keySet()) {
+            if (silenced.contains(id) || state.isDisabled(id)) {
+                continue;
+            }
             double factor = amplification(graph, state, id);
             graph.node(id).ifPresent(node -> collector.addAll(id, node.effects().stream().map(effect -> scaled(effect, factor)).toList()));
         }

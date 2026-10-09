@@ -101,7 +101,7 @@ public final class ClientSkillState {
     public static long xpBalance() {
         Player player = Minecraft.getInstance().player;
         if (player != null) {
-            return XpMath.balance(player.experienceLevel, player.experienceProgress);
+            return XpMath.balance(player.experienceLevel, player.experienceProgress) + economy.walletXp();
         }
         return fixture ? XpMath.balance(fixtureLevel, fixtureProgress) : 0;
     }

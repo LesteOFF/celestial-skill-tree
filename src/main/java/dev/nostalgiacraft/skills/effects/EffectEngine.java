@@ -11,6 +11,7 @@ import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
 import dev.nostalgiacraft.skills.registry.ModTags;
+import dev.nostalgiacraft.skills.server.ExtraSign;
 import dev.nostalgiacraft.skills.server.SkyEvents;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -24,6 +25,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -85,6 +87,8 @@ public final class EffectEngine {
     public static void forget(Player player) {
         BUILDS.remove(player.getUUID());
         ACTIVE_CONDITIONALS.remove(player.getUUID());
+        BorrowedNodes.forget(player.getUUID());
+        StolenNodes.forget(player.getUUID());
     }
 
     public static ResourceLocation modifierId(String kind, String key) {
@@ -106,7 +110,10 @@ public final class EffectEngine {
     private static CompiledBuild compile(SkillGraphSnapshot graph, ServerPlayer player) {
         PlayerSkillState state = ModAttachments.state(player);
         long communityXp = WorldSkillData.of(player.server).communityXp();
-        return CompiledBuild.compile(graph, state, ExtraEffects.of(state, communityXp));
+        Map<String, List<SkillEffect>> extras = ExtraEffects.of(state, communityXp);
+        extras.putAll(BorrowedNodes.effects(graph, player));
+        extras.putAll(ExtraSign.effects(player, state));
+        return CompiledBuild.compile(graph, state, extras, StolenNodes.of(player));
     }
 
     private static void applyPermanent(ServerPlayer player, String sumKey, double sum) {
@@ -225,28 +232,27 @@ public final class EffectEngine {
 
     public static boolean holds(Player player, Condition condition, DamageContext context) {
         return switch (condition.type()) {
-            case "holding" -> player.getMainHandItem().is(ModTags.itemTag(condition.string("tag")));
+            case "holding" -> WeaponClasses.matches(player.getMainHandItem(), condition.string("tag"));
             case "sprinting" -> player.isSprinting();
+            case "wet" -> player.isInWaterOrRain();
             case "sneaking" -> player.isShiftKeyDown();
             case "blocking" -> player.isBlocking();
             case "below_y" -> player.getY() < condition.number("y");
             case "health_below" -> player.getHealth() < player.getMaxHealth() * condition.number("fraction");
             case "target_health_above" -> context != null && context.target() != null
                     && context.target().getHealth() > context.target().getMaxHealth() * condition.number("fraction");
+            case "target_type" -> context != null && context.target() != null
+                    && context.target().getType().is(ModTags.entityTypeTag(condition.string("tag")));
             case "shot_distance_over" -> context != null && context.hasShot() && context.shotDistance() > condition.number("blocks");
             case "shot_distance_under" -> context != null && context.hasShot() && context.shotDistance() <= condition.number("blocks");
             case "in_dimension" -> player.level().dimension().location().toString().equals(condition.string("dimension"));
             case "in_biome_tag" -> player.level().getBiome(player.blockPosition()).is(ModTags.biomeTag(condition.string("tag")));
-            case "sky_event" -> SkyEvents.current().id().equals(condition.string("event"));
+            case "sky_event" -> player.level().dimension() == Level.OVERWORLD && SkyEvents.current().id().equals(condition.string("event"));
             case "wearing" -> wears(player, ModTags.itemTag(condition.string("tag")));
-            case "dual_wielding" -> isWeapon(player.getMainHandItem()) && isWeapon(player.getOffhandItem());
+            case "dual_wielding" -> WeaponClasses.isWeapon(player.getMainHandItem()) && WeaponClasses.isWeapon(player.getOffhandItem());
             case "attribute_at_least" -> BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.parse(condition.string("attribute")))
                     .filter(attribute -> GameplayEvents.attributeValue(player, attribute) >= condition.number("value")).isPresent();
             default -> EXTRA_CONDITIONS.getOrDefault(condition.type(), (anyPlayer, anyCondition) -> false).test(player, condition);
         };
-    }
-
-    private static boolean isWeapon(ItemStack stack) {
-        return stack.is(ModTags.itemTag(ServerConfig.LIGHT_WEAPON_TAG.get())) || stack.is(ModTags.itemTag(ServerConfig.HEAVY_WEAPON_TAG.get()));
     }
 }

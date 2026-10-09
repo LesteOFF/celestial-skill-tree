@@ -134,13 +134,16 @@ class EffectPhrasesTest {
                 condition("shot_distance_under", Map.of("blocks", 6.0)), condition("in_dimension", Map.of("dimension", "aether:the_aether")),
                 condition("in_biome_tag", Map.of("tag", "c:is_cold")), condition("sky_event", Map.of("event", "eclipse")),
                 condition("sky_event", Map.of("event", "star_shower")),
-                condition("attribute_at_least", Map.of("attribute", ARMOR, "value", 10.0)));
+                condition("attribute_at_least", Map.of("attribute", ARMOR, "value", 10.0)),
+                condition("target_type", Map.of("tag", "nostalgiaskills:dragons")), condition("wet", Map.of()));
         assertEquals(Condition.TYPES.size() + 1, conditions.size());
         for (Condition condition : conditions) {
             SkillEffect effect = new SkillEffect.ConditionalAttribute(ARMOR, "add_value", 1, condition);
             assertFalse(english(effect).contains("effect."), () -> "en_us lacks " + condition.type());
             assertFalse(portuguese(effect).contains("effect."), () -> "pt_br lacks " + condition.type());
         }
+        SkillEffect dragonSlaying = new SkillEffect.DamageModifier(true, "all", 0.15, Optional.of(conditions.get(17)));
+        assertEquals("+15% dano causado contra dragões.", portuguese(dragonSlaying));
         assertEquals("+1 Armor while below 50% health.", english(new SkillEffect.ConditionalAttribute(ARMOR, "add_value", 1, conditions.get(8))));
     }
 

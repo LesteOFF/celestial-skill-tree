@@ -30,6 +30,7 @@ public final class PlayerSkillState {
     private String reconciledFingerprint = "";
     private String sign;
     private final Set<String> discoveries = new TreeSet<>();
+    private final Set<String> disabled = new TreeSet<>();
     private final Set<String> migrationMarkers = new TreeSet<>();
     private final Deque<String> audit = new ArrayDeque<>();
 
@@ -69,6 +70,7 @@ public final class PlayerSkillState {
                 reconciledFingerprint, migrationMarkers, audit);
         copy.sign = sign;
         copy.discoveries.addAll(discoveries);
+        copy.disabled.addAll(disabled);
         return copy;
     }
 
@@ -88,6 +90,19 @@ public final class PlayerSkillState {
 
     public Set<String> discoveries() {
         return Collections.unmodifiableSet(discoveries);
+    }
+
+    public PlayerSkillState withRestoredDisabled(Collection<String> restoredDisabled) {
+        restoredDisabled.stream().filter(allocations::containsKey).forEach(disabled::add);
+        return this;
+    }
+
+    public Set<String> disabled() {
+        return Collections.unmodifiableSet(disabled);
+    }
+
+    public boolean isDisabled(String id) {
+        return disabled.contains(id);
     }
 
     public String treeId() {
@@ -175,6 +190,7 @@ public final class PlayerSkillState {
         if (allocation == null) {
             return 0;
         }
+        disabled.remove(id);
         availablePoints += allocation.paidCost();
         lifetimeRefunded += allocation.paidCost();
         if (id.equals(startingRoot)) {
@@ -186,6 +202,7 @@ public final class PlayerSkillState {
     void forfeit(String id) {
         Allocation forfeited = allocations.remove(id);
         if (forfeited != null) {
+            disabled.remove(id);
             netGrantedPoints -= forfeited.paidCost();
         }
     }
@@ -201,6 +218,9 @@ public final class PlayerSkillState {
             allocations.put(to, new Allocation(to, allocation.rank(), allocation.paidCost(), allocation.acquisitionIndex()));
             if (from.equals(startingRoot)) {
                 startingRoot = to;
+            }
+            if (disabled.remove(from)) {
+                disabled.add(to);
             }
         }
     }
@@ -221,6 +241,14 @@ public final class PlayerSkillState {
 
     boolean discover(String key) {
         return discoveries.add(key);
+    }
+
+    void setDisabled(String id, boolean off) {
+        if (off) {
+            disabled.add(id);
+        } else {
+            disabled.remove(id);
+        }
     }
 
     void setSign(String signId) {

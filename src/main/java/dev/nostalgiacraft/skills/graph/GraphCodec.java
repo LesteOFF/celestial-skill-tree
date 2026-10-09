@@ -21,7 +21,7 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
 public final class GraphCodec {
-    public static final int FORMAT = 2;
+    public static final int FORMAT = 3;
     public static final int MAX_BYTES = 900 * 1024;
     private static final int MAX_INFLATED = 16 * 1024 * 1024;
     private static final int MAX_SECTORS = 64;
@@ -146,6 +146,7 @@ public final class GraphCodec {
         out.writeUTF(node.exclusiveGroup().orElse(""));
         out.writeDouble(node.traits().neighbourMultiplier());
         out.writeUTF(node.traits().hiddenUntil().orElse(""));
+        out.writeBoolean(node.traits().toggleable());
     }
 
     private static SkillNodeDefinition readNode(DataInputStream in) throws IOException {
@@ -165,7 +166,7 @@ public final class GraphCodec {
         Set<String> tags = Collections.unmodifiableSet(new TreeSet<>(readStrings(in)));
         String cluster = in.readUTF();
         Optional<String> exclusiveGroup = optional(in.readUTF());
-        NodeTraits traits = new NodeTraits(in.readDouble(), optional(in.readUTF()));
+        NodeTraits traits = new NodeTraits(in.readDouble(), optional(in.readUTF()), in.readBoolean());
         return new SkillNodeDefinition(id, tree, sector, type, position, name, description, icon, frame, cost, maxRank,
                 requirements, effects, tags, cluster, exclusiveGroup, traits);
     }
@@ -236,6 +237,10 @@ public final class GraphCodec {
                 out.writeUTF(trigger.trigger());
                 out.writeInt(trigger.cooldownTicks());
                 writeAction(out, trigger.action());
+                out.writeBoolean(trigger.condition().isPresent());
+                if (trigger.condition().isPresent()) {
+                    writeCondition(out, trigger.condition().get());
+                }
             }
         }
     }
@@ -263,7 +268,9 @@ public final class GraphCodec {
     private static SkillEffect readTrigger(DataInputStream in) throws IOException {
         String trigger = in.readUTF();
         int cooldownTicks = in.readInt();
-        return new SkillEffect.Trigger(trigger, readAction(in), cooldownTicks);
+        SkillEffect.Action action = readAction(in);
+        Optional<Condition> condition = in.readBoolean() ? Optional.of(readCondition(in)) : Optional.empty();
+        return new SkillEffect.Trigger(trigger, action, cooldownTicks, condition);
     }
 
     private static void writeAction(DataOutputStream out, SkillEffect.Action action) throws IOException {

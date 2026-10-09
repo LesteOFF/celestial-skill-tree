@@ -2,6 +2,7 @@ package dev.nostalgiacraft.skills.client.screen;
 
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.client.ClientSkillState;
+import dev.nostalgiacraft.skills.effects.BorrowedNodes;
 import dev.nostalgiacraft.skills.effects.EffectEngine;
 import dev.nostalgiacraft.skills.graph.ExclusiveGroup;
 import dev.nostalgiacraft.skills.graph.Sector;
@@ -96,7 +97,7 @@ public final class SkillTooltips {
                 .append(GuiText.of("type." + node.type().serializedName())).withStyle(ChatFormatting.GRAY));
         boolean owned = subject.state().isAllocated(node.id());
         int shownCost = owned ? subject.state().allocations().get(node.id()).paidCost() : subject.cost();
-        lines.add(GuiText.of("cost", shownCost).append("   ").append(GuiText.of("rank", owned ? 1 : 0, node.maxRank()))
+        lines.add(GuiText.of("cost", shownCost).append("   ").append(GuiText.of("rank", (owned ? 1 : 0) + lentRanks(node), node.maxRank()))
                 .withStyle(ChatFormatting.YELLOW));
         lines.add(SkillTexts.description(node).withStyle(ChatFormatting.GREEN));
         SkillTexts.numbersBehindPlainText(node).ifPresent(numbers -> lines.add(numbers.withStyle(ChatFormatting.DARK_GREEN)));
@@ -105,6 +106,11 @@ public final class SkillTooltips {
         if (node.traits().amplifiesNeighbours()) {
             lines.add(GuiText.of("amplifier", format(node.traits().neighbourMultiplier(), false)).withStyle(ChatFormatting.DARK_PURPLE));
         }
+    }
+
+    private static int lentRanks(SkillNodeDefinition node) {
+        Player player = Minecraft.getInstance().player;
+        return player != null && BorrowedNodes.lentTo(player).contains(node.id()) ? 1 : 0;
     }
 
     private static void addRequirements(List<Component> lines, Subject subject) {
@@ -163,7 +169,12 @@ public final class SkillTooltips {
     }
 
     private static void addAllocatedStatus(List<Component> lines, Subject subject) {
-        lines.add(GuiText.of("status.allocated").withStyle(ChatFormatting.GOLD));
+        boolean disabled = subject.state().isDisabled(subject.node().id());
+        lines.add(GuiText.of(disabled ? "status.disabled" : "status.allocated")
+                .withStyle(disabled ? ChatFormatting.RED : ChatFormatting.GOLD));
+        if (subject.node().traits().toggleable()) {
+            lines.add(GuiText.of(disabled ? "status.toggle_on" : "status.toggle_off").withStyle(ChatFormatting.DARK_AQUA));
+        }
         if (ClientSkillState.economy().nodeRefundsEnabled()) {
             boolean startingRoot = subject.state().startingRoot().filter(subject.node().id()::equals).isPresent();
             lines.add(GuiText.of(startingRoot ? "status.root_reset_only" : "status.refundable").withStyle(ChatFormatting.DARK_AQUA));

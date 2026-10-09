@@ -143,7 +143,7 @@ public final class AllocationService {
                 return Optional.of(new Rejection(RejectReason.EXCLUSIVE_CONFLICT, node.id(), active.get(0)));
             }
         }
-        if (graph.accessFrom(node.id()).stream().noneMatch(holdings::contains)) {
+        if (!node.traits().standsAlone() && graph.accessFrom(node.id()).stream().noneMatch(holdings::contains)) {
             return Optional.of(new Rejection(RejectReason.NOT_CONNECTED, node.id(), ""));
         }
         String unmet = RequirementCheck.firstUnmet(graph, node, holdings.nodeIds(), holdings.pointsIn(node.sector()));

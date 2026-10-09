@@ -136,7 +136,7 @@ public final class SkillTreeReloadListener extends SimplePreparableReloadListene
 
     private static void installSigns(Map<String, JsonElement> signFiles) {
         ValidationReport report = new ValidationReport();
-        List<SkillSign> signs = new SignParser(McKnownIds.INSTANCE).parse(signFiles, report);
+        List<SkillSign> signs = new SignParser(McKnownIds.INSTANCE, ModList.get()::isLoaded).parse(signFiles, report);
         report.errors().forEach(issue -> NostalgiaSkills.LOGGER.error("[skill signs] {}", issue));
         SkillTreeManager.installSigns(signs);
         NostalgiaSkills.LOGGER.info("Skill signs loaded: {}", signs.size());

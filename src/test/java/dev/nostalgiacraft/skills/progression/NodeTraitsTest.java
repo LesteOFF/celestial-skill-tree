@@ -105,6 +105,18 @@ class NodeTraitsTest {
     }
 
     @Test
+    void aDiscoveredHiddenSkillNeedsNoConnection() {
+        TestGraphs layout = new TestGraphs().sector("a");
+        layout.node("a/h1", "a", "keystone", 1).addProperty("hidden_until", ADVANCEMENT);
+        SkillGraphSnapshot graph = layout.build();
+        PlayerSkillState state = build(graph, "a/hub");
+        assertEquals(RejectReason.UNDISCOVERED, rejection(graph, state, "a/h1"));
+        DiscoveryService.discover(state, graph, ADVANCEMENT);
+        assertTrue(AllocationService.confirm(graph, state, List.of(id("a/h1"))).ok());
+        assertTrue(Reconciler.reconcile(state, graph, Map.of()).removed().isEmpty());
+    }
+
+    @Test
     void skillsLearnedBeforeBeingHiddenSurviveReconciliation() {
         PlayerSkillState state = build(hiddenLayout(false).build(), "a/hub", "a/m1", "a/h1", "a/h2");
         SkillGraphSnapshot nowHidden = hiddenLayout(true).build();

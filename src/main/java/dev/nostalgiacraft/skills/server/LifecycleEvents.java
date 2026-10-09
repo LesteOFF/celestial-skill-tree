@@ -49,6 +49,7 @@ public final class LifecycleEvents {
         if (event.getEntity() instanceof ServerPlayer player) {
             reconcileAndSync(player);
             SkyEvents.greet(player);
+            TreeViewers.announceTo(player);
         }
     }
 
@@ -56,6 +57,7 @@ public final class LifecycleEvents {
     public static void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             SkillService.forget(player);
+            TreeViewers.forget(player);
             EffectEngine.forget(player);
             GameplayEvents.forget(player.getUUID());
         }

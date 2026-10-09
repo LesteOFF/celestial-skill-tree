@@ -13,6 +13,6 @@ public final class TraitsParser {
         if (!(multiplier >= NodeTraits.NO_MULTIPLIER && multiplier <= MAX_NEIGHBOUR_MULTIPLIER)) {
             node.error("neighbour_multiplier", "must be within 1.." + MAX_NEIGHBOUR_MULTIPLIER);
         }
-        return new NodeTraits(multiplier, node.optionalId("hidden_until"));
+        return new NodeTraits(multiplier, node.optionalId("hidden_until"), node.flag("toggleable", false));
     }
 }

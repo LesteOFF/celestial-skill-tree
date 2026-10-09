@@ -38,6 +38,19 @@ public final class CommunityTree {
         return donation;
     }
 
+    public static long remaining(MinecraftServer server) {
+        boolean open = server != null && ServerConfig.COMMUNITY_ENABLED.get();
+        return open ? Math.max(0, CommunityProgress.goal(thresholds()) - WorldSkillData.of(server).communityXp()) : 0;
+    }
+
+    public static long contribute(MinecraftServer server, long experience) {
+        long accepted = Math.min(Math.max(0, experience), remaining(server));
+        if (accepted > 0) {
+            setProgress(server, WorldSkillData.of(server).communityXp() + accepted);
+        }
+        return accepted;
+    }
+
     public static void setProgress(MinecraftServer server, long communityXp) {
         WorldSkillData data = WorldSkillData.of(server);
         int unlockedBefore = CommunityProgress.unlockedCount(thresholds(), data.communityXp());

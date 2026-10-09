@@ -32,6 +32,7 @@ final class TreeAssembler {
     private static final Map<NodeType, String> FRAMES = Map.of(NodeType.ROOT, "stone_medallion", NodeType.MINOR, "bronze_circle",
             NodeType.NOTABLE, "violet_facet", NodeType.KEYSTONE, "gold_ornate", NodeType.PORTAL, "portal_gate");
     private static final int MAX_RANK = 1;
+    private static final Sector HIDDEN_SECTOR = Sector.rootless("nostalgiaskills:hidden", "gui.nostalgiaskills.hidden");
 
     record Assembled(List<SkillNodeDefinition> nodes, List<SkillConnection> connections, List<Sector> sectors) {
     }
@@ -57,6 +58,11 @@ final class TreeAssembler {
             String classId = pool.definition().id();
             sectors.add(new Sector(classId, classId + CatalogEntryParser.HUB_SUFFIX, pool.definition().name()));
         }
+        List<HiddenSection.Placement> hidden = HiddenSection.place(pools, shape);
+        hidden.forEach(placement -> assembler.addHidden(pools.get(placement.owner().index()).definition().id(), placement));
+        if (!hidden.isEmpty()) {
+            sectors.add(HIDDEN_SECTOR);
+        }
         List<SkillConnection> connections = shape.links().stream().map(assembler::connection).toList();
         return new Assembled(List.copyOf(assembler.nodes), connections, List.copyOf(sectors));
     }
@@ -81,6 +87,11 @@ final class TreeAssembler {
             add(shape.portals().get(number), classId, id, NodeType.PORTAL, portalTemplate(shape.index() + number), NodeTraits.NONE,
                     classId);
         }
+    }
+
+    private void addHidden(String classId, HiddenSection.Placement placement) {
+        KeystoneDefinition keystone = placement.keystone();
+        add(placement.slot(), HIDDEN_SECTOR.id(), keystone.id(), NodeType.KEYSTONE, keystone.skill(), keystone.traits(), classId);
     }
 
     private void addRib(ClassPool pool, Rib rib, RibDraw drawn, Map<String, Integer> copies) {

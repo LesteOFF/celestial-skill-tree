@@ -9,6 +9,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class Triggers {
@@ -22,6 +23,10 @@ public final class Triggers {
     public static final String ON_RELOAD = "nostalgiaskills:on_reload";
     public static final String ON_WALL_JUMP = "nostalgiaskills:on_wall_jump";
     public static final String ON_ROLL = "nostalgiaskills:on_roll";
+    public static final String ON_BOON_KEY = "nostalgiaskills:on_boon_key";
+    public static final String ON_FATAL_BLOW = "nostalgiaskills:on_fatal_blow";
+    private static final Set<String> NEEDING_A_LIVING_TARGET = Set.of("target_effect", "ignite_target", "blink_behind_target", "web_target",
+            "launch_target", "smite_target", "chaos_target");
 
     private static final Map<String, ActionHandler> EXTRA_ACTIONS = new ConcurrentHashMap<>();
 
@@ -45,8 +50,9 @@ public final class Triggers {
         long now = player.serverLevel().getGameTime();
         for (CompiledBuild.Keyed<SkillEffect.Trigger> keyed : build.triggers()) {
             SkillEffect.Trigger candidate = keyed.effect();
-            boolean targetMissing = candidate.action().type().equals("target_effect") && (target == null || !target.isAlive());
-            boolean fires = candidate.trigger().equals(trigger) && !targetMissing
+            boolean targetMissing = NEEDING_A_LIVING_TARGET.contains(candidate.action().type()) && (target == null || !target.isAlive());
+            boolean conditionHolds = candidate.condition().map(condition -> EffectEngine.holds(player, condition, null)).orElse(true);
+            boolean fires = candidate.trigger().equals(trigger) && !targetMissing && conditionHolds
                     && ModAttachments.cooldowns(player).tryUse(keyed.key(), now, candidate.cooldownTicks());
             if (fires) {
                 run(player, candidate.action(), target);
@@ -59,6 +65,20 @@ public final class Triggers {
             case "heal" -> player.heal((float) action.amount());
             case "self_effect" -> applyMobEffect(player, action, player);
             case "target_effect" -> applyMobEffect(player, action, target);
+            case "ignite_target" -> target.igniteForTicks(action.durationTicks());
+            case "gust" -> BoonActions.gust(player, action.amount());
+            case "pull" -> BoonActions.pull(player, action.amount());
+            case "burst" -> BoonActions.burst(player, target, action.amount());
+            case "blink_behind_target" -> BoonActions.blinkBehind(player, target);
+            case "stacking_self_effect" -> BoonActions.stackEffect(player, action);
+            case "area_effect" -> BoonActions.areaEffect(player, action);
+            case "web_target" -> BoonActions.web(target);
+            case "lunge" -> BoonActions.lunge(player, action.amount());
+            case "chaos_target" -> BoonActions.chaos(player, target, action.amount());
+            case "launch_target" -> BoonActions.launch(target, action.amount());
+            case "smite_target" -> BoonActions.smite(player, target, action.amount());
+            case "cheat_death" -> player.setHealth((float) action.amount());
+            case "raise_ally" -> BoonActions.raiseAlly(player, action, target);
             default -> {
                 ActionHandler extra = EXTRA_ACTIONS.get(action.type());
                 if (extra != null) {

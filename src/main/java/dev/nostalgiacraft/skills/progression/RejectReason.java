@@ -30,7 +30,8 @@ public enum RejectReason {
     TREE_UNAVAILABLE,
     UNDISCOVERED,
     CONSUMED,
-    COMMUNITY_COMPLETE;
+    COMMUNITY_COMPLETE,
+    NOT_TOGGLEABLE;
 
     public String translationKey() {
         return "error.nostalgiaskills." + name().toLowerCase(Locale.ROOT);

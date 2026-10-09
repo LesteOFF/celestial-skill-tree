@@ -48,6 +48,22 @@ public final class ServerConfig {
     public static final ModConfigSpec.IntValue ECLIPSE_AVERAGE_DAYS;
     public static final ModConfigSpec.IntValue ELITE_MOB_NODES;
     public static final ModConfigSpec.BooleanValue ELITE_SPAWNER_MOBS;
+    public static final ModConfigSpec.BooleanValue ELITE_RADAR_TEAM;
+    public static final ModConfigSpec.BooleanValue ELITE_BOSS_BAR;
+    public static final ModConfigSpec.IntValue BOSS_FRAGMENTS;
+    public static final ModConfigSpec.IntValue FAMILIAR_SWAP_COOLDOWN_SECONDS;
+    public static final ModConfigSpec.IntValue L2HOSTILITY_LEVELS_PER_NODE;
+    public static final ModConfigSpec.DoubleValue RELIC_XP_SHARE;
+    public static final ModConfigSpec.IntValue LIVING_FRAGMENT_XP_PER_LEVEL;
+    public static final ModConfigSpec.IntValue CURSED_RING_POINTS;
+    public static final ModConfigSpec.DoubleValue PET_TREE_SHARE;
+    public static final ModConfigSpec.IntValue LIQUID_XP_MB_PER_POINT;
+    public static final ModConfigSpec.IntValue CONDENSER_XP_PER_FRAGMENT;
+    public static final ModConfigSpec.IntValue BASIN_MB_PER_TICK;
+    public static final ModConfigSpec.IntValue STELLAR_AMMO_SHOTS;
+    public static final ModConfigSpec.ConfigValue<String> LAST_LIFE_OBJECTIVE;
+    public static final ModConfigSpec.IntValue LAST_LIFE_SCORE;
+    public static final ModConfigSpec.DoubleValue STELLAR_AMMO_BONUS;
     public static final ModConfigSpec.BooleanValue REDIRECT_TO_APOTHIC_ATTRIBUTES;
     public static final ModConfigSpec.BooleanValue REDIRECT_TO_PUFFISH_ATTRIBUTES;
     public static final ModConfigSpec.BooleanValue REDIRECT_TO_L2_DAMAGE_TRACKER;
@@ -123,6 +139,38 @@ public final class ServerConfig {
                 .defineInRange("eliteMobNodes", 8, 0, 60);
         ELITE_SPAWNER_MOBS = builder.comment("Monsters from spawners and trial spawners may be Constellated; leaving this on with a mob farm turns it into a star fragment farm")
                 .define("eliteSpawnerMobs", false);
+        ELITE_RADAR_TEAM = builder.comment("Constellated monsters join the light purple scoreboard team 'nostalgiaskills_constellated', so radar mods such as Xaero's Minimap list them in their own team category")
+                .define("eliteRadarTeam", true);
+        ELITE_BOSS_BAR = builder.comment("A Constellated monster shows a purple boss bar to players within 24 blocks who can see it; Enhanced Boss Bars draws it with this mod's own frame")
+                .define("eliteBossBar", true);
+        BOSS_FRAGMENTS = builder.comment("Star fragments a player receives the first time they kill each monster of #nostalgiaskills:first_kill_fragment (bosses); 0 disables")
+                .defineInRange("bossFragments", 2, 0, 16);
+        FAMILIAR_SWAP_COOLDOWN_SECONDS = builder.comment("Occultism: seconds a familiar needs before it can swap saved builds with its owner again (sneak and use an Orb of Reconfiguration on it; the orb is not consumed)")
+                .defineInRange("familiarSwapCooldownSeconds", 600, 0, 86_400);
+        L2HOSTILITY_LEVELS_PER_NODE = builder.comment("L2Hostility: a Constellated monster learns one more skill of its constellation for every this many hostility levels (at most 60 extra); 0 disables")
+                .defineInRange("l2hostilityLevelsPerNode", 10, 0, 1_000);
+        RELIC_XP_SHARE = builder.comment("Relics: fraction of the experience a relic gains that its bearer also receives as ordinary experience, the currency skill points are bought with; 0 disables")
+                .defineInRange("relicXpShare", 0.25, 0.0, 10.0);
+        LIVING_FRAGMENT_XP_PER_LEVEL = builder.comment("Experience a Living Fragment must witness for each of its 5 levels; it grows with the experience orbs its carrier picks up (the experience is not taken) and, fully grown, is worth 2 skill points")
+                .defineInRange("livingFragmentXpPerLevel", 500, 1, 1_000_000);
+        CURSED_RING_POINTS = builder.comment("Enigmatic Legacy+: skill points lent while the Ring of the Seven Curses is worn; taking the ring off takes them back and, if they were already spent, resets the whole build; 0 disables")
+                .defineInRange("cursedRingPoints", 5, 0, 100);
+        PET_TREE_SHARE = builder.comment("Fraction of the owner's tree bonuses to health, attack damage, armor, toughness, movement speed and knockback resistance that tamed creatures of #nostalgiaskills:inherits_tree receive (Ice and Fire dragons, Companions); 0 disables")
+                .defineInRange("petTreeShare", 0.25, 0.0, 1.0);
+        LIQUID_XP_MB_PER_POINT = builder.comment("Millibuckets of a #c:experience fluid worth one experience point (20 is the convention of Create, Mekanism, Industrial Foregoing and others). Tanks and buckets carried in the inventory then count towards buying skill points; 0 disables")
+                .defineInRange("liquidXpMbPerPoint", 20, 0, 10_000);
+        CONDENSER_XP_PER_FRAGMENT = builder.comment("Experience points of liquid experience a Stellar Condenser turns into one Star Fragment. This automates skill points: every fragment is one point. 0 disables the condenser")
+                .defineInRange("condenserXpPerFragment", 4_000, 0, 10_000_000);
+        BASIN_MB_PER_TICK = builder.comment("Millibuckets of liquid experience a Stellar Condenser or a Community Basin absorbs per tick; with the defaults a fragment takes 200 seconds")
+                .defineInRange("basinMbPerTick", 20, 1, 100_000);
+        STELLAR_AMMO_SHOTS = builder.comment("Gunshots one Stellar Ammo empowers; a shot is spent when a bullet of #nostalgiaskills:counts_as_projectile hits")
+                .defineInRange("stellarAmmoShots", 24, 1, 1_000);
+        STELLAR_AMMO_BONUS = builder.comment("Extra damage of a gunshot empowered by Stellar Ammo (0.5 = +50%)")
+                .defineInRange("stellarAmmoBonus", 0.5, 0.0, 10.0);
+        LAST_LIFE_OBJECTIVE = builder.comment("Lives mods (Third Life and the like): scoreboard objective holding each player's remaining lives; while a player's score equals lastLifeScore they carry a second birth sign, the one opposite their own. Empty disables; /nostalgiaskills extrasign and the KubeJS binding grant the same sign by hand")
+                .define("lastLifeObjective", "");
+        LAST_LIFE_SCORE = builder.comment("Score of lastLifeObjective that means the player is on their last life")
+                .defineInRange("lastLifeScore", 1, -1_000_000, 1_000_000);
         ECLIPSE_ENABLED = builder.comment("Some days the moon covers the sun from dawn to dusk: resets and refunds need no Orb of Reconfiguration")
                 .define("eclipseEnabled", true);
         ECLIPSE_AVERAGE_DAYS = builder.comment("Average number of game days between two eclipses")
