@@ -26,7 +26,7 @@ the only optional integration.
 ## Building
 
 ```bash
-./gradlew build            # Windows: gradlew.bat build  → build/libs/nostalgiaskills-1.4.0.jar
+./gradlew build            # Windows: gradlew.bat build  → build/libs/nostalgiaskills-1.4.1.jar
 ./gradlew test             # 30 unit tests in test/, including trees generated from the shipped catalog
 ./gradlew validateTree     # validates the catalog and generates one tree outside the game
 ./gradlew previewTree      # draws the tree shape to build/preview/tree.png
