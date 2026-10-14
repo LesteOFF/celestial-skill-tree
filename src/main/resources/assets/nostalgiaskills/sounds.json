@@ -25,5 +25,30 @@
     "sounds": [
       "nostalgiaskills:event/star_shower"
     ]
+  },
+  "ui.tree_open": {
+    "sounds": [
+      "nostalgiaskills:ui/tree_open"
+    ]
+  },
+  "ui.node_mark": {
+    "sounds": [
+      "nostalgiaskills:ui/node_mark"
+    ]
+  },
+  "ui.point_buy": {
+    "sounds": [
+      "nostalgiaskills:ui/point_buy"
+    ]
+  },
+  "ui.confirm": {
+    "sounds": [
+      "nostalgiaskills:ui/confirm"
+    ]
+  },
+  "ui.keystone": {
+    "sounds": [
+      "nostalgiaskills:ui/keystone"
+    ]
   }
 }
