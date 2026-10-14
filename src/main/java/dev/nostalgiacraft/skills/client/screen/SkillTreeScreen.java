@@ -7,10 +7,13 @@ import dev.nostalgiacraft.skills.client.ClientSkillState;
 import dev.nostalgiacraft.skills.client.render.BackgroundRenderer;
 import dev.nostalgiacraft.skills.client.render.GraphRenderer;
 import dev.nostalgiacraft.skills.client.render.Palette;
+import dev.nostalgiacraft.skills.client.sound.TreeSounds;
 import dev.nostalgiacraft.skills.config.ClientConfig;
+import dev.nostalgiacraft.skills.graph.NodeType;
 import dev.nostalgiacraft.skills.graph.Sector;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.graph.SkillNodeDefinition;
+import dev.nostalgiacraft.skills.graph.Vec2;
 import dev.nostalgiacraft.skills.network.Payloads;
 import dev.nostalgiacraft.skills.progression.AllocationService;
 import dev.nostalgiacraft.skills.progression.PathFinder;
@@ -37,6 +40,7 @@ import org.lwjgl.glfw.GLFW;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -85,12 +89,18 @@ public final class SkillTreeScreen extends Screen {
     private static final int POINTS_LABEL_SAMPLE = 888;
     private static final int MIN_TOOLTIP_WIDTH = 120;
     private static final int MAX_TOOLTIP_WIDTH = 260;
+    private static final Set<String> POINT_BOUGHT_MESSAGES = Set.of("message.nostalgiaskills.point_bought",
+            "message.nostalgiaskills.points_bought");
 
     private final Camera camera = new Camera();
     private final Set<String> pending = new LinkedHashSet<>();
     private final Set<String> searchHits = new LinkedHashSet<>();
     private final PanelRenderer panelRenderer = new PanelRenderer();
     private final long openedAt = Util.getMillis();
+    private final OpeningReveal reveal = new OpeningReveal();
+    private final ConfirmSparks sparks = new ConfirmSparks();
+    private boolean openingSoundPlayed;
+    private List<String> confirming = List.of();
     private NodeStates nodeStates = NodeStates.EMPTY;
     private boolean statesDirty = true;
     private boolean cameraPlaced;
@@ -270,6 +280,7 @@ public final class SkillTreeScreen extends Screen {
     protected void init() {
         ClientSkillState.setListeners(this::onResult, () -> statesDirty = true);
         ClientRequests.send(new Payloads.RequestSync(ClientSkillState.graph().map(SkillGraphSnapshot::fingerprint).orElse("")));
+        playOpeningSoundOnce();
         int buttonWidth = mainButtonWidth();
         int groupWidth = 3 * buttonWidth + 2 * GAP;
         int groupLeft = (width - groupWidth) / 2;
@@ -298,6 +309,13 @@ public final class SkillTreeScreen extends Screen {
             camera.centerOn(centerX, centerY);
         }
         updateControls();
+    }
+
+    private void playOpeningSoundOnce() {
+        if (!openingSoundPlayed) {
+            openingSoundPlayed = true;
+            TreeSounds.opened();
+        }
     }
 
     private int mainButtonWidth() {
@@ -525,7 +543,11 @@ public final class SkillTreeScreen extends Screen {
 
     private void onResult(Payloads.TransactionResult result) {
         if (result.ok() && result.messageKey().equals("message.nostalgiaskills.allocated")) {
+            celebrateAllocation();
             pending.clear();
+        }
+        if (result.ok() && POINT_BOUGHT_MESSAGES.contains(result.messageKey())) {
+            TreeSounds.pointBought();
         }
         Object[] details = result.detail().split("/");
         flash(Component.translatable(result.messageKey(), details).withStyle(result.ok() ? ChatFormatting.GREEN : ChatFormatting.RED));
@@ -533,6 +555,19 @@ public final class SkillTreeScreen extends Screen {
             panel = Panel.NONE;
         }
         statesDirty = true;
+    }
+
+    private void celebrateAllocation() {
+        if (!ClientSkillState.ready() || confirming.isEmpty()) {
+            return;
+        }
+        SkillGraphSnapshot graph = graph();
+        Set<String> litBefore = new HashSet<>(playerState().allocations().keySet());
+        confirming.forEach(litBefore::remove);
+        sparks.start(SparkRoutes.of(graph, litBefore, confirming));
+        TreeSounds.confirmed(confirming.stream().map(graph.nodes()::get)
+                .anyMatch(node -> node != null && node.type() == NodeType.KEYSTONE));
+        confirming = List.of();
     }
 
     private void buyPoints(int count) {
@@ -546,8 +581,9 @@ public final class SkillTreeScreen extends Screen {
         if (pending.isEmpty() || ClientSkillState.requestInFlight() || !ClientSkillState.ready()) {
             return;
         }
+        confirming = List.copyOf(pending);
         ClientRequests.send(new Payloads.ConfirmAllocation(ClientRequests.newRequest(), playerState().stateRevision(), ClientSkillState.graphRevision(),
-                List.copyOf(pending)));
+                confirming));
         updateControls();
     }
 
@@ -637,6 +673,7 @@ public final class SkillTreeScreen extends Screen {
         if (affordable(graph().nodes().get(nodeId), playerState())) {
             pending.add(nodeId);
             statesDirty = true;
+            TreeSounds.nodeMarked();
         } else {
             flash(error(RejectReason.INSUFFICIENT_POINTS));
         }
@@ -667,6 +704,7 @@ public final class SkillTreeScreen extends Screen {
         }
         pending.addAll(found.get().newNodes());
         statesDirty = true;
+        TreeSounds.nodeMarked();
         flash(text("route.added", found.get().newNodes().size(), cost));
     }
 
@@ -943,20 +981,29 @@ public final class SkillTreeScreen extends Screen {
         SkillGraphSnapshot graph = graph();
         PlayerSkillState state = playerState();
         hoverId = panel.isModal() ? null : nodeAt(effectiveMouseX(mouseX), effectiveMouseY(mouseY));
+        Vec2 origin = revealOrigin(graph, state);
+        GraphRenderer.Fade fade = reveal.fade(origin.x(), origin.y());
         graphics.enableScissor((int) camera.left(), (int) camera.top(), (int) camera.right(), (int) camera.bottom());
-        GraphRenderer.edges(graphics, graph, camera, nodeStates::of, routePreview(graph, state), time);
-        GraphRenderer.portalLinks(graphics, graph, camera, nodeStates::of, time);
+        GraphRenderer.edges(graphics, graph, camera, nodeStates::of, routePreview(graph, state), fade);
+        GraphRenderer.portalLinks(graphics, graph, camera, nodeStates::of, fade, time);
         Set<String> activePortals = activePortals(graph);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         for (SkillNodeDefinition node : graph.nodes().values()) {
             boolean highlighted = node.id().equals(focusId) || node.id().equals(hoverId);
             GraphRenderer.node(graphics, node, camera, nodeStates.of(node.id()), affordable(node, state), highlighted,
-                    searchHits.contains(node.id()), activePortals.contains(node.id()), state.isDisabled(node.id()), time);
+                    searchHits.contains(node.id()), activePortals.contains(node.id()), state.isDisabled(node.id()), fade, time);
         }
+        sparks.render(graphics, camera);
         graphics.setColor(1f, 1f, 1f, 1f);
         RenderSystem.disableBlend();
         graphics.disableScissor();
+    }
+
+    private Vec2 revealOrigin(SkillGraphSnapshot graph, PlayerSkillState state) {
+        return state.startingRoot().flatMap(graph::node)
+                .map(hub -> new Vec2(camera.toScreenX(hub.position().x()), camera.toScreenY(hub.position().y())))
+                .orElse(new Vec2(camera.vcx(), camera.vcy()));
     }
 
     private Set<String> activePortals(SkillGraphSnapshot graph) {

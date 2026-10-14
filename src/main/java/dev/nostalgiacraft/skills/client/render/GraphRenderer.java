@@ -41,6 +41,12 @@ public final class GraphRenderer {
         NodeState state(String id);
     }
 
+    public interface Fade {
+        Fade NONE = (screenX, screenY) -> 1f;
+
+        float at(double screenX, double screenY);
+    }
+
     private GraphRenderer() {
     }
 
@@ -68,7 +74,7 @@ public final class GraphRenderer {
     }
 
     public static void edges(GuiGraphics graphics, SkillGraphSnapshot graph, Camera camera, StateLookup states,
-                             Set<String> routePreview, double time) {
+                             Set<String> routePreview, Fade fade) {
         float baseWidth = (float) Math.max(1.0, Math.min(3.0, 1.5 * Math.sqrt(camera.zoomValue())));
         int inactiveColor = ClientConfig.HIGH_CONTRAST.get() ? Palette.EDGE_INACTIVE_HC : Palette.EDGE_INACTIVE;
         LineBatch inactive = new LineBatch(graphics);
@@ -77,7 +83,7 @@ public final class GraphRenderer {
             NodeState a = states.state(connection.a());
             NodeState b = states.state(connection.b());
             boolean unseen = a == NodeState.HIDDEN || b == NodeState.HIDDEN;
-            if (connection.isPortal() || unseen || entersHiddenRegion(graph, connection)) {
+            if (connection.isPortal() || unseen || entersHiddenRegion(graph, connection) || !lit(graph, connection, camera, fade)) {
                 continue;
             }
             if (a == NodeState.ALLOCATED && b == NodeState.ALLOCATED) {
@@ -93,6 +99,14 @@ public final class GraphRenderer {
         }
         inactive.draw();
         active.draw();
+    }
+
+    private static boolean lit(SkillGraphSnapshot graph, SkillConnection connection, Camera camera, Fade fade) {
+        return grown(graph.nodes().get(connection.a()), camera, fade) && grown(graph.nodes().get(connection.b()), camera, fade);
+    }
+
+    private static boolean grown(SkillNodeDefinition node, Camera camera, Fade fade) {
+        return fade.at(camera.toScreenX(node.position().x()), camera.toScreenY(node.position().y())) >= 1f;
     }
 
     private static boolean entersHiddenRegion(SkillGraphSnapshot graph, SkillConnection connection) {
@@ -122,11 +136,12 @@ public final class GraphRenderer {
     }
 
     public static void portalLinks(GuiGraphics graphics, SkillGraphSnapshot graph, Camera camera, StateLookup states,
-                                   double time) {
+                                   Fade fade, double time) {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         for (SkillConnection connection : graph.connections()) {
-            if (connection.isPortal() && held(states.state(connection.a())) && held(states.state(connection.b()))) {
+            if (connection.isPortal() && held(states.state(connection.a())) && held(states.state(connection.b()))
+                    && lit(graph, connection, camera, fade)) {
                 portalLink(graphics, graph, connection, camera, time);
             }
         }
@@ -168,10 +183,13 @@ public final class GraphRenderer {
 
     public static void node(GuiGraphics graphics, SkillNodeDefinition node, Camera camera, NodeState state,
                             boolean affordable, boolean focused, boolean searchHit, boolean portalActive, boolean disabled,
-                            double time) {
+                            Fade fade, double time) {
         double x = camera.toScreenX(node.position().x());
         double y = camera.toScreenY(node.position().y());
-        double radius = screenRadius(node, camera);
+        double radius = screenRadius(node, camera) * fade.at(x, y);
+        if (radius <= 0) {
+            return;
+        }
         double reach = radius * CULLING_REACH;
         boolean offScreen = x + reach < camera.left() || x - reach > camera.right()
                 || y + reach < camera.top() || y - reach > camera.bottom();
