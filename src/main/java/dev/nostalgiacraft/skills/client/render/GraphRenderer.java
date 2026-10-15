@@ -32,6 +32,15 @@ public final class GraphRenderer {
     private static final int PORTAL_LINK_LANE_GAP = 1;
     private static final double PORTAL_LINK_SPEED = 24;
     private static final float DISABLED_SHADE = 0.42f;
+    private static final float DORMANT_DISK_ALPHA = 0.55f;
+    private static final double DISK_PER_RADIUS = 1.45;
+    private static final int INFALL_LAYERS = 3;
+    private static final double INFALL_SECONDS = 2.4;
+    private static final double INFALL_START = 2.0;
+    private static final double INFALL_END = 0.9;
+    private static final double INFALL_TWIST = 2.5;
+    private static final double LENS_PER_RADIUS = 1.3;
+    private static final double LENS_BREATH = 0.05;
     private static final double PIP_RADIUS_PER_NODE_RADIUS = 0.24;
     private static final double MIN_PIP_RADIUS = 2.5;
     private static final double PIP_STEP_PER_PIP_RADIUS = 1.45;
@@ -215,6 +224,9 @@ public final class GraphRenderer {
             }
             return;
         }
+        if (node.traits().amplifiesNeighbours()) {
+            drawGravityWell(graphics, x, y, radius, held(state), time);
+        }
         if (node.type() == NodeType.PORTAL && (portalActive || held(state))) {
             drawPortalSwirl(graphics, x, y, radius, portalActive, time);
         }
@@ -227,6 +239,9 @@ public final class GraphRenderer {
         draw(graphics, frameTex(node.frame()), x, y, radius);
         draw(graphics, iconTex(node.icon()), x, y, radius * (node.type() == NodeType.MINOR ? 0.62 : 0.58));
         graphics.setColor(1f, 1f, 1f, 1f);
+        if (node.traits().amplifiesNeighbours()) {
+            drawLens(graphics, x, y, radius, held(state), time);
+        }
         drawStateMark(graphics, state, x, y, radius, time);
         if (ranks.shown()) {
             drawRankPips(graphics, ranks, x, y, radius);
@@ -285,6 +300,28 @@ public final class GraphRenderer {
         graphics.setColor(1f, 1f, 1f, 1f);
     }
 
+    private static void drawGravityWell(GuiGraphics graphics, double x, double y, double radius, boolean held, double time) {
+        boolean still = ClientConfig.REDUCED_MOTION.get();
+        float strength = held ? 1f : DORMANT_DISK_ALPHA;
+        for (int layer = 0; layer < INFALL_LAYERS; layer++) {
+            double fall = still ? 0.5 : (time / INFALL_SECONDS + layer / (double) INFALL_LAYERS) % 1.0;
+            graphics.setColor(1f, 1f, 1f, strength * (float) Math.sin(Math.PI * fall));
+            drawRotated(graphics, frameTex("black_hole_infall"), x, y, radius * (INFALL_START - (INFALL_START - INFALL_END) * fall),
+                    -fall * INFALL_TWIST - layer * 2.1);
+        }
+        graphics.setColor(1f, 1f, 1f, strength);
+        drawRotated(graphics, frameTex("black_hole_disk"), x, y, radius * DISK_PER_RADIUS, still ? 0 : -time * (held ? 0.9 : 0.3));
+        graphics.setColor(1f, 1f, 1f, 1f);
+    }
+
+    private static void drawLens(GuiGraphics graphics, double x, double y, double radius, boolean held, double time) {
+        boolean still = ClientConfig.REDUCED_MOTION.get();
+        double breath = still ? 0 : Math.sin(time * 1.7);
+        graphics.setColor(1f, 1f, 1f, (held ? 0.75f : 0.4f) + 0.2f * (float) breath);
+        drawRotated(graphics, frameTex("black_hole_lens"), x, y, radius * (LENS_PER_RADIUS + LENS_BREATH * breath), still ? 0 : time * 0.2);
+        graphics.setColor(1f, 1f, 1f, 1f);
+    }
+
     private static void drawRotated(GuiGraphics graphics, ResourceLocation texture, double x, double y, double radius, double angle) {
         graphics.pose().pushPose();
         graphics.pose().translate(x, y, 0);
@@ -296,7 +333,7 @@ public final class GraphRenderer {
     private static float shade(NodeState state, boolean affordable) {
         return switch (state) {
             case LOCKED -> 0.42f;
-            case CONFLICTING -> 0.5f;
+            case CONFLICTING, SEALED -> 0.5f;
             case AVAILABLE -> affordable ? 1f : 0.7f;
             default -> 1f;
         };
@@ -306,6 +343,7 @@ public final class GraphRenderer {
         switch (state) {
             case PENDING -> drawPendingRing(graphics, x, y, radius, time);
             case CONFLICTING -> draw(graphics, frameTex("mark_conflict"), x, y, radius * 0.9);
+            case SEALED -> draw(graphics, frameTex("mark_sealed"), x, y, radius * 0.9);
             case LOCKED -> {
                 if (radius > MIN_LOCK_MARK_RADIUS) {
                     draw(graphics, frameTex("mark_locked"), x + radius * 0.62, y + radius * 0.62, Math.max(3, radius * 0.42));
