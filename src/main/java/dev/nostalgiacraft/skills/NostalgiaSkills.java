@@ -1,5 +1,6 @@
 package dev.nostalgiacraft.skills;
 
+import dev.nostalgiacraft.skills.gametest.IntegrationGameTests;
 import com.mojang.logging.LogUtils;
 import dev.nostalgiacraft.skills.compat.Integrations;
 import dev.nostalgiacraft.skills.config.ClientConfig;
@@ -32,6 +33,7 @@ public final class NostalgiaSkills {
         ModEntities.register(modBus);
         ModSounds.register(modBus);
         modBus.addListener(NetworkSetup::register);
+        modBus.addListener(IntegrationGameTests::register);
         container.registerConfig(ModConfig.Type.SERVER, ServerConfig.SPEC);
         container.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);
         XpWallets.register(new FluidXpWallet());

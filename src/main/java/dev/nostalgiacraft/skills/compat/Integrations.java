@@ -21,6 +21,7 @@ import dev.nostalgiacraft.skills.compat.scguns.ScorchedGunsCompat;
 import net.neoforged.fml.ModList;
 
 import java.util.Map;
+import java.util.Set;
 
 public final class Integrations {
     private static final Map<String, Runnable> REGISTRATION_BY_MOD = Map.ofEntries(
@@ -44,6 +45,10 @@ public final class Integrations {
             Map.entry(ReliquaryCompat.MOD_ID, ReliquaryCompat::register));
 
     private Integrations() {
+    }
+
+    public static Set<String> modIds() {
+        return REGISTRATION_BY_MOD.keySet();
     }
 
     public static void register() {

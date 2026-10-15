@@ -1,7 +1,10 @@
 package dev.nostalgiacraft.skills.gametest;
 
 import dev.nostalgiacraft.skills.NostalgiaSkills;
+import dev.nostalgiacraft.skills.effects.EffectEngine;
 import dev.nostalgiacraft.skills.effects.GameplayEvents;
+import dev.nostalgiacraft.skills.progression.PathFinder;
+import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.registry.ModAttributes;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -9,6 +12,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Cow;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.projectile.Arrow;
@@ -20,10 +24,16 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
+import java.util.List;
+
 @GameTestHolder(NostalgiaSkills.MODID)
 @PrefixGameTestTemplate(false)
 public final class AttributeGameTests {
     private static final float HIT = 4f;
+    private static final double TARGET_HEALTH = 1000;
+    private static final String RECKLESS_FURY = "berserker/reckless_fury";
+    private static final double RECKLESS_FURY_DEALT = 0.20;
+    private static final double RECKLESS_FURY_TAKEN = 0.10;
     private static final float WOUNDED = 10f;
     private static final double HALF = 0.5;
     private static final double QUARTER = 0.25;
@@ -34,13 +44,21 @@ public final class AttributeGameTests {
     private AttributeGameTests() {
     }
 
-    private static float meleeDamage(Scenario scenario, ServerPlayer attacker) {
-        return Scenario.strike(scenario.mob(EntityType.COW), attacker.damageSources().playerAttack(attacker), HIT);
+    private static Cow target(Scenario scenario) {
+        Cow target = scenario.mob(EntityType.COW);
+        target.getAttribute(Attributes.MAX_HEALTH).setBaseValue(TARGET_HEALTH);
+        target.setHealth(target.getMaxHealth());
+        return target;
     }
 
-    private static float shotDamage(Scenario scenario, ServerPlayer archer, double blocksAway) {
-        Cow target = scenario.mob(EntityType.COW);
-        Arrow arrow = new Arrow(scenario.level(), archer, new ItemStack(Items.ARROW), null);
+    private static float meleeDamage(ServerPlayer attacker, Cow target) {
+        target.setHealth(target.getMaxHealth());
+        return Scenario.strike(target, attacker.damageSources().playerAttack(attacker), HIT);
+    }
+
+    private static float shotDamage(ServerPlayer archer, Cow target, double blocksAway) {
+        target.setHealth(target.getMaxHealth());
+        Arrow arrow = new Arrow(target.level(), archer, new ItemStack(Items.ARROW), null);
         arrow.setPos(target.position().add(blocksAway, 0, 0));
         GameplayEvents.rememberOrigin(arrow);
         return Scenario.strike(target, archer.damageSources().arrow(arrow, archer), HIT);
@@ -54,12 +72,24 @@ public final class AttributeGameTests {
     public static void recklessFuryChangesDealtAndTakenDamage(GameTestHelper helper) {
         Scenario.run(helper, scenario -> {
             ServerPlayer berserker = scenario.blankPlayer();
-            float plain = meleeDamage(scenario, berserker);
-            scenario.learn(berserker, "berserker/hub", "berserker/reckless_fury");
-            float furious = meleeDamage(scenario, berserker);
-            scenario.check(furious > plain * 1.15f && furious < plain * 1.6f, "dealt " + furious + " vs plain " + plain);
+            PlayerSkillState state = scenario.learn(berserker, "berserker/hub");
+            List<String> route = PathFinder.route(scenario.graph(), state, List.of(), Scenario.id(RECKLESS_FURY)).orElseThrow().newNodes();
+            scenario.confirm(state, route.stream().filter(id -> !id.equals(Scenario.id(RECKLESS_FURY))).toList(), "the way to Reckless Fury");
+            EffectEngine.refresh(berserker);
+            Cow target = target(scenario);
+            float plain = meleeDamage(berserker, target);
+            float plainTaken = Scenario.strike(berserker, scenario.level().damageSources().fellOutOfWorld(), HIT);
+            scenario.confirm(state, List.of(Scenario.id(RECKLESS_FURY)), "Reckless Fury");
+            EffectEngine.refresh(berserker);
+            float furious = meleeDamage(berserker, target);
             float taken = Scenario.strike(berserker, scenario.level().damageSources().fellOutOfWorld(), HIT);
-            scenario.near(HIT * 1.10, taken, "damage taken with Reckless Fury");
+            if (Scenario.otherModsChangeDamage()) {
+                scenario.check(furious > plain && taken > plainTaken, "Reckless Fury raises dealt (" + plain + " -> " + furious
+                        + ") and taken (" + plainTaken + " -> " + taken + ") damage");
+            } else {
+                scenario.near(plain + HIT * RECKLESS_FURY_DEALT, furious, "damage dealt with Reckless Fury");
+                scenario.near(plainTaken + HIT * RECKLESS_FURY_TAKEN, taken, "damage taken with Reckless Fury");
+            }
         });
     }
 
@@ -106,7 +136,7 @@ public final class AttributeGameTests {
             ServerPlayer vampire = scenario.blankPlayer();
             Scenario.set(vampire, ModAttributes.LIFESTEAL, HALF);
             vampire.setHealth(WOUNDED);
-            float dealt = meleeDamage(scenario, vampire);
+            float dealt = meleeDamage(vampire, target(scenario));
             scenario.near(WOUNDED + dealt * HALF, vampire.getHealth(), "health after stealing half of " + dealt);
         });
     }
@@ -115,10 +145,11 @@ public final class AttributeGameTests {
     public static void aTreeCriticalMultipliesMeleeDamage(GameTestHelper helper) {
         Scenario.run(helper, scenario -> {
             ServerPlayer duelist = scenario.blankPlayer();
-            float plain = meleeDamage(scenario, duelist);
+            Cow target = target(scenario);
+            float plain = meleeDamage(duelist, target);
             Scenario.set(duelist, ModAttributes.CRIT_CHANCE, CERTAIN);
             Scenario.set(duelist, ModAttributes.CRIT_DAMAGE, CERTAIN);
-            scenario.near(plain * 2, meleeDamage(scenario, duelist), "damage of a certain critical with +100% critical damage");
+            scenario.near(plain * 2, meleeDamage(duelist, target), "damage of a certain critical with +100% critical damage");
         });
     }
 
@@ -128,11 +159,12 @@ public final class AttributeGameTests {
             ServerPlayer fighter = scenario.blankPlayer();
             Scenario.set(fighter, ModAttributes.HEAVY_WEAPON_DAMAGE, HALF);
             Scenario.set(fighter, ModAttributes.LIGHT_WEAPON_DAMAGE, QUARTER);
-            scenario.near(HIT, meleeDamage(scenario, fighter), "bare-handed damage");
+            Cow target = target(scenario);
+            float bareHanded = meleeDamage(fighter, target);
             hold(fighter, Items.IRON_AXE);
-            scenario.near(HIT * (1 + HALF), meleeDamage(scenario, fighter), "damage with a heavy weapon");
+            scenario.near(bareHanded * (1 + HALF), meleeDamage(fighter, target), "damage with a heavy weapon");
             hold(fighter, Items.IRON_SWORD);
-            scenario.near(HIT * (1 + QUARTER), meleeDamage(scenario, fighter), "damage with a light weapon");
+            scenario.near(bareHanded * (1 + QUARTER), meleeDamage(fighter, target), "damage with a light weapon");
         });
     }
 
@@ -141,9 +173,10 @@ public final class AttributeGameTests {
         Scenario.run(helper, scenario -> {
             ServerPlayer berserker = scenario.blankPlayer();
             Scenario.set(berserker, ModAttributes.LOW_HEALTH_DAMAGE, HALF);
-            scenario.near(HIT, meleeDamage(scenario, berserker), "damage at full health");
+            Cow target = target(scenario);
+            float atFullHealth = meleeDamage(berserker, target);
             berserker.setHealth(berserker.getMaxHealth() * (float) QUARTER);
-            scenario.near(HIT * (1 + HALF), meleeDamage(scenario, berserker), "damage below half health");
+            scenario.near(atFullHealth * (1 + HALF), meleeDamage(berserker, target), "damage below half health");
         });
     }
 
@@ -162,11 +195,12 @@ public final class AttributeGameTests {
     public static void longRangeDamageNeedsADistantShot(GameTestHelper helper) {
         Scenario.run(helper, scenario -> {
             ServerPlayer archer = scenario.blankPlayer();
-            scenario.near(HIT, shotDamage(scenario, archer, LONG_SHOT_BLOCKS), "shot damage without bonuses");
+            Cow target = target(scenario);
+            float plainShot = shotDamage(archer, target, LONG_SHOT_BLOCKS);
             Scenario.set(archer, ModAttributes.PROJECTILE_DAMAGE, HALF);
             Scenario.set(archer, ModAttributes.LONG_RANGE_DAMAGE, HALF);
-            scenario.near(HIT * (1 + HALF), shotDamage(scenario, archer, CLOSE_SHOT_BLOCKS), "damage of a close shot");
-            scenario.near(HIT * (1 + HALF + HALF), shotDamage(scenario, archer, LONG_SHOT_BLOCKS), "damage of a long shot");
+            scenario.near(plainShot * (1 + HALF), shotDamage(archer, target, CLOSE_SHOT_BLOCKS), "damage of a close shot");
+            scenario.near(plainShot * (1 + HALF + HALF), shotDamage(archer, target, LONG_SHOT_BLOCKS), "damage of a long shot");
         });
     }
 

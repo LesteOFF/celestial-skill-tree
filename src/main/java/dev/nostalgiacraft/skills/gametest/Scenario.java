@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.data.SkillTreeManager;
 import dev.nostalgiacraft.skills.data.WorldSkillData;
+import dev.nostalgiacraft.skills.effects.AttributeAliases;
 import dev.nostalgiacraft.skills.effects.EffectEngine;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.progression.AllocationService;
@@ -14,6 +15,7 @@ import dev.nostalgiacraft.skills.progression.SkyEvent;
 import dev.nostalgiacraft.skills.progression.XpMath;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
 import dev.nostalgiacraft.skills.server.CommunityTree;
+import dev.nostalgiacraft.skills.server.LifecycleEvents;
 import dev.nostalgiacraft.skills.server.SkyEvents;
 import io.netty.channel.embedded.EmbeddedChannel;
 import net.minecraft.core.BlockPos;
@@ -23,6 +25,7 @@ import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -39,6 +42,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.network.registration.NetworkRegistry;
 
 import java.util.ArrayList;
@@ -59,6 +64,9 @@ final class Scenario {
     private static final int STARTING_POINTS = 60;
     private static final int POINT_CAP = 120;
     private static final int SPAWN_PROTECTION_TICKS = 61;
+    private static final List<String> OTHER_MOD_CRIT_CHANCES = List.of("apothic_attributes:crit_chance", "l2damagetracker:crit_rate",
+            "puffish_attributes:crit_chance");
+    private static final List<String> DAMAGE_CHANGING_MODS = List.of("l2hostility", "apotheosis", "champions");
 
     private final GameTestHelper helper;
     private final List<ServerPlayer> players = new ArrayList<>();
@@ -137,7 +145,12 @@ final class Scenario {
         Connection connection = new Connection(PacketFlow.SERVERBOUND);
         new EmbeddedChannel(connection);
         NetworkRegistry.configureMockConnection(connection);
-        server.getPlayerList().placeNewPlayer(connection, player, cookie);
+        try {
+            server.getPlayerList().placeNewPlayer(connection, player, cookie);
+        } catch (RuntimeException otherModLoginFailure) {
+            NostalgiaSkills.LOGGER.warn("another mod failed while the mock player logged in; running this mod's login only", otherModLoginFailure);
+            LifecycleEvents.onLogin(new PlayerEvent.PlayerLoggedInEvent(player));
+        }
         player.setGameMode(GameType.SURVIVAL);
         players.add(player);
         return player;
@@ -145,6 +158,7 @@ final class Scenario {
 
     ServerPlayer blankPlayer() {
         ServerPlayer player = player();
+        withoutRandomCriticals(player);
         ModAttachments.setState(player, new PlayerSkillState());
         EffectEngine.refresh(player);
         return player;
@@ -164,7 +178,27 @@ final class Scenario {
         return state;
     }
 
-    private void confirm(PlayerSkillState state, List<String> nodes, String what) {
+    private static void withoutRandomCriticals(ServerPlayer player) {
+        OTHER_MOD_CRIT_CHANCES.stream()
+                .flatMap(id -> BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.parse(id)).stream())
+                .map(player::getAttribute)
+                .filter(Objects::nonNull)
+                .forEach(otherModCritChance -> otherModCritChance.setBaseValue(0));
+    }
+
+    static boolean otherModsChangeDamage() {
+        return DAMAGE_CHANGING_MODS.stream().anyMatch(ModList.get()::isLoaded);
+    }
+
+    static double treeValue(ServerPlayer player, Holder<Attribute> attribute) {
+        String id = attribute.unwrapKey().orElseThrow().location().toString();
+        return AttributeAliases.active(id)
+                .flatMap(alias -> BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.parse(alias.target()))
+                        .map(target -> player.getAttributeValue(target)))
+                .orElseGet(() -> player.getAttributeValue(attribute));
+    }
+
+    void confirm(PlayerSkillState state, List<String> nodes, String what) {
         AllocationService.BatchResult result = AllocationService.confirm(graph(), state, nodes);
         check(result.ok(), "learning " + what + " rejected: " + result.rejection());
     }

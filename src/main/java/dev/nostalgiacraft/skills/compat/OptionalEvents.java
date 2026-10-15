@@ -49,6 +49,10 @@ public final class OptionalEvents {
         }
     }
 
+    public static Set<String> disabled() {
+        return Set.copyOf(DISABLED);
+    }
+
     private static void disable(String integration, String step, Throwable failure) {
         if (DISABLED.add(integration)) {
             NostalgiaSkills.LOGGER.warn("{} integration disabled: failed while {} with the installed version", integration, step, failure);

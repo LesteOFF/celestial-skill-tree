@@ -1,9 +1,12 @@
 package dev.nostalgiacraft.skills.gametest;
 
 import dev.nostalgiacraft.skills.NostalgiaSkills;
+import dev.nostalgiacraft.skills.data.GeneratedTree;
+import dev.nostalgiacraft.skills.effects.CompiledBuild;
 import dev.nostalgiacraft.skills.effects.EffectEngine;
 import dev.nostalgiacraft.skills.effects.StolenNodes;
 import dev.nostalgiacraft.skills.progression.Allocation;
+import dev.nostalgiacraft.skills.progression.AllocationService;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.progression.ProgressionService;
 import dev.nostalgiacraft.skills.progression.RefundService;
@@ -34,17 +37,19 @@ public final class SkillGameTests {
     private static final String GUARDIAN_HUB = "guardian/hub";
     private static final String GATEKEEPER = "guardian/gatekeeper";
     private static final String BASTION = "guardian/bastion";
+    private static final String LAYERED_PLATES = "guardian/layered_plates";
+    private static final double ARMOR_PER_PLATE_RANK = 1.0;
     private static final double BASE_HEALTH = 20.0;
     private static final int FIRST_POINT_COST = 100;
     private static final int STOLEN_SECONDS = 30;
     private static final int REPEATED_REFRESHES = 5;
 
-    private record ClassRoute(String hub, String target, Holder<Attribute> attribute, double minimum) {
+    private record ClassRoute(String hub, String target, Holder<Attribute> attribute, double minimumGain) {
     }
 
     private static final List<ClassRoute> CLASS_ROUTES = List.of(
             new ClassRoute("duelist/hub", "duelist/measured_cut", ModAttributes.CRIT_CHANCE, 0.03),
-            new ClassRoute(GUARDIAN_HUB, GATEKEEPER, Attributes.MAX_HEALTH, 26.0),
+            new ClassRoute(GUARDIAN_HUB, GATEKEEPER, Attributes.MAX_HEALTH, 6.0),
             new ClassRoute("arcanist/hub", "arcanist/steady_hand", ModAttributes.POTION_DURATION, 0.15),
             new ClassRoute("marksman/hub", "marksman/eagle_eye", ModAttributes.LONG_RANGE_DAMAGE, 0.10),
             new ClassRoute("artificer/hub", "artificer/rich_seams", ModAttributes.MINING_SPEED, 0.15),
@@ -114,10 +119,46 @@ public final class SkillGameTests {
         Scenario.run(helper, scenario -> {
             for (ClassRoute route : CLASS_ROUTES) {
                 ServerPlayer player = scenario.blankPlayer();
+                double before = Scenario.treeValue(player, route.attribute());
                 scenario.learn(player, route.hub(), route.target());
-                scenario.atLeast(route.minimum(), player.getAttributeValue(route.attribute()), route.hub() + " -> " + route.target());
+                scenario.atLeast(before + route.minimumGain(), Scenario.treeValue(player, route.attribute()),
+                        route.hub() + " -> " + route.target());
             }
         });
+    }
+
+    @GameTest(template = Scenario.EMPTY)
+    public static void aSecondRankOfARankedNotableAppliesItsEffectAgain(GameTestHelper helper) {
+        Scenario.run(helper, scenario -> {
+            ServerPlayer player = scenario.blankPlayer();
+            PlayerSkillState state = scenario.learn(player, GUARDIAN_HUB, LAYERED_PLATES);
+            double oneRank = player.getAttributeValue(Attributes.ARMOR);
+            double flatArmorBefore = flatArmor(scenario, state);
+            scenario.check(AllocationService.confirm(scenario.graph(), state, List.of(Scenario.id(LAYERED_PLATES))).ok(),
+                    "the second rank of Layered Plates is accepted");
+            EffectEngine.refresh(player);
+            scenario.same(2, state.rank(Scenario.id(LAYERED_PLATES)), "rank of Layered Plates");
+            scenario.near(flatArmorBefore + ARMOR_PER_PLATE_RANK, flatArmor(scenario, state), "flat armor from the tree after the second rank");
+            scenario.atLeast(oneRank + ARMOR_PER_PLATE_RANK, player.getAttributeValue(Attributes.ARMOR), "armor after the second rank");
+        });
+    }
+
+    @GameTest(template = Scenario.EMPTY)
+    public static void regeneratingTheTreeKeepsItValidAndKeepsLearnedSkillsThatStayInIt(GameTestHelper helper) {
+        Scenario.run(helper, scenario -> {
+            ServerPlayer player = scenario.blankPlayer();
+            PlayerSkillState state = scenario.learn(player, GUARDIAN_HUB, LAYERED_PLATES);
+            GeneratedTree.regenerateFor(helper.getLevel().getServer());
+            SkillService.resync(player);
+            scenario.check(scenario.graph().contains(Scenario.id(LAYERED_PLATES)), "the regenerated tree offers Layered Plates");
+            scenario.check(state.isAllocated(Scenario.id(LAYERED_PLATES)), "a learned skill that stays in the tree is kept");
+            scenario.check(state.ledgerHolds(), "points still add up after regenerating");
+        });
+    }
+
+    private static double flatArmor(Scenario scenario, PlayerSkillState state) {
+        return CompiledBuild.compile(scenario.graph(), state).attributeSums()
+                .getOrDefault(CompiledBuild.sumKey("minecraft:generic.armor", "add_value"), 0.0);
     }
 
     @GameTest(template = Scenario.EMPTY)

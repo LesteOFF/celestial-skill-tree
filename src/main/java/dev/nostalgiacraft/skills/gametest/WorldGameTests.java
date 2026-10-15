@@ -15,6 +15,7 @@ import dev.nostalgiacraft.skills.progression.SkyEvent;
 import dev.nostalgiacraft.skills.registry.FallenStarItem;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
 import dev.nostalgiacraft.skills.registry.ModAttributes;
+import dev.nostalgiacraft.skills.registry.ModBlocks;
 import dev.nostalgiacraft.skills.registry.ModItems;
 import dev.nostalgiacraft.skills.registry.ModTags;
 import dev.nostalgiacraft.skills.registry.StarFragmentItem;
@@ -23,6 +24,7 @@ import dev.nostalgiacraft.skills.server.FallenStars;
 import dev.nostalgiacraft.skills.server.SkillService;
 import dev.nostalgiacraft.skills.server.SkyEvents;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
@@ -35,11 +37,16 @@ import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+
+import java.util.List;
 
 @GameTestHolder(NostalgiaSkills.MODID)
 @PrefixGameTestTemplate(false)
@@ -75,6 +82,18 @@ public final class WorldGameTests {
         helper.setBlock(SOIL.above(), Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, CropBlock.MAX_AGE));
         farmer.gameMode.destroyBlock(helper.absolutePos(SOIL.above()));
         return scenario.collect(Items.WHEAT);
+    }
+
+    @GameTest(template = Scenario.EMPTY)
+    public static void bothExperienceBasinsShowTheirTankToPipesAndSensors(GameTestHelper helper) {
+        Scenario.run(helper, scenario -> {
+            for (Block basin : List.of(ModBlocks.STELLAR_CONDENSER.get(), ModBlocks.COMMUNITY_BASIN.get())) {
+                helper.setBlock(Scenario.CENTER, basin);
+                IFluidHandler tank = scenario.level().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(Scenario.CENTER), null);
+                scenario.check(tank != null && tank.getTanks() == 1 && tank.getTankCapacity(0) > 0,
+                        BuiltInRegistries.BLOCK.getKey(basin) + " exposes its liquid experience tank");
+            }
+        });
     }
 
     @GameTest(template = Scenario.EMPTY)
