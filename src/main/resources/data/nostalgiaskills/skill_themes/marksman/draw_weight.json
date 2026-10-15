@@ -41,6 +41,20 @@
           "amount": 0.12
         }
       ]
+    },
+    {
+      "id": "practiced_draw",
+      "name": "skill.nostalgiaskills.marksman.practiced_draw.name",
+      "icon": "nostalgiaskills:textures/skill_icons/bow.png",
+      "max_rank": 3,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:projectile_damage",
+          "operation": "add_value",
+          "amount": 0.03
+        }
+      ]
     }
   ]
 }

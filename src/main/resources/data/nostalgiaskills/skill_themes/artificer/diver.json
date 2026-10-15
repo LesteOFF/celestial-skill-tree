@@ -12,5 +12,24 @@
       }
     ]
   },
-  "notables": []
+  "notables": [
+    {
+      "id": "abyssal_diver",
+      "name": "skill.nostalgiaskills.artificer.abyssal_diver.name",
+      "icon": "nostalgiaskills:textures/skill_icons/diver.png",
+      "requires_mod": "aquamirae",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.water_movement_efficiency",
+          "operation": "add_value",
+          "amount": 0.3,
+          "condition": {
+            "type": "wearing",
+            "tag": "nostalgiaskills:armor/abyssal"
+          }
+        }
+      ]
+    }
+  ]
 }

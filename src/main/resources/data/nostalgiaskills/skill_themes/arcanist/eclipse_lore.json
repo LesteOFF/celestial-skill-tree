@@ -16,5 +16,24 @@
       }
     ]
   },
-  "notables": []
+  "notables": [
+    {
+      "id": "infinite_weave",
+      "name": "skill.nostalgiaskills.arcanist.infinite_weave.name",
+      "icon": "nostalgiaskills:textures/skill_icons/hourglass.png",
+      "requires_mod": "avaritia",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "nostalgiaskills:potion_duration",
+          "operation": "add_value",
+          "amount": 0.15,
+          "condition": {
+            "type": "wearing",
+            "tag": "nostalgiaskills:armor/infinity"
+          }
+        }
+      ]
+    }
+  ]
 }

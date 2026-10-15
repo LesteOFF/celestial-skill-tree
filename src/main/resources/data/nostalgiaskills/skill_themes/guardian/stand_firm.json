@@ -15,5 +15,24 @@
       }
     ]
   },
-  "notables": []
+  "notables": [
+    {
+      "id": "aredrite_bulwark",
+      "name": "skill.nostalgiaskills.guardian.aredrite_bulwark.name",
+      "icon": "nostalgiaskills:textures/skill_icons/armor.png",
+      "requires_mod": "oathboundrelics",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.armor_toughness",
+          "operation": "add_value",
+          "amount": 2.0,
+          "condition": {
+            "type": "wearing",
+            "tag": "nostalgiaskills:armor/aredrite"
+          }
+        }
+      ]
+    }
+  ]
 }

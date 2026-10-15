@@ -53,6 +53,20 @@
         }
       ],
       "text": "skill.nostalgiaskills.arcanist.tincture_mastery.text"
+    },
+    {
+      "id": "slow_steeping",
+      "name": "skill.nostalgiaskills.arcanist.slow_steeping.name",
+      "icon": "nostalgiaskills:textures/skill_icons/hourglass.png",
+      "max_rank": 3,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:potion_duration",
+          "operation": "add_value",
+          "amount": 0.05
+        }
+      ]
     }
   ]
 }

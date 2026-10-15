@@ -12,5 +12,20 @@
       }
     ]
   },
-  "notables": []
+  "notables": [
+    {
+      "id": "seasoned_hands",
+      "name": "skill.nostalgiaskills.artificer.seasoned_hands.name",
+      "icon": "nostalgiaskills:textures/skill_icons/mining.png",
+      "max_rank": 3,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:player.block_break_speed",
+          "operation": "add_multiplied_base",
+          "amount": 0.02
+        }
+      ]
+    }
+  ]
 }

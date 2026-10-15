@@ -76,6 +76,24 @@
           }
         }
       ]
+    },
+    {
+      "id": "terrible_wrath",
+      "name": "skill.nostalgiaskills.berserker.terrible_wrath.name",
+      "icon": "nostalgiaskills:textures/skill_icons/heavy_weapon.png",
+      "requires_mod": "aquamirae",
+      "effects": [
+        {
+          "type": "damage_modifier",
+          "direction": "dealt",
+          "scope": "melee",
+          "amount": 0.06,
+          "condition": {
+            "type": "wearing",
+            "tag": "nostalgiaskills:armor/terrible"
+          }
+        }
+      ]
     }
   ]
 }

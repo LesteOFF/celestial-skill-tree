@@ -53,6 +53,20 @@
           "amount": 0.5
         }
       ]
+    },
+    {
+      "id": "blade_discipline",
+      "name": "skill.nostalgiaskills.duelist.blade_discipline.name",
+      "icon": "nostalgiaskills:textures/skill_icons/light_weapon.png",
+      "max_rank": 3,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:light_weapon_damage",
+          "operation": "add_value",
+          "amount": 0.03
+        }
+      ]
     }
   ]
 }

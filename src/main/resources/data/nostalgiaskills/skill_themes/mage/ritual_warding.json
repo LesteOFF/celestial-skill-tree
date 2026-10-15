@@ -25,6 +25,20 @@
           "amount": 1
         }
       ]
+    },
+    {
+      "id": "warding_rites",
+      "name": "skill.nostalgiaskills.mage.warding_rites.name",
+      "icon": "nostalgiaskills:textures/skill_icons/magic.png",
+      "max_rank": 3,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:magic_resistance",
+          "operation": "add_value",
+          "amount": 0.02
+        }
+      ]
     }
   ]
 }

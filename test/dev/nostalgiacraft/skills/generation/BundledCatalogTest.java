@@ -32,7 +32,7 @@ class BundledCatalogTest {
     private static final Path DATA = Path.of(System.getProperty("nostalgiaskills.dataRoot", "src/main/resources/data/nostalgiaskills"));
     private static final Path LANG = Path.of("src/main/resources/assets/nostalgiaskills/lang");
     private static final int SEEDS = 25;
-    private static final Map<String, Integer> NOTABLES_WITHOUT_MODS = Map.of(NS + ":arcanist", 14);
+    private static final Map<String, Integer> NOTABLES_WITHOUT_MODS = Map.of(NS + ":arcanist", 15);
     private static final List<String> BASE_CLASSES = List.of("arcanist", "artificer", "berserker", "duelist", "guardian", "marksman");
     private static final Set<String> OWN_ATTRIBUTES = Set.of("crit_chance", "crit_damage", "dodge_chance",
             "light_weapon_damage", "heavy_weapon_damage", "projectile_damage", "long_range_damage", "crossbow_damage",
@@ -70,7 +70,11 @@ class BundledCatalogTest {
     }
 
     private static Catalog catalog(KnownIds known, Predicate<String> isModLoaded) {
-        CatalogSources sources = new CatalogSources(files("skill_classes"), files("skill_themes"), files("skill_keystones"), Optional.empty());
+        return catalog(known, isModLoaded, files("skill_themes"));
+    }
+
+    private static Catalog catalog(KnownIds known, Predicate<String> isModLoaded, Map<String, JsonElement> themes) {
+        CatalogSources sources = new CatalogSources(files("skill_classes"), themes, files("skill_keystones"), Optional.empty());
         CatalogParser.Outcome outcome = new CatalogParser(known).parse(sources.availableWith(isModLoaded));
         assertTrue(outcome.report().issues().isEmpty(), () -> outcome.report().issues().toString());
         return outcome.catalog().orElseThrow();
@@ -94,7 +98,7 @@ class BundledCatalogTest {
             SkillGraphSnapshot graph = tree(catalog, seed);
             assertEquals(6, graph.roots().size());
             for (String classId : catalog.classes().keySet()) {
-                int notables = NOTABLES_WITHOUT_MODS.getOrDefault(classId, 12);
+                int notables = NOTABLES_WITHOUT_MODS.getOrDefault(classId, 13);
                 assertEquals(notables, count(graph, classId, NodeType.NOTABLE), classId);
                 assertEquals(3, count(graph, classId, NodeType.KEYSTONE), classId);
                 assertEquals(95 - notables, count(graph, classId, NodeType.MINOR), classId);
@@ -122,9 +126,45 @@ class BundledCatalogTest {
     }
 
     @Test
+    void anArmorNotableOnlyJoinsWithItsArmorMod() {
+        assertFalse(notableIds(catalog(WITHOUT_MODS, mod -> false)).contains("abyssal_diver"));
+        assertFalse(notableIds(catalog(KnownIds.PERMISSIVE, mod -> !mod.equals("aquamirae"))).contains("abyssal_diver"));
+        assertTrue(notableIds(catalog(KnownIds.PERMISSIVE, mod -> true)).containsAll(
+                List.of("abyssal_diver", "terrible_wrath", "aredrite_bulwark", "infinite_weave")));
+    }
+
+    private static List<String> notableIds(Catalog catalog) {
+        return catalog.themes().values().stream().flatMap(theme -> theme.notables().stream()).map(NotableDefinition::id).toList();
+    }
+
+    @Test
     void reopeningAWorldKeepsItsTree() {
         reopeningKeepsTheTreeOf(catalog(WITHOUT_MODS, mod -> false));
         reopeningKeepsTheTreeOf(catalog(KnownIds.PERMISSIVE, mod -> true));
+    }
+
+    @Test
+    void addingNotablesKeepsEverySkillOfAnExistingWorld() {
+        Map<String, JsonElement> withoutRanked = new TreeMap<>();
+        files("skill_themes").forEach((id, theme) -> withoutRanked.put(id, withoutNewNotables(theme.getAsJsonObject())));
+        Catalog before = catalog(KnownIds.PERMISSIVE, mod -> true, withoutRanked);
+        Catalog after = catalog(KnownIds.PERMISSIVE, mod -> true);
+        for (long seed = 0; seed < SEEDS; seed++) {
+            TreeGenerator.Result created = TreeGenerator.generate(TREE, before, seed, TreeDraw.EMPTY);
+            TreeDraw saved = DrawJson.read(DrawJson.write(created.draw()));
+            Set<String> reopened = TreeGenerator.generate(TREE, after, seed, saved).graph().orElseThrow().ids();
+            long seedNumber = seed;
+            created.graph().orElseThrow().ids().forEach(id -> assertTrue(reopened.contains(id), "seed " + seedNumber + " lost " + id));
+        }
+    }
+
+    private static JsonObject withoutNewNotables(JsonObject theme) {
+        JsonObject copy = theme.deepCopy();
+        if (copy.has("notables")) {
+            copy.getAsJsonArray("notables").asList().removeIf(notable -> notable.getAsJsonObject().has("max_rank")
+                    || notable.getAsJsonObject().has("requires_mod"));
+        }
+        return copy;
     }
 
     private static void reopeningKeepsTheTreeOf(Catalog catalog) {

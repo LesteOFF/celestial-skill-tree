@@ -68,6 +68,20 @@
           "amount": 0.03
         }
       ]
+    },
+    {
+      "id": "layered_plates",
+      "name": "skill.nostalgiaskills.guardian.layered_plates.name",
+      "icon": "nostalgiaskills:textures/skill_icons/armor.png",
+      "max_rank": 3,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.armor",
+          "operation": "add_value",
+          "amount": 1.0
+        }
+      ]
     }
   ]
 }
