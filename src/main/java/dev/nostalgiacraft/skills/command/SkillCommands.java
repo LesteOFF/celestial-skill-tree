@@ -10,6 +10,7 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.api.SkillEvents;
 import dev.nostalgiacraft.skills.config.ServerConfig;
+import dev.nostalgiacraft.skills.data.GeneratedTree;
 import dev.nostalgiacraft.skills.data.SkillTreeManager;
 import dev.nostalgiacraft.skills.effects.EffectEngine;
 import dev.nostalgiacraft.skills.effects.EliteMobs;
@@ -92,7 +93,9 @@ public final class SkillCommands {
                 .then(admin("shower")
                         .then(Commands.literal("start").executes(context -> skyEvent(context, SkyEvent.STAR_SHOWER, true)))
                         .then(Commands.literal("stop").executes(context -> skyEvent(context, SkyEvent.STAR_SHOWER, false))))
-                .then(admin("validate").executes(SkillCommands::validate)));
+                .then(admin("validate").executes(SkillCommands::validate))
+                .then(admin("regenerate").executes(SkillCommands::regenerateWarning)
+                        .then(Commands.literal("confirm").executes(SkillCommands::regenerate))));
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> admin(String name) {
@@ -250,6 +253,20 @@ public final class SkillCommands {
         CommunityTree.setProgress(context.getSource().getServer(), xp);
         context.getSource().sendSuccess(() -> Component.translatable("command.nostalgiaskills.community", xp), true);
         return 1;
+    }
+
+    private static int regenerateWarning(CommandContext<CommandSourceStack> context) {
+        context.getSource().sendFailure(Component.translatable("command.nostalgiaskills.regenerate_warning"));
+        return 0;
+    }
+
+    private static int regenerate(CommandContext<CommandSourceStack> context) {
+        CommandSourceStack source = context.getSource();
+        GeneratedTree.regenerateFor(source.getServer());
+        source.getServer().getPlayerList().getPlayers().forEach(SkillService::resync);
+        int nodes = SkillTreeManager.graph().map(graph -> graph.nodes().size()).orElse(0);
+        source.sendSuccess(() -> Component.translatable("command.nostalgiaskills.regenerated", nodes), true);
+        return SkillTreeManager.graph().isPresent() ? 1 : 0;
     }
 
     private static int validate(CommandContext<CommandSourceStack> context) {

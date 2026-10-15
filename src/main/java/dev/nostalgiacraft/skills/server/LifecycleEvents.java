@@ -37,11 +37,7 @@ public final class LifecycleEvents {
 
     @SubscribeEvent
     public static void onDatapackSync(OnDatapackSyncEvent event) {
-        event.getRelevantPlayers().forEach(player -> {
-            SkillService.reconcileAndRefresh(player);
-            SkillService.sendGraph(player);
-            SkillService.sendState(player);
-        });
+        event.getRelevantPlayers().forEach(SkillService::resync);
     }
 
     @SubscribeEvent

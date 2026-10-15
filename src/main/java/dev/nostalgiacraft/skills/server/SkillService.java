@@ -102,6 +102,12 @@ public final class SkillService {
         send(player, new Payloads.GraphSync(SkillTreeManager.revision(), encodedGraph));
     }
 
+    public static void resync(ServerPlayer player) {
+        reconcileAndRefresh(player);
+        sendGraph(player);
+        sendState(player);
+    }
+
     public static void reconcileAndRefresh(ServerPlayer player) {
         SkillTreeManager.graph().ifPresent(graph -> {
             PlayerSkillState state = ModAttachments.state(player);

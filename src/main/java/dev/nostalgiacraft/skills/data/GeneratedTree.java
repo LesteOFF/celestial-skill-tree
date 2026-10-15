@@ -3,6 +3,7 @@ package dev.nostalgiacraft.skills.data;
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.generation.Catalog;
 import dev.nostalgiacraft.skills.generation.CatalogParser;
+import dev.nostalgiacraft.skills.generation.TreeDraw;
 import dev.nostalgiacraft.skills.generation.TreeGenerator;
 import dev.nostalgiacraft.skills.graph.GraphParser;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
@@ -37,6 +38,11 @@ public final class GeneratedTree {
         outcome.report().errors().forEach(issue -> NostalgiaSkills.LOGGER.error("[skill tree] {}", issue));
         outcome.report().warnings().forEach(issue -> NostalgiaSkills.LOGGER.warn("[skill tree] {}", issue));
         SkillTreeReloadListener.logResult(result);
+    }
+
+    public static void regenerateFor(MinecraftServer server) {
+        WorldSkillData.of(server).setTreeDraw(TreeDraw.EMPTY);
+        generateFor(server);
     }
 
     private static GraphParser.Outcome generate(Catalog catalog, ValidationReport catalogReport, MinecraftServer server) {
