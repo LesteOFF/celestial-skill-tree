@@ -107,11 +107,15 @@ final class TreeDrawer {
             }
         }
         for (Rib rib : ribs) {
-            if (!chosen.containsKey(ribKey(rib)) && !unused.isEmpty()) {
+            if (!chosen.containsKey(ribKey(rib)) && !keptEmpty(previous, rib, placeInRib) && !unused.isEmpty()) {
                 chosen.put(ribKey(rib), take(unused, random, Candidate::weight).choice());
             }
         }
         return chosen;
+    }
+
+    private static boolean keptEmpty(Map<String, RibDraw> previous, Rib rib, Function<RibDraw, Optional<NotableChoice>> placeInRib) {
+        return Optional.ofNullable(previous.get(ribKey(rib))).filter(before -> placeInRib.apply(before).isEmpty()).isPresent();
     }
 
     private static List<Candidate> pairs(ClassPool pool) {
