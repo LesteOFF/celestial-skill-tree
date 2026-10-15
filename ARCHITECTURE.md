@@ -61,7 +61,7 @@ reload `OnDatapackSyncEvent` fires for all players: each is reconciled, effects 
 state are sent. Clients drop pending selections made against an older revision.
 
 **Validation** (`GraphValidator`, before activation): unique ids, valid namespaced ids (node ids ≤ 64 chars),
-existing references (edges, requirements, sector roots, group members), finite coordinates, cost 0–100, max rank 1,
+existing references (edges, requirements, sector roots, group members), finite coordinates, cost 0–100, max rank 1–5,
 no self/duplicate edges, every node reachable from every root, no node reachable only through an exclusive keystone,
 no unsatisfiable (e.g. cyclic) mandatory requirements, recognised effect/condition/trigger types with finite,
 bounded values and supported operations, registry checks for attributes and mob effects, size limits (4096 nodes,

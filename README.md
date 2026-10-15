@@ -26,11 +26,12 @@ the only optional integration.
 ## Building
 
 ```bash
-./gradlew build            # Windows: gradlew.bat build  → build/libs/nostalgiaskills-1.4.1.jar
-./gradlew test             # 30 unit tests in test/, including trees generated from the shipped catalog
+./gradlew build            # Windows: gradlew.bat build  → build/libs/nostalgiaskills-1.5.0.jar
+./gradlew test             # 46 unit tests in test/, including trees generated from the shipped catalog
 ./gradlew validateTree     # validates the catalog and generates one tree outside the game
 ./gradlew previewTree      # draws the tree shape to build/preview/tree.png
-./gradlew runGameTestServer  # 34 in-game tests on a real server with mock players
+./gradlew runGameTestServer  # 37 in-game tests on a real server with mock players
+./gradlew runPackGameTestServer  # the same tests plus 3 integration tests, with the pack's mods (pack_mods_dir)
 ./gradlew runClient / runServer
 ```
 
@@ -51,10 +52,15 @@ Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256
    **Cancel** clears the pending selection.
 6. **Show Stats** lists your final attributes, the tree's share, conditional effects, active keystones, and points.
    With a pending selection it also shows each affected attribute before → after, caps included.
-7. To unlearn **one** skill, click it in the tree: the confirmation lists exactly how many points come back (the
+7. **Ranked skills.** Some notables have up to 3 ranks (one per class: Blade Discipline, Layered Plates, Slow
+   Steeping, Practiced Draw, Seasoned Hands, Brute Training, and Spell Hardening / Warding Rites for the Mage). Small
+   pips under the node show learned ranks in gold and the pending one in cyan. Each click on a ranked skill marks one more rank
+   (every rank costs the skill's price again and adds its effect once more), so one Confirm can buy several ranks; once
+   every rank left is marked, the next click unmarks the extra ranks.
+8. To unlearn **one** skill, click it in the tree (on a ranked skill that can still rank up, **shift-click** it): the confirmation lists exactly how many points come back (the
    price you actually paid, not the current one) and every learned skill that has to go with it, because the rest of
    your build must stay connected to your starting hub. Your starting hub itself can only be changed by a full reset.
-8. To respec everything, use an **Orb of Reconfiguration** (crafted from 4 amethyst shards, an eye of ender and a
+9. To respec everything, use an **Orb of Reconfiguration** (crafted from 4 amethyst shards, an eye of ender and a
    gold ingot): all spent points are refunded and you may pick a new free starting hub. XP is not refunded and point
    prices do not restart. The orb is consumed only if the reset succeeds.
 
@@ -127,6 +133,7 @@ does not pause the game.
 | `/nostalgiaskills unlock <player> <node_id> [grant_cost]` | level 2 — prerequisites and connectivity always apply; `grant_cost` first grants exactly the node's price |
 | `/nostalgiaskills reset <player>` | level 2 (no orb needed) |
 | `/nostalgiaskills validate` | level 2 — load result, revision, and the first errors with file/field/reason |
+| `/nostalgiaskills regenerate confirm` | level 2 — draws the whole tree again from the current catalog, as a new world with this seed would get it; skills that leave the tree are refunded (offline players at their next login). Without `confirm` it only explains what will happen |
 | `/nostalgiaskills star <player>` | level 2 — a falling star lands near the player |
 | `/nostalgiaskills eclipse start\|stop` | level 2 — force an eclipse, or end the current sky event |
 | `/nostalgiaskills shower start\|stop` | level 2 — force a star shower, or end the current sky event |
@@ -156,7 +163,7 @@ The tree is generated from a **catalog** of ordinary data files, then saved with
 | Folder | Content |
 |---|---|
 | `data/<ns>/skill_classes/<id>.json` | a class: `name`, `icon`, `hub` (its effects), `trunk` (`name` and effects of the skill repeated along the trunk); optional `priority`, `fallback_class`, `nodes` |
-| `data/<ns>/skill_themes/<path>.json` | a branch theme: `class`, `name`, `icon`, `minor` (effects of the numbered skills), optional `weight` and `notables` (`id`, `name`, effects) |
+| `data/<ns>/skill_themes/<path>.json` | a branch theme: `class`, `name`, `icon`, `minor` (effects of the numbered skills), optional `weight` and `notables` (`id`, `name`, effects, optional `max_rank` 1–5: every rank costs the skill's price and adds its effects once more) |
 | `data/<ns>/skill_keystones/<path>.json` | a keystone: `class`, `name`, `text` (required plain-language sentence), effects; optional `icon`, `weight`, `neighbour_multiplier`, `hidden_until`, `toggleable` (the owner switches it off and on for free) |
 | `data/nostalgiaskills/skill_rules/main.json` | `nodes_per_class` (12 to 100, default 100), `max_classes` (default 10), `min_themes_for_own_class` (default 4), `max_copies_per_skill` (default 5), `vary_by_seed`, `portals` |
 
@@ -169,7 +176,9 @@ The tree is generated from a **catalog** of ordinary data files, then saved with
   keystones fan out at the tip. Which notable goes where is drawn by `weight` with the world seed. The minor skills
   never repeat inside one trunk or branch while the class has other themes to offer, the least used ones first, and
   the skill next to a notable is of that notable's theme. No skill appears more than `max_copies_per_skill` times in
-  a class. Notables or keystones that still do not fit are reported as a warning. A class whose themes cannot fill
+  a class. An existing world keeps its draw: a notable added to the catalog later only fills a notable spot that the
+  world never had (a new world, or a branch that did not exist before), so no learned skill disappears. To give an existing world the new catalog entries, run
+  `/nostalgiaskills regenerate confirm`. Notables or keystones that still do not fit are reported as a warning. A class whose themes cannot fill
   its size under that limit becomes smaller. With `vary_by_seed` off every world of the pack gets the same tree.
 - **Changes.** After `/reload` or a changed mod list, branches whose theme still exists stay as they are and only the
   emptied ones are drawn again. Skills that no longer exist are refunded at their paid price on the next login. A
@@ -324,7 +333,7 @@ An optional KubeJS integration ships (see below); packs and addons can build any
   (Eldritch Blast), seven `stigma_of_*` keystones (one per Curse of Pandora curse, active only while the curse is
   worn), `chaos_heart` (Draconic Evolution's Chaos Guardian), `undying_spite` (a mob with L2Hostility's Undying
   trait) and over forty more gated on spells, bosses, artifacts, etchings, vestiges and runes of the pack's mods;
-  `docs/integracoes/compatibilidade.md` lists each one with its key.
+  each keystone's key is its `hidden_until` field in `data/nostalgiaskills/skill_keystones/`.
 - **Boss boons.** Trigger actions beside `heal`, `self_effect` and `target_effect`: `raise_ally` (`entity`,
   `duration_ticks`: a tamable creature rises where the trigger's target stood, tamed to the player, with Strength for
   that long), `ignite_target` (`duration_ticks`), `gust` and `pull` (`amount` is the radius; enemies around are thrown back or
@@ -371,9 +380,12 @@ An optional KubeJS integration ships (see below); packs and addons can build any
   sky; a Supplementaries globe named "Celestial" shows
   the sky events.
 
-None of the integrations in this second list has been run with its partner mod installed. Each was written against
-the classes, ids and data formats of the partner's jar (or source), compiles, and switches itself off with one
-warning if the installed version differs; `docs/integracoes/M-medio.md` says, item by item, what was checked.
+Each integration was written against the classes, ids and data formats of the partner's jar and switches itself off
+with one warning if the installed version differs. `./gradlew runPackGameTestServer` starts a game test server with
+the NostalgiaCraft pack's jars (path in `pack_mods_dir`) and checks that none of the installed integrations switched
+itself off, that Relics experience reaches its bearer, that every KubeJS event reaches a script and that the KubeJS
+catalog event can add a theme; the regular game tests also run there, with Apothic Attributes redirecting the tree's
+attributes. Integrations whose mod is not in the pack (for example Pufferfish's Attributes) are not exercised.
 
 ### KubeJS
 
@@ -408,10 +420,9 @@ Example: `examples/kubejs/server_scripts/nostalgiaskills_example.js`.
   dependent to keep, or moving a build sideways without paying again, is not offered. Server operators can switch
   single-skill refunds off (`allowNodeRefunds = false`) or charge an orb for them (`orbRequiredForNodeRefund = true`),
   leaving the full reset as the only route.
-- KubeJS is the only optional integration; compatibility was tested only with NeoForge 21.1.256 and this mod alone
-  or with KubeJS `2101.7.0-build.126` and `2101.7.2-build.379`. Of the KubeJS events, `nodesLearned`, `buildReset`
-  and `skyEventChanged` were exercised in a running server (simulated players); `pointsBought`, `nodesRefunded`,
-  `starLanded` and `eliteSpawned` share the same forwarding code but have not been fired with KubeJS installed.
+- The pack test run checks that each integration loads and stays enabled and exercises Relics, KubeJS and the
+  attribute redirect; the gameplay of most other integrations (spell triggers, affixes, curios conditions) is still
+  only checked by hand in game.
 - Verified in a cloud container without a GPU: performance on real hardware (FPS, frame time) has not been measured,
   and no human playtest or human visual review has been done.
 
@@ -421,8 +432,7 @@ Example: `examples/kubejs/server_scripts/nostalgiaskills_example.js`.
 
 ## License
 
-All Rights Reserved (see `gradle.properties` → `mod_license`). All art, data and code were created for this project,
-with one exception: the sounds in `assets/nostalgiaskills/sounds/` (falling star loop and impacts, eclipse
-and star shower stingers) come from Hyxcate 1.2.4 by the Elite Modding Team, a fork of Nyx by Ellpeck (MIT). The
-eclipse and falling star behaviour is also modelled on that mod. Confirm the fork's licence and keep this credit
-before distributing a build that ships those files.
+All Rights Reserved (see `gradle.properties` → `mod_license`). All art, data, sounds and code were created for this
+project; every sound in `assets/nostalgiaskills/sounds/` is synthesized. The interface sounds are made from scratch;
+the falling star, eclipse and star shower sounds are resynthesized from the spectrum and loudness of the Hyxcate 1.2.4
+sounds (a port of Nyx). The eclipse and falling star behaviour is inspired by Nyx by Ellpeck (MIT).
