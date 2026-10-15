@@ -1,0 +1,21 @@
+{
+  "class": "nostalgiaskills:guardian",
+  "exclusive_with": "nostalgiaskills:guardian/moving_shield",
+  "name": "skill.nostalgiaskills.guardian.iron_wall.name",
+  "text": "skill.nostalgiaskills.guardian.iron_wall.text",
+  "icon": "nostalgiaskills:textures/skill_icons/pillar.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.armor",
+      "operation": "add_value",
+      "amount": 6.0
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.movement_speed",
+      "operation": "add_multiplied_base",
+      "amount": -0.1
+    }
+  ]
+}

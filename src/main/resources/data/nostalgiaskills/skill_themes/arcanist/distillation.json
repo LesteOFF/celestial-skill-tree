@@ -67,6 +67,20 @@
           "amount": 0.05
         }
       ]
+    },
+    {
+      "id": "dense_essence",
+      "name": "skill.nostalgiaskills.arcanist.dense_essence.name",
+      "icon": "nostalgiaskills:textures/skill_icons/black_hole.png",
+      "neighbour_multiplier": 1.5,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:potion_duration",
+          "operation": "add_value",
+          "amount": 0.05
+        }
+      ]
     }
   ]
 }

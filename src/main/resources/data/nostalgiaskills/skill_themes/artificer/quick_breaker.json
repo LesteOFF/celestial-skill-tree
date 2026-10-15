@@ -26,6 +26,20 @@
           "amount": 0.02
         }
       ]
+    },
+    {
+      "id": "core_sample",
+      "name": "skill.nostalgiaskills.artificer.core_sample.name",
+      "icon": "nostalgiaskills:textures/skill_icons/black_hole.png",
+      "neighbour_multiplier": 1.5,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:player.block_break_speed",
+          "operation": "add_multiplied_base",
+          "amount": 0.03
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,27 @@
+{
+  "class": "nostalgiaskills:duelist",
+  "exclusive_with": "nostalgiaskills:duelist/all_in_lunge",
+  "name": "skill.nostalgiaskills.duelist.riposte_stance.name",
+  "text": "skill.nostalgiaskills.duelist.riposte_stance.text",
+  "icon": "nostalgiaskills:textures/skill_icons/parry.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:dodge_chance",
+      "operation": "add_value",
+      "amount": 0.06
+    },
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:crit_chance",
+      "operation": "add_value",
+      "amount": 0.04
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.max_health",
+      "operation": "add_value",
+      "amount": -2.0
+    }
+  ]
+}

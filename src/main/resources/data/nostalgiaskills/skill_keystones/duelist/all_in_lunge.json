@@ -1,0 +1,21 @@
+{
+  "class": "nostalgiaskills:duelist",
+  "exclusive_with": "nostalgiaskills:duelist/riposte_stance",
+  "name": "skill.nostalgiaskills.duelist.all_in_lunge.name",
+  "text": "skill.nostalgiaskills.duelist.all_in_lunge.text",
+  "icon": "nostalgiaskills:textures/skill_icons/lunge.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:crit_damage",
+      "operation": "add_value",
+      "amount": 0.35
+    },
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:dodge_chance",
+      "operation": "add_value",
+      "amount": -0.04
+    }
+  ]
+}

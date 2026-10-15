@@ -3,6 +3,7 @@ package dev.nostalgiacraft.skills.generation;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import dev.nostalgiacraft.skills.graph.ExclusiveGroup;
 import dev.nostalgiacraft.skills.graph.Ids;
 import dev.nostalgiacraft.skills.graph.KnownIds;
 import dev.nostalgiacraft.skills.graph.NodeType;
@@ -20,6 +21,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,7 +34,9 @@ class BundledCatalogTest {
     private static final Path DATA = Path.of(System.getProperty("nostalgiaskills.dataRoot", "src/main/resources/data/nostalgiaskills"));
     private static final Path LANG = Path.of("src/main/resources/assets/nostalgiaskills/lang");
     private static final int SEEDS = 25;
-    private static final Map<String, Integer> NOTABLES_WITHOUT_MODS = Map.of(NS + ":arcanist", 15);
+    private static final int PAIRED_KEYSTONES = 2;
+    private static final List<String> NEWER_NOTABLE_FIELDS = List.of("max_rank", "requires_mod", "neighbour_multiplier");
+    private static final Map<String, Integer> NOTABLES_WITHOUT_MODS = Map.of(NS + ":arcanist", 16);
     private static final List<String> BASE_CLASSES = List.of("arcanist", "artificer", "berserker", "duelist", "guardian", "marksman");
     private static final Set<String> OWN_ATTRIBUTES = Set.of("crit_chance", "crit_damage", "dodge_chance",
             "light_weapon_damage", "heavy_weapon_damage", "projectile_damage", "long_range_damage", "crossbow_damage",
@@ -74,7 +78,12 @@ class BundledCatalogTest {
     }
 
     private static Catalog catalog(KnownIds known, Predicate<String> isModLoaded, Map<String, JsonElement> themes) {
-        CatalogSources sources = new CatalogSources(files("skill_classes"), themes, files("skill_keystones"), Optional.empty());
+        return catalog(known, isModLoaded, themes, files("skill_keystones"));
+    }
+
+    private static Catalog catalog(KnownIds known, Predicate<String> isModLoaded, Map<String, JsonElement> themes,
+                                   Map<String, JsonElement> keystones) {
+        CatalogSources sources = new CatalogSources(files("skill_classes"), themes, keystones, Optional.empty());
         CatalogParser.Outcome outcome = new CatalogParser(known).parse(sources.availableWith(isModLoaded));
         assertTrue(outcome.report().issues().isEmpty(), () -> outcome.report().issues().toString());
         return outcome.catalog().orElseThrow();
@@ -98,9 +107,9 @@ class BundledCatalogTest {
             SkillGraphSnapshot graph = tree(catalog, seed);
             assertEquals(6, graph.roots().size());
             for (String classId : catalog.classes().keySet()) {
-                int notables = NOTABLES_WITHOUT_MODS.getOrDefault(classId, 13);
+                int notables = NOTABLES_WITHOUT_MODS.getOrDefault(classId, 14);
                 assertEquals(notables, count(graph, classId, NodeType.NOTABLE), classId);
-                assertEquals(3, count(graph, classId, NodeType.KEYSTONE), classId);
+                assertEquals(3 + PAIRED_KEYSTONES, count(graph, classId, NodeType.KEYSTONE), classId);
                 assertEquals(95 - notables, count(graph, classId, NodeType.MINOR), classId);
             }
         }
@@ -120,7 +129,7 @@ class BundledCatalogTest {
             assertFalse(hidden.isEmpty());
             hidden.forEach(node -> assertTrue(node.position().y() >= treeBottom + HiddenSection.DISTANCE_BELOW_TREE, node.id()));
             assertTrue(graph.nodes().values().stream()
-                    .filter(node -> node.type() != NodeType.PORTAL && !hidden.contains(node)).count() <= 7 * 100);
+                    .filter(node -> node.type() != NodeType.PORTAL && !hidden.contains(node)).count() <= 7 * (100 + PAIRED_KEYSTONES));
             assertEquals(8, graph.nodes().values().stream().filter(node -> node.type() == NodeType.PORTAL).count());
         }
     }
@@ -144,10 +153,12 @@ class BundledCatalogTest {
     }
 
     @Test
-    void addingNotablesKeepsEverySkillOfAnExistingWorld() {
-        Map<String, JsonElement> withoutRanked = new TreeMap<>();
-        files("skill_themes").forEach((id, theme) -> withoutRanked.put(id, withoutNewNotables(theme.getAsJsonObject())));
-        Catalog before = catalog(KnownIds.PERMISSIVE, mod -> true, withoutRanked);
+    void addingSkillsKeepsEverySkillOfAnExistingWorld() {
+        Map<String, JsonElement> olderThemes = new TreeMap<>();
+        files("skill_themes").forEach((id, theme) -> olderThemes.put(id, withoutNewNotables(theme.getAsJsonObject())));
+        Map<String, JsonElement> olderKeystones = new TreeMap<>(files("skill_keystones"));
+        olderKeystones.values().removeIf(keystone -> keystone.getAsJsonObject().has("exclusive_with"));
+        Catalog before = catalog(KnownIds.PERMISSIVE, mod -> true, olderThemes, olderKeystones);
         Catalog after = catalog(KnownIds.PERMISSIVE, mod -> true);
         for (long seed = 0; seed < SEEDS; seed++) {
             TreeGenerator.Result created = TreeGenerator.generate(TREE, before, seed, TreeDraw.EMPTY);
@@ -161,8 +172,8 @@ class BundledCatalogTest {
     private static JsonObject withoutNewNotables(JsonObject theme) {
         JsonObject copy = theme.deepCopy();
         if (copy.has("notables")) {
-            copy.getAsJsonArray("notables").asList().removeIf(notable -> notable.getAsJsonObject().has("max_rank")
-                    || notable.getAsJsonObject().has("requires_mod"));
+            copy.getAsJsonArray("notables").asList().removeIf(notable -> NEWER_NOTABLE_FIELDS.stream()
+                    .anyMatch(notable.getAsJsonObject()::has));
         }
         return copy;
     }
@@ -176,6 +187,55 @@ class BundledCatalogTest {
             assertEquals(created.graph().orElseThrow().ids(), reopened.graph().orElseThrow().ids(), "seed " + seed + ": skills change");
             assertEquals(created.graph().orElseThrow().fingerprint(), reopened.graph().orElseThrow().fingerprint(), "seed " + seed);
         }
+    }
+
+    @Test
+    void everyClassOffersOneExclusiveKeystonePairAndOneBlackHole() {
+        Catalog catalog = catalog(KnownIds.PERMISSIVE, mod -> true);
+        for (long seed = 0; seed < SEEDS; seed++) {
+            SkillGraphSnapshot graph = tree(catalog, seed);
+            for (String classId : Stream.concat(BASE_CLASSES.stream(), Stream.of("mage")).map(name -> NS + ":" + name).toList()) {
+                List<ExclusiveGroup> pairs = graph.exclusiveGroups().values().stream()
+                        .filter(group -> graph.nodes().get(group.members().get(0)).sector().equals(classId)).toList();
+                assertEquals(1, pairs.size(), "seed " + seed + ": exclusive pairs of " + classId);
+                assertTrue(pairs.get(0).members().stream().allMatch(member -> graph.nodes().get(member).type() == NodeType.KEYSTONE));
+                long blackHoles = graph.nodes().values().stream()
+                        .filter(node -> node.sector().equals(classId) && node.traits().amplifiesNeighbours()).count();
+                assertEquals(1, blackHoles, "seed " + seed + ": black holes of " + classId);
+            }
+        }
+    }
+
+    @Test
+    void aSavedBlackHoleInsideABranchMovesOutWhenTheWorldReopens() {
+        Catalog catalog = catalog(WITHOUT_MODS, mod -> false);
+        TreeGenerator.Result created = TreeGenerator.generate(TREE, catalog, 0, TreeDraw.EMPTY);
+        Set<String> blackHoles = created.graph().orElseThrow().nodes().values().stream()
+                .filter(node -> node.traits().amplifiesNeighbours()).map(SkillNodeDefinition::id).collect(Collectors.toSet());
+        TreeDraw misplaced = new TreeDraw(created.draw().classes().stream().map(drawn -> blackHoleAtABranchStart(drawn, blackHoles)).toList());
+        assertFalse(misplaced.equals(created.draw()), "a black hole was moved to the start of a branch");
+        TreeGenerator.Result reopened = TreeGenerator.generate(TREE, catalog, 0, misplaced);
+        assertTrue(reopened.graph().isPresent(), () -> reopened.report().issues().toString());
+    }
+
+    private static TreeDraw.ClassDraw blackHoleAtABranchStart(TreeDraw.ClassDraw drawn, Set<String> blackHoles) {
+        Map<String, TreeDraw.RibDraw> ribs = new TreeMap<>(drawn.ribs());
+        Optional<String> tipRib = ribs.entrySet().stream().filter(rib -> rib.getValue().notable()
+                .filter(choice -> blackHoles.contains(CatalogEntryParser.notableNodeId(choice.theme(), choice.notable()))).isPresent())
+                .map(Map.Entry::getKey).findFirst();
+        if (tipRib.isEmpty()) {
+            return drawn;
+        }
+        Optional<String> openedRib = ribs.entrySet().stream()
+                .filter(rib -> !rib.getKey().equals(tipRib.get()) && rib.getValue().opening().isPresent()).map(Map.Entry::getKey).findFirst();
+        if (openedRib.isEmpty()) {
+            return drawn;
+        }
+        TreeDraw.RibDraw tip = ribs.get(tipRib.get());
+        TreeDraw.RibDraw opened = ribs.get(openedRib.get());
+        ribs.put(tipRib.get(), new TreeDraw.RibDraw(tip.opening(), tip.middle(), opened.opening(), tip.minors()));
+        ribs.put(openedRib.get(), new TreeDraw.RibDraw(tip.notable(), opened.middle(), opened.notable(), opened.minors()));
+        return new TreeDraw.ClassDraw(drawn.classId(), drawn.trunk(), ribs, drawn.keystones());
     }
 
     @Test

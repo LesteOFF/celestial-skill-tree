@@ -82,6 +82,20 @@
           "amount": 1.0
         }
       ]
+    },
+    {
+      "id": "gravity_well",
+      "name": "skill.nostalgiaskills.guardian.gravity_well.name",
+      "icon": "nostalgiaskills:textures/skill_icons/black_hole.png",
+      "neighbour_multiplier": 1.5,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.armor",
+          "operation": "add_value",
+          "amount": 1.0
+        }
+      ]
     }
   ]
 }

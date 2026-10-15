@@ -1,0 +1,21 @@
+{
+  "class": "nostalgiaskills:berserker",
+  "exclusive_with": "nostalgiaskills:berserker/controlled_rage",
+  "name": "skill.nostalgiaskills.berserker.blind_rage.name",
+  "text": "skill.nostalgiaskills.berserker.blind_rage.text",
+  "icon": "nostalgiaskills:textures/skill_icons/risk.png",
+  "effects": [
+    {
+      "type": "damage_modifier",
+      "direction": "dealt",
+      "scope": "melee",
+      "amount": 0.3
+    },
+    {
+      "type": "damage_modifier",
+      "direction": "taken",
+      "scope": "all",
+      "amount": 0.2
+    }
+  ]
+}

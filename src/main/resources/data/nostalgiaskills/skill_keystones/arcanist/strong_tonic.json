@@ -1,0 +1,21 @@
+{
+  "class": "nostalgiaskills:arcanist",
+  "exclusive_with": "nostalgiaskills:arcanist/long_brew",
+  "name": "skill.nostalgiaskills.arcanist.strong_tonic.name",
+  "text": "skill.nostalgiaskills.arcanist.strong_tonic.text",
+  "icon": "nostalgiaskills:textures/skill_icons/healing.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:healing_received",
+      "operation": "add_value",
+      "amount": 0.25
+    },
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:potion_duration",
+      "operation": "add_value",
+      "amount": -0.2
+    }
+  ]
+}

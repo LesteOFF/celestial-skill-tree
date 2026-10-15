@@ -76,6 +76,20 @@
           "amount": 0.04
         }
       ]
+    },
+    {
+      "id": "eye_of_the_storm",
+      "name": "skill.nostalgiaskills.berserker.eye_of_the_storm.name",
+      "icon": "nostalgiaskills:textures/skill_icons/black_hole.png",
+      "neighbour_multiplier": 1.5,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "nostalgiaskills:heavy_weapon_damage",
+          "operation": "add_value",
+          "amount": 0.03
+        }
+      ]
     }
   ]
 }

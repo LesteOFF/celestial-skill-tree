@@ -1,0 +1,22 @@
+{
+  "class": "nostalgiaskills:mage",
+  "requires_mod": "irons_spellbooks",
+  "exclusive_with": "nostalgiaskills:mage/swift_spring",
+  "name": "skill.nostalgiaskills.mage.deep_well.name",
+  "text": "skill.nostalgiaskills.mage.deep_well.text",
+  "icon": "nostalgiaskills:textures/skill_icons/staff.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "irons_spellbooks:max_mana",
+      "operation": "add_multiplied_total",
+      "amount": 0.25
+    },
+    {
+      "type": "attribute",
+      "attribute": "irons_spellbooks:mana_regen",
+      "operation": "add_multiplied_total",
+      "amount": -0.15
+    }
+  ]
+}

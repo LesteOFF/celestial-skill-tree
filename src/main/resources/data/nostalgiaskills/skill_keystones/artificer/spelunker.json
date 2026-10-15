@@ -1,0 +1,27 @@
+{
+  "class": "nostalgiaskills:artificer",
+  "exclusive_with": "nostalgiaskills:artificer/swift_pick",
+  "name": "skill.nostalgiaskills.artificer.spelunker.name",
+  "text": "skill.nostalgiaskills.artificer.spelunker.text",
+  "icon": "nostalgiaskills:textures/skill_icons/exploration.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.movement_speed",
+      "operation": "add_multiplied_base",
+      "amount": 0.08
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.safe_fall_distance",
+      "operation": "add_value",
+      "amount": 4.0
+    },
+    {
+      "type": "attribute",
+      "attribute": "nostalgiaskills:mining_speed",
+      "operation": "add_value",
+      "amount": -0.1
+    }
+  ]
+}

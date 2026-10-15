@@ -5,11 +5,16 @@ import dev.nostalgiacraft.skills.data.GeneratedTree;
 import dev.nostalgiacraft.skills.effects.CompiledBuild;
 import dev.nostalgiacraft.skills.effects.EffectEngine;
 import dev.nostalgiacraft.skills.effects.StolenNodes;
+import dev.nostalgiacraft.skills.graph.SkillEffect;
+import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
+import dev.nostalgiacraft.skills.graph.SkillNodeDefinition;
 import dev.nostalgiacraft.skills.progression.Allocation;
 import dev.nostalgiacraft.skills.progression.AllocationService;
+import dev.nostalgiacraft.skills.progression.PathFinder;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.progression.ProgressionService;
 import dev.nostalgiacraft.skills.progression.RefundService;
+import dev.nostalgiacraft.skills.progression.RejectReason;
 import dev.nostalgiacraft.skills.progression.RespecService;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
 import dev.nostalgiacraft.skills.registry.ModAttributes;
@@ -27,7 +32,9 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -38,6 +45,10 @@ public final class SkillGameTests {
     private static final String GATEKEEPER = "guardian/gatekeeper";
     private static final String BASTION = "guardian/bastion";
     private static final String LAYERED_PLATES = "guardian/layered_plates";
+    private static final String BERSERKER_HUB = "berserker/hub";
+    private static final String CONTROLLED_RAGE = "berserker/controlled_rage";
+    private static final String BLIND_RAGE = "berserker/blind_rage";
+    private static final String EYE_OF_THE_STORM = "berserker/eye_of_the_storm";
     private static final double ARMOR_PER_PLATE_RANK = 1.0;
     private static final double BASE_HEALTH = 20.0;
     private static final int FIRST_POINT_COST = 100;
@@ -141,6 +152,45 @@ public final class SkillGameTests {
             scenario.near(flatArmorBefore + ARMOR_PER_PLATE_RANK, flatArmor(scenario, state), "flat armor from the tree after the second rank");
             scenario.atLeast(oneRank + ARMOR_PER_PLATE_RANK, player.getAttributeValue(Attributes.ARMOR), "armor after the second rank");
         });
+    }
+
+    @GameTest(template = Scenario.EMPTY)
+    public static void learningOneKeystoneOfAnExclusivePairShutsOutTheOther(GameTestHelper helper) {
+        Scenario.run(helper, scenario -> {
+            ServerPlayer player = scenario.blankPlayer();
+            PlayerSkillState state = scenario.learn(player, BERSERKER_HUB, CONTROLLED_RAGE);
+            AllocationService.BatchResult partner = AllocationService.confirm(scenario.graph(), state, List.of(Scenario.id(BLIND_RAGE)));
+            scenario.check(!partner.ok(), "Blind Rage is refused once Controlled Rage is learned");
+            scenario.same(Optional.of(RejectReason.EXCLUSIVE_CONFLICT), partner.rejection().map(AllocationService.Rejection::reason),
+                    "why Blind Rage is refused");
+            scenario.check(!state.isAllocated(Scenario.id(BLIND_RAGE)), "Blind Rage stays unlearned");
+        });
+    }
+
+    @GameTest(template = Scenario.EMPTY)
+    public static void aBlackHoleMakesTheNeighboursItsOwnerHasCountHalfAgain(GameTestHelper helper) {
+        Scenario.run(helper, scenario -> {
+            SkillGraphSnapshot graph = scenario.graph();
+            String blackHole = Scenario.id(EYE_OF_THE_STORM);
+            PlayerSkillState state = scenario.learn(scenario.blankPlayer(), BERSERKER_HUB);
+            List<String> way = PathFinder.route(graph, state, List.of(), blackHole).orElseThrow().newNodes().stream()
+                    .filter(id -> !id.equals(blackHole)).toList();
+            scenario.confirm(state, way, "the way to the black hole");
+            Map<String, Double> expected = new HashMap<>(CompiledBuild.compile(graph, state).attributeSums());
+            scenario.confirm(state, List.of(blackHole), EYE_OF_THE_STORM);
+            addAttributes(expected, graph.nodes().get(blackHole), 1, 1);
+            double extraShare = graph.nodes().get(blackHole).traits().neighbourMultiplier() - 1;
+            graph.neighbours(blackHole).stream().filter(state::isAllocated)
+                    .forEach(neighbour -> addAttributes(expected, graph.nodes().get(neighbour), extraShare, state.rank(neighbour)));
+            Map<String, Double> after = CompiledBuild.compile(graph, state).attributeSums();
+            expected.forEach((key, value) -> scenario.near(value, after.getOrDefault(key, 0.0), key + " with the black hole"));
+        });
+    }
+
+    private static void addAttributes(Map<String, Double> sums, SkillNodeDefinition node, double share, int ranks) {
+        node.effects().stream().filter(SkillEffect.Attribute.class::isInstance).map(SkillEffect.Attribute.class::cast)
+                .forEach(effect -> sums.merge(CompiledBuild.sumKey(effect.attribute(), effect.operation()), effect.amount() * share * ranks,
+                        Double::sum));
     }
 
     @GameTest(template = Scenario.EMPTY)
