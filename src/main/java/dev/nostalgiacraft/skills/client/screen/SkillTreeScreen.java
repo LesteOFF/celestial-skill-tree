@@ -39,11 +39,14 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -94,6 +97,7 @@ public final class SkillTreeScreen extends Screen {
 
     private final Camera camera = new Camera();
     private final Set<String> pending = new LinkedHashSet<>();
+    private final Map<String, Integer> pendingRanks = new LinkedHashMap<>();
     private final Set<String> searchHits = new LinkedHashSet<>();
     private final PanelRenderer panelRenderer = new PanelRenderer();
     private final long openedAt = Util.getMillis();
@@ -184,7 +188,7 @@ public final class SkillTreeScreen extends Screen {
     }
 
     public void qaSetup(Collection<String> pendingIds, boolean stats, boolean reset) {
-        pending.clear();
+        clearPending();
         pending.addAll(pendingIds);
         panel = stats ? Panel.STATS : reset ? Panel.RESET : Panel.NONE;
         statesDirty = true;
@@ -432,7 +436,7 @@ public final class SkillTreeScreen extends Screen {
         SkillGraphSnapshot graph = graph();
         PlayerSkillState state = playerState();
         dropOutdatedPending(graph, state);
-        nodeStates = NodeStates.compute(graph, state, pending);
+        nodeStates = NodeStates.compute(graph, state, request());
         if (panel == Panel.REFUND) {
             refundPlan = RefundService.plan(graph, state, refundOf, ClientSkillState.economy().nodeRefundsEnabled());
             if (!refundPlan.ok()) {
@@ -447,14 +451,17 @@ public final class SkillTreeScreen extends Screen {
 
     private void dropOutdatedPending(SkillGraphSnapshot graph, PlayerSkillState state) {
         boolean graphChanged = seenGraphRevision != -1 && seenGraphRevision != ClientSkillState.graphRevision();
-        if (graphChanged && !pending.isEmpty()) {
-            pending.clear();
+        if (graphChanged && hasPending()) {
+            clearPending();
             flash(text("pending_invalidated"));
         }
         seenGraphRevision = ClientSkillState.graphRevision();
         if (state.stateRevision() != seenStateRevision) {
             seenStateRevision = state.stateRevision();
-            pending.removeIf(id -> state.isAllocated(id) || !graph.contains(id));
+            pending.removeIf(id -> !graph.contains(id) || state.isAllocated(id));
+            pendingRanks.entrySet().removeIf(marked -> !graph.contains(marked.getKey())
+                    || !state.isAllocated(marked.getKey()) && !pending.contains(marked.getKey())
+                    || marked.getValue() > AllocationService.rankRoom(graph, state, marked.getKey()));
         }
     }
 
@@ -477,10 +484,10 @@ public final class SkillTreeScreen extends Screen {
         pointsButton.setMessage(text("points_left", available - pendingCost));
         pointsButton.setTooltip(Tooltip.create(text("points_tooltip", available, pendingCost)));
         updateBuyButton(ready && !busy, state == null ? 0 : state.purchasedPoints());
-        confirmButton.active = ready && !busy && !pending.isEmpty() && pendingCost <= available;
+        confirmButton.active = ready && !busy && hasPending() && pendingCost <= available;
         confirmButton.setTooltip(Tooltip.create(confirmTooltip(busy, available)));
-        cancelButton.active = !pending.isEmpty();
-        cancelButton.setTooltip(Tooltip.create(text(pending.isEmpty() ? "cancel_tooltip_empty" : "cancel_tooltip")));
+        cancelButton.active = hasPending();
+        cancelButton.setTooltip(Tooltip.create(text(hasPending() ? "cancel_tooltip" : "cancel_tooltip_empty")));
         statsButton.active = ready;
         communityButton.visible = !ClientSkillState.worldRules().communityTiers().isEmpty();
         signButton.visible = state != null && state.sign().isPresent();
@@ -489,14 +496,14 @@ public final class SkillTreeScreen extends Screen {
 
     private Component confirmTooltip(boolean busy, int available) {
         int pendingCost = nodeStates.pendingCost();
-        if (pending.isEmpty()) {
+        if (!hasPending()) {
             return text("confirm_tooltip_empty");
         }
         if (busy) {
             return text("confirm_tooltip_busy");
         }
         return pendingCost > available ? text("confirm_tooltip_cost", pendingCost, available)
-                : text("confirm_tooltip", pending.size(), pendingCost);
+                : text("confirm_tooltip", request().size(), pendingCost);
     }
 
     private void updateBuyButton(boolean idle, int purchased) {
@@ -544,7 +551,7 @@ public final class SkillTreeScreen extends Screen {
     private void onResult(Payloads.TransactionResult result) {
         if (result.ok() && result.messageKey().equals("message.nostalgiaskills.allocated")) {
             celebrateAllocation();
-            pending.clear();
+            clearPending();
         }
         if (result.ok() && POINT_BOUGHT_MESSAGES.contains(result.messageKey())) {
             TreeSounds.pointBought();
@@ -564,7 +571,7 @@ public final class SkillTreeScreen extends Screen {
         SkillGraphSnapshot graph = graph();
         Set<String> litBefore = new HashSet<>(playerState().allocations().keySet());
         confirming.forEach(litBefore::remove);
-        sparks.start(SparkRoutes.of(graph, litBefore, confirming));
+        sparks.start(SparkRoutes.of(graph, litBefore, confirming.stream().distinct().toList()));
         TreeSounds.confirmed(confirming.stream().map(graph.nodes()::get)
                 .anyMatch(node -> node != null && node.type() == NodeType.KEYSTONE));
         confirming = List.of();
@@ -578,18 +585,33 @@ public final class SkillTreeScreen extends Screen {
     }
 
     private void confirm() {
-        if (pending.isEmpty() || ClientSkillState.requestInFlight() || !ClientSkillState.ready()) {
+        if (!hasPending() || ClientSkillState.requestInFlight() || !ClientSkillState.ready()) {
             return;
         }
-        confirming = List.copyOf(pending);
+        confirming = request();
         ClientRequests.send(new Payloads.ConfirmAllocation(ClientRequests.newRequest(), playerState().stateRevision(), ClientSkillState.graphRevision(),
                 confirming));
         updateControls();
     }
 
     private void cancelPending() {
-        pending.clear();
+        clearPending();
         statesDirty = true;
+    }
+
+    private boolean hasPending() {
+        return !pending.isEmpty() || !pendingRanks.isEmpty();
+    }
+
+    private void clearPending() {
+        pending.clear();
+        pendingRanks.clear();
+    }
+
+    private List<String> request() {
+        List<String> request = new ArrayList<>(pending);
+        pendingRanks.forEach((nodeId, ranks) -> request.addAll(Collections.nCopies(ranks, nodeId)));
+        return request;
     }
 
     public void openResetPanel() {
@@ -639,7 +661,7 @@ public final class SkillTreeScreen extends Screen {
             return;
         }
         switch (nodeStates.of(nodeId)) {
-            case ALLOCATED -> toggleAllocated(nodeId);
+            case ALLOCATED -> toggleAllocated(nodeId, addRoute);
             case PENDING -> togglePending(nodeId);
             case AVAILABLE -> toggleAvailable(nodeId);
             case CONFLICTING, LOCKED -> toggleLocked(nodeId, addRoute);
@@ -648,19 +670,50 @@ public final class SkillTreeScreen extends Screen {
         }
     }
 
-    private void toggleAllocated(String nodeId) {
-        if (ClientSkillState.economy().nodeRefundsEnabled()) {
+    private void toggleAllocated(String nodeId, boolean shiftHeld) {
+        if (!shiftHeld && AllocationService.canRankUp(graph(), playerState(), nodeId)) {
+            toggleRankUp(nodeId);
+        } else if (ClientSkillState.economy().nodeRefundsEnabled()) {
             openRefundPanel(nodeId);
         } else {
             flash(text("already_allocated", Component.translatable(graph().nodes().get(nodeId).nameKey())));
         }
     }
 
+    private void toggleRankUp(String nodeId) {
+        if (pendingRanks.getOrDefault(nodeId, 0) >= AllocationService.rankRoom(graph(), playerState(), nodeId)) {
+            pendingRanks.remove(nodeId);
+            statesDirty = true;
+        } else {
+            addPendingRank(nodeId);
+        }
+    }
+
+    private void addPendingRank(String nodeId) {
+        if (playerState().availablePoints() - nodeStates.pendingCost() >= graph().nodes().get(nodeId).cost()) {
+            pendingRanks.merge(nodeId, 1, Integer::sum);
+            statesDirty = true;
+            TreeSounds.nodeMarked();
+        } else {
+            flash(error(RejectReason.INSUFFICIENT_POINTS));
+        }
+    }
+
+    private boolean canMarkAnotherRank(String nodeId) {
+        return pending.contains(nodeId) && graph().nodes().get(nodeId).ranked()
+                && pendingRanks.getOrDefault(nodeId, 0) < AllocationService.rankRoom(graph(), playerState(), nodeId);
+    }
+
     private void togglePending(String clickedId) {
+        if (canMarkAnotherRank(clickedId)) {
+            addPendingRank(clickedId);
+            return;
+        }
         String nodeId = pending.contains(clickedId) ? clickedId : graph().portalDestination(clickedId).orElse(clickedId);
         Set<String> chain = AllocationService.dependentsOfPendingRemoval(graph(), playerState(), pending, nodeId);
         if (chain.isEmpty()) {
             pending.remove(nodeId);
+            pendingRanks.remove(nodeId);
             statesDirty = true;
         } else {
             dependentsOf = nodeId;
@@ -911,7 +964,7 @@ public final class SkillTreeScreen extends Screen {
     private void closeTopmost() {
         if (panel != Panel.NONE) {
             panel = Panel.NONE;
-        } else if (!pending.isEmpty()) {
+        } else if (hasPending()) {
             panel = Panel.DISCARD;
         } else {
             onClose();
@@ -992,12 +1045,19 @@ public final class SkillTreeScreen extends Screen {
         for (SkillNodeDefinition node : graph.nodes().values()) {
             boolean highlighted = node.id().equals(focusId) || node.id().equals(hoverId);
             GraphRenderer.node(graphics, node, camera, nodeStates.of(node.id()), affordable(node, state), highlighted,
-                    searchHits.contains(node.id()), activePortals.contains(node.id()), state.isDisabled(node.id()), fade, time);
+                    searchHits.contains(node.id()), activePortals.contains(node.id()), state.isDisabled(node.id()), ranksOf(node, state),
+                    fade, time);
         }
         sparks.render(graphics, camera);
         graphics.setColor(1f, 1f, 1f, 1f);
         RenderSystem.disableBlend();
         graphics.disableScissor();
+    }
+
+    private GraphRenderer.Ranks ranksOf(SkillNodeDefinition node, PlayerSkillState state) {
+        int marked = (pending.contains(node.id()) ? 1 : 0) + pendingRanks.getOrDefault(node.id(), 0);
+        return node.ranked() ? new GraphRenderer.Ranks(state.rank(node.id()), marked, node.maxRank())
+                : GraphRenderer.Ranks.NONE;
     }
 
     private Vec2 revealOrigin(SkillGraphSnapshot graph, PlayerSkillState state) {
@@ -1054,7 +1114,7 @@ public final class SkillTreeScreen extends Screen {
             tooltipFor = hoverId;
             tooltipStateRevision = state.stateRevision();
             Optional<PathFinder.Route> hoveredRoute = hoverId.equals(routeFor) ? route : Optional.empty();
-            tooltipCache = SkillTooltips.build(graph(), state, pending, graph().nodes().get(hoverId), nodeStates.of(hoverId),
+            tooltipCache = SkillTooltips.build(graph(), state, request(), graph().nodes().get(hoverId), nodeStates.of(hoverId),
                     nodeStates.pendingCost(), hoveredRoute, ClientConfig.DETAILED_TOOLTIPS.get());
         }
         int maxWidth = Math.max(MIN_TOOLTIP_WIDTH, Math.min(MAX_TOOLTIP_WIDTH, width / 2 - 12));
@@ -1081,7 +1141,7 @@ public final class SkillTreeScreen extends Screen {
     }
 
     private List<Component> statsLines() {
-        return StatsPanel.lines(Minecraft.getInstance().player, playerState(), graph(), pending, nodeStates.pendingCost());
+        return StatsPanel.lines(Minecraft.getInstance().player, playerState(), graph(), request(), nodeStates.pendingCost());
     }
 
     private PanelRenderer.View panelView() {
@@ -1092,7 +1152,7 @@ public final class SkillTreeScreen extends Screen {
                     new PanelRenderer.Action(text("reset.confirm"), this::sendResetIfIdle, true));
             case REFUND -> modal(PanelContents.refund(graph(), playerState(), refundPlan, economy),
                     new PanelRenderer.Action(text("refund.confirm"), this::sendRefund, true));
-            case DISCARD -> new PanelRenderer.View(PanelContents.discard(pending.size(), nodeStates.pendingCost()), List.of(
+            case DISCARD -> new PanelRenderer.View(PanelContents.discard(request().size(), nodeStates.pendingCost()), List.of(
                     new PanelRenderer.Action(text("discard.discard"), this::discardAndClose, true),
                     new PanelRenderer.Action(text("discard.keep"), this::closePanel, false)), false);
             case DEPENDENTS -> modal(PanelContents.dependents(graph(), dependentsOf, dependents),
@@ -1116,7 +1176,7 @@ public final class SkillTreeScreen extends Screen {
     }
 
     private void discardAndClose() {
-        pending.clear();
+        clearPending();
         panel = Panel.NONE;
         onClose();
     }
@@ -1124,6 +1184,8 @@ public final class SkillTreeScreen extends Screen {
     private void removeDependentChain() {
         pending.remove(dependentsOf);
         pending.removeAll(dependents);
+        pendingRanks.remove(dependentsOf);
+        pendingRanks.keySet().removeAll(dependents);
         statesDirty = true;
         panel = Panel.NONE;
     }

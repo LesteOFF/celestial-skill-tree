@@ -7,9 +7,9 @@ import dev.nostalgiacraft.skills.progression.Holdings;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.progression.RejectReason;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 final class NodeStates {
     static final NodeStates EMPTY = new NodeStates(Map.of(), 0);
@@ -22,7 +22,7 @@ final class NodeStates {
         this.pendingCost = pendingCost;
     }
 
-    static NodeStates compute(SkillGraphSnapshot graph, PlayerSkillState state, Set<String> pending) {
+    static NodeStates compute(SkillGraphSnapshot graph, PlayerSkillState state, Collection<String> pending) {
         AllocationService.Expansion expansion = AllocationService.expand(graph, state, pending);
         Holdings holdings = AllocationService.holdingsAfter(graph, state, expansion);
         boolean startChosen = state.startingRoot().isPresent() || expansion.choosesStartingRoot();
@@ -30,10 +30,10 @@ final class NodeStates {
         for (SkillNodeDefinition node : graph.nodes().values()) {
             states.put(node.id(), stateOf(graph, state, pending, holdings, startChosen, node));
         }
-        return new NodeStates(states, expansion.totalCost());
+        return new NodeStates(states, expansion.totalCost() + AllocationService.rankUpCost(graph, state, pending));
     }
 
-    private static NodeState stateOf(SkillGraphSnapshot graph, PlayerSkillState state, Set<String> pending,
+    private static NodeState stateOf(SkillGraphSnapshot graph, PlayerSkillState state, Collection<String> pending,
                                      Holdings holdings, boolean startChosen, SkillNodeDefinition node) {
         if (state.isAllocated(node.id())) {
             return NodeState.ALLOCATED;

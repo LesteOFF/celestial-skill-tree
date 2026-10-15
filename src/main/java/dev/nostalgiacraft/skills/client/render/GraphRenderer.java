@@ -32,6 +32,10 @@ public final class GraphRenderer {
     private static final int PORTAL_LINK_LANE_GAP = 1;
     private static final double PORTAL_LINK_SPEED = 24;
     private static final float DISABLED_SHADE = 0.42f;
+    private static final double PIP_RADIUS_PER_NODE_RADIUS = 0.24;
+    private static final double MIN_PIP_RADIUS = 2.5;
+    private static final double PIP_STEP_PER_PIP_RADIUS = 1.45;
+    private static final double PIP_DROP_PER_RADIUS = 1.3;
     private static final float[] NO_TINT = {1f, 1f, 1f};
     private static final float[] HIDDEN_TINT = {0.72f, 0.5f, 1f};
     private static final float[] SILHOUETTE_TINT = {0.2f, 0.1f, 0.34f};
@@ -39,6 +43,14 @@ public final class GraphRenderer {
 
     public interface StateLookup {
         NodeState state(String id);
+    }
+
+    public record Ranks(int owned, int pending, int max) {
+        public static final Ranks NONE = new Ranks(0, 0, 1);
+
+        boolean shown() {
+            return max > 1;
+        }
     }
 
     public interface Fade {
@@ -183,7 +195,7 @@ public final class GraphRenderer {
 
     public static void node(GuiGraphics graphics, SkillNodeDefinition node, Camera camera, NodeState state,
                             boolean affordable, boolean focused, boolean searchHit, boolean portalActive, boolean disabled,
-                            Fade fade, double time) {
+                            Ranks ranks, Fade fade, double time) {
         double x = camera.toScreenX(node.position().x());
         double y = camera.toScreenY(node.position().y());
         double radius = screenRadius(node, camera) * fade.at(x, y);
@@ -216,12 +228,32 @@ public final class GraphRenderer {
         draw(graphics, iconTex(node.icon()), x, y, radius * (node.type() == NodeType.MINOR ? 0.62 : 0.58));
         graphics.setColor(1f, 1f, 1f, 1f);
         drawStateMark(graphics, state, x, y, radius, time);
+        if (ranks.shown()) {
+            drawRankPips(graphics, ranks, x, y, radius);
+        }
         if (searchHit) {
             draw(graphics, frameTex("ring_search"), x, y, radius * 1.75);
         }
         if (focused) {
             draw(graphics, frameTex("focus"), x, y, radius * 1.5 + 2);
         }
+    }
+
+    private static void drawRankPips(GuiGraphics graphics, Ranks ranks, double x, double y, double radius) {
+        double pipRadius = Math.max(MIN_PIP_RADIUS, radius * PIP_RADIUS_PER_NODE_RADIUS);
+        double step = pipRadius * PIP_STEP_PER_PIP_RADIUS;
+        double first = x - step * (ranks.max() - 1) / 2;
+        double row = y + radius * PIP_DROP_PER_RADIUS;
+        for (int index = 0; index < ranks.max(); index++) {
+            draw(graphics, frameTex(pipTexture(ranks, index)), first + index * step, row, pipRadius);
+        }
+    }
+
+    private static String pipTexture(Ranks ranks, int index) {
+        if (index < ranks.owned()) {
+            return "rank_pip_owned";
+        }
+        return index < ranks.owned() + ranks.pending() ? "rank_pip_pending" : "rank_pip_empty";
     }
 
     private static void drawSilhouette(GuiGraphics graphics, SkillNodeDefinition node, double x, double y, double radius) {

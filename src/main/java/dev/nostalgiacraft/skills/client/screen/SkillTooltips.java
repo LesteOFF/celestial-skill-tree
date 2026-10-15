@@ -25,6 +25,7 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -97,8 +98,10 @@ public final class SkillTooltips {
                 .append(GuiText.of("type." + node.type().serializedName())).withStyle(ChatFormatting.GRAY));
         boolean owned = subject.state().isAllocated(node.id());
         int shownCost = owned ? subject.state().allocations().get(node.id()).paidCost() : subject.cost();
-        lines.add(GuiText.of("cost", shownCost).append("   ").append(GuiText.of("rank", (owned ? 1 : 0) + lentRanks(node), node.maxRank()))
-                .withStyle(ChatFormatting.YELLOW));
+        int rank = subject.state().rank(node.id()) + lentRanks(node);
+        int marked = node.ranked() ? Collections.frequency(subject.pending(), node.id()) : 0;
+        MutableComponent rankText = marked > 0 ? GuiText.of("rank_pending", rank, node.maxRank(), marked) : GuiText.of("rank", rank, node.maxRank());
+        lines.add(GuiText.of("cost", shownCost).append("   ").append(rankText).withStyle(ChatFormatting.YELLOW));
         lines.add(SkillTexts.description(node).withStyle(ChatFormatting.GREEN));
         SkillTexts.numbersBehindPlainText(node).ifPresent(numbers -> lines.add(numbers.withStyle(ChatFormatting.DARK_GREEN)));
         subject.graph().portalDestination(node.id()).flatMap(subject.graph()::node).ifPresent(destination -> lines.add(
@@ -175,10 +178,30 @@ public final class SkillTooltips {
         if (subject.node().traits().toggleable()) {
             lines.add(GuiText.of(disabled ? "status.toggle_on" : "status.toggle_off").withStyle(ChatFormatting.DARK_AQUA));
         }
+        boolean canRankUp = AllocationService.canRankUp(subject.graph(), subject.state(), subject.node().id());
+        if (subject.node().ranked()) {
+            lines.add(rankStatus(subject, canRankUp));
+        }
         if (ClientSkillState.economy().nodeRefundsEnabled()) {
             boolean startingRoot = subject.state().startingRoot().filter(subject.node().id()::equals).isPresent();
-            lines.add(GuiText.of(startingRoot ? "status.root_reset_only" : "status.refundable").withStyle(ChatFormatting.DARK_AQUA));
+            String refund = startingRoot ? "status.root_reset_only" : canRankUp ? "status.refundable_shift" : "status.refundable";
+            lines.add(GuiText.of(refund).withStyle(ChatFormatting.DARK_AQUA));
         }
+    }
+
+    private static Component rankStatus(Subject subject, boolean canRankUp) {
+        String id = subject.node().id();
+        int marked = Collections.frequency(subject.pending(), id);
+        if (!canRankUp) {
+            return GuiText.of("status.max_rank").withStyle(ChatFormatting.GOLD);
+        }
+        if (marked >= AllocationService.rankRoom(subject.graph(), subject.state(), id)) {
+            return GuiText.of("status.rank_pending_full").withStyle(ChatFormatting.AQUA);
+        }
+        if (marked > 0) {
+            return GuiText.of("status.rank_pending", marked).withStyle(ChatFormatting.AQUA);
+        }
+        return GuiText.of("status.rank_up", subject.state().rank(id) + 1, subject.node().cost()).withStyle(ChatFormatting.DARK_AQUA);
     }
 
     private static Component availableStatus(Subject subject, int pendingCost) {
