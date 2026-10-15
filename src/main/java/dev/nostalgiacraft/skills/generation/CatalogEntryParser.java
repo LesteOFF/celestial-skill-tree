@@ -6,6 +6,7 @@ import dev.nostalgiacraft.skills.graph.GraphParser;
 import dev.nostalgiacraft.skills.graph.JsonFields;
 import dev.nostalgiacraft.skills.graph.KnownIds;
 import dev.nostalgiacraft.skills.graph.SkillEffect;
+import dev.nostalgiacraft.skills.graph.SkillNodeDefinition;
 import dev.nostalgiacraft.skills.graph.TraitsParser;
 
 import java.util.ArrayList;
@@ -83,7 +84,9 @@ final class CatalogEntryParser {
             String notableId = notableId(notable, themeId, seen);
             SkillTemplate skill = skill(notable, notable.text("name"), themeIcon);
             warnWhenHardToRead(notable, skill);
-            notables.add(new NotableDefinition(notableId, skill));
+            int maxRank = notable.integerWithin("max_rank", SkillNodeDefinition.SINGLE_RANK, SkillNodeDefinition.SINGLE_RANK,
+                    SkillNodeDefinition.MAX_RANK);
+            notables.add(new NotableDefinition(notableId, skill, maxRank));
         }
         return List.copyOf(notables);
     }

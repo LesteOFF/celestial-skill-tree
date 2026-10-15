@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Predicate;
 
@@ -61,11 +62,17 @@ public final class AllocationService {
         if (!expansion.rejected().isEmpty()) {
             return BatchResult.reject(expansion.rejected().values().iterator().next());
         }
-        int total = expansion.totalCost();
+        List<Accepted> accepted = new ArrayList<>(expansion.accepted());
+        extraRanks(state, request).forEach((id, ranks) -> {
+            for (int rank = 0; rank < ranks; rank++) {
+                accepted.add(new Accepted(id, graph.nodes().get(id).cost(), false));
+            }
+        });
+        int total = accepted.stream().mapToInt(Accepted::cost).sum();
         if (total > state.availablePoints()) {
             return BatchResult.reject(RejectReason.INSUFFICIENT_POINTS, "", total + "/" + state.availablePoints());
         }
-        return new BatchResult(true, expansion.accepted(), total, Optional.empty());
+        return new BatchResult(true, List.copyOf(accepted), total, Optional.empty());
     }
 
     private static Optional<Rejection> malformedRequest(SkillGraphSnapshot graph, PlayerSkillState state,
@@ -80,8 +87,10 @@ public final class AllocationService {
             if (!graph.contains(id)) {
                 return Optional.of(new Rejection(RejectReason.UNKNOWN_NODE, id, ""));
             }
-            if (state.isAllocated(id)) {
-                return Optional.of(new Rejection(RejectReason.ALREADY_ALLOCATED, id, ""));
+        }
+        for (Map.Entry<String, Integer> extra : extraRanks(state, request).entrySet()) {
+            if (extra.getValue() > rankRoom(graph, state, extra.getKey())) {
+                return Optional.of(new Rejection(RejectReason.ALREADY_ALLOCATED, extra.getKey(), ""));
             }
         }
         return state.startingRoot().isPresent() ? Optional.empty() : startingRootProblem(graph, ids);
@@ -107,7 +116,11 @@ public final class AllocationService {
             if (accepted.startingRoot()) {
                 state.setStartingRoot(accepted.nodeId());
             }
-            state.allocate(accepted.nodeId(), accepted.cost());
+            if (state.isAllocated(accepted.nodeId())) {
+                state.rankUp(accepted.nodeId(), accepted.cost());
+            } else {
+                state.allocate(accepted.nodeId(), accepted.cost());
+            }
         }
         state.bumpRevision();
         state.log("allocated " + result.accepted().size() + " node(s) for " + result.totalCost() + " point(s)");
@@ -116,6 +129,34 @@ public final class AllocationService {
 
     public static Expansion expand(SkillGraphSnapshot graph, PlayerSkillState state, Collection<String> request) {
         return new Placement(graph, state, request).placeAll();
+    }
+
+    public static boolean canRankUp(SkillGraphSnapshot graph, PlayerSkillState state, String id) {
+        return state.isAllocated(id) && graph.node(id).filter(node -> state.rank(id) < node.maxRank()).isPresent();
+    }
+
+    public static Map<String, Integer> extraRanks(PlayerSkillState state, Collection<String> request) {
+        Map<String, Integer> counts = new TreeMap<>();
+        request.forEach(id -> counts.merge(id, 1, Integer::sum));
+        Map<String, Integer> extra = new TreeMap<>();
+        counts.forEach((id, count) -> {
+            int ranks = state.isAllocated(id) ? count : count - 1;
+            if (ranks > 0) {
+                extra.put(id, ranks);
+            }
+        });
+        return extra;
+    }
+
+    public static int rankRoom(SkillGraphSnapshot graph, PlayerSkillState state, String id) {
+        int held = state.isAllocated(id) ? state.rank(id) : SkillNodeDefinition.SINGLE_RANK;
+        return graph.node(id).map(node -> Math.max(0, node.maxRank() - held)).orElse(0);
+    }
+
+    public static int rankUpCost(SkillGraphSnapshot graph, PlayerSkillState state, Collection<String> request) {
+        return extraRanks(state, request).entrySet().stream()
+                .mapToInt(extra -> Math.min(extra.getValue(), rankRoom(graph, state, extra.getKey())) * graph.nodes().get(extra.getKey()).cost())
+                .sum();
     }
 
     public static int priceOf(SkillGraphSnapshot graph, SkillNodeDefinition node, Predicate<String> held) {

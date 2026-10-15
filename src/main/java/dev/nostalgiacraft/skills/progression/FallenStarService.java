@@ -32,13 +32,18 @@ public final class FallenStarService {
         Optional<SkillNodeDefinition> node = graph.node(nodeId).filter(found -> !state.isAllocated(nodeId));
         boolean placeable = node.filter(found -> AllocationService.rejectionOf(graph, found, Holdings.of(graph, state)).isEmpty()).isPresent();
         if (placeable) {
-            state.reclaim(nodeId, paidCost);
+            state.reclaim(nodeId, paidRank(node.get(), paidCost), paidCost);
         } else {
             state.adjustGranted(paidCost);
         }
         state.bumpRevision();
         state.log("recovered the fallen star " + nodeId + (placeable ? " as a skill" : " as " + paidCost + " point(s)"));
         return placeable ? Recovery.RELEARNED : Recovery.POINTS_RETURNED;
+    }
+
+    static int paidRank(SkillNodeDefinition node, int paidCost) {
+        return node.cost() <= 0 ? SkillNodeDefinition.SINGLE_RANK
+                : Math.clamp(paidCost / node.cost(), SkillNodeDefinition.SINGLE_RANK, Math.max(SkillNodeDefinition.SINGLE_RANK, node.maxRank()));
     }
 
     public static Recovery claimForeign(PlayerSkillState state, int paidCost, int pointLimit) {

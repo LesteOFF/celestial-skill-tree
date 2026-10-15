@@ -22,8 +22,15 @@ public record SkillNodeDefinition(
         String cluster,
         Optional<String> exclusiveGroup,
         NodeTraits traits) {
+    public static final int SINGLE_RANK = 1;
+    public static final int MAX_RANK = 5;
+
     public boolean isRoot() {
         return type == NodeType.ROOT;
+    }
+
+    public boolean ranked() {
+        return maxRank > SINGLE_RANK;
     }
 
     public SkillNodeDefinition withCost(int newCost) {

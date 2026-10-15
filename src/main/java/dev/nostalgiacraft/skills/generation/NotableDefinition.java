@@ -1,4 +1,4 @@
 package dev.nostalgiacraft.skills.generation;
 
-public record NotableDefinition(String id, SkillTemplate skill) {
+public record NotableDefinition(String id, SkillTemplate skill, int maxRank) {
 }

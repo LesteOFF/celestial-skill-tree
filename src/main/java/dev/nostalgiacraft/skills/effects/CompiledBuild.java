@@ -3,6 +3,7 @@ package dev.nostalgiacraft.skills.effects;
 import dev.nostalgiacraft.skills.graph.NodeTraits;
 import dev.nostalgiacraft.skills.graph.SkillEffect;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
+import dev.nostalgiacraft.skills.graph.SkillNodeDefinition;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 
 import java.util.ArrayList;
@@ -38,11 +39,16 @@ public record CompiledBuild(Map<String, Double> attributeSums, List<Keyed<SkillE
             if (silenced.contains(id) || state.isDisabled(id)) {
                 continue;
             }
-            double factor = amplification(graph, state, id);
+            double factor = amplification(graph, state, id) * ranks(graph, state, id);
             graph.node(id).ifPresent(node -> collector.addAll(id, node.effects().stream().map(effect -> scaled(effect, factor)).toList()));
         }
         extraSources.forEach(collector::addAll);
         return collector.build();
+    }
+
+    private static int ranks(SkillGraphSnapshot graph, PlayerSkillState state, String nodeId) {
+        int maxRank = graph.node(nodeId).map(SkillNodeDefinition::maxRank).orElse(SkillNodeDefinition.SINGLE_RANK);
+        return Math.clamp(state.rank(nodeId), SkillNodeDefinition.SINGLE_RANK, Math.max(SkillNodeDefinition.SINGLE_RANK, maxRank));
     }
 
     private static double amplification(SkillGraphSnapshot graph, PlayerSkillState state, String nodeId) {

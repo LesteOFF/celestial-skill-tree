@@ -121,6 +121,11 @@ public final class PlayerSkillState {
         return allocations.containsKey(id);
     }
 
+    public int rank(String id) {
+        Allocation allocation = allocations.get(id);
+        return allocation == null ? 0 : allocation.rank();
+    }
+
     public List<Allocation> orderedAllocations() {
         List<Allocation> l = new ArrayList<>(allocations.values());
         l.sort(Comparator.comparingLong(Allocation::acquisitionIndex).thenComparing(Allocation::nodeId));
@@ -185,6 +190,13 @@ public final class PlayerSkillState {
         lifetimeSpent += paidCost;
     }
 
+    void rankUp(String id, int paidCost) {
+        Allocation current = allocations.get(id);
+        allocations.put(id, new Allocation(id, current.rank() + 1, current.paidCost() + paidCost, current.acquisitionIndex()));
+        availablePoints -= paidCost;
+        lifetimeSpent += paidCost;
+    }
+
     int refund(String id) {
         Allocation allocation = allocations.remove(id);
         if (allocation == null) {
@@ -207,8 +219,8 @@ public final class PlayerSkillState {
         }
     }
 
-    void reclaim(String id, int paidCost) {
-        allocations.put(id, new Allocation(id, 1, paidCost, nextAcquisition++));
+    void reclaim(String id, int rank, int paidCost) {
+        allocations.put(id, new Allocation(id, rank, paidCost, nextAcquisition++));
         netGrantedPoints += paidCost;
     }
 

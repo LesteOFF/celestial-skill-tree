@@ -31,7 +31,6 @@ final class TreeAssembler {
             "nostalgiaskills:textures/skill_icons/portal_moon.png");
     private static final Map<NodeType, String> FRAMES = Map.of(NodeType.ROOT, "stone_medallion", NodeType.MINOR, "bronze_circle",
             NodeType.NOTABLE, "violet_facet", NodeType.KEYSTONE, "gold_ornate", NodeType.PORTAL, "portal_gate");
-    private static final int MAX_RANK = 1;
     private static final Sector HIDDEN_SECTOR = Sector.rootless("nostalgiaskills:hidden", "gui.nostalgiaskills.hidden");
 
     record Assembled(List<SkillNodeDefinition> nodes, List<SkillConnection> connections, List<Sector> sectors) {
@@ -114,7 +113,7 @@ final class TreeAssembler {
         NotableDefinition notable = theme.notables().stream().filter(candidate -> candidate.id().equals(choice.notable()))
                 .findFirst().orElseThrow();
         add(slot, pool.definition().id(), CatalogEntryParser.notableNodeId(theme.id(), notable.id()), NodeType.NOTABLE,
-                notable.skill(), NodeTraits.NONE, theme.id());
+                notable.skill(), NodeTraits.NONE, theme.id(), notable.maxRank());
     }
 
     private void addMinor(ClassPool pool, Slot slot, String skill, Map<String, Integer> copies) {
@@ -135,6 +134,11 @@ final class TreeAssembler {
     }
 
     private void add(Slot slot, String classId, String id, NodeType type, SkillTemplate skill, NodeTraits traits, String cluster) {
+        add(slot, classId, id, type, skill, traits, cluster, SkillNodeDefinition.SINGLE_RANK);
+    }
+
+    private void add(Slot slot, String classId, String id, NodeType type, SkillTemplate skill, NodeTraits traits, String cluster,
+                     int maxRank) {
         if (!usedIds.add(id)) {
             report.error("skill_nodes/" + id, "id", "two catalog entries produce this skill id");
         }
@@ -145,7 +149,7 @@ final class TreeAssembler {
         classBySlot.put(slot.key(), classId);
         Set<String> tags = new TreeSet<>(List.of(type.serializedName(), Ids.path(classId), Ids.path(cluster)));
         nodes.add(new SkillNodeDefinition(id, treeId, classId, type, slot.position(), skill.name(), skill.text().orElse(""),
-                skill.icon(), FRAMES.get(type), type.defaultCost(), MAX_RANK, Requirements.NONE, skill.effects(), tags, cluster,
+                skill.icon(), FRAMES.get(type), type.defaultCost(), maxRank, Requirements.NONE, skill.effects(), tags, cluster,
                 Optional.empty(), traits));
     }
 

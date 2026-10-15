@@ -40,10 +40,8 @@ final class NodeParser {
         String icon = node.id("icon");
         String frame = node.text("frame");
         int cost = type == null ? 0 : node.integerWithin("cost", type.defaultCost(), 0, GraphParser.MAX_COST);
-        int maxRank = node.integer("max_rank", 1);
-        if (maxRank != 1) {
-            node.error("max_rank", "only max_rank 1 is supported by this version");
-        }
+        int maxRank = node.integerWithin("max_rank", SkillNodeDefinition.SINGLE_RANK, SkillNodeDefinition.SINGLE_RANK,
+                SkillNodeDefinition.MAX_RANK);
         Requirements requirements = requirements(node);
         List<SkillEffect> effects = effectParser.parseAll(node);
         Set<String> tags = tags(node);
