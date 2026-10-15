@@ -18,6 +18,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 @EventBusSubscriber(modid = NostalgiaSkills.MODID, value = Dist.CLIENT)
@@ -26,7 +27,7 @@ public final class VisualQa {
     private static final String REPORT_FILE = "nostalgiaskills_qa_ingame.txt";
     private static final String SHOT_PREFIX = "nostalgiaskills_qa_";
     private static final int OPEN_TICKS = 4;
-    private static final int FRAME_TICKS = 10;
+    private static final int FRAME_TICKS = 60;
     private static final int SYNC_TICKS = 400;
     private static final int FIXTURE_POINT_CAP = 10_000;
     private static final float FIXTURE_XP_PROGRESS = 0.4f;
@@ -57,7 +58,8 @@ public final class VisualQa {
         HYBRID(110, 24, "duelist/hub", "duelist/swift_hands", "duelist/parry_and_return", "berserker/hub", "berserker/rising_rage",
                 "berserker/battle_cry"),
         CONFLICT(40, 24, "duelist/hub", "duelist/swift_hands"),
-        INSUFFICIENT(14, 3, "marksman/hub", "marksman/eagle_eye");
+        INSUFFICIENT(14, 3, "marksman/hub", "marksman/eagle_eye"),
+        BLACK_HOLE(60, 24, "berserker/hub", BLACK_HOLE_SKILL);
 
         private final int points;
         private final int level;
@@ -91,6 +93,9 @@ public final class VisualQa {
             this(name + "_" + HD.size(), HD, fixture, Look.NORMAL, frame);
         }
     }
+
+    private static final String BLACK_HOLE_SKILL = "berserker/eye_of_the_storm";
+    private static final double BLACK_HOLE_ZOOM = 1.3;
 
     private static QaScript script;
     private static SkillGraphSnapshot graph;
@@ -189,6 +194,16 @@ public final class VisualQa {
         screen.qaHover(inTree(path));
     }
 
+    private static void hoverBoostedNeighbour(SkillTreeScreen screen) {
+        PlayerSkillState state = ClientSkillState.state().orElseThrow();
+        Optional<String> boosted = graph.neighbours(inTree(BLACK_HOLE_SKILL)).stream().filter(state::isAllocated).findFirst();
+        script.expect("the black hole boosts a learned neighbour", boosted.isPresent());
+        boosted.ifPresent(id -> {
+            screen.qaZoom(BLACK_HOLE_ZOOM, id);
+            screen.qaHover(id);
+        });
+    }
+
     private static List<Shot> shots() {
         List<Shot> shots = new ArrayList<>();
         OVERVIEWS.forEach(resolution -> shots.add(new Shot("overview_" + resolution.size() + "_gui" + resolution.guiScale(), resolution,
@@ -210,6 +225,9 @@ public final class VisualQa {
             screen.qaFit();
             screen.qaSetup(List.of(), true, false);
         }));
+        shots.add(new Shot("black_hole_tooltip", Fixture.BLACK_HOLE, screen -> hover(screen, BLACK_HOLE_ZOOM, BLACK_HOLE_SKILL)));
+        shots.add(new Shot("boosted_tooltip", Fixture.BLACK_HOLE, VisualQa::hoverBoostedNeighbour));
+        shots.add(new Shot("black_hole_available_tooltip", Fixture.HYBRID, screen -> hover(screen, BLACK_HOLE_ZOOM, BLACK_HOLE_SKILL)));
         shots.add(new Shot("portal_tooltip", Fixture.HYBRID, screen -> hover(screen, 0.6, "guardian/portal")));
         shots.add(new Shot("reset_panel", Fixture.HYBRID, screen -> {
             screen.qaFit();
