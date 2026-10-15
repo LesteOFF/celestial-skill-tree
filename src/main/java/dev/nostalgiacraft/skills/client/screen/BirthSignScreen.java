@@ -113,7 +113,7 @@ public final class BirthSignScreen extends Screen {
         graphics.drawCenteredString(font, GuiText.of("sign.permanent").withStyle(ChatFormatting.GRAY), width / 2, 20, TEXT_COLOR);
         drawWheel(graphics, placed, hovered);
         drawCenter(graphics);
-        hovered.ifPresent(sign -> graphics.renderTooltip(font, font.split(tooltip(sign.signId()), TOOLTIP_WIDTH), mouseX, mouseY));
+        hovered.ifPresent(sign -> TooltipPanel.render(graphics, font, font.split(tooltip(sign.signId()), TOOLTIP_WIDTH), mouseX, mouseY));
     }
 
     private void drawWheel(GuiGraphics graphics, List<Placed> placed, Optional<Placed> hovered) {

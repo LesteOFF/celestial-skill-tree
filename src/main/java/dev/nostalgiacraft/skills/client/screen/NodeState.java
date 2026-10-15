@@ -6,5 +6,6 @@ public enum NodeState {
     ALLOCATED,
     PENDING,
     CONFLICTING,
+    SEALED,
     HIDDEN
 }

@@ -33,7 +33,6 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import org.lwjgl.glfw.GLFW;
 
@@ -121,7 +120,7 @@ public final class SkillTreeScreen extends Screen {
     private String focusId;
     private String routeFor;
     private Optional<PathFinder.Route> route = Optional.empty();
-    private List<Component> tooltipCache;
+    private TooltipCard tooltipCache;
     private String tooltipFor;
     private long tooltipStateRevision = -1;
 
@@ -1075,7 +1074,7 @@ public final class SkillTreeScreen extends Screen {
 
     private Set<String> routePreview(SkillGraphSnapshot graph, PlayerSkillState state) {
         NodeState hovered = hoverId == null ? null : nodeStates.of(hoverId);
-        if (hovered != NodeState.LOCKED && hovered != NodeState.CONFLICTING) {
+        if (hovered != NodeState.LOCKED && hovered != NodeState.CONFLICTING && hovered != NodeState.SEALED) {
             return Set.of();
         }
         if (!hoverId.equals(routeFor)) {
@@ -1118,9 +1117,7 @@ public final class SkillTreeScreen extends Screen {
                     nodeStates.pendingCost(), hoveredRoute, ClientConfig.DETAILED_TOOLTIPS.get());
         }
         int maxWidth = Math.max(MIN_TOOLTIP_WIDTH, Math.min(MAX_TOOLTIP_WIDTH, width / 2 - 12));
-        List<FormattedCharSequence> lines = new ArrayList<>();
-        tooltipCache.forEach(line -> lines.addAll(font.split(line, maxWidth)));
-        graphics.renderTooltip(font, lines, mouseX, mouseY);
+        TooltipPanel.render(graphics, font, tooltipCache, maxWidth, mouseX, mouseY);
     }
 
     private void renderPanel(GuiGraphics graphics, int mouseX, int mouseY) {

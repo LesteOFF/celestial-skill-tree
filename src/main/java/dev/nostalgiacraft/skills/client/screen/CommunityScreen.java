@@ -250,7 +250,7 @@ public final class CommunityScreen extends Screen {
                         .append(Component.translatable(CommunityTier.nameKey(tier.id())).withStyle(ChatFormatting.GOLD))
                         .append("\n").append(Component.translatable(CommunityTier.descriptionKey(tier.id())).withStyle(ChatFormatting.GREEN))
                         .append("\n").append(GuiText.of("community.tier_at", grouped(tier.xpRequired())).withStyle(ChatFormatting.GRAY));
-                graphics.renderTooltip(font, font.split(tooltip, TOOLTIP_WIDTH), mouseX, mouseY);
+                TooltipPanel.render(graphics, font, font.split(tooltip, TOOLTIP_WIDTH), mouseX, mouseY);
                 return;
             }
         }

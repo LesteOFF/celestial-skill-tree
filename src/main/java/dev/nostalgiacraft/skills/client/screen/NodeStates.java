@@ -51,8 +51,11 @@ final class NodeStates {
     }
 
     private static NodeState blockedState(RejectReason reason) {
-        boolean conflicting = reason == RejectReason.EXCLUSIVE_CONFLICT || reason == RejectReason.CONSUMED;
-        return conflicting ? NodeState.CONFLICTING : NodeState.LOCKED;
+        return switch (reason) {
+            case EXCLUSIVE_CONFLICT -> NodeState.CONFLICTING;
+            case CONSUMED -> NodeState.SEALED;
+            default -> NodeState.LOCKED;
+        };
     }
 
     NodeState of(String nodeId) {

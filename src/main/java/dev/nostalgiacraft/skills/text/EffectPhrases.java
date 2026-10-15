@@ -19,6 +19,10 @@ public final class EffectPhrases {
     private static final Set<String> FRACTION_CONDITIONS = Set.of("health_below", "target_health_above");
     private static final Set<String> BLOCK_CONDITIONS = Set.of("shot_distance_over", "shot_distance_under");
 
+    public enum Tone {
+        GAIN, COST, NEUTRAL
+    }
+
     public interface AttributeStyle {
         boolean isFraction(String attributeId);
     }
@@ -30,7 +34,20 @@ public final class EffectPhrases {
         return effects.stream().map(effect -> describe(effect, style)).toList();
     }
 
-    private static Phrase describe(SkillEffect effect, AttributeStyle style) {
+    public static Tone tone(SkillEffect effect) {
+        return switch (effect) {
+            case SkillEffect.Attribute attribute -> signed(attribute.amount());
+            case SkillEffect.ConditionalAttribute conditional -> signed(conditional.amount());
+            case SkillEffect.DamageModifier modifier -> signed(modifier.dealt() ? modifier.amount() : -modifier.amount());
+            case SkillEffect.Trigger trigger -> Tone.NEUTRAL;
+        };
+    }
+
+    private static Tone signed(double benefit) {
+        return benefit < 0 ? Tone.COST : Tone.GAIN;
+    }
+
+    public static Phrase describe(SkillEffect effect, AttributeStyle style) {
         return switch (effect) {
             case SkillEffect.Attribute attribute -> attribute(attribute.attribute(), attribute.operation(), attribute.amount(), style);
             case SkillEffect.ConditionalAttribute conditional -> Phrase.of("effect.conditional",

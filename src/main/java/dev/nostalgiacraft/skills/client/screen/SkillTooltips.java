@@ -1,28 +1,24 @@
 package dev.nostalgiacraft.skills.client.screen;
 
-import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.client.ClientSkillState;
+import dev.nostalgiacraft.skills.client.render.GraphRenderer;
+import dev.nostalgiacraft.skills.client.screen.TooltipCard.Marker;
+import dev.nostalgiacraft.skills.client.screen.TooltipCard.Row;
 import dev.nostalgiacraft.skills.effects.BorrowedNodes;
-import dev.nostalgiacraft.skills.effects.EffectEngine;
 import dev.nostalgiacraft.skills.graph.ExclusiveGroup;
 import dev.nostalgiacraft.skills.graph.Sector;
-import dev.nostalgiacraft.skills.graph.SkillEffect;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.graph.SkillNodeDefinition;
 import dev.nostalgiacraft.skills.progression.AllocationService;
 import dev.nostalgiacraft.skills.progression.PathFinder;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
-import dev.nostalgiacraft.skills.progression.RejectReason;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,8 +28,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public final class SkillTooltips {
-    private static final ResourceLocation PREVIEW_MODIFIER = ResourceLocation.fromNamespaceAndPath(NostalgiaSkills.MODID, "preview");
     private static final double WHOLE_NUMBER_TOLERANCE = 1e-6;
+    private static final int NAMES_SHOWN = 3;
 
     private record Subject(SkillGraphSnapshot graph, PlayerSkillState state, Collection<String> pending,
                            SkillNodeDefinition node) {
@@ -64,51 +60,79 @@ public final class SkillTooltips {
                     && pending.stream().noneMatch(id -> graph.nodes().get(id).isRoot());
             return freeStart ? 0 : AllocationService.priceOf(graph, node, state::isAllocated);
         }
+
+        List<SkillNodeDefinition> neighbours() {
+            return graph.neighbours(node.id()).stream().flatMap(id -> graph.node(id).stream()).toList();
+        }
+
+        Optional<SkillNodeDefinition> blackHoleNextTo() {
+            return neighbours().stream().filter(neighbour -> neighbour.traits().amplifiesNeighbours() && holds(neighbour.id())).findFirst();
+        }
     }
 
     private SkillTooltips() {
     }
 
-    public static List<Component> build(SkillGraphSnapshot graph, PlayerSkillState state, Collection<String> pending,
-                                        SkillNodeDefinition node, NodeState nodeState, int pendingCost,
-                                        Optional<PathFinder.Route> route, boolean detailed) {
+    public static TooltipCard build(SkillGraphSnapshot graph, PlayerSkillState state, Collection<String> pending,
+                                    SkillNodeDefinition node, NodeState nodeState, int pendingCost,
+                                    Optional<PathFinder.Route> route, boolean detailed) {
         Subject subject = new Subject(graph, state, pending, node);
-        List<Component> lines = new ArrayList<>();
-        addHeader(lines, subject);
-        if (detailed && nodeState != NodeState.ALLOCATED) {
-            addAttributePreviews(lines, node);
-        }
-        addRequirements(lines, subject);
-        graph.groupOf(node.id()).ifPresent(group -> lines.add(exclusiveChoice(subject, group)));
-        addStatus(lines, subject, nodeState, pendingCost, route);
-        return lines;
+        return new TooltipCard(GraphRenderer.frameTex(node.frame()), GraphRenderer.iconTex(node.icon()),
+                SkillTexts.name(node).withStyle(nameColor(node), ChatFormatting.BOLD), subtitle(subject), badge(subject),
+                List.of(whatItDoes(subject, detailed), specialRules(subject), status(subject, nodeState, pendingCost, route)));
     }
 
-    private static void addHeader(List<Component> lines, Subject subject) {
-        SkillNodeDefinition node = subject.node();
-        ChatFormatting nameColor = switch (node.type()) {
+    private static ChatFormatting nameColor(SkillNodeDefinition node) {
+        return switch (node.type()) {
             case KEYSTONE -> ChatFormatting.GOLD;
-            case NOTABLE -> ChatFormatting.LIGHT_PURPLE;
+            case NOTABLE -> node.traits().amplifiesNeighbours() ? ChatFormatting.DARK_PURPLE : ChatFormatting.LIGHT_PURPLE;
             case ROOT -> ChatFormatting.AQUA;
             case MINOR -> ChatFormatting.WHITE;
             case PORTAL -> ChatFormatting.DARK_AQUA;
         };
-        lines.add(SkillTexts.name(node).withStyle(nameColor, ChatFormatting.BOLD));
-        lines.add(Component.translatable(subject.sectorKey()).append(" · ")
-                .append(GuiText.of("type." + node.type().serializedName())).withStyle(ChatFormatting.GRAY));
+    }
+
+    private static Component subtitle(Subject subject) {
+        String type = subject.node().traits().amplifiesNeighbours() ? "type.black_hole" : "type." + subject.node().type().serializedName();
+        return Component.translatable(subject.sectorKey()).append(" · ").append(GuiText.of(type)).withStyle(ChatFormatting.GRAY);
+    }
+
+    private static Component badge(Subject subject) {
+        SkillNodeDefinition node = subject.node();
         boolean owned = subject.state().isAllocated(node.id());
-        int shownCost = owned ? subject.state().allocations().get(node.id()).paidCost() : subject.cost();
-        int rank = subject.state().rank(node.id()) + lentRanks(node);
-        int marked = node.ranked() ? Collections.frequency(subject.pending(), node.id()) : 0;
-        MutableComponent rankText = marked > 0 ? GuiText.of("rank_pending", rank, node.maxRank(), marked) : GuiText.of("rank", rank, node.maxRank());
-        lines.add(GuiText.of("cost", shownCost).append("   ").append(rankText).withStyle(ChatFormatting.YELLOW));
-        lines.add(SkillTexts.description(node).withStyle(ChatFormatting.GREEN));
-        SkillTexts.numbersBehindPlainText(node).ifPresent(numbers -> lines.add(numbers.withStyle(ChatFormatting.DARK_GREEN)));
-        subject.graph().portalDestination(node.id()).flatMap(subject.graph()::node).ifPresent(destination -> lines.add(
-                GuiText.of("portal_destination", SkillTexts.name(destination)).withStyle(ChatFormatting.AQUA)));
-        if (node.traits().amplifiesNeighbours()) {
-            lines.add(GuiText.of("amplifier", format(node.traits().neighbourMultiplier(), false)).withStyle(ChatFormatting.DARK_PURPLE));
+        int cost = owned ? subject.state().allocations().get(node.id()).paidCost() : subject.cost();
+        return GuiText.of("cost", cost).withStyle(ChatFormatting.YELLOW);
+    }
+
+    private static List<Row> whatItDoes(Subject subject, boolean detailed) {
+        SkillNodeDefinition node = subject.node();
+        List<Row> rows = new ArrayList<>();
+        boolean written = !node.descriptionKey().isEmpty();
+        if (written) {
+            rows.add(Row.plain(Component.translatable(node.descriptionKey()).withStyle(ChatFormatting.WHITE)));
         }
+        if (!written || detailed) {
+            SkillTexts.effectLines(node).forEach(line -> rows.add(effectRow(line)));
+        }
+        if (node.ranked()) {
+            rows.add(Row.of(Marker.RANK, rankLine(subject).withStyle(ChatFormatting.YELLOW)));
+        }
+        return rows;
+    }
+
+    private static Row effectRow(SkillTexts.EffectLine line) {
+        return switch (line.tone()) {
+            case GAIN -> Row.of(Marker.GAIN, line.text().withStyle(ChatFormatting.GREEN));
+            case COST -> Row.of(Marker.COST, line.text().withStyle(ChatFormatting.RED));
+            case NEUTRAL -> Row.of(Marker.EFFECT, line.text().withStyle(ChatFormatting.GOLD));
+        };
+    }
+
+    private static MutableComponent rankLine(Subject subject) {
+        SkillNodeDefinition node = subject.node();
+        int rank = subject.state().rank(node.id()) + lentRanks(node);
+        int marked = Collections.frequency(subject.pending(), node.id());
+        return marked > 0 ? GuiText.of("rank_pending", rank, node.maxRank(), marked) : GuiText.of("rank", rank, node.maxRank());
     }
 
     private static int lentRanks(SkillNodeDefinition node) {
@@ -116,10 +140,65 @@ public final class SkillTooltips {
         return player != null && BorrowedNodes.lentTo(player).contains(node.id()) ? 1 : 0;
     }
 
-    private static void addRequirements(List<Component> lines, Subject subject) {
+    private static List<Row> specialRules(Subject subject) {
+        SkillNodeDefinition node = subject.node();
+        List<Row> rows = new ArrayList<>();
+        subject.graph().portalDestination(node.id()).flatMap(subject.graph()::node).ifPresent(destination -> rows.add(
+                Row.of(Marker.PORTAL, GuiText.of("portal_destination", SkillTexts.name(destination)).withStyle(ChatFormatting.AQUA))));
+        if (node.traits().amplifiesNeighbours()) {
+            addBlackHole(rows, subject);
+        } else if (subject.state().isAllocated(node.id())) {
+            subject.blackHoleNextTo().ifPresent(blackHole -> rows.add(Row.of(Marker.BLACK_HOLE, GuiText.of("black_hole.boosted_by",
+                    multiplier(blackHole), SkillTexts.name(blackHole)).withStyle(ChatFormatting.LIGHT_PURPLE))));
+        }
+        subject.graph().groupOf(node.id()).ifPresent(group -> rows.add(Row.of(Marker.PAIR, exclusiveChoice(subject, group))));
+        addRequirements(rows, subject);
+        return rows;
+    }
+
+    private static void addBlackHole(List<Row> rows, Subject subject) {
+        rows.add(Row.of(Marker.BLACK_HOLE, GuiText.of("amplifier", multiplier(subject.node())).withStyle(ChatFormatting.LIGHT_PURPLE)));
+        if (!subject.holds(subject.node().id())) {
+            return;
+        }
+        List<SkillNodeDefinition> boosted = subject.neighbours().stream().filter(neighbour -> subject.holds(neighbour.id())).toList();
+        List<SkillNodeDefinition> sealed = subject.neighbours().stream().filter(neighbour -> !subject.holds(neighbour.id())).toList();
+        if (!boosted.isEmpty()) {
+            rows.add(Row.of(Marker.GAIN, GuiText.of("black_hole.boosts", names(boosted)).withStyle(ChatFormatting.LIGHT_PURPLE)));
+        }
+        if (!sealed.isEmpty()) {
+            rows.add(Row.of(Marker.SEALED, GuiText.of("black_hole.seals", names(sealed)).withStyle(ChatFormatting.DARK_PURPLE)));
+        }
+    }
+
+    private static String multiplier(SkillNodeDefinition blackHole) {
+        return BigDecimal.valueOf(blackHole.traits().neighbourMultiplier()).stripTrailingZeros().toPlainString();
+    }
+
+    private static Component names(List<SkillNodeDefinition> nodes) {
+        MutableComponent joined = Component.empty();
+        nodes.stream().limit(NAMES_SHOWN).forEach(node -> joined.append(joined.getSiblings().isEmpty() ? Component.empty()
+                : Component.literal(", ")).append(SkillTexts.name(node)));
+        if (nodes.size() > NAMES_SHOWN) {
+            joined.append(GuiText.of("and_more", nodes.size() - NAMES_SHOWN));
+        }
+        return joined;
+    }
+
+    private static Component exclusiveChoice(Subject subject, ExclusiveGroup group) {
+        MutableComponent others = Component.empty();
+        group.members().stream().filter(member -> !member.equals(subject.node().id())).forEach(member -> {
+            boolean taken = subject.holds(member);
+            others.append(others.getSiblings().isEmpty() ? Component.empty() : Component.literal(" / "))
+                    .append(SkillTexts.name(subject.graph().nodes().get(member)).withStyle(taken ? ChatFormatting.RED : ChatFormatting.WHITE));
+        });
+        return GuiText.of("exclusive", others).withStyle(ChatFormatting.GOLD);
+    }
+
+    private static void addRequirements(List<Row> rows, Subject subject) {
         SkillNodeDefinition node = subject.node();
         for (String term : node.requirements().allOf()) {
-            lines.add(GuiText.of("requires_all", subject.termLabel(term)).withStyle(metColor(subject.holds(term))));
+            rows.add(Row.of(Marker.REQUIREMENT, GuiText.of("requires_all", subject.termLabel(term)).withStyle(metColor(subject.holds(term)))));
         }
         List<String> anyOf = node.requirements().anyOf();
         if (!anyOf.isEmpty()) {
@@ -127,12 +206,12 @@ public final class SkillTooltips {
             for (int i = 0; i < anyOf.size(); i++) {
                 line.append(i == 0 ? " " : " / ").append(subject.termLabel(anyOf.get(i)));
             }
-            lines.add(line.withStyle(metColor(anyOf.stream().anyMatch(subject::holds))));
+            rows.add(Row.of(Marker.REQUIREMENT, line.withStyle(metColor(anyOf.stream().anyMatch(subject::holds)))));
         }
         int minimumSectorPoints = node.requirements().minimumSectorPoints();
         if (minimumSectorPoints > 0) {
-            lines.add(GuiText.of("requires_sector_points", minimumSectorPoints, Component.translatable(subject.sectorKey()))
-                    .withStyle(ChatFormatting.GRAY));
+            rows.add(Row.of(Marker.REQUIREMENT, GuiText.of("requires_sector_points", minimumSectorPoints,
+                    Component.translatable(subject.sectorKey())).withStyle(ChatFormatting.GRAY)));
         }
     }
 
@@ -140,112 +219,83 @@ public final class SkillTooltips {
         return met ? ChatFormatting.DARK_GREEN : ChatFormatting.RED;
     }
 
-    private static Component exclusiveChoice(Subject subject, ExclusiveGroup group) {
-        MutableComponent line = GuiText.of("exclusive", Component.translatable(group.nameKey()));
-        for (String member : group.members()) {
-            if (!member.equals(subject.node().id())) {
-                boolean active = subject.state().isAllocated(member) || subject.pending().contains(member);
-                line.append(" ").append(Component.translatable(subject.graph().nodes().get(member).nameKey())
-                        .withStyle(active ? ChatFormatting.RED : ChatFormatting.GRAY));
-            }
-        }
-        return line.withStyle(ChatFormatting.GOLD);
-    }
-
-    private static void addStatus(List<Component> lines, Subject subject, NodeState nodeState, int pendingCost,
-                                  Optional<PathFinder.Route> route) {
+    private static List<Row> status(Subject subject, NodeState nodeState, int pendingCost, Optional<PathFinder.Route> route) {
+        List<Row> rows = new ArrayList<>();
         switch (nodeState) {
-            case ALLOCATED -> addAllocatedStatus(lines, subject);
-            case PENDING -> lines.add(GuiText.of("status.pending").withStyle(ChatFormatting.AQUA));
-            case AVAILABLE -> lines.add(availableStatus(subject, pendingCost));
-            case CONFLICTING -> lines.add(conflictStatus(subject));
+            case ALLOCATED -> addAllocatedStatus(rows, subject);
+            case PENDING -> rows.add(Row.of(Marker.CHECK, GuiText.of("status.pending").withStyle(ChatFormatting.AQUA)));
+            case AVAILABLE -> rows.add(availableStatus(subject, pendingCost));
+            case CONFLICTING -> rows.add(Row.of(Marker.PAIR, GuiText.of("status.conflict").withStyle(ChatFormatting.RED)));
+            case SEALED -> rows.add(Row.of(Marker.SEALED, sealedStatus(subject)));
             case HIDDEN -> {
             }
-            case LOCKED -> addLockedStatus(lines, subject, route);
+            case LOCKED -> addLockedStatus(rows, subject, route);
         }
+        return rows;
     }
 
-    private static Component conflictStatus(Subject subject) {
-        boolean consumed = AllocationService.eligibility(subject.graph(), subject.state(), subject.pending(), subject.node().id())
-                .filter(why -> why.reason() == RejectReason.CONSUMED).isPresent();
-        return GuiText.of(consumed ? "status.consumed" : "status.conflict").withStyle(ChatFormatting.RED);
+    private static Component sealedStatus(Subject subject) {
+        return subject.blackHoleNextTo()
+                .<Component>map(blackHole -> GuiText.of("status.sealed_by", SkillTexts.name(blackHole)))
+                .orElse(GuiText.of("status.consumed")).copy().withStyle(ChatFormatting.DARK_PURPLE);
     }
 
-    private static void addAllocatedStatus(List<Component> lines, Subject subject) {
+    private static void addAllocatedStatus(List<Row> rows, Subject subject) {
         boolean disabled = subject.state().isDisabled(subject.node().id());
-        lines.add(GuiText.of(disabled ? "status.disabled" : "status.allocated")
-                .withStyle(disabled ? ChatFormatting.RED : ChatFormatting.GOLD));
+        rows.add(disabled ? Row.of(Marker.LOCK, GuiText.of("status.disabled").withStyle(ChatFormatting.RED))
+                : Row.of(Marker.CHECK, GuiText.of("status.allocated").withStyle(ChatFormatting.GREEN)));
         if (subject.node().traits().toggleable()) {
-            lines.add(GuiText.of(disabled ? "status.toggle_on" : "status.toggle_off").withStyle(ChatFormatting.DARK_AQUA));
+            rows.add(Row.of(Marker.CLICK, GuiText.of(disabled ? "status.toggle_on" : "status.toggle_off").withStyle(ChatFormatting.YELLOW)));
         }
         boolean canRankUp = AllocationService.canRankUp(subject.graph(), subject.state(), subject.node().id());
         if (subject.node().ranked()) {
-            lines.add(rankStatus(subject, canRankUp));
+            rows.add(rankStatus(subject, canRankUp));
         }
         if (ClientSkillState.economy().nodeRefundsEnabled()) {
             boolean startingRoot = subject.state().startingRoot().filter(subject.node().id()::equals).isPresent();
             String refund = startingRoot ? "status.root_reset_only" : canRankUp ? "status.refundable_shift" : "status.refundable";
-            lines.add(GuiText.of(refund).withStyle(ChatFormatting.DARK_AQUA));
+            rows.add(Row.of(Marker.CLICK, GuiText.of(refund).withStyle(ChatFormatting.GRAY)));
         }
     }
 
-    private static Component rankStatus(Subject subject, boolean canRankUp) {
+    private static Row rankStatus(Subject subject, boolean canRankUp) {
         String id = subject.node().id();
         int marked = Collections.frequency(subject.pending(), id);
         if (!canRankUp) {
-            return GuiText.of("status.max_rank").withStyle(ChatFormatting.GOLD);
+            return Row.of(Marker.RANK, GuiText.of("status.max_rank").withStyle(ChatFormatting.GOLD));
         }
         if (marked >= AllocationService.rankRoom(subject.graph(), subject.state(), id)) {
-            return GuiText.of("status.rank_pending_full").withStyle(ChatFormatting.AQUA);
+            return Row.of(Marker.CLICK, GuiText.of("status.rank_pending_full").withStyle(ChatFormatting.AQUA));
         }
         if (marked > 0) {
-            return GuiText.of("status.rank_pending", marked).withStyle(ChatFormatting.AQUA);
+            return Row.of(Marker.CLICK, GuiText.of("status.rank_pending", marked).withStyle(ChatFormatting.AQUA));
         }
-        return GuiText.of("status.rank_up", subject.state().rank(id) + 1, subject.node().cost()).withStyle(ChatFormatting.DARK_AQUA);
+        return Row.of(Marker.CLICK, GuiText.of("status.rank_up", subject.state().rank(id) + 1, subject.node().cost())
+                .withStyle(ChatFormatting.YELLOW));
     }
 
-    private static Component availableStatus(Subject subject, int pendingCost) {
+    private static Row availableStatus(Subject subject, int pendingCost) {
         int pointsLeft = subject.state().availablePoints() - pendingCost;
         int cost = subject.cost();
-        return pointsLeft < cost ? GuiText.of("status.unaffordable", cost, Math.max(0, pointsLeft)).withStyle(ChatFormatting.RED)
-                : GuiText.of("status.available").withStyle(ChatFormatting.GREEN);
+        return pointsLeft < cost
+                ? Row.of(Marker.LOCK, GuiText.of("status.unaffordable", cost, Math.max(0, pointsLeft)).withStyle(ChatFormatting.RED))
+                : Row.of(Marker.CLICK, GuiText.of("status.available").withStyle(ChatFormatting.YELLOW));
     }
 
-    private static void addLockedStatus(List<Component> lines, Subject subject, Optional<PathFinder.Route> route) {
+    private static void addLockedStatus(List<Row> rows, Subject subject, Optional<PathFinder.Route> route) {
         Component reason = AllocationService.eligibility(subject.graph(), subject.state(), subject.pending(), subject.node().id())
                 .<Component>map(why -> Component.translatable(why.reason().translationKey()))
                 .orElse(GuiText.of("status.locked"));
-        lines.add(GuiText.of("status.locked_reason", reason).withStyle(ChatFormatting.RED));
-        route.ifPresent(found -> lines.add(routeHint(found)));
+        rows.add(Row.of(Marker.LOCK, reason.copy().withStyle(ChatFormatting.RED)));
+        route.ifPresent(found -> rows.add(routeHint(found)));
     }
 
-    private static Component routeHint(PathFinder.Route route) {
+    private static Row routeHint(PathFinder.Route route) {
         if (route.valid()) {
-            return GuiText.of("route.hint", route.cost(), route.newNodes().size()).withStyle(ChatFormatting.YELLOW);
+            return Row.of(Marker.CLICK, GuiText.of("route.hint", route.cost(), route.newNodes().size()).withStyle(ChatFormatting.YELLOW));
         }
         Component problem = Component.translatable(route.unresolved().orElseThrow().reason().translationKey());
-        return GuiText.of("route.unresolved", problem).withStyle(ChatFormatting.DARK_RED);
-    }
-
-    private static void addAttributePreviews(List<Component> lines, SkillNodeDefinition node) {
-        Player player = Minecraft.getInstance().player;
-        if (player == null) {
-            return;
-        }
-        for (SkillEffect effect : node.effects()) {
-            if (effect instanceof SkillEffect.Attribute attribute) {
-                BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.parse(attribute.attribute())).map(player::getAttribute)
-                        .ifPresent(instance -> lines.add(attributePreview(instance, attribute)));
-            }
-        }
-    }
-
-    private static Component attributePreview(AttributeInstance instance, SkillEffect.Attribute attribute) {
-        AttributeModifier preview = new AttributeModifier(PREVIEW_MODIFIER, attribute.amount(), EffectEngine.op(attribute.operation()));
-        boolean percent = attribute.attribute().startsWith(NostalgiaSkills.MODID + ":");
-        return GuiText.of("preview", Component.translatable(instance.getAttribute().value().getDescriptionId()),
-                format(instance.getValue(), percent), format(AttributeMath.withExtra(instance, List.of(preview)), percent))
-                .withStyle(ChatFormatting.DARK_AQUA);
+        return Row.of(Marker.LOCK, GuiText.of("route.unresolved", problem).withStyle(ChatFormatting.DARK_RED));
     }
 
     static String format(double value, boolean percent) {

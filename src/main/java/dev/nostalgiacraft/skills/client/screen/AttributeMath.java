@@ -45,12 +45,6 @@ public final class AttributeMath {
         return compute(instance.getAttribute(), instance.getBaseValue(), keep);
     }
 
-    public static double withExtra(AttributeInstance instance, Collection<AttributeModifier> extra) {
-        List<AttributeModifier> all = new ArrayList<>(instance.getModifiers());
-        all.addAll(extra);
-        return compute(instance.getAttribute(), instance.getBaseValue(), all);
-    }
-
     public static double withReplaced(AttributeInstance instance, Collection<AttributeModifier> replacements) {
         List<AttributeModifier> all = new ArrayList<>(replacements);
         for (AttributeModifier modifier : instance.getModifiers()) {

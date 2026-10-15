@@ -51,7 +51,7 @@ final class ProgressBar {
         if (hovered) {
             Component tooltip = atLimit ? GuiText.of("bar_tooltip_max", economy.pointLimit())
                     : GuiText.of("bar_tooltip", balance, economy.nextPointCost(), purchased);
-            graphics.renderTooltip(font, font.split(tooltip, TOOLTIP_WIDTH), mouseX, mouseY);
+            TooltipPanel.render(graphics, font, font.split(tooltip, TOOLTIP_WIDTH), mouseX, mouseY);
         }
     }
 

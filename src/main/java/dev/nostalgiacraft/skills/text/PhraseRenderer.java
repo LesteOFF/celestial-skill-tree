@@ -30,6 +30,10 @@ public final class PhraseRenderer {
         return phrases.stream().map(this::render).collect(Collectors.joining("; ")) + ".";
     }
 
+    public String line(Phrase phrase) {
+        return render(phrase);
+    }
+
     private String render(Part part) {
         return switch (part) {
             case Phrase phrase -> String.format(lookup.translate(KEY_PREFIX + phrase.key(), phrase.key()),

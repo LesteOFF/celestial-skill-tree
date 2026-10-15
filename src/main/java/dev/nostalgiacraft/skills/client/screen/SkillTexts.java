@@ -12,9 +12,13 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.PercentageAttribute;
 
+import java.util.List;
 import java.util.Optional;
 
 public final class SkillTexts {
+    public record EffectLine(EffectPhrases.Tone tone, MutableComponent text) {
+    }
+
     private static final PhraseRenderer RENDERER = new PhraseRenderer(new PhraseRenderer.Lookup() {
         @Override
         public String translate(String key, String fallback) {
@@ -49,6 +53,11 @@ public final class SkillTexts {
     public static Optional<MutableComponent> numbersBehindPlainText(SkillNodeDefinition node) {
         boolean plainTextHidesNumbers = !node.descriptionKey().isEmpty() && !node.effects().isEmpty();
         return plainTextHidesNumbers ? Optional.of(exactEffects(node)) : Optional.empty();
+    }
+
+    public static List<EffectLine> effectLines(SkillNodeDefinition node) {
+        return node.effects().stream().map(effect -> new EffectLine(EffectPhrases.tone(effect),
+                Component.literal(RENDERER.line(EffectPhrases.describe(effect, SkillTexts::isFraction))))).toList();
     }
 
     private static MutableComponent exactEffects(SkillNodeDefinition node) {
