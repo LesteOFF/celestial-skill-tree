@@ -27,10 +27,10 @@ the only optional integration.
 
 ```bash
 ./gradlew build            # Windows: gradlew.bat build  → build/libs/nostalgiaskills-1.5.0.jar
-./gradlew test             # 46 unit tests in test/, including trees generated from the shipped catalog
+./gradlew test             # 48 unit tests in test/, including trees generated from the shipped catalog
 ./gradlew validateTree     # validates the catalog and generates one tree outside the game
 ./gradlew previewTree      # draws the tree shape to build/preview/tree.png
-./gradlew runGameTestServer  # 37 in-game tests on a real server with mock players
+./gradlew runGameTestServer  # 39 in-game tests on a real server with mock players
 ./gradlew runPackGameTestServer  # the same tests plus 3 integration tests, with the pack's mods (pack_mods_dir)
 ./gradlew runClient / runServer
 ```
@@ -71,9 +71,12 @@ Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256
   learning one opens its twin on the far side at no extra cost, so the skills around both ends become available, and
   unlearning either end closes both. Hovering a gate lights up its twin; while the pair is selected or learned, two lanes
   of arrows flow both ways between them. The tooltip names the destination.
-- **No caps, no exclusive choices.** Nothing in the shipped tree excludes anything else and the default point limit is
-  10,000, so one character can eventually learn every skill. Each skill must still connect to one you
-  already own. The XP price of a point keeps rising with every point bought (`100 + 20p + 2p²`); lower
+- **Two real choices per class, no caps.** Each class offers one **exclusive keystone pair** in its crown (for example
+  the Berserker's Controlled Rage *or* Blind Rage): learning one shuts the other out until you unlearn it. Each class
+  also has one **black hole** notable at the end of a branch, drawn as a gravity well (a small spinning accretion disk, matter spiralling in and a breathing lens ring): while you own it,
+  the neighbouring skills you already have count ×1.5 and the ones you do not have are sealed (purple ⊘). Black holes
+  only sit on dead-end tips, never on the way to other skills. Everything else can be learned, and the default point limit is 10,000, so one
+  character can eventually learn every other skill. Each skill must still connect to one you already own. The XP price of a point keeps rising with every point bought (`100 + 20p + 2p²`); lower
   `curveQuadratic` in the server config if the whole tree should be a realistic goal.
 
 ### World features
@@ -101,7 +104,6 @@ Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256
 - **Fallen Star** (off by default). If the server enables it, dying drops your newest stand-alone skill as a Fallen
   Star. Using your own star teaches the skill again (or returns its points if it no longer fits); anyone else gains its
   points instead.
-- **Black hole skills and hidden constellations** are available to data packs (see below); the shipped tree has none.
 
 ### Controls
 
@@ -119,8 +121,10 @@ Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256
 | Esc | close (asks to discard or keep editing when changes are pending) |
 
 Node states: locked (dim, padlock), available (bright rim), allocated (gold halo, lit route), pending (rotating dashed
-cyan ring), conflicting (red ✕; only data packs that add exclusive groups or black holes produce it). The screen
-does not pause the game.
+cyan ring), conflicting (red ✕: the other keystone of a pair you took), sealed (purple ⊘: next to a black hole you own).
+The screen does not pause the game. A skill's tooltip is a small card: the skill itself with its name, class · type and
+price; what it does, one effect per line (▲ green for a gain, ▼ red for a cost); special rules (black hole with the
+neighbours it boosts or seals, "boosted ×1.5 by", exclusive pair, portal, requirements); and what a click does now.
 
 ## Commands
 
@@ -154,7 +158,7 @@ limit requires the explicit `true` override argument.
   every ~20 days, `eclipseMonstersSpawn` on), star showers (on, every ~12 days, 4 stars per minute per player),
   `dropStarOnDeath` (`OFF`, `PVP_ONLY`, `ALWAYS`) and the shared constellation (on).
 - **Client** (`config/nostalgiaskills-client.toml`): frame scale, zoom limits, glow intensity, background decoration,
-  reduced motion, detailed tooltips, high contrast. Client settings never affect costs, rules or bonuses.
+  reduced motion, detailed tooltips (the exact numbers under a skill's written sentence), high contrast. Client settings never affect costs, rules or bonuses.
 
 ## Data packs
 
@@ -163,8 +167,8 @@ The tree is generated from a **catalog** of ordinary data files, then saved with
 | Folder | Content |
 |---|---|
 | `data/<ns>/skill_classes/<id>.json` | a class: `name`, `icon`, `hub` (its effects), `trunk` (`name` and effects of the skill repeated along the trunk); optional `priority`, `fallback_class`, `nodes` |
-| `data/<ns>/skill_themes/<path>.json` | a branch theme: `class`, `name`, `icon`, `minor` (effects of the numbered skills), optional `weight` and `notables` (`id`, `name`, effects, optional `max_rank` 1–5: every rank costs the skill's price and adds its effects once more) |
-| `data/<ns>/skill_keystones/<path>.json` | a keystone: `class`, `name`, `text` (required plain-language sentence), effects; optional `icon`, `weight`, `neighbour_multiplier`, `hidden_until`, `toggleable` (the owner switches it off and on for free) |
+| `data/<ns>/skill_themes/<path>.json` | a branch theme: `class`, `name`, `icon`, `minor` (effects of the numbered skills), optional `weight` and `notables` (`id`, `name`, effects, optional `max_rank` 1–5: every rank costs the skill's price and adds its effects once more, optional `neighbour_multiplier` above 1 to make it a black hole, which the generator only places on a dead-end tip) |
+| `data/<ns>/skill_keystones/<path>.json` | a keystone: `class`, `name`, `text` (required plain-language sentence), effects; optional `icon`, `weight`, `neighbour_multiplier`, `hidden_until`, `toggleable` (the owner switches it off and on for free), `exclusive_with` (another keystone id of the same class: when both are drawn they form a pair and only one may be learned; paired keystones do not take room from the branches) |
 | `data/nostalgiaskills/skill_rules/main.json` | `nodes_per_class` (12 to 100, default 100), `max_classes` (default 10), `min_themes_for_own_class` (default 4), `max_copies_per_skill` (default 5), `vary_by_seed`, `portals` |
 
 - **Mods.** Any file may carry `"requires_mod"` (one id or a list, all needed) or `"requires_any_mod"` (one of the list
@@ -184,7 +188,7 @@ The tree is generated from a **catalog** of ordinary data files, then saved with
   emptied ones are drawn again. Skills that no longer exist are refunded at their paid price on the next login. A
   class entering or leaving changes the width of every slice, which shortens or lengthens the branches.
 - **Texts.** A skill without `text` is described from its effects ("+5% Attack Speed (of base value) while holding a
-  weapon in each hand"). `text` replaces that with a written sentence and the tooltip still shows the exact numbers
+  weapon in each hand"). `text` replaces that with a written sentence and the tooltip still shows the exact numbers (with detailed tooltips on)
   under it. Names and texts are translation keys; a missing key is shown as written.
 - **Validation.** Invalid data is rejected with file, field and reason and the last valid tree stays active;
   `/nostalgiaskills validate` shows the result. A skill that combines a trigger with other effects, or has three or
