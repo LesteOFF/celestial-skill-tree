@@ -9,6 +9,7 @@ import dev.nostalgiacraft.skills.graph.ValidationReport;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public final class TreeGenerator {
     private static final long SHARED_SEED = 0;
@@ -30,9 +31,11 @@ public final class TreeGenerator {
         TreeShape shape = shapeThatFitsTheThemes(pools, catalog.rules());
         long seed = catalog.rules().varyBySeed() ? worldSeed : SHARED_SEED;
         List<ClassDraw> drawn = new ArrayList<>();
+        Set<String> leaves = shape.leaves();
         for (ClassShape classShape : shape.classes()) {
             ClassPool pool = pools.get(classShape.index());
-            drawn.add(TreeDrawer.draw(pool, classShape, catalog.rules().maxCopiesPerSkill(), seed, previous.of(pool.definition().id())));
+            drawn.add(TreeDrawer.draw(pool, classShape, catalog.rules().maxCopiesPerSkill(), seed, previous.of(pool.definition().id()),
+                    leaves));
             int leftOut = TreeDrawer.notableCount(pool) - TreeDrawer.notableCapacity(classShape);
             if (leftOut > 0) {
                 report.warn("skill_classes/" + pool.definition().id(), "", leftOut + " notables do not fit in this class and were left out");
@@ -47,13 +50,14 @@ public final class TreeGenerator {
         if (report.hasErrors()) {
             return new Result(Optional.empty(), previous, report);
         }
-        SkillGraphSnapshot graph = new SkillGraphSnapshot(treeId, assembled.nodes(), assembled.connections(), assembled.sectors(), List.of());
+        SkillGraphSnapshot graph = new SkillGraphSnapshot(treeId, assembled.nodes(), assembled.connections(), assembled.sectors(), assembled.groups());
         report.addAll(new GraphValidator().validate(graph));
         return report.hasErrors() ? new Result(Optional.empty(), previous, report) : new Result(Optional.of(graph), draw, report);
     }
 
     private static TreeShape shapeThatFitsTheThemes(List<ClassPool> pools, TreeRules rules) {
-        int[] skills = pools.stream().mapToInt(pool -> pool.definition().skills().orElse(rules.nodesPerClass())).toArray();
+        int[] skills = pools.stream()
+                .mapToInt(pool -> pool.definition().skills().orElse(rules.nodesPerClass()) + pool.pairedKeystones()).toArray();
         while (true) {
             TreeShape shape = TreeShapeGenerator.generate(new ShapeRequest(budgets(pools, skills), rules.portals()));
             boolean fits = true;

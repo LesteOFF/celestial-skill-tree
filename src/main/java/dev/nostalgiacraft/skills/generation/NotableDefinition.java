@@ -1,4 +1,6 @@
 package dev.nostalgiacraft.skills.generation;
 
-public record NotableDefinition(String id, SkillTemplate skill, int maxRank) {
+import dev.nostalgiacraft.skills.graph.NodeTraits;
+
+public record NotableDefinition(String id, SkillTemplate skill, int maxRank, NodeTraits traits) {
 }

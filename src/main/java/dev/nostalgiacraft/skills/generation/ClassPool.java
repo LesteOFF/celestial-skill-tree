@@ -34,6 +34,10 @@ public record ClassPool(ClassDefinition definition, List<ThemeDefinition> themes
         return themes.stream().filter(theme -> theme.id().equals(id)).findFirst();
     }
 
+    public int pairedKeystones() {
+        return (int) keystones.stream().filter(keystone -> keystone.exclusiveWith().flatMap(this::keystone).isPresent()).count();
+    }
+
     public Optional<KeystoneDefinition> keystone(String id) {
         return keystones.stream().filter(keystone -> keystone.id().equals(id)).findFirst();
     }

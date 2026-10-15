@@ -38,6 +38,7 @@ public final class GraphValidator {
         }
         checkReachability(graph, report);
         checkExclusiveBlockade(graph, report);
+        checkBlackHoleBlockade(graph, report);
         checkTraits(graph, report);
         checkSatisfiable(graph, report);
         overlapDiagnostics(graph, report);
@@ -181,6 +182,23 @@ public final class GraphValidator {
             for (String id : graph.ids()) {
                 if (!exclusive.contains(id) && !seen.contains(id) && !standsAlone(graph, id)) {
                     report.error("skill_nodes/" + id, "", "only reachable through an exclusive choice (from '" + root + "')");
+                    return;
+                }
+            }
+        }
+    }
+
+    private static void checkBlackHoleBlockade(SkillGraphSnapshot graph, ValidationReport report) {
+        Set<String> blackHoles = new HashSet<>();
+        graph.nodes().values().stream().filter(node -> node.traits().amplifiesNeighbours()).forEach(node -> blackHoles.add(node.id()));
+        if (blackHoles.isEmpty()) {
+            return;
+        }
+        for (String root : graph.roots()) {
+            Set<String> seen = reach(graph, root, blackHoles);
+            for (String id : graph.ids()) {
+                if (!blackHoles.contains(id) && !seen.contains(id) && !standsAlone(graph, id)) {
+                    report.error("skill_nodes/" + id, "", "only reachable through a black hole, which would seal it (from '" + root + "')");
                     return;
                 }
             }

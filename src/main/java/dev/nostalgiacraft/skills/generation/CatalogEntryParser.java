@@ -66,7 +66,7 @@ final class CatalogEntryParser {
         }
         String classIcon = Optional.ofNullable(classes.get(classId)).map(found -> found.hub().icon()).orElse(null);
         SkillTemplate skill = skill(file, file.text("name"), classIcon);
-        return new KeystoneDefinition(id, classId, weight(file), skill, TraitsParser.parse(file));
+        return new KeystoneDefinition(id, classId, weight(file), skill, TraitsParser.parse(file), file.optionalId("exclusive_with"));
     }
 
     private List<NotableDefinition> notables(JsonFields theme, String themeId, String themeIcon) {
@@ -86,7 +86,7 @@ final class CatalogEntryParser {
             warnWhenHardToRead(notable, skill);
             int maxRank = notable.integerWithin("max_rank", SkillNodeDefinition.SINGLE_RANK, SkillNodeDefinition.SINGLE_RANK,
                     SkillNodeDefinition.MAX_RANK);
-            notables.add(new NotableDefinition(notableId, skill, maxRank));
+            notables.add(new NotableDefinition(notableId, skill, maxRank, TraitsParser.blackHoleOnly(notable)));
         }
         return List.copyOf(notables);
     }

@@ -13,7 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 import java.util.stream.Stream;
 
@@ -22,7 +24,7 @@ final class TreeDrawer {
     private static final int MIN_SLOTS_TO_OPEN = 3;
     private static final int MIN_SLOTS_FOR_A_MIDDLE = 7;
 
-    private record Candidate(NotableChoice choice, int weight) {
+    private record Candidate(NotableChoice choice, int weight, boolean blackHole) {
     }
 
     private TreeDrawer() {
@@ -51,15 +53,15 @@ final class TreeDrawer {
         return roomy;
     }
 
-    static ClassDraw draw(ClassPool pool, ClassShape shape, int maxCopies, long seed, Optional<ClassDraw> previous) {
+    static ClassDraw draw(ClassPool pool, ClassShape shape, int maxCopies, long seed, Optional<ClassDraw> previous, Set<String> leaves) {
         Random random = new Random(seed * SEED_SPREAD + pool.definition().id().hashCode());
         Map<String, RibDraw> ribsBefore = previous.map(ClassDraw::ribs).orElse(Map.of());
         List<Candidate> unused = pairs(pool);
-        Map<String, NotableChoice> notables = drawNotables(unused, shape.ribs(), random, ribsBefore, RibDraw::notable);
+        Map<String, NotableChoice> notables = drawNotables(unused, shape.ribs(), random, ribsBefore, RibDraw::notable, rib -> leaves.contains(rib.tip().key()));
         Map<String, NotableChoice> openings = drawNotables(unused, ribsWithRoom(shape, MIN_SLOTS_TO_OPEN), random, ribsBefore,
-                RibDraw::opening);
+                RibDraw::opening, rib -> false);
         Map<String, NotableChoice> middles = drawNotables(unused, ribsWithRoom(shape, MIN_SLOTS_FOR_A_MIDDLE), random, ribsBefore,
-                RibDraw::middle);
+                RibDraw::middle, rib -> false);
         List<String> keystones = drawKeystones(pool, shape.keystones().size(), random,
                 previous.map(ClassDraw::keystones).orElse(List.of()));
         MinorDeck deck = new MinorDeck(pool, maxCopies, random);
@@ -98,20 +100,34 @@ final class TreeDrawer {
 
     private static Map<String, NotableChoice> drawNotables(List<Candidate> unused, List<Rib> ribs, Random random,
                                                           Map<String, RibDraw> previous,
-                                                          Function<RibDraw, Optional<NotableChoice>> placeInRib) {
+                                                          Function<RibDraw, Optional<NotableChoice>> placeInRib, Predicate<Rib> blackHoleFits) {
         Map<String, NotableChoice> chosen = new HashMap<>();
         for (Rib rib : ribs) {
             Optional<NotableChoice> before = Optional.ofNullable(previous.get(ribKey(rib))).flatMap(placeInRib);
-            if (before.isPresent() && unused.removeIf(candidate -> candidate.choice().equals(before.get()))) {
+            boolean blackHoleFitsHere = blackHoleFits.test(rib);
+            if (before.isPresent() && unused.removeIf(candidate -> candidate.choice().equals(before.get())
+                    && (blackHoleFitsHere || !candidate.blackHole()))) {
                 chosen.put(ribKey(rib), before.get());
             }
         }
         for (Rib rib : ribs) {
-            if (!chosen.containsKey(ribKey(rib)) && !keptEmpty(previous, rib, placeInRib) && !unused.isEmpty()) {
-                chosen.put(ribKey(rib), take(unused, random, Candidate::weight).choice());
+            if (!chosen.containsKey(ribKey(rib)) && !keptEmpty(previous, rib, placeInRib)) {
+                takeFor(unused, random, blackHoleFits.test(rib)).ifPresent(candidate -> chosen.put(ribKey(rib), candidate.choice()));
             }
         }
         return chosen;
+    }
+
+    private static Optional<Candidate> takeFor(List<Candidate> unused, Random random, boolean blackHoleFits) {
+        boolean blackHoleWaiting = blackHoleFits && unused.stream().anyMatch(Candidate::blackHole);
+        List<Candidate> eligible = new ArrayList<>(unused.stream()
+                .filter(candidate -> blackHoleWaiting ? candidate.blackHole() : !candidate.blackHole()).toList());
+        if (eligible.isEmpty()) {
+            return Optional.empty();
+        }
+        Candidate taken = take(eligible, random, Candidate::weight);
+        unused.remove(taken);
+        return Optional.of(taken);
     }
 
     private static boolean keptEmpty(Map<String, RibDraw> previous, Rib rib, Function<RibDraw, Optional<NotableChoice>> placeInRib) {
@@ -121,7 +137,8 @@ final class TreeDrawer {
     private static List<Candidate> pairs(ClassPool pool) {
         List<Candidate> pairs = new ArrayList<>();
         pool.themes().stream().sorted(Comparator.comparing(ThemeDefinition::id)).forEach(theme -> theme.notables()
-                .forEach(notable -> pairs.add(new Candidate(new NotableChoice(theme.id(), notable.id()), theme.weight()))));
+                .forEach(notable -> pairs.add(new Candidate(new NotableChoice(theme.id(), notable.id()), theme.weight(),
+                        notable.traits().amplifiesNeighbours()))));
         return pairs;
     }
 

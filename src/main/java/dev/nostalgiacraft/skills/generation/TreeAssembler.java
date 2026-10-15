@@ -5,6 +5,7 @@ import dev.nostalgiacraft.skills.generation.TreeDraw.NotableChoice;
 import dev.nostalgiacraft.skills.generation.TreeDraw.RibDraw;
 import dev.nostalgiacraft.skills.generation.TreeShape.Link;
 import dev.nostalgiacraft.skills.generation.TreeShape.LinkKind;
+import dev.nostalgiacraft.skills.graph.ExclusiveGroup;
 import dev.nostalgiacraft.skills.graph.GraphParser;
 import dev.nostalgiacraft.skills.graph.Ids;
 import dev.nostalgiacraft.skills.graph.NodeTraits;
@@ -18,6 +19,7 @@ import dev.nostalgiacraft.skills.graph.ValidationReport;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,9 +33,12 @@ final class TreeAssembler {
             "nostalgiaskills:textures/skill_icons/portal_moon.png");
     private static final Map<NodeType, String> FRAMES = Map.of(NodeType.ROOT, "stone_medallion", NodeType.MINOR, "bronze_circle",
             NodeType.NOTABLE, "violet_facet", NodeType.KEYSTONE, "gold_ornate", NodeType.PORTAL, "portal_gate");
+    private static final String EXCLUSIVE_PAIR_NAME = "gui.nostalgiaskills.exclusive_pair";
+    private static final int ONE_ACTIVE = 1;
     private static final Sector HIDDEN_SECTOR = Sector.rootless("nostalgiaskills:hidden", "gui.nostalgiaskills.hidden");
 
-    record Assembled(List<SkillNodeDefinition> nodes, List<SkillConnection> connections, List<Sector> sectors) {
+    record Assembled(List<SkillNodeDefinition> nodes, List<SkillConnection> connections, List<Sector> sectors,
+                     List<ExclusiveGroup> groups) {
     }
 
     private final String treeId;
@@ -42,6 +47,7 @@ final class TreeAssembler {
     private final Map<String, String> nodeIdBySlot = new HashMap<>();
     private final Map<String, String> classBySlot = new HashMap<>();
     private final Set<String> usedIds = new HashSet<>();
+    private final Map<String, List<String>> groupMembers = new LinkedHashMap<>();
 
     private TreeAssembler(String treeId, ValidationReport report) {
         this.treeId = treeId;
@@ -63,7 +69,7 @@ final class TreeAssembler {
             sectors.add(HIDDEN_SECTOR);
         }
         List<SkillConnection> connections = shape.links().stream().map(assembler::connection).toList();
-        return new Assembled(List.copyOf(assembler.nodes), connections, List.copyOf(sectors));
+        return new Assembled(List.copyOf(assembler.nodes), connections, List.copyOf(sectors), assembler.groups());
     }
 
     private void addClass(ClassPool pool, ClassShape shape, ClassDraw draw) {
@@ -77,15 +83,36 @@ final class TreeAssembler {
         for (Rib rib : shape.ribs()) {
             addRib(pool, rib, draw.ribs().get(TreeDrawer.ribKey(rib)), copies);
         }
+        Map<String, String> groupOf = exclusivePairs(pool, draw.keystones());
         for (int position = 0; position < shape.keystones().size(); position++) {
             KeystoneDefinition keystone = pool.keystone(draw.keystones().get(position)).orElseThrow();
-            add(shape.keystones().get(position), classId, keystone.id(), NodeType.KEYSTONE, keystone.skill(), keystone.traits(), classId);
+            Optional<String> group = Optional.ofNullable(groupOf.get(keystone.id()));
+            group.ifPresent(id -> groupMembers.computeIfAbsent(id, unused -> new ArrayList<>()).add(keystone.id()));
+            add(shape.keystones().get(position), classId, keystone.id(), NodeType.KEYSTONE, keystone.skill(), keystone.traits(), classId,
+                    SkillNodeDefinition.SINGLE_RANK, group);
         }
         for (int number = 0; number < shape.portals().size(); number++) {
             String id = classId + CatalogEntryParser.PORTAL_SUFFIX + (number == 0 ? "" : "_" + (number + 1));
             add(shape.portals().get(number), classId, id, NodeType.PORTAL, portalTemplate(shape.index() + number), NodeTraits.NONE,
                     classId);
         }
+    }
+
+    private static Map<String, String> exclusivePairs(ClassPool pool, List<String> drawn) {
+        Map<String, String> groupOf = new HashMap<>();
+        for (String id : drawn) {
+            pool.keystone(id).flatMap(KeystoneDefinition::exclusiveWith).filter(drawn::contains).ifPresent(partner -> {
+                String group = id.compareTo(partner) < 0 ? id + "|" + partner : partner + "|" + id;
+                groupOf.put(id, group);
+                groupOf.put(partner, group);
+            });
+        }
+        return groupOf;
+    }
+
+    private List<ExclusiveGroup> groups() {
+        return groupMembers.entrySet().stream()
+                .map(group -> new ExclusiveGroup(group.getKey(), EXCLUSIVE_PAIR_NAME, ONE_ACTIVE, List.copyOf(group.getValue()))).toList();
     }
 
     private void addHidden(String classId, HiddenSection.Placement placement) {
@@ -113,7 +140,7 @@ final class TreeAssembler {
         NotableDefinition notable = theme.notables().stream().filter(candidate -> candidate.id().equals(choice.notable()))
                 .findFirst().orElseThrow();
         add(slot, pool.definition().id(), CatalogEntryParser.notableNodeId(theme.id(), notable.id()), NodeType.NOTABLE,
-                notable.skill(), NodeTraits.NONE, theme.id(), notable.maxRank());
+                notable.skill(), notable.traits(), theme.id(), notable.maxRank(), Optional.empty());
     }
 
     private void addMinor(ClassPool pool, Slot slot, String skill, Map<String, Integer> copies) {
@@ -134,11 +161,11 @@ final class TreeAssembler {
     }
 
     private void add(Slot slot, String classId, String id, NodeType type, SkillTemplate skill, NodeTraits traits, String cluster) {
-        add(slot, classId, id, type, skill, traits, cluster, SkillNodeDefinition.SINGLE_RANK);
+        add(slot, classId, id, type, skill, traits, cluster, SkillNodeDefinition.SINGLE_RANK, Optional.empty());
     }
 
     private void add(Slot slot, String classId, String id, NodeType type, SkillTemplate skill, NodeTraits traits, String cluster,
-                     int maxRank) {
+                     int maxRank, Optional<String> exclusiveGroup) {
         if (!usedIds.add(id)) {
             report.error("skill_nodes/" + id, "id", "two catalog entries produce this skill id");
         }
@@ -150,7 +177,7 @@ final class TreeAssembler {
         Set<String> tags = new TreeSet<>(List.of(type.serializedName(), Ids.path(classId), Ids.path(cluster)));
         nodes.add(new SkillNodeDefinition(id, treeId, classId, type, slot.position(), skill.name(), skill.text().orElse(""),
                 skill.icon(), FRAMES.get(type), type.defaultCost(), maxRank, Requirements.NONE, skill.effects(), tags, cluster,
-                Optional.empty(), traits));
+                exclusiveGroup, traits));
     }
 
     private SkillConnection connection(Link link) {
