@@ -226,12 +226,13 @@ public final class EliteMobs {
 
     public static boolean empower(Monster monster, RandomSource random, int nodeCount) {
         Optional<SkillGraphSnapshot> graph = SkillTreeManager.graph();
-        if (graph.isEmpty()) {
+        SkillEvents.EliteSpawning spawning = new SkillEvents.EliteSpawning(monster, nodeCount);
+        if (graph.isEmpty() || !SkillEvents.allows(spawning)) {
             return false;
         }
         applyModifier(monster, BASE_HEALTH, ServerConfig.ELITE_HEALTH_BONUS.get());
         applyModifier(monster, BASE_DAMAGE, ServerConfig.ELITE_DAMAGE_BONUS.get());
-        PlayerSkillState constellation = randomConstellation(graph.get(), random, nodeCount);
+        PlayerSkillState constellation = randomConstellation(graph.get(), random, spawning.getNodeCount());
         CompiledBuild.compile(graph.get(), constellation).attributeSums().forEach((sumKey, sum) -> applyModifier(monster, sumKey, sum));
         monster.setHealth(monster.getMaxHealth());
         monster.setCustomName(Component.translatable("entity.nostalgiaskills.elite", monster.getType().getDescription())

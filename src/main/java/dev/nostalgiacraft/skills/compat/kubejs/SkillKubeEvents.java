@@ -13,9 +13,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Monster;
 import net.neoforged.bus.api.Event;
+import net.neoforged.bus.api.ICancellableEvent;
 import net.neoforged.neoforge.common.NeoForge;
 
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public final class SkillKubeEvents {
@@ -28,6 +30,17 @@ public final class SkillKubeEvents {
     private static final EventHandler STAR_LANDED = GROUP.server("starLanded", () -> StarLandedKubeEvent.class);
     private static final EventHandler ELITE_SPAWNED = GROUP.server("eliteSpawned", () -> EliteSpawnedKubeEvent.class);
     private static final EventHandler CATALOG = GROUP.server("catalog", () -> CatalogKubeEvent.class);
+    private static final EventHandler POINTS_GRANTED = GROUP.server("pointsGranted", () -> ApiKubeEvent.class);
+    private static final EventHandler NODES_LOST = GROUP.server("nodesLost", () -> NodesRemovedKubeEvent.class);
+    private static final EventHandler DISCOVERIES_REVEALED = GROUP.server("discoveriesRevealed", () -> ApiKubeEvent.class);
+    private static final EventHandler COMMUNITY_TIER_UNLOCKED = GROUP.server("communityTierUnlocked", () -> ApiKubeEvent.class);
+    private static final EventHandler POINTS_BUYING = GROUP.server("pointsBuying", () -> ApiKubeEvent.class).hasResult();
+    private static final EventHandler NODES_LEARNING = GROUP.server("nodesLearning", () -> ApiKubeEvent.class).hasResult();
+    private static final EventHandler REFUND_REQUESTED = GROUP.server("refundRequested", () -> ApiKubeEvent.class).hasResult();
+    private static final EventHandler ELITE_SPAWNING = GROUP.server("eliteSpawning", () -> ApiKubeEvent.class).hasResult();
+    private static final EventHandler STAR_FALLING = GROUP.server("starFalling", () -> ApiKubeEvent.class).hasResult();
+    private static final EventHandler FALLEN_STAR_DROPPING = GROUP.server("fallenStarDropping", () -> ApiKubeEvent.class).hasResult();
+    private static final EventHandler TRIGGER_FIRING = GROUP.server("triggerFiring", () -> ApiKubeEvent.class).hasResult();
 
     private SkillKubeEvents() {
     }
@@ -41,14 +54,39 @@ public final class SkillKubeEvents {
         forward(SkillEvents.StarLanded.class, STAR_LANDED, StarLandedKubeEvent::new);
         forward(SkillEvents.EliteSpawned.class, ELITE_SPAWNED, EliteSpawnedKubeEvent::new);
         forward(SkillEvents.CatalogLoading.class, CATALOG, CatalogKubeEvent::new);
+        forward(SkillEvents.PointsGranted.class, POINTS_GRANTED, ApiKubeEvent::new);
+        forward(SkillEvents.NodesLost.class, NODES_LOST, NodesRemovedKubeEvent::new);
+        forward(SkillEvents.DiscoveriesRevealed.class, DISCOVERIES_REVEALED, ApiKubeEvent::new);
+        forward(SkillEvents.CommunityTierUnlocked.class, COMMUNITY_TIER_UNLOCKED, ApiKubeEvent::new);
+        forwardCancellable(SkillEvents.PointsBuying.class, POINTS_BUYING);
+        forwardCancellable(SkillEvents.NodesLearning.class, NODES_LEARNING);
+        forwardCancellable(SkillEvents.RefundRequested.class, REFUND_REQUESTED);
+        forwardCancellable(SkillEvents.EliteSpawning.class, ELITE_SPAWNING);
+        forwardCancellable(SkillEvents.StarFalling.class, STAR_FALLING);
+        forwardCancellable(SkillEvents.FallenStarDropping.class, FALLEN_STAR_DROPPING);
+        forwardCancellable(SkillEvents.TriggerFiring.class, TRIGGER_FIRING);
     }
 
     private static <E extends Event> void forward(Class<E> type, EventHandler handler, Function<E, KubeEvent> wrap) {
+        listen(type, handler, event -> handler.post(ScriptType.SERVER, wrap.apply(event)));
+    }
+
+    private static <E extends Event & ICancellableEvent> void forwardCancellable(Class<E> type, EventHandler handler) {
+        listen(type, handler, event -> handler.post(ScriptType.SERVER, new ApiKubeEvent(event)).applyCancel(event));
+    }
+
+    private static <E extends Event> void listen(Class<E> type, EventHandler handler, Consumer<E> post) {
         NeoForge.EVENT_BUS.addListener(type, event -> OptionalEvents.guard(NostalgiaSkillsPlugin.MOD_ID, "posting " + type.getSimpleName(), () -> {
             if (handler.hasListeners()) {
-                handler.post(ScriptType.SERVER, wrap.apply(event));
+                post.accept(event);
             }
         }));
+    }
+
+    public record ApiKubeEvent(Event event) implements KubeEvent {
+        public Event getEvent() {
+            return event;
+        }
     }
 
     public record CatalogKubeEvent(SkillEvents.CatalogLoading event) implements KubeEvent {

@@ -1,5 +1,6 @@
 package dev.nostalgiacraft.skills.server;
 
+import dev.nostalgiacraft.skills.api.SkillEvents;
 import dev.nostalgiacraft.skills.config.ServerConfig;
 import dev.nostalgiacraft.skills.data.SkillTreeManager;
 import dev.nostalgiacraft.skills.data.WorldSkillData;
@@ -59,6 +60,7 @@ public final class CommunityTree {
         int unlockedNow = CommunityProgress.unlockedCount(thresholds(), data.communityXp());
         List<CommunityTier> tiers = SkillTreeManager.communityTiers();
         for (int index = unlockedBefore; index < unlockedNow; index++) {
+            SkillEvents.post(new SkillEvents.CommunityTierUnlocked(server, tiers.get(index).id()));
             server.getPlayerList().broadcastSystemMessage(Component.translatable("message.nostalgiaskills.community_unlocked",
                     Component.translatable(CommunityTier.nameKey(tiers.get(index).id())),
                     Component.translatable(CommunityTier.descriptionKey(tiers.get(index).id()))).withStyle(ChatFormatting.GOLD), false);

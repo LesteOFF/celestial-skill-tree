@@ -13,14 +13,19 @@ public final class FallenStarService {
     }
 
     public static Optional<Allocation> dropNewest(PlayerSkillState state, SkillGraphSnapshot graph) {
-        List<Allocation> newestFirst = state.orderedAllocations().reversed();
-        Optional<Allocation> dropped = newestFirst.stream().filter(allocation -> standsAlone(state, graph, allocation)).findFirst();
-        dropped.ifPresent(allocation -> {
-            state.forfeit(allocation.nodeId());
-            state.bumpRevision();
-            state.log("dropped " + allocation.nodeId() + " as a fallen star worth " + allocation.paidCost());
-        });
+        Optional<Allocation> dropped = newestDroppable(state, graph);
+        dropped.ifPresent(allocation -> drop(state, allocation));
         return dropped;
+    }
+
+    public static Optional<Allocation> newestDroppable(PlayerSkillState state, SkillGraphSnapshot graph) {
+        return state.orderedAllocations().reversed().stream().filter(allocation -> standsAlone(state, graph, allocation)).findFirst();
+    }
+
+    public static void drop(PlayerSkillState state, Allocation allocation) {
+        state.forfeit(allocation.nodeId());
+        state.bumpRevision();
+        state.log("dropped " + allocation.nodeId() + " as a fallen star worth " + allocation.paidCost());
     }
 
     private static boolean standsAlone(PlayerSkillState state, SkillGraphSnapshot graph, Allocation allocation) {

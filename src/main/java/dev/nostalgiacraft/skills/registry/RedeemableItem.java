@@ -1,5 +1,6 @@
 package dev.nostalgiacraft.skills.registry;
 
+import dev.nostalgiacraft.skills.api.SkillEvents;
 import dev.nostalgiacraft.skills.config.ServerConfig;
 import dev.nostalgiacraft.skills.progression.LedgerService;
 import dev.nostalgiacraft.skills.server.SkillService;
@@ -42,6 +43,7 @@ abstract class RedeemableItem extends Item {
             return false;
         }
         stack.consume(1, player);
+        SkillEvents.post(new SkillEvents.PointsGranted(player, points, SkillEvents.GrantSource.ITEM));
         player.level().playSound(null, player.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 1f, pitch);
         player.displayClientMessage(message.apply(result.available()).withStyle(ChatFormatting.AQUA), true);
         SkillService.sendState(player);

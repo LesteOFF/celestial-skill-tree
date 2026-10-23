@@ -1,5 +1,6 @@
 package dev.nostalgiacraft.skills.effects;
 
+import dev.nostalgiacraft.skills.api.SkillEvents;
 import dev.nostalgiacraft.skills.graph.SkillEffect;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -57,7 +58,7 @@ public final class Triggers {
             boolean conditionHolds = candidate.condition().map(condition -> EffectEngine.holds(player, condition, null)).orElse(true);
             boolean fires = !targetMissing && conditionHolds
                     && ModAttachments.cooldowns(player).tryUse(keyed.key(), now, candidate.cooldownTicks());
-            if (fires) {
+            if (fires && SkillEvents.allows(new SkillEvents.TriggerFiring(player, trigger, candidate.action().type(), target))) {
                 run(player, candidate.action(), target);
             }
         }

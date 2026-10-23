@@ -1,5 +1,6 @@
 package dev.nostalgiacraft.skills.registry;
 
+import dev.nostalgiacraft.skills.api.SkillEvents;
 import dev.nostalgiacraft.skills.config.ServerConfig;
 import dev.nostalgiacraft.skills.data.SkillTreeManager;
 import dev.nostalgiacraft.skills.effects.EffectEngine;
@@ -79,9 +80,18 @@ public final class FallenStarItem extends RedeemableItem {
             return false;
         }
         stack.shrink(1);
+        announce(player, recovery, star);
         EffectEngine.refresh(player);
         SkillService.sendState(player);
         return true;
+    }
+
+    private static void announce(ServerPlayer player, FallenStarService.Recovery recovery, Contents star) {
+        if (recovery == FallenStarService.Recovery.RELEARNED) {
+            SkillEvents.post(new SkillEvents.NodesLearned(player, List.of(star.nodeId())));
+        } else {
+            SkillEvents.post(new SkillEvents.PointsGranted(player, star.paidCost(), SkillEvents.GrantSource.ITEM));
+        }
     }
 
     @Override

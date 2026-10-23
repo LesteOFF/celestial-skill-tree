@@ -1,9 +1,11 @@
 package dev.nostalgiacraft.skills.server;
 
+import dev.nostalgiacraft.skills.api.SkillEvents;
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.config.ServerConfig;
 import dev.nostalgiacraft.skills.data.SkillTreeManager;
 import dev.nostalgiacraft.skills.progression.FallenStarService;
+import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.registry.FallenStarItem;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
 import net.minecraft.server.level.ServerPlayer;
@@ -14,6 +16,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 
+import java.util.List;
 import java.util.Optional;
 
 @EventBusSubscriber(modid = NostalgiaSkills.MODID)
@@ -36,9 +39,13 @@ public final class FallenStars {
     }
 
     public static Optional<ItemEntity> drop(ServerPlayer player) {
+        PlayerSkillState state = ModAttachments.state(player);
         return SkillTreeManager.graph()
-                .flatMap(graph -> FallenStarService.dropNewest(ModAttachments.state(player), graph))
+                .flatMap(graph -> FallenStarService.newestDroppable(state, graph))
+                .filter(allocation -> SkillEvents.allows(new SkillEvents.FallenStarDropping(player, allocation.nodeId())))
                 .map(allocation -> {
+                    FallenStarService.drop(state, allocation);
+                    SkillEvents.post(new SkillEvents.NodesLost(player, List.of(allocation.nodeId())));
                     ItemEntity star = new ItemEntity(player.level(), player.getX(), player.getY() + 0.5, player.getZ(),
                             FallenStarItem.of(player, allocation));
                     star.setGlowingTag(true);

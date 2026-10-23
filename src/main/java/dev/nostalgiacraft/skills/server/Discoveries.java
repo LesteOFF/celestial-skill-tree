@@ -1,5 +1,6 @@
 package dev.nostalgiacraft.skills.server;
 
+import dev.nostalgiacraft.skills.api.SkillEvents;
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.data.SkillTreeManager;
 import dev.nostalgiacraft.skills.effects.BossRewards;
@@ -15,6 +16,9 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.AdvancementEvent;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @EventBusSubscriber(modid = NostalgiaSkills.MODID)
 public final class Discoveries {
@@ -42,15 +46,20 @@ public final class Discoveries {
         boolean discovered = SkillTreeManager.graph()
                 .filter(graph -> DiscoveryService.discover(ModAttachments.state(player), graph, key)).isPresent();
         if (discovered) {
+            SkillEvents.post(new SkillEvents.DiscoveriesRevealed(player, Set.of(key)));
             announce(player);
             SkillService.sendState(player);
         }
     }
 
     static void syncFromAdvancements(ServerPlayer player) {
+        Set<String> before = Set.copyOf(ModAttachments.state(player).discoveries());
         boolean discovered = SkillTreeManager.graph().filter(graph -> DiscoveryService.discoverAll(
                 ModAttachments.state(player), graph, key -> hasEarned(player, key))).isPresent();
         if (discovered) {
+            Set<String> revealed = new HashSet<>(ModAttachments.state(player).discoveries());
+            revealed.removeAll(before);
+            SkillEvents.post(new SkillEvents.DiscoveriesRevealed(player, revealed));
             announce(player);
         }
     }

@@ -141,6 +141,10 @@ public final class SkillRequests {
         long balance = carried + XpWallets.stored(player);
         ProgressionService.Settings settings = ServerConfig.progression();
         int count = Math.clamp(requestedCount, 1, settings.pointLimit());
+        if (!SkillEvents.allows(new SkillEvents.PointsBuying(player, count))) {
+            request.reject(RejectReason.BLOCKED);
+            return;
+        }
         ProgressionService.BulkPurchaseResult preview = ProgressionService.purchasePoints(state.copy(), balance, settings, count);
         if (!preview.ok()) {
             request.reject(preview.reason().orElseThrow(), settings.curve().cost(state.purchasedPoints()), balance);
@@ -186,6 +190,10 @@ public final class SkillRequests {
     private static void confirm(Request request, SkillGraphSnapshot graph, List<String> nodes) {
         if (nodes.size() > ServerConfig.MAX_BATCH_SIZE.get()) {
             request.reject(RejectReason.REQUEST_TOO_LARGE, nodes.size());
+            return;
+        }
+        if (!SkillEvents.allows(new SkillEvents.NodesLearning(request.player(), nodes))) {
+            request.reject(RejectReason.BLOCKED);
             return;
         }
         AllocationService.BatchResult result = AllocationService.confirm(graph, ModAttachments.state(request.player()), nodes);
@@ -236,6 +244,10 @@ public final class SkillRequests {
         RefundService.Plan plan = RefundService.plan(graph, state, nodeId, enabled);
         if (!plan.ok()) {
             request.reject(plan.reason().orElseThrow(), nodeId);
+            return;
+        }
+        if (!SkillEvents.allows(new SkillEvents.RefundRequested(request.player(), nodeId, plan.removed(), plan.refund()))) {
+            request.reject(RejectReason.BLOCKED);
             return;
         }
         Optional<ItemStack> orb = orbToConsume(request, ServerConfig.ORB_REQUIRED_FOR_NODE_REFUND.get());

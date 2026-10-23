@@ -31,7 +31,8 @@ public enum RejectReason {
     UNDISCOVERED,
     CONSUMED,
     COMMUNITY_COMPLETE,
-    NOT_TOGGLEABLE;
+    NOT_TOGGLEABLE,
+    BLOCKED;
 
     public String translationKey() {
         return "error.nostalgiaskills." + name().toLowerCase(Locale.ROOT);

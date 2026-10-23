@@ -50,6 +50,9 @@ public final class FallingStar extends Projectile {
     }
 
     public static Optional<FallingStar> spawnNear(ServerPlayer player) {
+        if (!SkillEvents.allows(new SkillEvents.StarFalling(player))) {
+            return Optional.empty();
+        }
         for (int attempt = 0; attempt < SPAWN_ATTEMPTS; attempt++) {
             Optional<FallingStar> star = spawnWithin(player, 1.0 - (double) attempt / SPAWN_ATTEMPTS);
             if (star.isPresent()) {

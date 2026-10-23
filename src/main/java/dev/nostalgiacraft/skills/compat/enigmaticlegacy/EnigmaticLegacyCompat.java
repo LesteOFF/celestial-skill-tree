@@ -1,5 +1,6 @@
 package dev.nostalgiacraft.skills.compat.enigmaticlegacy;
 
+import dev.nostalgiacraft.skills.api.SkillEvents;
 import dev.nostalgiacraft.skills.compat.OptionalEvents;
 import dev.nostalgiacraft.skills.config.ServerConfig;
 import dev.nostalgiacraft.skills.effects.EffectEngine;
@@ -65,6 +66,7 @@ public final class EnigmaticLegacyCompat {
         boolean lent = points > 0
                 && LedgerService.grant(ModAttachments.state(player), points, ServerConfig.POINT_LIMIT.get(), false).ok();
         if (lent) {
+            SkillEvents.post(new SkillEvents.PointsGranted(player, points, SkillEvents.GrantSource.INTEGRATION));
             player.sendSystemMessage(Component.translatable("message.nostalgiaskills.cursed_ring.lent", points)
                     .withStyle(ChatFormatting.DARK_PURPLE));
         }
@@ -74,10 +76,13 @@ public final class EnigmaticLegacyCompat {
     private static int takeBack(ServerPlayer player, int lent) {
         PlayerSkillState state = ModAttachments.state(player);
         if (state.availablePoints() < lent) {
-            RespecService.resetAll(state);
+            RespecService.Preview reset = RespecService.resetAll(state);
             EffectEngine.refresh(player);
+            SkillEvents.post(new SkillEvents.BuildReset(player, reset.removed(), reset.refund()));
         }
-        LedgerService.grant(state, -Math.min(lent, state.availablePoints()), ServerConfig.POINT_LIMIT.get(), true);
+        int taken = Math.min(lent, state.availablePoints());
+        LedgerService.grant(state, -taken, ServerConfig.POINT_LIMIT.get(), true);
+        SkillEvents.post(new SkillEvents.PointsGranted(player, -taken, SkillEvents.GrantSource.INTEGRATION));
         player.sendSystemMessage(Component.translatable("message.nostalgiaskills.cursed_ring.taken", lent)
                 .withStyle(ChatFormatting.DARK_PURPLE));
         return 0;
