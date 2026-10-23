@@ -29,7 +29,7 @@ public final class GraphJsonParser {
             return GraphParser.Outcome.failed(report);
         }
         JsonFields tree = new JsonFields(treeJson.getAsJsonObject(), "skill_trees/" + treeId, "", report);
-        tree.requireSupportedSchema();
+        tree.checkSchemaVersion();
         List<Sector> sectors = sectors(tree);
         List<ExclusiveGroup> groups = exclusiveGroups(tree);
         if (sources.nodes().size() > GraphParser.MAX_NODES) {

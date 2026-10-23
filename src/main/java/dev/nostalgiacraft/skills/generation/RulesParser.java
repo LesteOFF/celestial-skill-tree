@@ -14,6 +14,7 @@ final class RulesParser {
     private static final String MAX_COPIES_PER_SKILL = "max_copies_per_skill";
     private static final String VARY_BY_SEED = "vary_by_seed";
     private static final String PORTALS = "portals";
+    private static final String SCHEMA_VERSION = "schema_version";
     private static final Set<String> KNOWN = Set.of(NODES_PER_CLASS, MAX_CLASSES, MIN_THEMES_FOR_OWN_CLASS,
             MAX_COPIES_PER_SKILL, VARY_BY_SEED, PORTALS);
 
@@ -26,7 +27,8 @@ final class RulesParser {
             return TreeRules.DEFAULT;
         }
         JsonFields rules = new JsonFields(file.getAsJsonObject(), SOURCE, "", report);
-        file.getAsJsonObject().keySet().stream().filter(key -> !KNOWN.contains(key)).sorted()
+        rules.checkSchemaVersion();
+        file.getAsJsonObject().keySet().stream().filter(key -> !KNOWN.contains(key) && !key.equals(SCHEMA_VERSION)).sorted()
                 .forEach(key -> rules.warn(key, "unknown rule, ignored"));
         try {
             return read(rules);

@@ -40,7 +40,7 @@ public final class CommunityParser {
         }
         int errorsBefore = report.errors().size();
         JsonFields tier = new JsonFields(element.getAsJsonObject(), source, "", report);
-        tier.requireSupportedSchema();
+        tier.checkSchemaVersion();
         if (!Ids.isValid(id)) {
             tier.error("id", "invalid id derived from path: '" + id + "'");
         }

@@ -14,7 +14,7 @@ final class ConnectionParser {
 
     static List<SkillConnection> parse(String treeId, JsonElement element, String source, ValidationReport report) {
         JsonFields file = new JsonFields(element.getAsJsonObject(), source, "", report);
-        file.requireSupportedSchema();
+        file.checkSchemaVersion();
         if (!file.rawText("tree", treeId).equals(treeId)) {
             return List.of();
         }

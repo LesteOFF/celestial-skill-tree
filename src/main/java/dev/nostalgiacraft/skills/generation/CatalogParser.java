@@ -75,7 +75,9 @@ public final class CatalogParser {
             return Optional.empty();
         }
         try {
-            return Optional.of(reader.read(id, new JsonFields(file.getAsJsonObject(), source, "", report)));
+            JsonFields fields = new JsonFields(file.getAsJsonObject(), source, "", report);
+            fields.checkSchemaVersion();
+            return Optional.of(reader.read(id, fields));
         } catch (RuntimeException unreadable) {
             report.error(source, "", "unreadable: " + unreadable.getMessage());
             return Optional.empty();

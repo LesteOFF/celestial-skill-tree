@@ -130,10 +130,8 @@ public final class JsonFields {
         return Optional.of(child(element.getAsJsonObject(), key + "."));
     }
 
-    public void requireSupportedSchema() {
-        if (!json.has("schema_version")) {
-            error("schema_version", "missing");
-        } else if (json.get("schema_version").getAsInt() != GraphParser.SUPPORTED_SCHEMA) {
+    public void checkSchemaVersion() {
+        if (json.has("schema_version") && json.get("schema_version").getAsInt() != GraphParser.SUPPORTED_SCHEMA) {
             error("schema_version", "unsupported version " + json.get("schema_version") + " (supported: "
                     + GraphParser.SUPPORTED_SCHEMA + ")");
         }

@@ -29,7 +29,7 @@ final class NodeParser {
         }
         JsonFields node = new JsonFields(element.getAsJsonObject(), source, "", report);
         int errorsBefore = report.errors().size();
-        node.requireSupportedSchema();
+        node.checkSchemaVersion();
         requireMatchingId(node, id);
         String tree = node.id("tree");
         String sector = node.text("sector");

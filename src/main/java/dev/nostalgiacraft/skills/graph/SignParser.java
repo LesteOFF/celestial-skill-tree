@@ -41,7 +41,7 @@ public final class SignParser {
         }
         int errorsBefore = report.errors().size();
         JsonFields sign = new JsonFields(element.getAsJsonObject(), source, "", report);
-        sign.requireSupportedSchema();
+        sign.checkSchemaVersion();
         if (!Ids.isValid(id)) {
             sign.error("id", "invalid id derived from path: '" + id + "'");
         }

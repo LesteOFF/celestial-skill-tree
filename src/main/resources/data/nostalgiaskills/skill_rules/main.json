@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "nodes_per_class": 100,
+  "max_classes": 10,
+  "min_themes_for_own_class": 4,
+  "max_copies_per_skill": 5,
+  "vary_by_seed": true,
+  "portals": true
+}
