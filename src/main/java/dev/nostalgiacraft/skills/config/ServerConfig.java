@@ -38,7 +38,6 @@ public final class ServerConfig {
     public static final ModConfigSpec.IntValue LIFESTEAL_COOLDOWN_TICKS;
     public static final ModConfigSpec.ConfigValue<String> LIGHT_WEAPON_TAG;
     public static final ModConfigSpec.ConfigValue<String> HEAVY_WEAPON_TAG;
-    public static final ModConfigSpec.ConfigValue<String> BOW_TAG;
     public static final ModConfigSpec.ConfigValue<String> CROSSBOW_TAG;
     public static final ModConfigSpec.ConfigValue<String> MINING_TOOL_TAG;
     public static final ModConfigSpec.IntValue MAX_REQUESTS_PER_SECOND;
@@ -59,6 +58,9 @@ public final class ServerConfig {
     public static final ModConfigSpec.IntValue L2HOSTILITY_LEVELS_PER_NODE;
     public static final ModConfigSpec.DoubleValue RELIC_XP_SHARE;
     public static final ModConfigSpec.IntValue LIVING_FRAGMENT_XP_PER_LEVEL;
+    public static final ModConfigSpec.IntValue LIVING_FRAGMENT_POINTS;
+    public static final ModConfigSpec.DoubleValue ELITE_HEALTH_BONUS;
+    public static final ModConfigSpec.DoubleValue ELITE_DAMAGE_BONUS;
     public static final ModConfigSpec.IntValue CURSED_RING_POINTS;
     public static final ModConfigSpec.DoubleValue PET_TREE_SHARE;
     public static final ModConfigSpec.IntValue LIQUID_XP_MB_PER_POINT;
@@ -124,7 +126,6 @@ public final class ServerConfig {
         builder.comment("Item classification tags").push("tags");
         LIGHT_WEAPON_TAG = builder.define("lightWeapons", "nostalgiaskills:light_weapons", ServerConfig::isResourceId);
         HEAVY_WEAPON_TAG = builder.define("heavyWeapons", "nostalgiaskills:heavy_weapons", ServerConfig::isResourceId);
-        BOW_TAG = builder.define("bows", "nostalgiaskills:bows", ServerConfig::isResourceId);
         CROSSBOW_TAG = builder.define("crossbows", "nostalgiaskills:crossbows", ServerConfig::isResourceId);
         MINING_TOOL_TAG = builder.define("miningTools", "nostalgiaskills:mining_tools", ServerConfig::isResourceId);
         builder.pop();
@@ -141,6 +142,10 @@ public final class ServerConfig {
                 .defineInRange("eliteMobChance", 0.02, 0.0, 1.0);
         ELITE_MOB_NODES = builder.comment("How many random skills beyond a hub a Constellated monster receives")
                 .defineInRange("eliteMobNodes", 8, 0, 60);
+        ELITE_HEALTH_BONUS = builder.comment("Extra maximum health of a Constellated monster on top of its constellation (0.5 = +50%)")
+                .defineInRange("eliteHealthBonus", 0.5, 0.0, 10.0);
+        ELITE_DAMAGE_BONUS = builder.comment("Extra attack damage of a Constellated monster on top of its constellation (0.25 = +25%)")
+                .defineInRange("eliteDamageBonus", 0.25, 0.0, 10.0);
         ELITE_SPAWNER_MOBS = builder.comment("Monsters from spawners and trial spawners may be Constellated; leaving this on with a mob farm turns it into a star fragment farm")
                 .define("eliteSpawnerMobs", false);
         ELITE_RADAR_TEAM = builder.comment("Constellated monsters join the light purple scoreboard team 'nostalgiaskills_constellated', so radar mods such as Xaero's Minimap list them in their own team category")
@@ -155,8 +160,10 @@ public final class ServerConfig {
                 .defineInRange("l2hostilityLevelsPerNode", 10, 0, 1_000);
         RELIC_XP_SHARE = builder.comment("Relics: fraction of the experience a relic gains that its bearer also receives as ordinary experience, the currency skill points are bought with; 0 disables")
                 .defineInRange("relicXpShare", 0.25, 0.0, 10.0);
-        LIVING_FRAGMENT_XP_PER_LEVEL = builder.comment("Experience a Living Fragment must witness for each of its 5 levels; it grows with the experience orbs its carrier picks up (the experience is not taken) and, fully grown, is worth 2 skill points")
+        LIVING_FRAGMENT_XP_PER_LEVEL = builder.comment("Experience a Living Fragment must witness for each of its 5 levels; it grows with the experience orbs its carrier picks up (the experience is not taken)")
                 .defineInRange("livingFragmentXpPerLevel", 500, 1, 1_000_000);
+        LIVING_FRAGMENT_POINTS = builder.comment("Skill points a fully grown Living Fragment is worth")
+                .defineInRange("livingFragmentPoints", 2, 1, 100);
         CURSED_RING_POINTS = builder.comment("Enigmatic Legacy+: skill points lent while the Ring of the Seven Curses is worn; taking the ring off takes them back and, if they were already spent, resets the whole build; 0 disables")
                 .defineInRange("cursedRingPoints", 5, 0, 100);
         PET_TREE_SHARE = builder.comment("Fraction of the owner's tree bonuses to health, attack damage, armor, toughness, movement speed and knockback resistance that tamed creatures of #nostalgiaskills:inherits_tree receive (Ice and Fire dragons, Companions); 0 disables")
