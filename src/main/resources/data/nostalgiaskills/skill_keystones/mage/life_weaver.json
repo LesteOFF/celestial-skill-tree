@@ -1,0 +1,24 @@
+{
+  "class": "nostalgiaskills:mage",
+  "requires_mod": "ars_nouveau",
+  "name": "skill.nostalgiaskills.mage.life_weaver.name",
+  "text": "skill.nostalgiaskills.mage.life_weaver.text",
+  "icon": "nostalgiaskills:textures/skill_icons/healing.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "nostalgiaskills:on_spell_resolve",
+      "cooldown_ticks": 60,
+      "action": {
+        "type": "heal",
+        "amount": 2
+      }
+    },
+    {
+      "type": "attribute",
+      "attribute": "ars_nouveau:ars_nouveau.perk.warding",
+      "operation": "add_value",
+      "amount": -2
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "class": "nostalgiaskills:mage",
+  "requires_mod": "ars_nouveau",
+  "name": "theme.nostalgiaskills.mage.source_attunement",
+  "icon": "nostalgiaskills:textures/skill_icons/mana_flow.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "ars_nouveau:ars_nouveau.perk.mana_regen",
+        "operation": "add_value",
+        "amount": 0.15
+      },
+      {
+        "type": "attribute",
+        "attribute": "ars_nouveau:ars_nouveau.perk.warding",
+        "operation": "add_value",
+        "amount": 0.1
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "attuned_source",
+      "name": "skill.nostalgiaskills.mage.attuned_source.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "ars_nouveau:ars_nouveau.perk.mana_regen",
+          "operation": "add_value",
+          "amount": 1.0
+        },
+        {
+          "type": "attribute",
+          "attribute": "ars_nouveau:ars_nouveau.perk.warding",
+          "operation": "add_value",
+          "amount": 0.5
+        }
+      ]
+    },
+    {
+      "id": "mending_resolve",
+      "name": "skill.nostalgiaskills.mage.mending_resolve.name",
+      "icon": "nostalgiaskills:textures/skill_icons/healing.png",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "nostalgiaskills:on_spell_resolve",
+          "cooldown_ticks": 100,
+          "action": {
+            "type": "heal",
+            "amount": 1
+          }
+        }
+      ]
+    }
+  ]
+}

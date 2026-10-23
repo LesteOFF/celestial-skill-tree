@@ -4,11 +4,10 @@
   "requires_any_mod": [
     "irons_spellbooks",
     "ars_nouveau",
-    "malum",
-    "lodestone",
-    "forbidden_arcanus"
+    "malum"
   ],
   "fallback_class": "nostalgiaskills:arcanist",
+  "nodes": 120,
   "hub": {
     "effects": [
       {
@@ -16,6 +15,12 @@
         "attribute": "nostalgiaskills:magic_resistance",
         "operation": "add_value",
         "amount": 0.03
+      },
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.max_health",
+        "operation": "add_value",
+        "amount": 1.0
       }
     ]
   },
@@ -27,6 +32,12 @@
         "attribute": "nostalgiaskills:magic_resistance",
         "operation": "add_value",
         "amount": 0.005
+      },
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.max_health",
+        "operation": "add_value",
+        "amount": 0.25
       }
     ]
   }

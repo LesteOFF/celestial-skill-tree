@@ -35,6 +35,7 @@ class BundledCatalogTest {
     private static final Path LANG = Path.of("src/main/resources/assets/nostalgiaskills/lang");
     private static final int SEEDS = 25;
     private static final int PAIRED_KEYSTONES = 2;
+    private static final int MAGE_NODES = 120;
     private static final List<String> NEWER_NOTABLE_FIELDS = List.of("max_rank", "requires_mod", "neighbour_multiplier");
     private static final Map<String, Integer> NOTABLES_WITHOUT_MODS = Map.of(NS + ":arcanist", 16);
     private static final List<String> BASE_CLASSES = List.of("arcanist", "artificer", "berserker", "duelist", "guardian", "marksman");
@@ -129,8 +130,18 @@ class BundledCatalogTest {
             assertFalse(hidden.isEmpty());
             hidden.forEach(node -> assertTrue(node.position().y() >= treeBottom + HiddenSection.DISTANCE_BELOW_TREE, node.id()));
             assertTrue(graph.nodes().values().stream()
-                    .filter(node -> node.type() != NodeType.PORTAL && !hidden.contains(node)).count() <= 7 * (100 + PAIRED_KEYSTONES));
+                    .filter(node -> node.type() != NodeType.PORTAL && !hidden.contains(node)).count() <= 6 * (100 + PAIRED_KEYSTONES) + MAGE_NODES + PAIRED_KEYSTONES);
             assertEquals(8, graph.nodes().values().stream().filter(node -> node.type() == NodeType.PORTAL).count());
+        }
+    }
+
+    @Test
+    void eachMagicModAloneBringsAMageWithItsOwnKeystones() {
+        for (String magic : List.of("irons_spellbooks", "ars_nouveau", "malum")) {
+            Catalog catalog = catalog(KnownIds.PERMISSIVE, magic::equals);
+            boolean mageJoins = ClassPool.select(catalog).stream().anyMatch(pool -> pool.definition().id().equals(NS + ":mage"));
+            assertTrue(mageJoins, magic);
+            assertTrue(catalog.keystonesOf(NS + ":mage").size() >= 2, magic);
         }
     }
 
