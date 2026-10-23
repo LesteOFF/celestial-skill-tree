@@ -6,21 +6,19 @@ import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import org.joml.Matrix4f;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public final class LineBatch {
     private static final double MIN_LENGTH = 1e-4;
 
-    private record Vertex(float x, float y, int argb) {
-    }
-
     private final Matrix4f pose;
-    private final List<Vertex> vertices = new ArrayList<>();
+    private final FloatArrayList positions = new FloatArrayList();
+    private final IntArrayList colors = new IntArrayList();
 
     public LineBatch(GuiGraphics graphics) {
         graphics.flush();
@@ -50,18 +48,23 @@ public final class LineBatch {
     }
 
     private void quad(float ax, float ay, float bx, float by, float cx, float cy, float dx, float dy, int argb) {
-        vertices.add(new Vertex(ax, ay, argb));
-        vertices.add(new Vertex(bx, by, argb));
-        vertices.add(new Vertex(cx, cy, argb));
-        vertices.add(new Vertex(dx, dy, argb));
+        positions.addElements(positions.size(), new float[]{ax, ay, bx, by, cx, cy, dx, dy});
+        colors.add(argb);
     }
 
     public void draw() {
-        if (vertices.isEmpty()) {
+        if (colors.isEmpty()) {
             return;
         }
         BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        vertices.forEach(vertex -> buffer.addVertex(pose, vertex.x(), vertex.y(), 0).setColor(vertex.argb()));
+        float[] xy = positions.elements();
+        for (int quad = 0; quad < colors.size(); quad++) {
+            int argb = colors.getInt(quad);
+            for (int corner = 0; corner < 4; corner++) {
+                int at = (quad * 4 + corner) * 2;
+                buffer.addVertex(pose, xy[at], xy[at + 1], 0).setColor(argb);
+            }
+        }
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableCull();
