@@ -21,6 +21,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -116,17 +117,20 @@ public final class EliteMobs {
     }
 
     private static boolean mayBeConstellated(Monster monster) {
-        MobSpawnType spawnType = monster.getSpawnType();
-        boolean fromSpawner = SPAWNER_SPAWNS.contains(spawnType)
-                || monster.level().getBlockState(monster.blockPosition().below()).is(ModTags.COUNTS_AS_SPAWNER);
-        return fromSpawner ? ServerConfig.ELITE_SPAWNER_MOBS.get() : WILD_SPAWNS.contains(spawnType);
+        return fromSpawner(monster) ? ServerConfig.ELITE_SPAWNER_MOBS.get() : WILD_SPAWNS.contains(monster.getSpawnType());
+    }
+
+    private static boolean fromSpawner(Mob mob) {
+        return SPAWNER_SPAWNS.contains(mob.getSpawnType())
+                || mob.level().getBlockState(mob.blockPosition().below()).is(ModTags.COUNTS_AS_SPAWNER);
     }
 
     @SubscribeEvent
     public static void onDrops(LivingDropsEvent event) {
         LivingEntity entity = event.getEntity();
         boolean killedByPlayer = BossRewards.isRealPlayer(event.getSource().getEntity()) && !event.getSource().is(ModTags.MACHINE_DAMAGE);
-        boolean taggedKill = entity.getType().is(ModTags.ALWAYS_DROPS_FRAGMENT);
+        boolean farmed = entity instanceof Mob mob && fromSpawner(mob) && !ServerConfig.ELITE_SPAWNER_MOBS.get();
+        boolean taggedKill = entity.getType().is(ModTags.ALWAYS_DROPS_FRAGMENT) && !farmed;
         if (killedByPlayer && (isElite(entity) || taggedKill)) {
             event.getDrops().add(new ItemEntity(entity.level(), entity.getX(), entity.getY(), entity.getZ(),
                     new ItemStack(ModItems.STAR_FRAGMENT.get())));
