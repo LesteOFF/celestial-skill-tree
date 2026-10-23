@@ -63,6 +63,9 @@ public final class SkyEventRenderer {
 
     @SubscribeEvent
     public static void onFogColor(ViewportEvent.ComputeFogColor event) {
+        if (!SkyTint.active()) {
+            return;
+        }
         Vec3 tinted = SkyTint.sky(new Vec3(event.getRed(), event.getGreen(), event.getBlue()), (float) event.getPartialTick());
         event.setRed((float) tinted.x);
         event.setGreen((float) tinted.y);
@@ -72,9 +75,12 @@ public final class SkyEventRenderer {
     @SubscribeEvent
     public static void onRenderStage(RenderLevelStageEvent event) {
         ClientLevel level = Minecraft.getInstance().level;
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_SKY || level == null || !SkyTint.active()) {
+            return;
+        }
         float partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(false);
         float strength = SkyTint.eclipseStrength(partialTick);
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_SKY || level == null || strength <= 0f) {
+        if (strength <= 0f) {
             return;
         }
         float sunAngle = level.getTimeOfDay(partialTick) * FULL_TURN_DEGREES;

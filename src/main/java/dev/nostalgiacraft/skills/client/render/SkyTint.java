@@ -33,6 +33,10 @@ public final class SkyTint {
         strength = Mth.clamp(strength + (rising ? FADE_PER_TICK : -FADE_PER_TICK), 0f, 1f);
     }
 
+    public static boolean active() {
+        return strength > 0f || previousStrength > 0f;
+    }
+
     public static float eclipseStrength(float partialTick) {
         return shown == SkyEvent.ECLIPSE ? strength(partialTick) : 0f;
     }

@@ -75,7 +75,7 @@ public final class FallingStarRenderer extends EntityRenderer<FallingStar> {
 
     @Override
     public boolean shouldRender(FallingStar star, Frustum frustum, double cameraX, double cameraY, double cameraZ) {
-        return true;
+        return frustum.isVisible(star.getBoundingBox().inflate(STREAK_LENGTH + HEAD_SIZE));
     }
 
     @Override
