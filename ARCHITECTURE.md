@@ -21,7 +21,7 @@ effects/      CompiledBuild, EffectEngine (attribute modifiers), CombatEvents, C
               BoonActions, EliteMobs, PetInheritance, BorrowedNodes, StolenNodes
 block/        Telescope, Stellar Condenser and Community Basin (XpBasinBlockEntity)
 entity/       FallingStar
-api/          SkillEvents: NeoForge events other mods and scripts may listen to
+api/          SkillEvents: NeoForge events other mods and scripts may listen to (cancellable "pre" events and "post" events)
 compat/       one package per optional mod (apotheosis, arsnouveau, bettercombat, curios, ironsspellbooks, jade,
               occultism, …), registered by Integrations and guarded by OptionalEvents; most reach the other mod by
               reflection (Reflection). kubejs/ is the KubeJS plugin (script events + NostalgiaSkills binding), loaded
@@ -45,7 +45,8 @@ The tree is not authored node by node. `SkillTreeReloadListener` reads the catal
 `skill_keystones`, `skill_rules`; formats in the README), drops files whose mod is missing, posts
 `SkillEvents.CatalogLoading` so scripts and mods can edit the raw entries, and parses the result with
 `CatalogParser`. `GeneratedTree` then calls `TreeGenerator` with the world seed and the draw saved in
-`WorldSkillData`, on `ServerStartingEvent` (the seed and the save are needed) and again on every `/reload`.
+`WorldSkillData`, on `ServerStartingEvent` (the seed and the save are needed), again on every `/reload`, and when the
+server config is reloaded (`ServerConfigReload`, so new cost overrides apply at once with the same draw).
 
 `TreeGenerator`: `ClassPool.select` picks the classes and moves orphan themes to fallback classes;
 `TreeShapeGenerator` lays out hub, trunk, arc-shaped ribs, keystones and portals for that number of classes;
@@ -189,14 +190,17 @@ Offline players go through the same path on their next login, before effects are
 
 ## Client
 
-`SkillTreeScreen` (no pause, no container; node states in `NodeStates`, the pending selection in `PendingSelection`, buttons and
-search in `TreeHud`, panels in `PanelContents` and
-`PanelRenderer`, the XP bar in `ProgressBar`) keeps a local pending set, previews it with `AllocationService`, and
+`SkillTreeScreen` (no pause, no container; node states in `NodeStates`, the pending selection with its undo/redo
+history in `PendingSelection`, the floating glass panels (search, tool dock, points capsule, pending actions) in `TreeHud`, panels in `PanelContents` and
+`PanelRenderer`, the XP bar in `ProgressBar`, rebindable shortcuts in `TreeKeys`) keeps a local pending set, previews it with `AllocationService`, and
 recomputes node states only when the state or pending set changes. Hit testing applies the inverse camera transform
-with a 2 GUI-pixel margin and picks the nearest node; controls and panels take precedence. Drag threshold is 4
+with a 2 GUI-pixel margin and picks the nearest node; the floating panels and dialogs take precedence (nothing under them is hovered or clicked). Drag threshold is 4
 window pixels converted through the GUI scale. Draw order: backdrop layers → motes → inactive edges → lit routes →
 node frames/icons → state marks and focus → controls and progress bar → panels → tooltips; the graph is scissored to
-its viewport and rendering state (blend, shader colour) is restored. Client-only classes are referenced from common
+its viewport and rendering state (blend, shader colour) is restored. Every HUD texture is a GUI sprite under `textures/gui/sprites/hud/` (nine-slice glass panels and buttons, the XP track, 9×9 icons,
+the animated point star), named in `HudSprites` and drawn by `SkillButton`, `TreeHud` and `PanelRenderer`.
+`TreeBonusTooltip` adds the tree's weapon, ranged and tool bonuses to item tooltips. `NostalgiaSkillsClient`
+registers NeoForge's configuration screen. Client-only classes are referenced from common
 code only through `ClientHandlers` (invoked solely for client-bound payloads) and `@EventBusSubscriber(value =
 Dist.CLIENT)` classes, which is why the dedicated server starts without loading graphical classes (verified).
 

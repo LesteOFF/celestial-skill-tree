@@ -53,7 +53,7 @@ Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256
 
 1. Press **O** (rebindable under Controls → Nostalgia Skills) or run `/nostalgiaskills open`.
 2. Click a **root hub** to choose your free starting point.
-3. Earn XP normally, then press **Buy Skill Point**. The first point costs 100 raw XP; each further point costs
+3. Earn XP normally, then press the gold **Buy points** button at the bottom of the screen. The first point costs 100 raw XP; each further point costs
    `100 + 20p + 2p²` (p = points already bought). The tooltip shows the cost, your XP and what remains.
    **Shift-click** buys as many points as your XP pays for in one go (the tooltip shows the count and the total XP
    first).
@@ -62,7 +62,7 @@ Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256
    first).
 5. **Confirm** (or Enter) sends the whole batch to the server, which accepts all of it or none of it.
    **Cancel** clears the pending selection.
-6. **Show Stats** lists your final attributes, the tree's share, conditional effects, active keystones, and points.
+6. The **stats** button (first in the left dock) lists your final attributes, the tree's share, conditional effects, active keystones, and points.
    With a pending selection it also shows each affected attribute before → after, caps included.
 7. **Ranked skills.** Some notables have up to 3 ranks (one per class: Blade Discipline, Layered Plates, Slow
    Steeping, Practiced Draw, Seasoned Hands, Brute Training, and Spell Hardening / Warding Rites for the Mage). Small
@@ -119,18 +119,28 @@ Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256
 
 ### Controls
 
+The tree fills the whole screen and the controls float over it in small glass panels: search and the highlight filter
+at the top left, a dock below it with stats, the shared constellation (greyed out when the server has none), your birth
+sign, the hidden sky (greyed out until a boss mod adds hidden constellations), home, fit and help, and a capsule at the bottom with your unspent points (a twinkling star), **Buy points** and the XP progress to
+the next point. **Confirm** and **Cancel** appear above it only while something is pending. Every keyboard shortcut below can be rebound
+under Controls → Nostalgia Skills; **H** or the **?** button lists them in game.
+
 | Input | Action |
 |---|---|
 | Left-click node | pending node: add / remove (removing a node others depend on offers to remove the chain); learned node: open the unlearn confirmation |
 | Shift + click | add the cheapest route to that node |
-| Drag (left on empty space, or middle button) | pan |
-| Mouse wheel | zoom around the cursor (0.08×–3×; **Fit** may go lower) |
+| Drag (left on empty space, or middle button), W A S D | pan |
+| Mouse wheel, + / − | zoom (0.08×–3×; **Fit** may go lower) |
+| Ctrl+Z / Ctrl+Y | undo / redo changes to the pending selection |
 | Home / **Home** button | recentre on your starting hub |
 | F / **Fit** button | frame the whole tree |
-| Ctrl+F, then Enter | search names, descriptions, effects and tags; Enter jumps to the next result |
-| Arrow keys, Space | move keyboard focus between nodes, toggle the focused node |
+| Ctrl+F, then Enter (Shift+Enter: back) | search names, descriptions, effects, tags and class names; the field shows "3/12" or "none" |
+| Filter button | highlight only available, learned or locked skills (alone or combined with the search) |
+| Tab / Shift+Tab | jump to the next / previous result, zooming in if the tree is far away |
+| Arrow keys, Space, T | move keyboard focus between nodes, mark the focused node, switch a toggleable node |
 | Enter | confirm the pending batch |
-| Esc | close (asks to discard or keep editing when changes are pending) |
+| Shift (hovering) | show every effect of a skill in its tooltip |
+| Esc, O | close (asks to discard or keep editing when changes are pending) |
 
 Node states: locked (dim, padlock), available (bright rim), allocated (gold halo, lit route), pending (rotating dashed
 cyan ring), conflicting (red ✕: the other keystone of a pair you took), sealed (purple ⊘: next to a black hole you own).
@@ -143,22 +153,33 @@ neighbours it boosts or seals, "boosted ×1.5 by", exclusive pair, portal, requi
 | Command | Permission |
 |---|---|
 | `/nostalgiaskills open` | everyone |
-| `/nostalgiaskills inspect <player>` | level 2 |
-| `/nostalgiaskills points add <player> <amount> [override_limit]` | level 3 |
-| `/nostalgiaskills points set <player> <available_amount> [override_limit]` | level 3 |
+| `/nostalgiaskills inspect <player>` | level 2 — ledger, sign, discoveries, switched-off skills, lifetime totals and the next point's price |
+| `/nostalgiaskills audit <player> [lines]` | level 2 — the last entries of the player's audit log (10 by default, up to 100) |
+| `/nostalgiaskills points add <targets> <amount> [override_limit]` | level 3 |
+| `/nostalgiaskills points set <targets> <available_amount> [override_limit]` | level 3 |
 | `/nostalgiaskills unlock <player> <node_id> [grant_cost]` | level 3 — prerequisites and connectivity always apply; `grant_cost` first grants exactly the node's price |
-| `/nostalgiaskills reset <player>` | level 3 (no orb needed) |
+| `/nostalgiaskills refund <player> <node_id>` | level 3 — unlearns the skill and everything that depends on it, refunding what was paid, even when player refunds are off and without an orb |
+| `/nostalgiaskills toggle <player> <node_id>` | level 3 — switches a toggleable skill on or off |
+| `/nostalgiaskills reset <targets>` | level 3 (no orb needed) |
+| `/nostalgiaskills cooldowns clear <targets>` | level 3 — every skill cooldown is ready again |
+| `/nostalgiaskills discoveries reveal <targets> <key>` | level 3 — reveals the hidden skills waiting for that key (an advancement id or a `nostalgiaskills:kill/…`, `spell/…`, `worn/…` key) |
+| `/nostalgiaskills discoveries clear <targets>` | level 3 — forgets every discovery |
+| `/nostalgiaskills sign set <targets> <sign>` | level 3 — sets the birth sign |
+| `/nostalgiaskills sign reroll <targets>` | level 3 — draws another birth sign at random |
+| `/nostalgiaskills extrasign <targets> <true\|false>` | level 3 — grants or takes the second birth sign |
 | `/nostalgiaskills validate` | level 2 — load result, revision, and the first errors with file/field/reason |
 | `/nostalgiaskills integrations` | level 2 — installed integrations and whether each one is active or switched off |
 | `/nostalgiaskills regenerate confirm` | level 3 — draws the whole tree again from the current catalog, as a new world with this seed would get it; skills that leave the tree are refunded (offline players at their next login). Without `confirm` it only explains what will happen |
 | `/nostalgiaskills star <player>` | level 2 — a falling star lands near the player |
 | `/nostalgiaskills eclipse start\|stop` | level 2 — force an eclipse, or end the current sky event |
 | `/nostalgiaskills shower start\|stop` | level 2 — force a star shower, or end the current sky event |
-| `/nostalgiaskills community set <xp>` | level 3 — set the shared constellation's donated XP |
+| `/nostalgiaskills community set\|add <xp>` | level 3 — set the shared constellation's donated XP, or add to it |
 
 `points set` changes the available balance and books the difference as a net administrative grant; purchased points
 and recorded prices are untouched (`available + spent = purchased + granted` always holds). Going above the point
-limit requires the explicit `true` override argument.
+limit requires the explicit `true` override argument. `<targets>` accepts any player selector (`@a`, a name, `@p`…).
+Reloading the server config (editing the file while the server runs) re-prices the tree with the new cost overrides,
+re-applies caps and tuning to every online player and resyncs them; no regeneration is needed.
 
 ## Configuration
 
@@ -170,8 +191,11 @@ limit requires the explicit `true` override argument.
   (on, one per ~30 minutes of night per player), Constellated monster chance (2%) and size (8 skills), `eliteSpawnerMobs` (off: spawner monsters are never Constellated), eclipses (on,
   every ~20 days, `eclipseMonstersSpawn` on), star showers (on, every ~12 days, 4 stars per minute per player),
   `dropStarOnDeath` (`OFF`, `PVP_ONLY`, `ALWAYS`) and the shared constellation (on).
-- **Client** (`config/nostalgiaskills-client.toml`): frame scale, zoom limits, glow intensity, background decoration,
-  reduced motion, detailed tooltips (the exact numbers under a skill's written sentence), high contrast. Client settings never affect costs, rules or bonuses.
+- **Client** (`config/nostalgiaskills-client.toml`, also editable in game from the Mods list): `[tree]` frame scale,
+  zoom limits, zoom step, WASD pan speed, always-detailed tooltips (otherwise hold Shift); `[look]` glow intensity (0
+  turns every glow off), background decoration, reduced motion, high contrast (brighter locked nodes, connections and
+  secondary text); `[feedback]` interface sound volume. Client settings never affect
+  costs, rules or bonuses.
 
 ## Data packs
 
@@ -242,10 +266,16 @@ An optional KubeJS integration ships (see below); packs and addons can build any
 - **Spell damage.** Damage types in `#nostalgiaskills:spell_damage` (Iron's schools and Ars Nouveau spells by default)
   roll the tree's critical chance and critical damage and feed lifesteal like melee does. Other mods add their types
   to that tag. Malum scythes (`#malum:scythe`) count as heavy weapons.
-- **Events** on the NeoForge bus, all nested in `dev.nostalgiacraft.skills.api.SkillEvents`, server side and not
-  cancellable: `PointsBought`, `NodesLearned`, `NodesRefunded`, `BuildReset`, `SkyEventChanged`, `StarLanded`,
-  `EliteSpawned`. Skills removed by reconciliation after a data pack change, or dropped as a Fallen Star, post no
-  event.
+- **Events** on the NeoForge bus, all nested in `dev.nostalgiacraft.skills.api.SkillEvents`, server side.
+  - Cancellable, posted before the change: `PointsBuying` (the purchase is refused with "blocked"), `NodesLearning`,
+    `RefundRequested` (with the skills and points the refund would move), `EliteSpawning` (`setNodeCount` changes the
+    size of the monster's constellation), `StarFalling`, `FallenStarDropping` (the skill is kept) and `TriggerFiring`
+    (the action does not run; the cooldown is still spent).
+  - After the change: `PointsBought`, `NodesLearned`, `NodesRefunded`, `BuildReset`, `NodesLost` (dropped as a Fallen
+    Star), `PointsGranted` (`getPoints` may be negative, `getSource` is `COMMAND`, `ITEM` or `INTEGRATION`: fragments,
+    Fallen Stars, the Cursed Ring and the admin commands), `DiscoveriesRevealed`, `CommunityTierUnlocked`,
+    `SkyEventChanged`, `StarLanded` and `EliteSpawned`. Skills removed by reconciliation after a data pack change post
+    no event.
 - **Apothic Attributes.** With that mod installed, skills granting critical chance, critical damage, dodge, lifesteal,
   mining speed and healing received raise the Apothic attribute of the same name instead of this mod's own, so each
   stat is rolled once and shown as one number. The caps still limit what the tree contributes, but the mechanics are
@@ -419,10 +449,13 @@ integration is built against the first KubeJS 2101 release (`2101.7.0-build.126`
 both. If a KubeJS build ever breaks that API the integration logs one warning and switches itself off, the rest of
 the mod keeps working.
 
-- **Events** (`NostalgiaSkillsEvents`, server scripts, not cancellable): `pointsBought` (`player`, `points`,
-  `xpSpent`), `nodesLearned` (`player`, `nodes`), `nodesRefunded` and `buildReset` (`player`, `nodes`,
+- **Events** (`NostalgiaSkillsEvents`, server scripts): `pointsBought` (`player`, `points`, `xpSpent`),
+  `nodesLearned` (`player`, `nodes`), `nodesRefunded`, `buildReset` and `nodesLost` (`player`, `nodes`,
   `pointsReturned`), `skyEventChanged` (`server`, `before`, `now` as `none`, `eclipse` or `star_shower`),
-  `starLanded` (`level`, `fragment`) and `eliteSpawned` (`monster`).
+  `starLanded` (`level`, `fragment`) and `eliteSpawned` (`monster`). `pointsGranted`, `discoveriesRevealed` and
+  `communityTierUnlocked` hand the NeoForge event over as `event.event` (e.g. `event.event.player`,
+  `event.event.points`). `pointsBuying`, `nodesLearning`, `refundRequested`, `eliteSpawning`, `starFalling`,
+  `fallenStarDropping` and `triggerFiring` do the same and can be stopped with `event.cancel()`.
 - **Binding** (`NostalgiaSkills`, server scripts): `hasNode(player, nodeId)`, `learnedNodes(player)`,
   `availablePoints(player)`, `sign(player)` (`null` before a sign is assigned), `hasExtraSign(player)`,
   `setExtraSign(player, granted)`, `skyEvent()`, `isConstellated(entity)` (for LootJS entity predicates) and
