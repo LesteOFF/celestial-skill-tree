@@ -8,11 +8,10 @@ import dev.nostalgiacraft.skills.graph.SkillEffect;
 import dev.nostalgiacraft.skills.graph.SkillSign;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
+import dev.nostalgiacraft.skills.registry.PersistedPlayerData;
 import net.minecraft.ChatFormatting;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.scores.Objective;
 import net.minecraft.world.scores.ReadOnlyScoreInfo;
 import net.minecraft.world.scores.Scoreboard;
@@ -38,13 +37,11 @@ public final class ExtraSign {
     }
 
     public static boolean isGranted(ServerPlayer player) {
-        return player.getPersistentData().getCompound(Player.PERSISTED_NBT_TAG).getBoolean(GRANTED_KEY);
+        return PersistedPlayerData.read(player).getBoolean(GRANTED_KEY);
     }
 
     public static void setGranted(ServerPlayer player, boolean granted) {
-        CompoundTag persisted = player.getPersistentData().getCompound(Player.PERSISTED_NBT_TAG);
-        persisted.putBoolean(GRANTED_KEY, granted);
-        player.getPersistentData().put(Player.PERSISTED_NBT_TAG, persisted);
+        PersistedPlayerData.update(player, persisted -> persisted.putBoolean(GRANTED_KEY, granted));
         settle(player);
     }
 

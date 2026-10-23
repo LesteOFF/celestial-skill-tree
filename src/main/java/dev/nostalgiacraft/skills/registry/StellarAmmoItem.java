@@ -3,7 +3,6 @@ package dev.nostalgiacraft.skills.registry;
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.config.ServerConfig;
 import net.minecraft.ChatFormatting;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -65,13 +64,11 @@ public final class StellarAmmoItem extends Item {
     }
 
     private static int shots(ServerPlayer shooter) {
-        return shooter.getPersistentData().getCompound(Player.PERSISTED_NBT_TAG).getInt(SHOTS_KEY);
+        return PersistedPlayerData.read(shooter).getInt(SHOTS_KEY);
     }
 
     private static void setShots(ServerPlayer shooter, int shots) {
-        CompoundTag persisted = shooter.getPersistentData().getCompound(Player.PERSISTED_NBT_TAG);
-        persisted.putInt(SHOTS_KEY, shots);
-        shooter.getPersistentData().put(Player.PERSISTED_NBT_TAG, persisted);
+        PersistedPlayerData.update(shooter, persisted -> persisted.putInt(SHOTS_KEY, shots));
     }
 
     @Override

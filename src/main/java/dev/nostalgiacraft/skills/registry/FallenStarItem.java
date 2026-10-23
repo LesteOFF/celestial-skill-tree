@@ -14,21 +14,16 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.level.Level;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
-public final class FallenStarItem extends Item {
+public final class FallenStarItem extends RedeemableItem {
     private static final String OWNER = "owner";
     private static final String OWNER_NAME = "owner_name";
     private static final String NODE = "node";
@@ -62,12 +57,8 @@ public final class FallenStarItem extends Item {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
-        ItemStack stack = player.getItemInHand(hand);
-        if (player instanceof ServerPlayer serverPlayer && !redeem(serverPlayer, stack)) {
-            return InteractionResultHolder.fail(stack);
-        }
-        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
+    protected boolean redeemBy(ServerPlayer player, ItemStack stack) {
+        return redeem(player, stack);
     }
 
     public static boolean redeem(ServerPlayer player, ItemStack stack) {
