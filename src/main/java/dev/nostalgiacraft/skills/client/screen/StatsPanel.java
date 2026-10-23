@@ -29,15 +29,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 
 public final class StatsPanel {
     private static final double BLOCKS_PER_SECOND_PER_SPEED = 43.17;
     private static final String MOD_PREFIX = NostalgiaSkills.MODID + ":";
-    private static final List<String> EXTRA_ATTRIBUTES = List.of("charged_shot_damage", "crossbow_damage",
-            "damage_reduction", "dodge_chance", "harvest_bonus", "healing_received", "heavy_weapon_damage", "lifesteal",
-            "light_weapon_damage", "long_range_damage", "low_health_damage", "magic_resistance", "potion_duration",
-            "projectile_damage");
+    private static final Set<String> SUMMARISED_ATTRIBUTES = Set.of("crit_chance", "crit_damage", "mining_speed",
+            "tool_preservation", "borrowed_keystones");
 
     private StatsPanel() {
     }
@@ -80,13 +79,12 @@ public final class StatsPanel {
         lines.add(text("crit", percent(value(player, ModAttributes.CRIT_CHANCE)), number(1 + value(player, ModAttributes.CRIT_DAMAGE))));
         lines.add(text("mining", signedPercent(value(player, ModAttributes.MINING_SPEED)),
                 signedPercent(value(player, ModAttributes.TOOL_PRESERVATION))));
-        for (String name : EXTRA_ATTRIBUTES) {
-            Holder<Attribute> attribute = ModAttributes.ALL.get(name);
-            double amount = value(player, attribute);
+        ModAttributes.ALL.forEach((name, attribute) -> {
+            double amount = SUMMARISED_ATTRIBUTES.contains(name) ? 0 : value(player, attribute);
             if (amount != 0) {
                 lines.add(text("mod_line", Component.translatable(attribute.value().getDescriptionId()), signedPercent(amount)));
             }
-        }
+        });
     }
 
     private static void addVanilla(List<Component> lines, Player player, Holder<Attribute> attribute, String key) {
@@ -202,7 +200,7 @@ public final class StatsPanel {
                 SkillTooltips.format(AttributeMath.withReplaced(instance, replacements), percent));
     }
 
-    private static double value(Player player, Holder<Attribute> attribute) {
+    public static double value(Player player, Holder<Attribute> attribute) {
         return AttributeAliases.active(attribute.getRegisteredName())
                 .map(alias -> aliasedValue(player, alias))
                 .orElseGet(() -> rawValue(player, Optional.of(attribute)));
@@ -238,7 +236,7 @@ public final class StatsPanel {
         return SkillTooltips.format(fraction, true);
     }
 
-    private static String signedPercent(double fraction) {
+    public static String signedPercent(double fraction) {
         return (fraction >= 0 ? "+" : "") + percent(fraction);
     }
 }
