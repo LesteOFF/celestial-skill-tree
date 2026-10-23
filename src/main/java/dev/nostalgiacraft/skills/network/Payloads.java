@@ -213,13 +213,18 @@ public final class Payloads {
         }
     }
 
-    public record TransactionResult(UUID requestId, boolean ok, String messageKey, String detail)
+    public record TransactionResult(UUID requestId, boolean ok, String messageKey, List<String> arguments)
             implements CustomPacketPayload {
+        public static final String ALLOCATED = "message.nostalgiaskills.allocated";
+        public static final String POINT_BOUGHT = "message.nostalgiaskills.point_bought";
+        public static final String POINTS_BOUGHT = "message.nostalgiaskills.points_bought";
+        public static final int MAX_ARGUMENTS = 8;
         public static final Type<TransactionResult> TYPE = typeOf("transaction_result");
         public static final StreamCodec<ByteBuf, TransactionResult> CODEC = StreamCodec.composite(
                 UUIDUtil.STREAM_CODEC, TransactionResult::requestId, ByteBufCodecs.BOOL, TransactionResult::ok,
-                ByteBufCodecs.stringUtf8(128), TransactionResult::messageKey, ByteBufCodecs.stringUtf8(512),
-                TransactionResult::detail, TransactionResult::new);
+                ByteBufCodecs.stringUtf8(128), TransactionResult::messageKey,
+                ByteBufCodecs.stringUtf8(256).apply(ByteBufCodecs.list(MAX_ARGUMENTS)), TransactionResult::arguments,
+                TransactionResult::new);
 
         public Type<TransactionResult> type() {
             return TYPE;

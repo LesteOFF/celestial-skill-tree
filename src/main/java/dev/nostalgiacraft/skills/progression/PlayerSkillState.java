@@ -75,6 +75,13 @@ public final class PlayerSkillState {
         return repairedOnLoad;
     }
 
+    public PlayerSkillState forClient() {
+        PlayerSkillState view = copy();
+        view.audit.clear();
+        view.migrationMarkers.clear();
+        return view;
+    }
+
     public PlayerSkillState copy() {
         PlayerSkillState copy = restore(treeId, startingRoot, allocations.values(), nextAcquisition, purchasedPoints,
                 netGrantedPoints, availablePoints, lifetimeSpent, lifetimeRefunded, stateRevision,

@@ -86,8 +86,7 @@ public final class ClientSkillState {
     }
 
     public static MutableComponent message(Payloads.TransactionResult result) {
-        Object[] details = result.detail().split("/");
-        return Component.translatable(result.messageKey(), details);
+        return Component.translatable(result.messageKey(), result.arguments().toArray());
     }
 
     public static void setListeners(Consumer<Payloads.TransactionResult> onResult, Runnable onChange) {
@@ -177,7 +176,7 @@ public final class ClientSkillState {
         if (result.requestId().equals(inFlight)) {
             inFlight = null;
         }
-        lastAnswer = result.messageKey() + " " + result.detail();
+        lastAnswer = result.messageKey() + " " + String.join("/", result.arguments());
         resultListener.accept(result);
         if (Minecraft.getInstance().screen == null && Minecraft.getInstance().player != null) {
             Minecraft.getInstance().player.displayClientMessage(message(result).withStyle(result.ok() ? ChatFormatting.GREEN : ChatFormatting.RED), true);
