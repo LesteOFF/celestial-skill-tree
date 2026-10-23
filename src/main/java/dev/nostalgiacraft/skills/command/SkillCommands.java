@@ -8,50 +8,21 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import dev.nostalgiacraft.skills.NostalgiaSkills;
-import dev.nostalgiacraft.skills.api.SkillEvents;
-import dev.nostalgiacraft.skills.config.ServerConfig;
-import dev.nostalgiacraft.skills.data.GeneratedTree;
 import dev.nostalgiacraft.skills.data.SkillTreeManager;
-import dev.nostalgiacraft.skills.effects.EffectEngine;
-import dev.nostalgiacraft.skills.effects.EliteMobs;
-import dev.nostalgiacraft.skills.entity.FallingStar;
-import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
-import dev.nostalgiacraft.skills.graph.ValidationReport;
 import dev.nostalgiacraft.skills.network.Payloads;
-import dev.nostalgiacraft.skills.progression.AllocationService;
-import dev.nostalgiacraft.skills.progression.LedgerService;
-import dev.nostalgiacraft.skills.progression.PlayerSkillState;
-import dev.nostalgiacraft.skills.progression.RejectReason;
-import dev.nostalgiacraft.skills.progression.RespecService;
 import dev.nostalgiacraft.skills.progression.SkyEvent;
-import dev.nostalgiacraft.skills.registry.ModAttachments;
-import dev.nostalgiacraft.skills.registry.ModTags;
-import dev.nostalgiacraft.skills.server.CommunityTree;
-import dev.nostalgiacraft.skills.server.ExtraSign;
-import dev.nostalgiacraft.skills.server.SkillService;
-import dev.nostalgiacraft.skills.server.SkyEvents;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.selector.EntitySelector;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.monster.Monster;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.List;
-import java.util.Optional;
 
 @EventBusSubscriber(modid = NostalgiaSkills.MODID)
 public final class SkillCommands {
@@ -59,8 +30,6 @@ public final class SkillCommands {
     private static final int OWNER_PERMISSION = 3;
     private static final int MAX_GRANT = 10_000;
     private static final int MAX_AVAILABLE = 100_000;
-    private static final int MAX_LISTED_ERRORS = 10;
-    private static final int MAX_LISTED_WARNINGS = 5;
     private static final SuggestionProvider<CommandSourceStack> NODES = (context, builder) -> SharedSuggestionProvider.suggest(
             SkillTreeManager.graph().map(graph -> graph.ids().stream().toList()).orElse(List.of()), builder);
 
@@ -71,7 +40,7 @@ public final class SkillCommands {
     public static void register(RegisterCommandsEvent event) {
         event.getDispatcher().register(Commands.literal("nostalgiaskills")
                 .then(Commands.literal("open").executes(SkillCommands::open))
-                .then(admin("inspect").then(playerArgument().executes(SkillCommands::inspect)))
+                .then(admin("inspect").then(playerArgument().executes(PlayerCommands::inspect)))
                 .then(owner("points")
                         .then(Commands.literal("add").then(playerArgument()
                                 .then(pointsArgument("amount", -MAX_GRANT, MAX_GRANT, true))))
@@ -79,24 +48,25 @@ public final class SkillCommands {
                                 .then(pointsArgument("available_amount", 0, MAX_AVAILABLE, false)))))
                 .then(owner("unlock").then(playerArgument()
                         .then(Commands.argument("node_id", ResourceLocationArgument.id()).suggests(NODES)
-                                .executes(context -> unlock(context, false))
-                                .then(Commands.literal("grant_cost").executes(context -> unlock(context, true))))))
-                .then(owner("reset").then(playerArgument().executes(SkillCommands::reset)))
-                .then(admin("star").then(playerArgument().executes(SkillCommands::star)))
-                .then(admin("constellate").executes(SkillCommands::constellate))
+                                .executes(context -> PlayerCommands.unlock(context, false))
+                                .then(Commands.literal("grant_cost").executes(context -> PlayerCommands.unlock(context, true))))))
+                .then(owner("reset").then(playerArgument().executes(PlayerCommands::reset)))
+                .then(admin("star").then(playerArgument().executes(WorldCommands::star)))
+                .then(admin("constellate").executes(WorldCommands::constellate))
                 .then(owner("extrasign").then(playerArgument()
-                        .then(Commands.argument("granted", BoolArgumentType.bool()).executes(SkillCommands::extraSign))))
+                        .then(Commands.argument("granted", BoolArgumentType.bool()).executes(PlayerCommands::extraSign))))
                 .then(owner("community").then(Commands.literal("set")
-                        .then(Commands.argument("xp", IntegerArgumentType.integer(0)).executes(SkillCommands::community))))
+                        .then(Commands.argument("xp", IntegerArgumentType.integer(0)).executes(WorldCommands::community))))
                 .then(admin("eclipse")
-                        .then(Commands.literal("start").executes(context -> skyEvent(context, SkyEvent.ECLIPSE, true)))
-                        .then(Commands.literal("stop").executes(context -> skyEvent(context, SkyEvent.ECLIPSE, false))))
+                        .then(Commands.literal("start").executes(context -> WorldCommands.skyEvent(context, SkyEvent.ECLIPSE, true)))
+                        .then(Commands.literal("stop").executes(context -> WorldCommands.skyEvent(context, SkyEvent.ECLIPSE, false))))
                 .then(admin("shower")
-                        .then(Commands.literal("start").executes(context -> skyEvent(context, SkyEvent.STAR_SHOWER, true)))
-                        .then(Commands.literal("stop").executes(context -> skyEvent(context, SkyEvent.STAR_SHOWER, false))))
-                .then(admin("validate").executes(SkillCommands::validate))
-                .then(owner("regenerate").executes(SkillCommands::regenerateWarning)
-                        .then(Commands.literal("confirm").executes(SkillCommands::regenerate))));
+                        .then(Commands.literal("start").executes(context -> WorldCommands.skyEvent(context, SkyEvent.STAR_SHOWER, true)))
+                        .then(Commands.literal("stop").executes(context -> WorldCommands.skyEvent(context, SkyEvent.STAR_SHOWER, false))))
+                .then(admin("validate").executes(TreeCommands::validate))
+                .then(admin("integrations").executes(TreeCommands::integrations))
+                .then(owner("regenerate").executes(TreeCommands::regenerateWarning)
+                        .then(Commands.literal("confirm").executes(TreeCommands::regenerate))));
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> admin(String name) {
@@ -114,178 +84,13 @@ public final class SkillCommands {
     private static RequiredArgumentBuilder<CommandSourceStack, Integer> pointsArgument(String name, int min, int max,
                                                                                     boolean add) {
         return Commands.argument(name, IntegerArgumentType.integer(min, max))
-                .executes(context -> points(context, name, add, false))
+                .executes(context -> PlayerCommands.points(context, name, add, false))
                 .then(Commands.argument("override_limit", BoolArgumentType.bool())
-                        .executes(context -> points(context, name, add, BoolArgumentType.getBool(context, "override_limit"))));
+                        .executes(context -> PlayerCommands.points(context, name, add, BoolArgumentType.getBool(context, "override_limit"))));
     }
 
     private static int open(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         PacketDistributor.sendToPlayer(context.getSource().getPlayerOrException(), new Payloads.OpenScreen(false));
         return 1;
-    }
-
-    private static void changed(ServerPlayer player) {
-        EffectEngine.refresh(player);
-        SkillService.sendState(player);
-    }
-
-    private static void fail(CommandContext<CommandSourceStack> context, RejectReason reason) {
-        context.getSource().sendFailure(Component.translatable(reason.translationKey()));
-    }
-
-    private static int inspect(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        ServerPlayer player = EntityArgument.getPlayer(context, "player");
-        PlayerSkillState state = ModAttachments.state(player);
-        context.getSource().sendSuccess(() -> Component.translatable("command.nostalgiaskills.inspect", player.getDisplayName(),
-                state.purchasedPoints(), state.netGrantedPoints(), state.activeSpentPoints(), state.availablePoints(),
-                state.allocations().size(), state.startingRoot().orElse("-"), state.stateRevision(),
-                state.ledgerHolds() ? "ok" : "BROKEN"), false);
-        return state.allocations().size();
-    }
-
-    private static int points(CommandContext<CommandSourceStack> context, String amountArgument, boolean add,
-                              boolean override) throws CommandSyntaxException {
-        ServerPlayer player = EntityArgument.getPlayer(context, "player");
-        PlayerSkillState state = ModAttachments.state(player);
-        int limit = ServerConfig.POINT_LIMIT.get();
-        int amount = IntegerArgumentType.getInteger(context, amountArgument);
-        LedgerService.Result result = add ? LedgerService.grant(state, amount, limit, override)
-                : LedgerService.setAvailable(state, amount, limit, override);
-        if (!result.ok()) {
-            fail(context, result.reason().orElseThrow());
-            return 0;
-        }
-        changed(player);
-        String messageKey = override ? "command.nostalgiaskills.points.override" : "command.nostalgiaskills.points";
-        context.getSource().sendSuccess(
-                () -> Component.translatable(messageKey, player.getDisplayName(), result.available(), limit), true);
-        return result.available();
-    }
-
-    private static int unlock(CommandContext<CommandSourceStack> context, boolean grantCost) throws CommandSyntaxException {
-        ServerPlayer player = EntityArgument.getPlayer(context, "player");
-        String id = ResourceLocationArgument.getId(context, "node_id").toString();
-        Optional<SkillGraphSnapshot> graph = SkillTreeManager.graph();
-        if (graph.isEmpty()) {
-            fail(context, RejectReason.TREE_UNAVAILABLE);
-            return 0;
-        }
-        PlayerSkillState state = ModAttachments.state(player);
-        if (grantCost && graph.get().contains(id) && !grantCostOf(context, graph.get(), state, id)) {
-            return 0;
-        }
-        AllocationService.BatchResult result = AllocationService.confirm(graph.get(), state, List.of(id));
-        if (!result.ok()) {
-            RejectReason reason = result.rejection().orElseThrow().reason();
-            context.getSource().sendFailure(Component.translatable(reason.translationKey()).append(" (" + id + ")"));
-            return 0;
-        }
-        changed(player);
-        SkillEvents.post(new SkillEvents.NodesLearned(player, result.nodeIds()));
-        context.getSource().sendSuccess(() -> Component.translatable("command.nostalgiaskills.unlock", id,
-                player.getDisplayName(), result.totalCost()), true);
-        return 1;
-    }
-
-    private static boolean grantCostOf(CommandContext<CommandSourceStack> context, SkillGraphSnapshot graph,
-                                       PlayerSkillState state, String id) {
-        int cost = graph.nodes().get(id).cost();
-        PlayerSkillState trial = state.copy();
-        LedgerService.grant(trial, cost, Integer.MAX_VALUE, true);
-        AllocationService.BatchResult trialResult = AllocationService.validate(graph, trial, List.of(id));
-        if (!trialResult.ok()) {
-            fail(context, trialResult.rejection().orElseThrow().reason());
-            return false;
-        }
-        LedgerService.grant(state, cost, Integer.MAX_VALUE, true);
-        return true;
-    }
-
-    private static int reset(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        ServerPlayer player = EntityArgument.getPlayer(context, "player");
-        RespecService.Preview done = RespecService.resetAll(ModAttachments.state(player));
-        changed(player);
-        SkillEvents.post(new SkillEvents.BuildReset(player, done.removed(), done.refund()));
-        context.getSource().sendSuccess(() -> Component.translatable("command.nostalgiaskills.reset", player.getDisplayName(),
-                done.refund(), done.removed().size()), true);
-        return done.refund();
-    }
-
-    private static int star(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        ServerPlayer player = EntityArgument.getPlayer(context, "player");
-        boolean fell = FallingStar.spawnNear(player).isPresent();
-        context.getSource().sendSuccess(() -> Component.translatable(fell ? "command.nostalgiaskills.star"
-                : "command.nostalgiaskills.star.unloaded", player.getDisplayName()), true);
-        return fell ? 1 : 0;
-    }
-
-    private static int constellate(CommandContext<CommandSourceStack> context) {
-        CommandSourceStack source = context.getSource();
-        Optional<Holder<EntityType<?>>> type = BuiltInRegistries.ENTITY_TYPE.getRandomElementOf(ModTags.RITUAL_CONSTELLATED,
-                source.getLevel().getRandom());
-        Entity summoned = type.map(Holder::value)
-                .map(chosen -> chosen.spawn(source.getLevel(), BlockPos.containing(source.getPosition()), MobSpawnType.COMMAND))
-                .orElse(null);
-        if (summoned instanceof Monster monster && EliteMobs.constellate(monster)) {
-            source.sendSuccess(() -> Component.translatable("command.nostalgiaskills.constellate", monster.getDisplayName()), true);
-            return 1;
-        }
-        if (summoned != null) {
-            summoned.discard();
-        }
-        source.sendFailure(Component.translatable("command.nostalgiaskills.constellate.failed"));
-        return 0;
-    }
-
-    private static int extraSign(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        ServerPlayer player = EntityArgument.getPlayer(context, "player");
-        boolean granted = BoolArgumentType.getBool(context, "granted");
-        ExtraSign.setGranted(player, granted);
-        context.getSource().sendSuccess(() -> Component.translatable(granted ? "command.nostalgiaskills.extrasign.granted"
-                : "command.nostalgiaskills.extrasign.revoked", player.getDisplayName()), true);
-        return 1;
-    }
-
-    private static int skyEvent(CommandContext<CommandSourceStack> context, SkyEvent event, boolean start) {
-        SkyEvents.force(context.getSource().getServer(), start ? event : SkyEvent.NONE);
-        String messageKey = "command.nostalgiaskills." + event.id() + (start ? ".start" : ".stop");
-        context.getSource().sendSuccess(() -> Component.translatable(messageKey), true);
-        return 1;
-    }
-
-    private static int community(CommandContext<CommandSourceStack> context) {
-        int xp = IntegerArgumentType.getInteger(context, "xp");
-        CommunityTree.setProgress(context.getSource().getServer(), xp);
-        context.getSource().sendSuccess(() -> Component.translatable("command.nostalgiaskills.community", xp), true);
-        return 1;
-    }
-
-    private static int regenerateWarning(CommandContext<CommandSourceStack> context) {
-        context.getSource().sendFailure(Component.translatable("command.nostalgiaskills.regenerate_warning"));
-        return 0;
-    }
-
-    private static int regenerate(CommandContext<CommandSourceStack> context) {
-        CommandSourceStack source = context.getSource();
-        GeneratedTree.regenerateFor(source.getServer());
-        source.getServer().getPlayerList().getPlayers().forEach(SkillService::resync);
-        int nodes = SkillTreeManager.graph().map(graph -> graph.nodes().size()).orElse(0);
-        source.sendSuccess(() -> Component.translatable("command.nostalgiaskills.regenerated", nodes), true);
-        return SkillTreeManager.graph().isPresent() ? 1 : 0;
-    }
-
-    private static int validate(CommandContext<CommandSourceStack> context) {
-        CommandSourceStack source = context.getSource();
-        ValidationReport report = SkillTreeManager.lastReport();
-        List<String> readErrors = SkillTreeManager.readErrors();
-        source.sendSuccess(() -> Component.translatable("command.nostalgiaskills.validate",
-                SkillTreeManager.lastResult().name(), SkillTreeManager.graph().map(graph -> graph.nodes().size()).orElse(0),
-                SkillTreeManager.revision(), report.errors().size() + readErrors.size(), report.warnings().size()), false);
-        readErrors.stream().limit(MAX_LISTED_ERRORS).forEach(error -> source.sendFailure(Component.literal(error)));
-        report.errors().stream().limit(MAX_LISTED_ERRORS)
-                .forEach(issue -> source.sendFailure(Component.literal(issue.toString())));
-        report.warnings().stream().limit(MAX_LISTED_WARNINGS)
-                .forEach(issue -> source.sendSuccess(() -> Component.literal(issue.toString()), false));
-        return report.hasErrors() ? 0 : 1;
     }
 }
