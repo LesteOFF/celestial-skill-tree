@@ -1,4 +1,10 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "apotheosis"
+    }
+  ],
   "type": "apotheosis:attribute",
   "attribute": "nostalgiaskills:borrowed_keystones",
   "categories": [
