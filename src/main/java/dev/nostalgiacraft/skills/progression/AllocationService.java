@@ -159,6 +159,14 @@ public final class AllocationService {
                 .sum();
     }
 
+    public static int priceWithFreeStart(SkillGraphSnapshot graph, PlayerSkillState state, Collection<String> pending, SkillNodeDefinition node) {
+        return node.isRoot() && freeStartOpen(graph, state, pending) ? 0 : priceOf(graph, node, state::isAllocated);
+    }
+
+    public static boolean freeStartOpen(SkillGraphSnapshot graph, PlayerSkillState state, Collection<String> pending) {
+        return state.startingRoot().isEmpty() && pending.stream().noneMatch(id -> graph.node(id).filter(SkillNodeDefinition::isRoot).isPresent());
+    }
+
     public static int priceOf(SkillGraphSnapshot graph, SkillNodeDefinition node, Predicate<String> held) {
         return graph.portalDestination(node.id()).filter(held).isPresent() ? 0 : node.cost();
     }

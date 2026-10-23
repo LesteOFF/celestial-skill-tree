@@ -1,7 +1,6 @@
 package dev.nostalgiacraft.skills.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.client.ClientRequests;
 import dev.nostalgiacraft.skills.client.ClientSkillState;
 import dev.nostalgiacraft.skills.client.render.BackgroundRenderer;
@@ -22,38 +21,27 @@ import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.progression.RefundService;
 import dev.nostalgiacraft.skills.progression.RejectReason;
 import dev.nostalgiacraft.skills.progression.ToggleService;
-import dev.nostalgiacraft.skills.progression.XpCurve;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.util.Mth;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public final class SkillTreeScreen extends Screen {
-    private enum Panel {
+    enum Panel {
         NONE, STATS, RESET, DISCARD, DEPENDENTS, REFUND;
 
         boolean isModal() {
@@ -71,40 +59,73 @@ public final class SkillTreeScreen extends Screen {
     private static final double STATS_PANEL_LEFT_FRACTION = 0.62;
     private static final double MIN_FOCUS_DIRECTION_COSINE = 0.5;
     private static final double NEIGHBOUR_FOCUS_BONUS = 15;
-    private static final int MARGIN = 8;
-    private static final int GAP = 6;
-    private static final int ROW_SPACING = 4;
-    private static final int TOP = 6;
-    private static final int BUTTON_HEIGHT = 20;
-    private static final int BUTTON_TEXT_PADDING = 20;
-    private static final int MIN_BUTTON_WIDTH = 132;
-    private static final int MAX_BUTTON_WIDTH = 150;
-    private static final int NARROW_WIDTH = 60;
-    private static final int CAMERA_BUTTON_WIDTH = 44;
-    private static final int BESIDE_SEARCH_WIDTH = 120;
-    private static final int BELOW_SEARCH_WIDTH = 140;
     private static final int BOTTOM_BAR_HEIGHT = 34;
-    private static final int COMMUNITY_BUTTON_WIDTH = 72;
-    private static final int COMMUNITY_BUTTON_BOTTOM_OFFSET = 26;
-    private static final int SIGN_BUTTON_BOTTOM_OFFSET = 50;
-    private static final int HIDDEN_BUTTON_BOTTOM_OFFSET = 74;
+    private static final int ZOOM_LABEL_MARGIN = 8;
     private static final float STARGAZING_PITCH = -70f;
     private static final int REAL_SKY_TINT = 0x40050C10;
-    private static final int POINTS_LABEL_SAMPLE = 888;
     private static final int MIN_TOOLTIP_WIDTH = 120;
     private static final int MAX_TOOLTIP_WIDTH = 260;
     private static final long STATS_REFRESH_MILLIS = 500;
-    private static final Set<String> POINT_BOUGHT_MESSAGES = Set.of("message.nostalgiaskills.point_bought",
-            "message.nostalgiaskills.points_bought");
+    private static final Set<String> POINT_BOUGHT_MESSAGES = Set.of(Payloads.TransactionResult.POINT_BOUGHT,
+            Payloads.TransactionResult.POINTS_BOUGHT);
 
-    private final Camera camera = new Camera();
+    final Camera camera = new Camera();
     private final SpriteBatch sprites = new SpriteBatch();
-    private List<Object> shownControls = List.of();
+    private final TreeHud hud = new TreeHud(new TreeHud.Actions() {
+        @Override
+        public void buy(int count) {
+            buyPoints(count);
+        }
+
+        @Override
+        public void toggleStats() {
+            panel = panel == Panel.STATS ? Panel.NONE : Panel.STATS;
+        }
+
+        @Override
+        public void confirm() {
+            SkillTreeScreen.this.confirm();
+        }
+
+        @Override
+        public void cancel() {
+            cancelPending();
+        }
+
+        @Override
+        public void openCommunity() {
+            minecraft.setScreen(new CommunityScreen(SkillTreeScreen.this));
+        }
+
+        @Override
+        public void openSign() {
+            minecraft.setScreen(new BirthSignScreen(SkillTreeScreen.this));
+        }
+
+        @Override
+        public void toggleHiddenRegion() {
+            SkillTreeScreen.this.toggleHiddenRegion();
+        }
+
+        @Override
+        public void home() {
+            SkillTreeScreen.this.home();
+        }
+
+        @Override
+        public void fit() {
+            SkillTreeScreen.this.fit();
+        }
+
+        @Override
+        public void search(String query) {
+            onSearch(query);
+        }
+    });
     private List<Component> statsCache = List.of();
     private List<Object> statsKey = List.of();
     private long statsAt;
-    private final Set<String> pending = new LinkedHashSet<>();
-    private final Map<String, Integer> pendingRanks = new LinkedHashMap<>();
+    final PendingSelection pending = new PendingSelection();
     private final Set<String> searchHits = new LinkedHashSet<>();
     private final PanelRenderer panelRenderer = new PanelRenderer();
     private final long openedAt = Util.getMillis();
@@ -112,13 +133,13 @@ public final class SkillTreeScreen extends Screen {
     private final ConfirmSparks sparks = new ConfirmSparks();
     private boolean openingSoundPlayed;
     private List<String> confirming = List.of();
-    private NodeStates nodeStates = NodeStates.EMPTY;
-    private boolean statesDirty = true;
-    private boolean cameraPlaced;
+    NodeStates nodeStates = NodeStates.EMPTY;
+    boolean statesDirty = true;
+    boolean cameraPlaced;
     private int seenGraphRevision = -1;
     private long seenStateRevision = -1;
 
-    private Panel panel = Panel.NONE;
+    Panel panel = Panel.NONE;
     private String dependentsOf;
     private Set<String> dependents = Set.of();
     private String refundOf;
@@ -142,21 +163,11 @@ public final class SkillTreeScreen extends Screen {
     private long messageUntil;
     private int searchIndex = -1;
 
-    private Button buyButton;
-    private Button pointsButton;
-    private Button statsButton;
-    private Button confirmButton;
-    private Button cancelButton;
-    private Button communityButton;
-    private Button signButton;
-    private Button hiddenButton;
     private boolean stargazing;
     private float pitchBeforeStargazing;
-    private EditBox search;
-    private int controlsBottom;
 
-    private double qaMouseX = Double.NaN;
-    private double qaMouseY = Double.NaN;
+    double simulatedMouseX = Double.NaN;
+    double simulatedMouseY = Double.NaN;
 
     public SkillTreeScreen() {
         super(Component.translatable("gui.nostalgiaskills.title"));
@@ -181,11 +192,11 @@ public final class SkillTreeScreen extends Screen {
         return Component.translatable(reason.translationKey()).withStyle(ChatFormatting.RED);
     }
 
-    private static SkillGraphSnapshot graph() {
+    static SkillGraphSnapshot graph() {
         return ClientSkillState.graph().orElseThrow();
     }
 
-    private static PlayerSkillState playerState() {
+    static PlayerSkillState playerState() {
         return ClientSkillState.state().orElseThrow();
     }
 
@@ -194,132 +205,19 @@ public final class SkillTreeScreen extends Screen {
         return false;
     }
 
-    public void qaSetup(Collection<String> pendingIds, boolean stats, boolean reset) {
-        clearPending();
-        pending.addAll(pendingIds);
-        panel = stats ? Panel.STATS : reset ? Panel.RESET : Panel.NONE;
-        statesDirty = true;
-    }
-
-    public void qaHover(String nodeId) {
-        ClientSkillState.graph().flatMap(graph -> graph.node(nodeId)).ifPresent(node -> {
-            camera.centerOn(node.position().x(), node.position().y());
-            qaMouseX = camera.toScreenX(node.position().x());
-            qaMouseY = camera.toScreenY(node.position().y());
-        });
-    }
-
-    public void qaHoverAt(String nodeId, double widthFraction, double heightFraction) {
-        ClientSkillState.graph().flatMap(graph -> graph.node(nodeId)).ifPresent(node -> {
-            double screenX = width * widthFraction;
-            double screenY = height * heightFraction;
-            camera.centerOn(node.position().x() - (screenX - camera.vcx()) / camera.zoomValue(),
-                    node.position().y() - (screenY - camera.vcy()) / camera.zoomValue());
-            qaMouseX = screenX;
-            qaMouseY = screenY;
-        });
-    }
-
-    public void qaBuy() {
-        buyPoints(1);
-    }
-
-    public void qaBuyMany(int count) {
-        buyPoints(count);
-    }
-
-    public CommunityScreen qaOpenCommunity() {
-        CommunityScreen community = new CommunityScreen(this);
-        minecraft.setScreen(community);
-        return community;
-    }
-
-    public void qaOpenSign() {
-        minecraft.setScreen(new BirthSignScreen(this));
-    }
-
-    public void qaShowStats() {
-        panel = Panel.STATS;
-    }
-
-    public String qaPending() {
-        refreshStatesIfDirty();
-        return pending.size() + " node(s), " + nodeStates.pendingCost() + " point(s)";
-    }
-
-    public List<String> qaStatsText() {
-        refreshStatesIfDirty();
-        return statsLines().stream().map(Component::getString).toList();
-    }
-
-    public void qaConfirm() {
-        confirm();
-    }
-
-    public void qaReset() {
-        sendReset();
-    }
-
-    public void qaRefund(String nodeId) {
-        openRefundPanel(nodeId);
-        statesDirty = false;
-    }
-
-    public void qaConfirmRefund() {
-        sendRefund();
-    }
-
-    public String qaRefundPreview(String nodeId) {
-        RefundService.Plan plan = RefundService.plan(graph(), playerState(), nodeId, ClientSkillState.economy().nodeRefundsEnabled());
-        return plan.ok() ? plan.removed().size() + " node(s), " + plan.refund() + " point(s): " + plan.removed()
-                : "rejected: " + plan.reason().orElseThrow();
-    }
-
-    public void qaFit() {
-        cameraPlaced = true;
-        fit();
-    }
-
-    public void qaZoom(double zoom, String centerNode) {
-        cameraPlaced = true;
-        camera.zoom = zoom;
-        String nodeId = centerNode.contains(":") ? centerNode : NostalgiaSkills.MODID + ":" + centerNode;
-        ClientSkillState.graph().flatMap(graph -> graph.node(nodeId)).ifPresent(this::centerOn);
-    }
-
     @Override
     protected void init() {
         ClientSkillState.setListeners(this::onResult, () -> statesDirty = true);
         ClientRequests.send(new Payloads.RequestSync(ClientSkillState.graph().map(SkillGraphSnapshot::fingerprint).orElse("")));
         playOpeningSoundOnce();
-        int buttonWidth = mainButtonWidth();
-        int groupWidth = 3 * buttonWidth + 2 * GAP;
-        int groupLeft = (width - groupWidth) / 2;
-        int secondRowY = TOP + BUTTON_HEIGHT + ROW_SPACING;
-        addMainButtons(groupLeft, secondRowY, buttonWidth);
-        boolean toolsFitBeside = groupLeft - MARGIN >= NARROW_WIDTH
-                && width - (groupLeft + groupWidth) - MARGIN >= 2 * CAMERA_BUTTON_WIDTH + GAP;
-        int toolsY = toolsFitBeside ? TOP : secondRowY + BUTTON_HEIGHT + ROW_SPACING;
-        int searchWidth = toolsFitBeside ? Math.min(BESIDE_SEARCH_WIDTH, Math.max(NARROW_WIDTH, groupLeft - 2 * MARGIN))
-                : Math.min(BELOW_SEARCH_WIDTH, width / 3);
-        addTools(toolsY, searchWidth);
-        communityButton = addRenderableWidget(new SkillButton(MARGIN, height - COMMUNITY_BUTTON_BOTTOM_OFFSET,
-                COMMUNITY_BUTTON_WIDTH, BUTTON_HEIGHT, text("community"), button -> minecraft.setScreen(new CommunityScreen(this))));
-        communityButton.setTooltip(Tooltip.create(text("community_tooltip")));
-        signButton = addRenderableWidget(new SkillButton(MARGIN, height - SIGN_BUTTON_BOTTOM_OFFSET,
-                COMMUNITY_BUTTON_WIDTH, BUTTON_HEIGHT, text("sign"), button -> minecraft.setScreen(new BirthSignScreen(this))));
-        signButton.setTooltip(Tooltip.create(text("sign_tooltip")));
-        hiddenButton = addRenderableWidget(new SkillButton(MARGIN, height - HIDDEN_BUTTON_BOTTOM_OFFSET,
-                COMMUNITY_BUTTON_WIDTH, BUTTON_HEIGHT, text("hidden"), button -> toggleHiddenRegion()));
-        hiddenButton.setTooltip(Tooltip.create(text("hidden_tooltip")));
-        controlsBottom = (toolsFitBeside ? secondRowY : toolsY) + BUTTON_HEIGHT + ROW_SPACING;
+        hud.layout(font, width, height, this::addRenderableWidget);
         double centerX = camera.centerX();
         double centerY = camera.centerY();
-        camera.setViewport(0, controlsBottom, width, height - BOTTOM_BAR_HEIGHT);
+        camera.setViewport(0, hud.controlsBottom(), width, height - BOTTOM_BAR_HEIGHT);
         if (cameraPlaced) {
             camera.centerOn(centerX, centerY);
         }
-        updateControls();
+        hud.update(pending, nodeStates);
     }
 
     private void playOpeningSoundOnce() {
@@ -327,44 +225,6 @@ public final class SkillTreeScreen extends Screen {
             openingSoundPlayed = true;
             TreeSounds.opened();
         }
-    }
-
-    private int mainButtonWidth() {
-        int widestLabel = Stream.of(text("buy_point"), text("points_left", POINTS_LABEL_SAMPLE), text("show_stats"),
-                text("confirm"), text("cancel")).mapToInt(font::width).max().orElse(0);
-        int preferred = Mth.clamp(widestLabel + BUTTON_TEXT_PADDING, MIN_BUTTON_WIDTH, MAX_BUTTON_WIDTH);
-        int available = width - 2 * MARGIN;
-        return 3 * preferred + 2 * GAP > available ? Math.max(NARROW_WIDTH, (available - 2 * GAP) / 3) : preferred;
-    }
-
-    private void addMainButtons(int groupLeft, int secondRowY, int buttonWidth) {
-        int step = buttonWidth + GAP;
-        buyButton = addRenderableWidget(new SkillButton(groupLeft, TOP, buttonWidth, BUTTON_HEIGHT, text("buy_point"),
-                button -> buyPoints(hasShiftDown() ? bulkBuyTarget() : 1)));
-        pointsButton = addRenderableWidget(new SkillButton(groupLeft + step, TOP, buttonWidth, BUTTON_HEIGHT,
-                Component.empty(), button -> { }));
-        pointsButton.active = false;
-        statsButton = addRenderableWidget(new SkillButton(groupLeft + 2 * step, TOP, buttonWidth, BUTTON_HEIGHT,
-                text("show_stats"), button -> panel = panel == Panel.STATS ? Panel.NONE : Panel.STATS));
-        int secondRowLeft = (width - (2 * buttonWidth + GAP)) / 2;
-        confirmButton = addRenderableWidget(new SkillButton(secondRowLeft, secondRowY, buttonWidth, BUTTON_HEIGHT,
-                text("confirm"), button -> confirm()));
-        cancelButton = addRenderableWidget(new SkillButton(secondRowLeft + step, secondRowY, buttonWidth, BUTTON_HEIGHT,
-                text("cancel"), button -> cancelPending()));
-    }
-
-    private void addTools(int y, int searchWidth) {
-        search = new EditBox(font, MARGIN, y, searchWidth, BUTTON_HEIGHT, text("search"));
-        search.setHint(text("search_hint"));
-        search.setResponder(this::onSearch);
-        addRenderableWidget(search);
-        int cameraLeft = width - MARGIN - 2 * CAMERA_BUTTON_WIDTH - GAP;
-        Button homeButton = addRenderableWidget(new SkillButton(cameraLeft, y, CAMERA_BUTTON_WIDTH, BUTTON_HEIGHT,
-                text("home"), button -> home()));
-        Button fitButton = addRenderableWidget(new SkillButton(cameraLeft + CAMERA_BUTTON_WIDTH + GAP, y,
-                CAMERA_BUTTON_WIDTH, BUTTON_HEIGHT, text("fit"), button -> fit()));
-        homeButton.setTooltip(Tooltip.create(text("home_tooltip")));
-        fitButton.setTooltip(Tooltip.create(text("fit_tooltip")));
     }
 
     @Override
@@ -400,7 +260,7 @@ public final class SkillTreeScreen extends Screen {
         }
     }
 
-    private void centerOn(SkillNodeDefinition node) {
+    void centerOn(SkillNodeDefinition node) {
         camera.centerOn(node.position().x(), node.position().y());
     }
 
@@ -409,11 +269,11 @@ public final class SkillTreeScreen extends Screen {
                 .flatMap(graph::node).ifPresentOrElse(this::centerOn, () -> camera.centerOn(0, 0)));
     }
 
-    private void fit() {
+    void fit() {
         ClientSkillState.graph().flatMap(TreeRegion::main).ifPresent(this::fit);
     }
 
-    private void fit(TreeRegion region) {
+    void fit(TreeRegion region) {
         camera.fit(region.minX(), region.minY(), region.maxX(), region.maxY(), FIT_PADDING);
     }
 
@@ -430,7 +290,7 @@ public final class SkillTreeScreen extends Screen {
                 .map(region -> region.presenceAt(camera.centerX(), camera.centerY())).orElse(0.0);
     }
 
-    private void refreshStatesIfDirty() {
+    void refreshStatesIfDirty() {
         if (statesDirty) {
             refreshStates();
         }
@@ -443,7 +303,7 @@ public final class SkillTreeScreen extends Screen {
         SkillGraphSnapshot graph = graph();
         PlayerSkillState state = playerState();
         dropOutdatedPending(graph, state);
-        nodeStates = NodeStates.compute(graph, state, request());
+        nodeStates = NodeStates.compute(graph, state, pending.request());
         if (panel == Panel.REFUND) {
             refundPlan = RefundService.plan(graph, state, refundOf, ClientSkillState.economy().nodeRefundsEnabled());
             if (!refundPlan.ok()) {
@@ -454,114 +314,33 @@ public final class SkillTreeScreen extends Screen {
         statesDirty = false;
         tooltipCache = null;
         routeFor = null;
-        updateControls();
+        hud.update(pending, nodeStates);
     }
 
     private void refreshSearchHits() {
-        if (search == null) {
+        if (hud.search() == null) {
             return;
         }
         int kept = searchIndex;
-        onSearch(search.getValue());
+        onSearch(hud.search().getValue());
         searchIndex = Math.min(kept, searchHits.size() - 1);
     }
 
     private void dropOutdatedPending(SkillGraphSnapshot graph, PlayerSkillState state) {
         boolean graphChanged = seenGraphRevision != -1 && seenGraphRevision != ClientSkillState.graphRevision();
-        if (graphChanged && hasPending()) {
-            clearPending();
+        if (graphChanged && !pending.isEmpty()) {
+            pending.clear();
             flash(text("pending_invalidated"));
         }
         seenGraphRevision = ClientSkillState.graphRevision();
         if (state.stateRevision() != seenStateRevision) {
             seenStateRevision = state.stateRevision();
-            pending.removeIf(id -> !graph.contains(id) || state.isAllocated(id));
-            pendingRanks.entrySet().removeIf(marked -> !graph.contains(marked.getKey())
-                    || !state.isAllocated(marked.getKey()) && !pending.contains(marked.getKey())
-                    || marked.getValue() > AllocationService.rankRoom(graph, state, marked.getKey()));
+            pending.retainValid(graph, state);
         }
     }
 
     private boolean affordable(SkillNodeDefinition node, PlayerSkillState state) {
-        boolean freeStart = node.isRoot() && freeStartOpen(state);
-        int cost = freeStart ? 0 : AllocationService.priceOf(graph(), node, state::isAllocated);
-        return state.availablePoints() - nodeStates.pendingCost() >= cost;
-    }
-
-    private boolean freeStartOpen(PlayerSkillState state) {
-        return state.startingRoot().isEmpty() && pending.stream().noneMatch(id -> graph().nodes().get(id).isRoot());
-    }
-
-    private void updateControls() {
-        if (confirmButton == null) {
-            return;
-        }
-        shownControls = controlsKey();
-        boolean ready = ClientSkillState.ready();
-        boolean busy = ClientSkillState.requestInFlight();
-        PlayerSkillState state = ClientSkillState.state().orElse(null);
-        int available = state == null ? 0 : state.availablePoints();
-        int pendingCost = nodeStates.pendingCost();
-        pointsButton.setMessage(text("points_left", available - pendingCost));
-        pointsButton.setTooltip(Tooltip.create(text("points_tooltip", available, pendingCost)));
-        updateBuyButton(ready && !busy, state == null ? 0 : state.purchasedPoints());
-        confirmButton.active = ready && !busy && hasPending() && pendingCost <= available;
-        confirmButton.setTooltip(Tooltip.create(confirmTooltip(busy, available)));
-        cancelButton.active = hasPending();
-        cancelButton.setTooltip(Tooltip.create(text(hasPending() ? "cancel_tooltip" : "cancel_tooltip_empty")));
-        statsButton.active = ready;
-        communityButton.visible = !ClientSkillState.worldRules().communityTiers().isEmpty();
-        signButton.visible = state != null && state.sign().isPresent();
-        hiddenButton.visible = ClientSkillState.graph().flatMap(TreeRegion::hidden).isPresent();
-    }
-
-    private Component confirmTooltip(boolean busy, int available) {
-        int pendingCost = nodeStates.pendingCost();
-        if (!hasPending()) {
-            return text("confirm_tooltip_empty");
-        }
-        if (busy) {
-            return text("confirm_tooltip_busy");
-        }
-        return pendingCost > available ? text("confirm_tooltip_cost", pendingCost, available)
-                : text("confirm_tooltip", request().size(), pendingCost);
-    }
-
-    private void updateBuyButton(boolean idle, int purchased) {
-        Payloads.Economy economy = ClientSkillState.economy();
-        long balance = ClientSkillState.xpBalance();
-        int cost = economy.nextPointCost();
-        boolean atLimit = purchased >= economy.pointLimit();
-        buyButton.active = idle && economy.xpPurchaseEnabled() && !atLimit && balance >= cost;
-        buyButton.setTooltip(Tooltip.create(buyTooltip(economy, balance, purchased, atLimit)));
-    }
-
-    private Component buyTooltip(Payloads.Economy economy, long balance, int purchased, boolean atLimit) {
-        if (!ClientSkillState.ready()) {
-            return text("loading");
-        }
-        if (!economy.xpPurchaseEnabled()) {
-            return Component.translatable(RejectReason.PROGRESSION_DISABLED.translationKey());
-        }
-        if (atLimit) {
-            return text("buy_tooltip_max", economy.pointLimit());
-        }
-        int cost = economy.nextPointCost();
-        MutableComponent tooltip = Component.empty().append(text("buy_tooltip", cost, balance, Math.max(0, balance - cost)));
-        if (balance < cost) {
-            tooltip.append("\n").append(text("buy_tooltip_short", cost - balance).withStyle(ChatFormatting.RED));
-        }
-        XpCurve curve = ClientSkillState.curve();
-        int bulk = curve.affordableCount(purchased, balance, bulkBuyTarget());
-        if (bulk > 1) {
-            tooltip.append("\n").append(text("buy_tooltip_bulk", bulk, curve.totalCost(purchased, bulk)).withStyle(ChatFormatting.AQUA));
-        }
-        return tooltip;
-    }
-
-    private int bulkBuyTarget() {
-        int purchased = ClientSkillState.state().map(PlayerSkillState::purchasedPoints).orElse(0);
-        return Math.max(1, ClientSkillState.economy().pointLimit() - purchased);
+        return state.availablePoints() - nodeStates.pendingCost() >= AllocationService.priceWithFreeStart(graph(), state, pending.nodes(), node);
     }
 
     private void flash(Component text) {
@@ -570,9 +349,9 @@ public final class SkillTreeScreen extends Screen {
     }
 
     private void onResult(Payloads.TransactionResult result) {
-        if (result.ok() && result.messageKey().equals("message.nostalgiaskills.allocated")) {
+        if (result.ok() && result.messageKey().equals(Payloads.TransactionResult.ALLOCATED)) {
             celebrateAllocation();
-            clearPending();
+            pending.clear();
         }
         if (result.ok() && POINT_BOUGHT_MESSAGES.contains(result.messageKey())) {
             TreeSounds.pointBought();
@@ -597,53 +376,38 @@ public final class SkillTreeScreen extends Screen {
         confirming = List.of();
     }
 
-    private void buyPoints(int count) {
+    void buyPoints(int count) {
         ClientSkillState.state().ifPresent(state -> {
             ClientRequests.send(new Payloads.BuyPoint(ClientRequests.newRequest(), state.stateRevision(), count));
-            updateControls();
+            hud.update(pending, nodeStates);
         });
     }
 
-    private void confirm() {
-        if (!hasPending() || ClientSkillState.requestInFlight() || !ClientSkillState.ready()) {
+    void confirm() {
+        if (pending.isEmpty() || ClientSkillState.requestInFlight() || !ClientSkillState.ready()) {
             return;
         }
-        confirming = request();
+        confirming = pending.request();
         ClientRequests.send(new Payloads.ConfirmAllocation(ClientRequests.newRequest(), playerState().stateRevision(), ClientSkillState.graphRevision(),
                 confirming));
-        updateControls();
+        hud.update(pending, nodeStates);
     }
 
     private void cancelPending() {
-        clearPending();
-        statesDirty = true;
-    }
-
-    private boolean hasPending() {
-        return !pending.isEmpty() || !pendingRanks.isEmpty();
-    }
-
-    private void clearPending() {
         pending.clear();
-        pendingRanks.clear();
-    }
-
-    private List<String> request() {
-        List<String> request = new ArrayList<>(pending);
-        pendingRanks.forEach((nodeId, ranks) -> request.addAll(Collections.nCopies(ranks, nodeId)));
-        return request;
+        statesDirty = true;
     }
 
     public void openResetPanel() {
         panel = Panel.RESET;
     }
 
-    private void sendReset() {
+    void sendReset() {
         ClientSkillState.state().ifPresent(state -> ClientRequests.send(
                 new Payloads.RequestReset(ClientRequests.newRequest(), state.stateRevision(), ClientSkillState.graphRevision())));
     }
 
-    private void openRefundPanel(String nodeId) {
+    void openRefundPanel(String nodeId) {
         RefundService.Plan plan = RefundService.plan(graph(), playerState(), nodeId, ClientSkillState.economy().nodeRefundsEnabled());
         if (!plan.ok()) {
             flash(error(plan.reason().orElseThrow()));
@@ -654,7 +418,7 @@ public final class SkillTreeScreen extends Screen {
         panel = Panel.REFUND;
     }
 
-    private void sendRefund() {
+    void sendRefund() {
         if (refundOf == null || ClientSkillState.requestInFlight()) {
             return;
         }
@@ -701,8 +465,8 @@ public final class SkillTreeScreen extends Screen {
     }
 
     private void toggleRankUp(String nodeId) {
-        if (pendingRanks.getOrDefault(nodeId, 0) >= AllocationService.rankRoom(graph(), playerState(), nodeId)) {
-            pendingRanks.remove(nodeId);
+        if (pending.extraRanks(nodeId) >= AllocationService.rankRoom(graph(), playerState(), nodeId)) {
+            pending.clearRanks(nodeId);
             statesDirty = true;
         } else {
             addPendingRank(nodeId);
@@ -711,7 +475,7 @@ public final class SkillTreeScreen extends Screen {
 
     private void addPendingRank(String nodeId) {
         if (playerState().availablePoints() - nodeStates.pendingCost() >= graph().nodes().get(nodeId).cost()) {
-            pendingRanks.merge(nodeId, 1, Integer::sum);
+            pending.addRank(nodeId);
             statesDirty = true;
             TreeSounds.nodeMarked();
         } else {
@@ -721,7 +485,7 @@ public final class SkillTreeScreen extends Screen {
 
     private boolean canMarkAnotherRank(String nodeId) {
         return pending.contains(nodeId) && graph().nodes().get(nodeId).ranked()
-                && pendingRanks.getOrDefault(nodeId, 0) < AllocationService.rankRoom(graph(), playerState(), nodeId);
+                && pending.extraRanks(nodeId) < AllocationService.rankRoom(graph(), playerState(), nodeId);
     }
 
     private void togglePending(String clickedId) {
@@ -730,10 +494,9 @@ public final class SkillTreeScreen extends Screen {
             return;
         }
         String nodeId = pending.contains(clickedId) ? clickedId : graph().portalDestination(clickedId).orElse(clickedId);
-        Set<String> chain = AllocationService.dependentsOfPendingRemoval(graph(), playerState(), pending, nodeId);
+        Set<String> chain = AllocationService.dependentsOfPendingRemoval(graph(), playerState(), pending.nodes(), nodeId);
         if (chain.isEmpty()) {
             pending.remove(nodeId);
-            pendingRanks.remove(nodeId);
             statesDirty = true;
         } else {
             dependentsOf = nodeId;
@@ -757,14 +520,14 @@ public final class SkillTreeScreen extends Screen {
             addRouteTo(nodeId);
             return;
         }
-        RejectReason why = AllocationService.eligibility(graph(), playerState(), pending, nodeId)
+        RejectReason why = AllocationService.eligibility(graph(), playerState(), pending.nodes(), nodeId)
                 .map(AllocationService.Rejection::reason).orElse(RejectReason.NOT_CONNECTED);
         flash(error(why));
     }
 
     private void addRouteTo(String nodeId) {
         PlayerSkillState state = playerState();
-        Optional<PathFinder.Route> found = PathFinder.route(graph(), state, pending, nodeId).filter(PathFinder.Route::valid);
+        Optional<PathFinder.Route> found = PathFinder.route(graph(), state, pending.nodes(), nodeId).filter(PathFinder.Route::valid);
         if (found.isEmpty()) {
             flash(text("route.none").withStyle(ChatFormatting.RED));
             return;
@@ -898,8 +661,8 @@ public final class SkillTreeScreen extends Screen {
         if (super.mouseClicked(mouseX, mouseY, button)) {
             return true;
         }
-        if (search.isFocused()) {
-            search.setFocused(false);
+        if (hud.search().isFocused()) {
+            hud.search().setFocused(false);
             setFocused(null);
         }
         if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
@@ -966,8 +729,8 @@ public final class SkillTreeScreen extends Screen {
 
     @Override
     public boolean keyPressed(int key, int scanCode, int modifiers) {
-        if (key == GLFW.GLFW_KEY_ESCAPE && search.isFocused()) {
-            search.setFocused(false);
+        if (key == GLFW.GLFW_KEY_ESCAPE && hud.search().isFocused()) {
+            hud.search().setFocused(false);
             setFocused(null);
             return true;
         }
@@ -975,12 +738,12 @@ public final class SkillTreeScreen extends Screen {
             closeTopmost();
             return true;
         }
-        if (search.isFocused()) {
+        if (hud.search().isFocused()) {
             if (isEnter(key)) {
                 nextSearchHit();
                 return true;
             }
-            return search.keyPressed(key, scanCode, modifiers);
+            return hud.search().keyPressed(key, scanCode, modifiers);
         }
         if (panel.isModal()) {
             if (isEnter(key)) {
@@ -994,7 +757,7 @@ public final class SkillTreeScreen extends Screen {
     private void closeTopmost() {
         if (panel != Panel.NONE) {
             panel = Panel.NONE;
-        } else if (hasPending()) {
+        } else if (!pending.isEmpty()) {
             panel = Panel.DISCARD;
         } else {
             onClose();
@@ -1027,19 +790,19 @@ public final class SkillTreeScreen extends Screen {
 
     private void focusSearchOrFit() {
         if (hasControlDown()) {
-            setFocused(search);
-            search.setFocused(true);
+            setFocused(hud.search());
+            hud.search().setFocused(true);
         } else {
             fit();
         }
     }
 
     private int effectiveMouseX(int mouseX) {
-        return Double.isNaN(qaMouseX) ? mouseX : (int) qaMouseX;
+        return Double.isNaN(simulatedMouseX) ? mouseX : (int) simulatedMouseX;
     }
 
     private int effectiveMouseY(int mouseY) {
-        return Double.isNaN(qaMouseY) ? mouseY : (int) qaMouseY;
+        return Double.isNaN(simulatedMouseY) ? mouseY : (int) simulatedMouseY;
     }
 
     private double secondsOpen() {
@@ -1071,7 +834,7 @@ public final class SkillTreeScreen extends Screen {
         GraphRenderer.portalLinks(graphics, graph, camera, nodeStates::of, fade, time);
         Set<String> activePortals = activePortals(graph);
         int budget = state.availablePoints() - nodeStates.pendingCost();
-        boolean freeStart = freeStartOpen(state);
+        boolean freeStart = AllocationService.freeStartOpen(graph, state, pending.nodes());
         for (SkillNodeDefinition node : graph.nodes().values()) {
             boolean highlighted = node.id().equals(focusId) || node.id().equals(hoverId);
             boolean affordable = budget >= (freeStart && node.isRoot() ? 0 : AllocationService.priceOf(graph, node, state::isAllocated));
@@ -1089,7 +852,7 @@ public final class SkillTreeScreen extends Screen {
     }
 
     private GraphRenderer.Ranks ranksOf(SkillNodeDefinition node, PlayerSkillState state) {
-        int marked = (pending.contains(node.id()) ? 1 : 0) + pendingRanks.getOrDefault(node.id(), 0);
+        int marked = pending.marked(node.id());
         return node.ranked() ? new GraphRenderer.Ranks(state.rank(node.id()), marked, node.maxRank())
                 : GraphRenderer.Ranks.NONE;
     }
@@ -1114,14 +877,14 @@ public final class SkillTreeScreen extends Screen {
         }
         if (!hoverId.equals(routeFor)) {
             routeFor = hoverId;
-            route = PathFinder.route(graph, state, pending, hoverId);
+            route = PathFinder.route(graph, state, pending.nodes(), hoverId);
         }
         if (route.filter(PathFinder.Route::valid).isEmpty()) {
             return Set.of();
         }
         Set<String> preview = new LinkedHashSet<>(route.get().newNodes());
         preview.addAll(state.allocations().keySet());
-        preview.addAll(pending);
+        preview.addAll(pending.nodes());
         return preview;
     }
 
@@ -1132,9 +895,9 @@ public final class SkillTreeScreen extends Screen {
         super.render(graphics, pointerX, pointerY, partialTick);
         ProgressBar.render(graphics, font, width, height, pointerX, pointerY);
         Component zoom = text("zoom", String.format(Locale.ROOT, "%.2f×", camera.zoomValue()));
-        graphics.drawString(font, zoom, width - font.width(zoom) - MARGIN, height - 12, Palette.TEXT_DIM, true);
+        graphics.drawString(font, zoom, width - font.width(zoom) - ZOOM_LABEL_MARGIN, height - 12, Palette.TEXT_DIM, true);
         if (message != null && Util.getMillis() < messageUntil) {
-            graphics.drawCenteredString(font, message, width / 2, controlsBottom + 4, Palette.TEXT);
+            graphics.drawCenteredString(font, message, width / 2, hud.controlsBottom() + 4, Palette.TEXT);
         }
         renderPanel(graphics, pointerX, pointerY);
         if (hoverId != null && ClientSkillState.ready() && panel != Panel.STATS) {
@@ -1148,7 +911,7 @@ public final class SkillTreeScreen extends Screen {
             tooltipFor = hoverId;
             tooltipStateRevision = state.stateRevision();
             Optional<PathFinder.Route> hoveredRoute = hoverId.equals(routeFor) ? route : Optional.empty();
-            tooltipCache = SkillTooltips.build(graph(), state, request(), graph().nodes().get(hoverId), nodeStates.of(hoverId),
+            tooltipCache = SkillTooltips.build(graph(), state, pending.request(), graph().nodes().get(hoverId), nodeStates.of(hoverId),
                     nodeStates.pendingCost(), hoveredRoute, ClientConfig.DETAILED_TOOLTIPS.get());
         }
         int maxWidth = Math.max(MIN_TOOLTIP_WIDTH, Math.min(MAX_TOOLTIP_WIDTH, width / 2 - 12));
@@ -1165,7 +928,7 @@ public final class SkillTreeScreen extends Screen {
             panel = Panel.NONE;
             return;
         }
-        panelRenderer.render(graphics, font, panelView(), width, height, controlsBottom, mouseX, mouseY);
+        panelRenderer.render(graphics, font, panelView(), width, height, hud.controlsBottom(), mouseX, mouseY);
     }
 
     private boolean refundStillValid() {
@@ -1173,11 +936,11 @@ public final class SkillTreeScreen extends Screen {
                 && graph().contains(refundOf);
     }
 
-    private List<Component> statsLines() {
-        List<Object> key = List.of(playerState().stateRevision(), request(), nodeStates);
+    List<Component> statsLines() {
+        List<Object> key = List.of(playerState().stateRevision(), pending.request(), nodeStates);
         long now = Util.getMillis();
         if (!key.equals(statsKey) || now - statsAt > STATS_REFRESH_MILLIS) {
-            statsCache = StatsPanel.lines(Minecraft.getInstance().player, playerState(), graph(), request(), nodeStates.pendingCost());
+            statsCache = StatsPanel.lines(Minecraft.getInstance().player, playerState(), graph(), pending.request(), nodeStates.pendingCost());
             statsKey = key;
             statsAt = now;
         }
@@ -1192,7 +955,7 @@ public final class SkillTreeScreen extends Screen {
                     new PanelRenderer.Action(text("reset.confirm"), this::sendResetIfIdle, true));
             case REFUND -> modal(PanelContents.refund(graph(), playerState(), refundPlan, economy),
                     new PanelRenderer.Action(text("refund.confirm"), this::sendRefund, true));
-            case DISCARD -> new PanelRenderer.View(PanelContents.discard(request().size(), nodeStates.pendingCost()), List.of(
+            case DISCARD -> new PanelRenderer.View(PanelContents.discard(pending.request().size(), nodeStates.pendingCost()), List.of(
                     new PanelRenderer.Action(text("discard.discard"), this::discardAndClose, true),
                     new PanelRenderer.Action(text("discard.keep"), this::closePanel, false)), false);
             case DEPENDENTS -> modal(PanelContents.dependents(graph(), dependentsOf, dependents),
@@ -1216,7 +979,7 @@ public final class SkillTreeScreen extends Screen {
     }
 
     private void discardAndClose() {
-        clearPending();
+        pending.clear();
         panel = Panel.NONE;
         onClose();
     }
@@ -1224,8 +987,6 @@ public final class SkillTreeScreen extends Screen {
     private void removeDependentChain() {
         pending.remove(dependentsOf);
         pending.removeAll(dependents);
-        pendingRanks.remove(dependentsOf);
-        pendingRanks.keySet().removeAll(dependents);
         statesDirty = true;
         panel = Panel.NONE;
     }
@@ -1233,14 +994,12 @@ public final class SkillTreeScreen extends Screen {
     @Override
     public void tick() {
         super.tick();
-        if (!controlsKey().equals(shownControls)) {
-            updateControls();
-        }
+        hud.updateIfChanged(pending, nodeStates);
     }
 
     private List<Object> controlsKey() {
         long stateRevision = ClientSkillState.state().map(PlayerSkillState::stateRevision).orElse(-1L);
         return List.of(ClientSkillState.ready(), ClientSkillState.requestInFlight(), stateRevision, nodeStates, ClientSkillState.xpBalance(),
-                ClientSkillState.economy(), ClientSkillState.curve(), ClientSkillState.worldRules(), request().size());
+                ClientSkillState.economy(), ClientSkillState.curve(), ClientSkillState.worldRules(), pending.request().size());
     }
 }

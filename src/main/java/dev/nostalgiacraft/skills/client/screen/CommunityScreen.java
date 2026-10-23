@@ -95,11 +95,7 @@ public final class CommunityScreen extends Screen {
         return false;
     }
 
-    public void qaDonate(int amount) {
-        donate(amount);
-    }
-
-    private void donate(int amount) {
+    void donate(int amount) {
         if (ClientSkillState.requestInFlight()) {
             return;
         }
@@ -108,8 +104,7 @@ public final class CommunityScreen extends Screen {
     }
 
     private void onResult(Payloads.TransactionResult result) {
-        Object[] details = result.detail().split("/");
-        message = Component.translatable(result.messageKey(), details).withStyle(result.ok() ? ChatFormatting.GREEN : ChatFormatting.RED);
+        message = ClientSkillState.message(result).withStyle(result.ok() ? ChatFormatting.GREEN : ChatFormatting.RED);
         messageUntil = Util.getMillis() + MESSAGE_MILLIS;
     }
 

@@ -56,9 +56,7 @@ public final class SkillTooltips {
         }
 
         int cost() {
-            boolean freeStart = node.isRoot() && state.startingRoot().isEmpty()
-                    && pending.stream().noneMatch(id -> graph.nodes().get(id).isRoot());
-            return freeStart ? 0 : AllocationService.priceOf(graph, node, state::isAllocated);
+            return AllocationService.priceWithFreeStart(graph, state, pending, node);
         }
 
         List<SkillNodeDefinition> neighbours() {

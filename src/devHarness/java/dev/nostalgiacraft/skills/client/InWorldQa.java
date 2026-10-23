@@ -3,6 +3,7 @@ package dev.nostalgiacraft.skills.client;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.nostalgiacraft.skills.client.screen.SkillTreeScreen;
+import dev.nostalgiacraft.skills.client.screen.TreeScreenQa;
 import dev.nostalgiacraft.skills.graph.NodeType;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.graph.SkillSign;
@@ -219,8 +220,8 @@ final class InWorldQa {
     }
 
     private void confirm(List<String> nodes) {
-        screen().qaSetup(nodes, false, false);
-        screen().qaConfirm();
+        TreeScreenQa.setup(screen(), nodes, false, false);
+        TreeScreenQa.confirm(screen());
     }
 
     private boolean learnedRoute() {
@@ -297,7 +298,7 @@ final class InWorldQa {
                 return true;
             }
             if (!ClientSkillState.requestInFlight()) {
-                screen().qaBuy();
+                TreeScreenQa.buy(screen());
             }
             return false;
         }, 600);
@@ -319,11 +320,11 @@ final class InWorldQa {
         }, () -> state().availablePoints() >= expectedCost, COMMAND_TICKS);
         script.step("select the route without confirming", () -> {
             remember();
-            screen().qaSetup(route, false, false);
+            TreeScreenQa.setup(screen(), route, false, false);
         }, () -> script.ticks() >= SETTLE_TICKS, 2 * SETTLE_TICKS);
         script.then("cancel the selection", () -> {
-            script.note("selection before cancelling: " + screen().qaPending());
-            screen().qaSetup(List.of(), false, false);
+            script.note("selection before cancelling: " + TreeScreenQa.pending(screen()));
+            TreeScreenQa.setup(screen(), List.of(), false, false);
             expectUnchanged("after cancelling a selection");
         });
         script.step("confirm the route to Gatekeeper", () -> {
@@ -339,8 +340,8 @@ final class InWorldQa {
             script.expect("ledger holds after confirming", state().ledgerHolds());
         });
         show("stats_panel", () -> {
-            screen().qaSetup(List.of(), true, false);
-            screen().qaZoom(1.0, "guardian/hub");
+            TreeScreenQa.setup(screen(), List.of(), true, false);
+            TreeScreenQa.zoom(screen(), 1.0, "guardian/hub");
         });
     }
 
@@ -452,7 +453,7 @@ final class InWorldQa {
         script.step("reset the build with the orb", () -> {
             remember();
             screen().openResetPanel();
-            screen().qaReset();
+            TreeScreenQa.reset(screen());
         }, () -> state().allocations().isEmpty(), SERVER_ANSWER_TICKS);
         script.waitFor("the orb is consumed and the effects leave", () -> orbs() == 0 && healthIs(healthAtJoin), COMMAND_TICKS);
         script.then("check the reset", () -> {
@@ -485,9 +486,9 @@ final class InWorldQa {
             List<Allocation> learned = state().orderedAllocations();
             target = learned.get(learned.size() - 1).nodeId();
             expectedCost = state().allocations().get(target).paidCost();
-            script.note("refund preview for " + target + ": " + screen().qaRefundPreview(target));
-            screen().qaRefund(target);
-            screen().qaConfirmRefund();
+            script.note("refund preview for " + target + ": " + TreeScreenQa.refundPreview(target));
+            TreeScreenQa.refund(screen(), target);
+            TreeScreenQa.confirmRefund(screen());
         }, () -> !state().isAllocated(target), SERVER_ANSWER_TICKS);
         script.then("check the single refund", () -> {
             PlayerSkillState state = state();
@@ -500,15 +501,15 @@ final class InWorldQa {
         script.step("refund the skill next to the hub", () -> {
             remember();
             target = state().orderedAllocations().get(1).nodeId();
-            script.note("refund preview for " + target + ": " + screen().qaRefundPreview(target));
-            screen().qaRefund(target);
-            screen().qaConfirmRefund();
+            script.note("refund preview for " + target + ": " + TreeScreenQa.refundPreview(target));
+            TreeScreenQa.refund(screen(), target);
+            TreeScreenQa.confirmRefund(screen());
         }, () -> state().allocations().size() == 1, SERVER_ANSWER_TICKS);
         script.then("check the chained refund", () -> {
             PlayerSkillState state = state();
             script.expect("points available after the whole branch came back", before.available() + before.spent(), state.availablePoints());
             script.expect("only the free hub is left", HUB, state.startingRoot().orElse(""));
-            script.expect("the starting hub cannot be refunded alone", ROOT_NEEDS_RESET, screen().qaRefundPreview(HUB));
+            script.expect("the starting hub cannot be refunded alone", ROOT_NEEDS_RESET, TreeScreenQa.refundPreview(HUB));
             script.expect("ledger holds after the chained refund", state.ledgerHolds());
         });
     }
@@ -520,7 +521,7 @@ final class InWorldQa {
                 () -> ClientSkillState.xpBalance() == BULK_XP, COMMAND_TICKS);
         script.step("buy " + BULK_PURCHASE + " points in one request", () -> {
             remember();
-            screen().qaBuyMany(BULK_PURCHASE);
+            TreeScreenQa.buyMany(screen(), BULK_PURCHASE);
         }, () -> state().purchasedPoints() == before.purchased() + BULK_PURCHASE && !ClientSkillState.requestInFlight(), SERVER_ANSWER_TICKS);
         script.then("check the bulk purchase", () -> {
             long cost = ClientSkillState.curve().totalCost(before.purchased(), BULK_PURCHASE);
@@ -530,7 +531,7 @@ final class InWorldQa {
         script.step("ask for " + GREEDY_PURCHASE + " points with too little XP", () -> {
             remember();
             expectedBought = ClientSkillState.curve().affordableCount(before.purchased(), before.xp(), GREEDY_PURCHASE);
-            screen().qaBuyMany(GREEDY_PURCHASE);
+            TreeScreenQa.buyMany(screen(), GREEDY_PURCHASE);
         }, () -> state().purchasedPoints() == before.purchased() + expectedBought && !ClientSkillState.requestInFlight(), SERVER_ANSWER_TICKS);
         script.then("check the partial purchase", () -> {
             long cost = ClientSkillState.curve().totalCost(before.purchased(), expectedBought);
@@ -543,15 +544,15 @@ final class InWorldQa {
 
     private void addPendingStatsSteps() {
         show("stats_pending", () -> {
-            screen().qaSetup(routeTo(cheapestGuardianNotable()), false, false);
-            screen().qaShowStats();
-            screen().qaZoom(0.6, "guardian/hub");
+            TreeScreenQa.setup(screen(), routeTo(cheapestGuardianNotable()), false, false);
+            TreeScreenQa.showStats(screen());
+            TreeScreenQa.zoom(screen(), 0.6, "guardian/hub");
         });
         script.then("check the stats preview", () -> {
-            List<String> previews = screen().qaStatsText().stream().filter(line -> line.contains("→")).map(String::trim).toList();
-            script.note("selection " + screen().qaPending() + " previews " + previews);
+            List<String> previews = TreeScreenQa.statsText(screen()).stream().filter(line -> line.contains("→")).map(String::trim).toList();
+            script.note("selection " + TreeScreenQa.pending(screen()) + " previews " + previews);
             script.expect("the stats panel previews the selected route", !previews.isEmpty());
-            screen().qaSetup(List.of(), false, false);
+            TreeScreenQa.setup(screen(), List.of(), false, false);
         });
     }
 
@@ -559,10 +560,10 @@ final class InWorldQa {
         script.then("find the birth sign in the stats panel", () -> {
             String signName = state().sign().map(signId -> I18n.get(SkillSign.nameKey(signId))).orElse("no sign");
             script.expect("the stats panel names the birth sign " + signName,
-                    screen().qaStatsText().stream().anyMatch(line -> line.contains(signName)));
+                    TreeScreenQa.statsText(screen()).stream().anyMatch(line -> line.contains(signName)));
             script.expect("signs known to the client", !ClientSkillState.worldRules().signIds().isEmpty());
         });
-        show("birth_chart", () -> screen().qaOpenSign());
+        show("birth_chart", () -> TreeScreenQa.openSign(screen()));
     }
 
     private void addEclipseSteps() {
@@ -572,10 +573,10 @@ final class InWorldQa {
         }, () -> skyEvent() == SkyEvent.ECLIPSE, COMMAND_TICKS);
         show("eclipse_reset", () -> {
             script.expect("no orb is asked for during an eclipse", !ClientSkillState.economy().orbRequired());
-            screen().qaSetup(List.of(), false, true);
+            TreeScreenQa.setup(screen(), List.of(), false, true);
         });
         script.step("stop the eclipse", () -> {
-            screen().qaSetup(List.of(), false, false);
+            TreeScreenQa.setup(screen(), List.of(), false, false);
             command("nostalgiaskills eclipse stop");
         }, () -> skyEvent() == SkyEvent.NONE, COMMAND_TICKS);
         script.then("check the orb rule", () -> script.expect("the orb rule returns after the eclipse", before.orbRequired(),
@@ -587,7 +588,7 @@ final class InWorldQa {
                 () -> ClientSkillState.xpBalance() >= DONATION, COMMAND_TICKS);
         script.step("donate to the shared constellation", () -> {
             remember();
-            screen().qaOpenCommunity().qaDonate(DONATION);
+            TreeScreenQa.donate(TreeScreenQa.openCommunity(screen()), DONATION);
         }, () -> ClientSkillState.worldRules().communityXp() == before.communityXp() + DONATION && !ClientSkillState.requestInFlight(),
                 SERVER_ANSWER_TICKS);
         script.then("check the donation", () -> {

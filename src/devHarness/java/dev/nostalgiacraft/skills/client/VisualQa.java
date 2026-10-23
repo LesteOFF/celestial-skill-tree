@@ -2,6 +2,7 @@ package dev.nostalgiacraft.skills.client;
 
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.client.screen.SkillTreeScreen;
+import dev.nostalgiacraft.skills.client.screen.TreeScreenQa;
 import dev.nostalgiacraft.skills.config.ClientConfig;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.network.Payloads;
@@ -186,12 +187,12 @@ public final class VisualQa {
         PlayerSkillState state = ClientSkillState.state().orElseThrow();
         List<String> route = PathFinder.route(graph, state, List.of(), inTree(targetPath)).map(PathFinder.Route::newNodes).orElse(List.of());
         script.expect("a route to " + targetPath + " is selected", !route.isEmpty());
-        screen.qaSetup(route, false, false);
+        TreeScreenQa.setup(screen, route, false, false);
     }
 
     private static void hover(SkillTreeScreen screen, double zoom, String path) {
-        screen.qaZoom(zoom, path);
-        screen.qaHover(inTree(path));
+        TreeScreenQa.zoom(screen, zoom, path);
+        TreeScreenQa.hover(screen, inTree(path));
     }
 
     private static void hoverBoostedNeighbour(SkillTreeScreen screen) {
@@ -199,21 +200,21 @@ public final class VisualQa {
         Optional<String> boosted = graph.neighbours(inTree(BLACK_HOLE_SKILL)).stream().filter(state::isAllocated).findFirst();
         script.expect("the black hole boosts a learned neighbour", boosted.isPresent());
         boosted.ifPresent(id -> {
-            screen.qaZoom(BLACK_HOLE_ZOOM, id);
-            screen.qaHover(id);
+            TreeScreenQa.zoom(screen, BLACK_HOLE_ZOOM, id);
+            TreeScreenQa.hover(screen, id);
         });
     }
 
     private static List<Shot> shots() {
         List<Shot> shots = new ArrayList<>();
         OVERVIEWS.forEach(resolution -> shots.add(new Shot("overview_" + resolution.size() + "_gui" + resolution.guiScale(), resolution,
-                Fixture.HYBRID, Look.NORMAL, SkillTreeScreen::qaFit)));
-        shots.add(new Shot("fresh_character", Fixture.FRESH, SkillTreeScreen::qaFit));
-        shots.add(new Shot("focused_guardian", Fixture.FOCUSED, screen -> screen.qaZoom(1.1, "guardian/hub")));
-        shots.add(new Shot("hybrid_closeup", Fixture.HYBRID, screen -> screen.qaZoom(1.0, "duelist/hub")));
+                Fixture.HYBRID, Look.NORMAL, TreeScreenQa::fit)));
+        shots.add(new Shot("fresh_character", Fixture.FRESH, TreeScreenQa::fit));
+        shots.add(new Shot("focused_guardian", Fixture.FOCUSED, screen -> TreeScreenQa.zoom(screen, 1.1, "guardian/hub")));
+        shots.add(new Shot("hybrid_closeup", Fixture.HYBRID, screen -> TreeScreenQa.zoom(screen, 1.0, "duelist/hub")));
         shots.add(new Shot("pending_changes", Fixture.HYBRID, screen -> {
             select(screen, "berserker/frenzy");
-            screen.qaZoom(0.9, "berserker/frenzy");
+            TreeScreenQa.zoom(screen, 0.9, "berserker/frenzy");
         }));
         shots.add(new Shot("route_preview_tooltip", Fixture.HYBRID, screen -> hover(screen, 0.9, "berserker/juggernaut")));
         shots.add(new Shot("conflict_tooltip", Fixture.CONFLICT, screen -> hover(screen, 1.4, "duelist/thousand_cuts")));
@@ -222,30 +223,30 @@ public final class VisualQa {
             hover(screen, 1.2, "marksman/nocking_point");
         }));
         shots.add(new Shot("stats_panel", Fixture.HYBRID, screen -> {
-            screen.qaFit();
-            screen.qaSetup(List.of(), true, false);
+            TreeScreenQa.fit(screen);
+            TreeScreenQa.setup(screen, List.of(), true, false);
         }));
         shots.add(new Shot("black_hole_tooltip", Fixture.BLACK_HOLE, screen -> hover(screen, BLACK_HOLE_ZOOM, BLACK_HOLE_SKILL)));
         shots.add(new Shot("boosted_tooltip", Fixture.BLACK_HOLE, VisualQa::hoverBoostedNeighbour));
         shots.add(new Shot("black_hole_available_tooltip", Fixture.HYBRID, screen -> hover(screen, BLACK_HOLE_ZOOM, BLACK_HOLE_SKILL)));
         shots.add(new Shot("portal_tooltip", Fixture.HYBRID, screen -> hover(screen, 0.6, "guardian/portal")));
         shots.add(new Shot("reset_panel", Fixture.HYBRID, screen -> {
-            screen.qaFit();
-            screen.qaSetup(List.of(), false, true);
+            TreeScreenQa.fit(screen);
+            TreeScreenQa.setup(screen, List.of(), false, true);
         }));
         shots.add(new Shot("refund_panel", Fixture.FOCUSED, screen -> {
             String nextToHub = ClientSkillState.state().orElseThrow().orderedAllocations().get(1).nodeId();
-            screen.qaZoom(1.1, nextToHub);
-            screen.qaRefund(nextToHub);
+            TreeScreenQa.zoom(screen, 1.1, nextToHub);
+            TreeScreenQa.refund(screen, nextToHub);
         }));
         SCREEN_EDGES.forEach(edge -> shots.add(new Shot("tooltip_edge_" + edge.name(), Fixture.HYBRID, screen -> {
-            screen.qaZoom(1.0, "duelist/en_garde");
-            screen.qaHoverAt(inTree("duelist/en_garde"), edge.widthFraction(), edge.heightFraction());
+            TreeScreenQa.zoom(screen, 1.0, "duelist/en_garde");
+            TreeScreenQa.hoverAt(screen, inTree("duelist/en_garde"), edge.widthFraction(), edge.heightFraction());
         })));
-        shots.add(new Shot("reduced_motion_" + HD.size(), HD, Fixture.HYBRID, Look.REDUCED_MOTION, SkillTreeScreen::qaFit));
-        shots.add(new Shot("high_contrast_" + HD.size(), HD, Fixture.HYBRID, Look.HIGH_CONTRAST, SkillTreeScreen::qaFit));
+        shots.add(new Shot("reduced_motion_" + HD.size(), HD, Fixture.HYBRID, Look.REDUCED_MOTION, TreeScreenQa::fit));
+        shots.add(new Shot("high_contrast_" + HD.size(), HD, Fixture.HYBRID, Look.HIGH_CONTRAST, TreeScreenQa::fit));
         shots.add(new Shot("ultrawide_" + ULTRAWIDE.size() + "_gui" + ULTRAWIDE.guiScale(), ULTRAWIDE, Fixture.HYBRID, Look.NORMAL,
-                SkillTreeScreen::qaFit));
+                TreeScreenQa::fit));
         return shots;
     }
 }

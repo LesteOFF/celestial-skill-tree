@@ -2,6 +2,7 @@ package dev.nostalgiacraft.skills.client;
 
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.client.screen.SkillTreeScreen;
+import dev.nostalgiacraft.skills.client.screen.TreeScreenQa;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.network.Payloads;
 import dev.nostalgiacraft.skills.progression.AllocationService;
@@ -100,16 +101,16 @@ public final class RenderBench {
 
     private static List<Scene> scenes() {
         return List.of(
-                new Scene("whole tree (fit)", SkillTreeScreen::qaFit),
-                new Scene("closeup at a hub", screen -> screen.qaZoom(CLOSEUP_ZOOM, ClientSkillState.graph().orElseThrow().roots().get(0))),
+                new Scene("whole tree (fit)", TreeScreenQa::fit),
+                new Scene("closeup at a hub", screen -> TreeScreenQa.zoom(screen, CLOSEUP_ZOOM, ClientSkillState.graph().orElseThrow().roots().get(0))),
                 new Scene("zoomed out with a tooltip", screen -> {
                     String hub = ClientSkillState.graph().orElseThrow().roots().get(0);
-                    screen.qaZoom(OVERVIEW_ZOOM, hub);
-                    screen.qaHover(hub);
+                    TreeScreenQa.zoom(screen, OVERVIEW_ZOOM, hub);
+                    TreeScreenQa.hover(screen, hub);
                 }),
                 new Scene("whole tree with the stats panel", screen -> {
-                    screen.qaFit();
-                    screen.qaSetup(List.of(), true, false);
+                    TreeScreenQa.fit(screen);
+                    TreeScreenQa.setup(screen, List.of(), true, false);
                 }));
     }
 
