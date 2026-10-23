@@ -50,9 +50,12 @@ public final class Triggers {
         long now = player.serverLevel().getGameTime();
         for (CompiledBuild.Keyed<SkillEffect.Trigger> keyed : build.triggers()) {
             SkillEffect.Trigger candidate = keyed.effect();
+            if (!candidate.trigger().equals(trigger)) {
+                continue;
+            }
             boolean targetMissing = NEEDING_A_LIVING_TARGET.contains(candidate.action().type()) && (target == null || !target.isAlive());
             boolean conditionHolds = candidate.condition().map(condition -> EffectEngine.holds(player, condition, null)).orElse(true);
-            boolean fires = candidate.trigger().equals(trigger) && !targetMissing && conditionHolds
+            boolean fires = !targetMissing && conditionHolds
                     && ModAttachments.cooldowns(player).tryUse(keyed.key(), now, candidate.cooldownTicks());
             if (fires) {
                 run(player, candidate.action(), target);

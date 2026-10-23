@@ -487,10 +487,19 @@ public final class GameplayEvents {
 
     @SubscribeEvent
     public static void onEquipmentChange(LivingEquipmentChangeEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player) {
+        if (!onlyWearChanged(event.getFrom(), event.getTo()) && event.getEntity() instanceof ServerPlayer player) {
             BorrowedNodes.refreshIfChanged(player);
             EffectEngine.updateConditionals(player);
         }
+    }
+
+    private static boolean onlyWearChanged(ItemStack from, ItemStack to) {
+        if (from.getItem() != to.getItem()) {
+            return false;
+        }
+        ItemStack worn = from.copy();
+        worn.setDamageValue(to.getDamageValue());
+        return ItemStack.isSameItemSameComponents(worn, to);
     }
 
     public static void forget(UUID id) {

@@ -10,8 +10,15 @@ public final class DiscoveryService {
     private DiscoveryService() {
     }
 
-    public static Set<String> keys(SkillGraphSnapshot graph) {
-        return graph.nodes().values().stream().flatMap(node -> node.traits().hiddenUntil().stream()).collect(Collectors.toSet());
+    private static SkillGraphSnapshot keysOf;
+    private static Set<String> keys = Set.of();
+
+    public static synchronized Set<String> keys(SkillGraphSnapshot graph) {
+        if (graph != keysOf) {
+            keys = graph.nodes().values().stream().flatMap(node -> node.traits().hiddenUntil().stream()).collect(Collectors.toUnmodifiableSet());
+            keysOf = graph;
+        }
+        return keys;
     }
 
     public static boolean discover(PlayerSkillState state, SkillGraphSnapshot graph, String key) {
