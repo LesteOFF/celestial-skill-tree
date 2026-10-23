@@ -1,7 +1,9 @@
 plugins {
-    id 'java-library'
+    id 'java'
     id 'idea'
     id 'net.neoforged.moddev' version "${moddev_version}"
+    id 'com.modrinth.minotaur' version '2.10.0'
+    id 'net.darkhax.curseforgegradle' version '1.1.28'
 }
 
 version = mod_version
@@ -11,7 +13,18 @@ base {
     archivesName = mod_id
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
+    withSourcesJar()
+}
+
+tasks.named('jar') {
+    manifest.attributes(
+            'Implementation-Title': mod_name,
+            'Implementation-Version': mod_version,
+            'Implementation-Vendor': mod_authors
+    )
+}
 
 sourceSets {
     devHarness {
@@ -118,25 +131,22 @@ repositories {
     }
 }
 
-def packTestJars = [
-        'Apotheosis-1.21.1-8.9.0.jar', 'ApothicAttributes-1.21.1-2.11.0.jar', 'Placebo-1.21.1-9.9.4.jar',
-        'ars_nouveau-1.21.1-5.13.3.jar', 'irons_spellbooks-1.21.1-3.16.3.jar', 'irons_lib-1.21.1-2.2.0.jar',
-        'bettercombat-neoforge-2.4.0+1.21.1.jar', 'better_mob_combat_reimagined-1.1.17.jar', 'player-animation-lib-forge-2.0.4+1.21.1.jar',
-        'cloth-config-15.0.140-neoforge.jar', 'champions-neoforge-21.1.1.7.jar', 'curios-neoforge-9.5.1+1.21.1.jar',
-        'caelus-neoforge-7.0.1+1.21.1.jar', 'dummmmmmy-1.21-2.1.2-neoforge.jar', 'moonlight-1.21.1-3.7.2-neoforge.jar',
-        'supplementaries-1.21.1-4.0.1-neoforge.jar', 'enhancedbossbars-1.0.0.jar', 'enigmaticlegacyplus-1.21.1-1.1.2.jar',
-        'forbidden_arcanus-2.6.1.jar', 'valhelsia_core-neoforge-1.21.1-1.1.5.jar', 'l2hostility-3.0.18.jar',
-        'l2complements-3.1.3.jar', 'l2library-3.0.8.jar', 'mowziesmobs-1.21.1-1.8.2.jar', 'geckolib-neoforge-1.21.1-4.9.3.jar',
-        'occultism-1.21.1-neoforge-1.224.5.jar', 'modonomicon-1.21.1-neoforge-1.120.7.jar', 'SmartBrainLib-neoforge-1.21.1-1.16.11.jar',
-        'curseofpandora-3.0.7.jar', 'ParCool-1.21.1-4.0.1.2.jar', 'relics-1.21.1-0.10.7.8.jar',
-        'OctoLib-NEOFORGE-0.6.2+1.21.jar', 'reliquary-1.21.1-2.0.80.1570.jar', 'Patchouli-1.21.1-93-NEOFORGE.jar',
-        'ScorchedGuns-1.5.jar', 'framework-neoforge-1.21.1-0.13.11.jar', 'kubejs-neoforge-2101.7.2-build.377.jar',
-        'rhino-2101.2.7-build.85.jar', 'architectury-13.0.11-neoforge.jar', 'Jade-1.21.1-NeoForge-15.10.6.jar',
-        'celestial_core-2.0.2.jar', 'ftb-ultimine-neoforge-2101.1.15.jar', 'ftb-library-neoforge-2101.1.37.jar',
-        'FarmersDelight-1.21.1-1.3.4.jar'
+def packTestMods = [
+        'Apotheosis-', 'ApothicAttributes-', 'Placebo-', 'ars_nouveau-', 'irons_spellbooks-', 'irons_lib-',
+        'bettercombat-neoforge-', 'better_mob_combat_reimagined-', 'player-animation-lib-forge-', 'cloth-config-',
+        'champions-neoforge-', 'curios-neoforge-', 'caelus-neoforge-', 'dummmmmmy-', 'moonlight-', 'supplementaries-',
+        'enigmaticlegacyplus-', 'forbidden_arcanus-', 'valhelsia_core-', 'l2hostility-', 'l2complements-', 'l2library-',
+        'mowziesmobs-', 'geckolib-neoforge-', 'occultism-', 'modonomicon-', 'SmartBrainLib-', 'curseofpandora-', 'ParCool-',
+        'relics-', 'OctoLib-', 'reliquary-', 'Patchouli-', 'scguns-', 'framework-neoforge-', 'kubejs-neoforge-', 'rhino-',
+        'architectury-', 'Jade-', 'celestial_core-', 'ftb-ultimine-', 'ftb-library-', 'FarmersDelight-'
 ]
 
-def packModsDir = findProperty('pack_mods_dir') ?: System.getenv('PACK_MODS_DIR')
+def packModsDir = providers.gradleProperty('pack_mods_dir').orElse(providers.environmentVariable('PACK_MODS_DIR')).orNull
+def packJars = packModsDir ? fileTree(packModsDir) { include packTestMods.collect { "${it}*.jar" } } : files()
+def packModsProblem = !packModsDir
+        ? "Set pack_mods_dir in ~/.gradle/gradle.properties (or the PACK_MODS_DIR environment variable) to the pack's mods folder"
+        : packTestMods.findAll { prefix -> !packJars.files.any { it.name.startsWith(prefix) } }
+        .with { missing -> missing ? "Pack jars missing from ${packModsDir}: ${missing.collect { "${it}*.jar" }.join(', ')}" : null }
 
 def copyKubeJsProbe = tasks.register('copyKubeJsProbe', Copy) {
     from 'src/packTest/kubejs'
@@ -145,34 +155,25 @@ def copyKubeJsProbe = tasks.register('copyKubeJsProbe', Copy) {
 
 tasks.matching { it.name == 'runPackGameTestServer' }.configureEach {
     dependsOn copyKubeJsProbe
-}
-
-gradle.taskGraph.whenReady { graph ->
-    if (graph.allTasks.any { it.name == 'runPackGameTestServer' }) {
-        if (!packModsDir) {
-            throw new GradleException("Set pack_mods_dir in ~/.gradle/gradle.properties (or the PACK_MODS_DIR environment variable) to the pack's mods folder")
-        }
-        def missing = packTestJars.findAll { !file("${packModsDir}/${it}").exists() }
-        if (missing) {
-            throw new GradleException("Pack jars missing from ${packModsDir}: ${missing.join(', ')}")
+    doFirst {
+        if (packModsProblem) {
+            throw new GradleException(packModsProblem)
         }
     }
 }
 
 dependencies {
-    if (packModsDir) {
-        packTestRuntimeOnly files(packTestJars.collect { "${packModsDir}/${it}" })
-    }
+    packTestRuntimeOnly packJars
     compileOnly("dev.latvian.mods:kubejs-neoforge:${kubejs_version}") {
         transitive = false
     }
     compileOnly("dev.latvian.mods:rhino:${rhino_version}") {
         transitive = false
     }
-    compileOnly("maven.modrinth:jade:${jade_version}") {
+    compileOnly("maven.modrinth:jade:${jade_modrinth_version_id}") {
         transitive = false
     }
-    compileOnly("maven.modrinth:champions-unofficial:${champions_version}") {
+    compileOnly("maven.modrinth:champions-unofficial:${champions_modrinth_version_id}") {
         transitive = false
     }
     testImplementation "org.junit.jupiter:junit-jupiter:${junit_version}"
@@ -199,7 +200,10 @@ var generateModMetadata = tasks.register('generateModMetadata', ProcessResources
             mod_license            : mod_license,
             mod_version            : mod_version,
             mod_authors            : mod_authors,
-            mod_description        : mod_description
+            mod_description        : mod_description,
+            mod_url                : mod_url,
+            mod_issues_url         : mod_issues_url,
+            mod_credits            : mod_credits
     ]
     inputs.properties replaceProperties
     expand replaceProperties
@@ -241,4 +245,36 @@ tasks.register('previewTree', JavaExec) {
     systemProperty 'java.awt.headless', 'true'
     args = [project.findProperty('classes') ?: '6', project.findProperty('skills') ?: '100',
             project.findProperty('out') ?: 'build/preview/tree.png']
+}
+
+def releaseNotes = providers.fileContents(layout.projectDirectory.file('CHANGELOG.md')).asText.map { text ->
+    def section = text.split(/(?m)^## /).find { it.startsWith("[${mod_version}]") }
+    section ? section.substring(section.indexOf('\n') + 1).trim() : ''
+}
+
+modrinth {
+    token = providers.environmentVariable('MODRINTH_TOKEN')
+    projectId = providers.environmentVariable('MODRINTH_PROJECT_ID')
+    versionNumber = mod_version
+    versionType = 'release'
+    uploadFile = tasks.jar
+    gameVersions = [minecraft_version]
+    loaders = ['neoforge']
+    changelog = releaseNotes
+}
+
+tasks.register('publishCurseForge', net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+    group = 'publishing'
+    def projectId = providers.environmentVariable('CURSEFORGE_PROJECT_ID').orNull
+    if (!projectId) {
+        throw new GradleException('Set CURSEFORGE_PROJECT_ID and CURSEFORGE_TOKEN to publish to CurseForge')
+    }
+    apiToken = providers.environmentVariable('CURSEFORGE_TOKEN').orNull
+    def mainFile = upload(projectId, tasks.jar)
+    mainFile.releaseType = 'release'
+    mainFile.changelog = releaseNotes.get()
+    mainFile.changelogType = 'markdown'
+    mainFile.addModLoader('NeoForge')
+    mainFile.addGameVersion(minecraft_version)
+    mainFile.addJavaVersion('Java 21')
 }
