@@ -1,5 +1,6 @@
 package dev.nostalgiacraft.skills.client.sound;
 
+import dev.nostalgiacraft.skills.config.ClientConfig;
 import dev.nostalgiacraft.skills.registry.ModSounds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -9,7 +10,6 @@ import java.util.function.Supplier;
 
 public final class TreeSounds {
     private static final float PITCH = 1f;
-    private static final float VOLUME = 0.5f;
 
     private TreeSounds() {
     }
@@ -34,6 +34,9 @@ public final class TreeSounds {
     }
 
     private static void play(Supplier<SoundEvent> sound) {
-        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(sound.get(), PITCH, VOLUME));
+        float volume = ClientConfig.UI_SOUND_VOLUME.get().floatValue();
+        if (volume > 0) {
+            Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(sound.get(), PITCH, volume));
+        }
     }
 }

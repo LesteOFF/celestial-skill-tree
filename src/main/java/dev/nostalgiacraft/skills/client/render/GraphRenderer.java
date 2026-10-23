@@ -26,6 +26,9 @@ public final class GraphRenderer {
     private static final double CULLING_REACH = 1.6;
     private static final double MIN_LOCK_MARK_RADIUS = 5;
     private static final double MIN_DETAIL_RADIUS = 5;
+    private static final double MIN_ICON_RADIUS = 3;
+    private static final double SMALL_NODE_RADIUS = 8;
+    private static final double SMALL_NODE_ICON_SCALE = 0.8;
     private static final int PORTAL_LINK_TILE_WIDTH = 16;
     private static final int PORTAL_LINK_LANE_HEIGHT = 8;
     private static final int PORTAL_LINK_LANE_GAP = 1;
@@ -245,9 +248,8 @@ public final class GraphRenderer {
         float green = shade * tint[1];
         float blue = shade * tint[2];
         batch.add(SpriteBatch.Layer.FRAME, frameTex(node.frame()), x, y, radius, 0, red, green, blue, 1f);
-        if (detailed) {
-            batch.add(SpriteBatch.Layer.ICON, iconTex(node.icon()), x, y, radius * (node.type() == NodeType.MINOR ? 0.62 : 0.58), 0,
-                    red, green, blue, 1f);
+        if (radius >= MIN_ICON_RADIUS) {
+            batch.add(SpriteBatch.Layer.ICON, iconTex(node.icon()), x, y, radius * iconScale(node, radius), 0, red, green, blue, 1f);
         }
         if (detailed && node.traits().amplifiesNeighbours()) {
             drawLens(batch, x, y, radius, held(state), time);
@@ -286,9 +288,9 @@ public final class GraphRenderer {
         float glow = ClientConfig.GLOW_INTENSITY.get().floatValue();
         if (state == NodeState.ALLOCATED && glow > 0) {
             batch.add(SpriteBatch.Layer.GLOW, frameTex("ring_allocated"), x, y, radius * 1.55, 0, 1f, 1f, 1f, Math.min(1f, 0.85f * glow));
-        } else if (state == NodeState.AVAILABLE && affordable) {
+        } else if (state == NodeState.AVAILABLE && affordable && glow > 0) {
             float pulse = ClientConfig.REDUCED_MOTION.get() ? 0.8f : (float) (0.65 + 0.25 * Math.sin(time * 2.4));
-            batch.add(SpriteBatch.Layer.GLOW, frameTex("ring_available"), x, y, radius * 1.4, 0, 1f, 1f, 1f, pulse * Math.max(0.4f, glow));
+            batch.add(SpriteBatch.Layer.GLOW, frameTex("ring_available"), x, y, radius * 1.4, 0, 1f, 1f, 1f, Math.min(1f, pulse * glow));
         }
     }
 
@@ -322,10 +324,18 @@ public final class GraphRenderer {
                 still ? 0 : time * 0.2, 1f, 1f, 1f, (held ? 0.75f : 0.4f) + 0.2f * (float) breath);
     }
 
+    private static double iconScale(SkillNodeDefinition node, double radius) {
+        if (radius < SMALL_NODE_RADIUS) {
+            return SMALL_NODE_ICON_SCALE;
+        }
+        return node.type() == NodeType.MINOR ? 0.62 : 0.58;
+    }
+
     private static float shade(NodeState state, boolean affordable) {
+        boolean highContrast = ClientConfig.HIGH_CONTRAST.get();
         return switch (state) {
-            case LOCKED -> 0.42f;
-            case CONFLICTING, SEALED -> 0.5f;
+            case LOCKED -> highContrast ? 0.66f : 0.42f;
+            case CONFLICTING, SEALED -> highContrast ? 0.72f : 0.5f;
             case AVAILABLE -> affordable ? 1f : 0.7f;
             default -> 1f;
         };
