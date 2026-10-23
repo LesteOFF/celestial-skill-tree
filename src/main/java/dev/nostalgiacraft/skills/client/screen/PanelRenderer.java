@@ -38,6 +38,9 @@ final class PanelRenderer {
 
     private final List<Button> buttons = new ArrayList<>();
     private int scrollOffset;
+    private List<Component> wrappedLines = List.of();
+    private int wrappedWidth;
+    private List<FormattedCharSequence> wrapped = List.of();
 
     void clear() {
         buttons.clear();
@@ -71,8 +74,7 @@ final class PanelRenderer {
         buttons.clear();
         int textWidth = view.dockedRight() ? Math.min(DOCKED_MAX_WIDTH, screenWidth / 2 - 20)
                 : Math.min(MODAL_MAX_WIDTH, screenWidth - SCREEN_MARGIN);
-        List<FormattedCharSequence> wrapped = new ArrayList<>();
-        view.lines().forEach(line -> wrapped.addAll(font.split(line, textWidth)));
+        List<FormattedCharSequence> wrapped = wrapped(font, view.lines(), textWidth);
         int actionsHeight = view.actions().isEmpty() ? 0 : ACTIONS_HEIGHT;
         int height = Math.min(screenHeight - controlsBottom - SCREEN_MARGIN,
                 wrapped.size() * LINE_HEIGHT + VERTICAL_PADDING + actionsHeight);
@@ -98,6 +100,17 @@ final class PanelRenderer {
         layoutButtons(view.actions(), left, top + height - 22, width);
         buttons.forEach(button -> drawButton(graphics, font, button, mouseX, mouseY));
         graphics.pose().popPose();
+    }
+
+    private List<FormattedCharSequence> wrapped(Font font, List<Component> lines, int textWidth) {
+        if (lines != wrappedLines || textWidth != wrappedWidth) {
+            List<FormattedCharSequence> split = new ArrayList<>();
+            lines.forEach(line -> split.addAll(font.split(line, textWidth)));
+            wrapped = split;
+            wrappedLines = lines;
+            wrappedWidth = textWidth;
+        }
+        return wrapped;
     }
 
     private void layoutButtons(List<Action> actions, int left, int y, int panelWidth) {

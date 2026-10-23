@@ -37,6 +37,10 @@ public final class TooltipPanel {
     private record Corner(int x, int y) {
     }
 
+    private static TooltipCard wrappedCard;
+    private static int wrappedWidth;
+    private static List<List<Line>> wrappedSections = List.of();
+
     private TooltipPanel() {
     }
 
@@ -53,12 +57,11 @@ public final class TooltipPanel {
             graphics.drawString(font, lines.get(index), corner.x() + PADDING, lineY, TEXT_COLOR, true);
             lineY += LINE_HEIGHT + (index == 0 ? TITLE_GAP : 0);
         }
-        graphics.pose().popPose();
+        end(graphics);
     }
 
     public static void render(GuiGraphics graphics, Font font, TooltipCard card, int maxWidth, int mouseX, int mouseY) {
-        List<List<Line>> sections = card.sections().stream().filter(rows -> !rows.isEmpty())
-                .map(rows -> wrap(font, rows, maxWidth - MARKER_SPACE)).toList();
+        List<List<Line>> sections = sections(font, card, maxWidth);
         int headerWidth = HEADER_TEXT_LEFT + Math.max(font.width(card.title()) + BADGE_GAP + font.width(card.badge()), font.width(card.subtitle()));
         int bodyWidth = sections.stream().flatMap(List::stream).mapToInt(line -> MARKER_SPACE + font.width(line.text())).max().orElse(0);
         int innerWidth = Math.max(headerWidth, bodyWidth);
@@ -79,7 +82,7 @@ public final class TooltipPanel {
                 lineY += LINE_HEIGHT;
             }
         }
-        graphics.pose().popPose();
+        end(graphics);
     }
 
     private static void drawHeader(GuiGraphics graphics, Font font, TooltipCard card, int left, int top, int innerWidth) {
@@ -94,6 +97,16 @@ public final class TooltipPanel {
     private static void drawLine(GuiGraphics graphics, Font font, Line line, int left, int top) {
         line.marker().ifPresent(marker -> graphics.blitSprite(marker.sprite(), left, top, MARKER_SIZE, MARKER_SIZE));
         graphics.drawString(font, line.text(), left + MARKER_SPACE, top, TEXT_COLOR, true);
+    }
+
+    private static List<List<Line>> sections(Font font, TooltipCard card, int maxWidth) {
+        if (card != wrappedCard || maxWidth != wrappedWidth) {
+            wrappedSections = card.sections().stream().filter(rows -> !rows.isEmpty())
+                    .map(rows -> wrap(font, rows, maxWidth - MARKER_SPACE)).toList();
+            wrappedCard = card;
+            wrappedWidth = maxWidth;
+        }
+        return wrappedSections;
     }
 
     private static List<Line> wrap(Font font, List<TooltipCard.Row> rows, int width) {
@@ -115,6 +128,11 @@ public final class TooltipPanel {
         int x = mouseX + CURSOR_OFFSET + width <= graphics.guiWidth() ? mouseX + CURSOR_OFFSET : Math.max(0, mouseX - CURSOR_OFFSET - width);
         int y = Mth.clamp(mouseY - CURSOR_OFFSET, 0, Math.max(0, graphics.guiHeight() - height));
         return new Corner(x, y);
+    }
+
+    private static void end(GuiGraphics graphics) {
+        RenderSystem.disableBlend();
+        graphics.pose().popPose();
     }
 
     private static void begin(GuiGraphics graphics, Corner corner, int width, int height) {
