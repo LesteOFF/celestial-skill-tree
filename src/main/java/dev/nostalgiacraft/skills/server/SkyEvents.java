@@ -19,6 +19,7 @@ import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.CanPlayerSleepEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
@@ -51,6 +52,11 @@ public final class SkyEvents {
     }
 
     @SubscribeEvent
+    public static void onServerStarted(ServerStartedEvent event) {
+        current = evaluate(event.getServer());
+    }
+
+    @SubscribeEvent
     public static void onServerStopped(ServerStoppedEvent event) {
         current = SkyEvent.NONE;
     }
@@ -80,6 +86,10 @@ public final class SkyEvents {
     }
 
     private static void update(MinecraftServer server) {
+        setCurrent(server, evaluate(server));
+    }
+
+    private static SkyEvent evaluate(MinecraftServer server) {
         WorldSkillData data = WorldSkillData.of(server);
         ServerLevel overworld = server.overworld();
         long today = data.skyDay(overworld.getDayTime());
@@ -93,7 +103,7 @@ public final class SkyEvents {
         }
         SkyEvent natural = SkyEventSchedule.current(eclipses ? data.eclipseDay() : SkyEventSchedule.UNSCHEDULED,
                 showers ? data.showerDay() : SkyEventSchedule.UNSCHEDULED, today, overworld.getDayTime());
-        setCurrent(server, data.forcedEvent() == SkyEvent.NONE ? natural : data.forcedEvent());
+        return data.forcedEvent() == SkyEvent.NONE ? natural : data.forcedEvent();
     }
 
     private static long nextDay(ServerLevel overworld, long today, int averageDays) {
