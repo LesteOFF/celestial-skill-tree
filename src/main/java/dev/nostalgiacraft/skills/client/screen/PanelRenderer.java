@@ -1,8 +1,10 @@
 package dev.nostalgiacraft.skills.client.screen;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import dev.nostalgiacraft.skills.client.render.Palette;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 
@@ -12,9 +14,11 @@ import java.util.List;
 final class PanelRenderer {
     private static final int LINE_HEIGHT = 10;
     private static final int PADDING = 8;
-    private static final int VERTICAL_PADDING = 12;
-    private static final int ACTIONS_HEIGHT = 26;
+    private static final int VERTICAL_PADDING = 16;
+    private static final int TEXT_TOP = 8;
+    private static final int ACTIONS_HEIGHT = 30;
     private static final int BUTTON_HEIGHT = 18;
+    private static final int BUTTON_BOTTOM_GAP = 7;
     private static final int TEXT_HEIGHT = 8;
     private static final int DOCKED_MAX_WIDTH = 230;
     private static final int MODAL_MAX_WIDTH = 260;
@@ -83,21 +87,22 @@ final class PanelRenderer {
         int top = view.dockedRight() ? controlsBottom + 2 : Math.max(controlsBottom + 4, (screenHeight - height) / 2);
         graphics.pose().pushPose();
         graphics.pose().translate(0, 0, ABOVE_WIDGETS);
-        graphics.fill(left - 1, top - 1, left + width + 1, top + height + 1, Palette.PANEL_EDGE);
-        graphics.fill(left, top, left + width, top + height, Palette.PANEL);
+        RenderSystem.enableBlend();
+        graphics.blitSprite(HudSprites.PANEL, left, top, width, height);
+        RenderSystem.disableBlend();
         int visibleLines = Math.min((height - VERTICAL_PADDING - actionsHeight) / LINE_HEIGHT, wrapped.size());
         scrollOffset = Math.min(scrollOffset, wrapped.size() - visibleLines);
         for (int i = 0; i < visibleLines; i++) {
-            graphics.drawString(font, wrapped.get(scrollOffset + i), left + PADDING, top + 6 + i * LINE_HEIGHT, Palette.TEXT, true);
+            graphics.drawString(font, wrapped.get(scrollOffset + i), left + PADDING, top + TEXT_TOP + i * LINE_HEIGHT, Palette.TEXT, true);
         }
         int markX = left + width - PADDING;
         if (scrollOffset > 0) {
-            graphics.drawString(font, MORE_ABOVE, markX, top + 6, Palette.GOLD, true);
+            graphics.drawString(font, MORE_ABOVE, markX, top + TEXT_TOP, Palette.GOLD, true);
         }
         if (scrollOffset + visibleLines < wrapped.size()) {
-            graphics.drawString(font, MORE_BELOW, markX, top + 6 + (visibleLines - 1) * LINE_HEIGHT, Palette.GOLD, true);
+            graphics.drawString(font, MORE_BELOW, markX, top + TEXT_TOP + (visibleLines - 1) * LINE_HEIGHT, Palette.GOLD, true);
         }
-        layoutButtons(view.actions(), left, top + height - 22, width);
+        layoutButtons(view.actions(), left, top + height - BUTTON_HEIGHT - BUTTON_BOTTOM_GAP, width);
         buttons.forEach(button -> drawButton(graphics, font, button, mouseX, mouseY));
         graphics.pose().popPose();
     }
@@ -121,11 +126,10 @@ final class PanelRenderer {
     }
 
     private static void drawButton(GuiGraphics graphics, Font font, Button button, int mouseX, int mouseY) {
-        int right = button.x() + button.width();
-        int bottom = button.y() + BUTTON_HEIGHT;
-        int edge = button.contains(mouseX, mouseY) ? Palette.GOLD : Palette.BRONZE;
-        graphics.fill(button.x() - 1, button.y() - 1, right + 1, bottom + 1, edge);
-        graphics.fill(button.x(), button.y(), right, bottom, button.action().primary() ? Palette.CONTROL_FILL : Palette.CONTROL_DISABLED);
+        WidgetSprites sprites = button.action().primary() ? SkillButton.PRIMARY : SkillButton.PLAIN;
+        RenderSystem.enableBlend();
+        graphics.blitSprite(sprites.get(true, button.contains(mouseX, mouseY)), button.x(), button.y(), button.width(), BUTTON_HEIGHT);
+        RenderSystem.disableBlend();
         graphics.drawCenteredString(font, button.action().label(), button.x() + button.width() / 2,
                 button.y() + (BUTTON_HEIGHT - TEXT_HEIGHT) / 2, Palette.TEXT);
     }
