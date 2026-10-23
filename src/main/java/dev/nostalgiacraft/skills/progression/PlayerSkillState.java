@@ -33,6 +33,7 @@ public final class PlayerSkillState {
     private final Set<String> disabled = new TreeSet<>();
     private final Set<String> migrationMarkers = new TreeSet<>();
     private final Deque<String> audit = new ArrayDeque<>();
+    private boolean repairedOnLoad;
 
     public PlayerSkillState() {
     }
@@ -58,10 +59,20 @@ public final class PlayerSkillState {
         state.migrationMarkers.addAll(markers);
         audit.forEach(state.audit::addLast);
         if (!state.ledgerHolds()) {
-            state.netGrantedPoints = state.availablePoints + state.activeSpentPoints() - state.purchasedPoints;
-            state.log("ledger repaired on load");
+            state.repairLedger();
         }
         return state;
+    }
+
+    private void repairLedger() {
+        availablePoints = Math.max(0, availablePoints);
+        netGrantedPoints = availablePoints + activeSpentPoints() - purchasedPoints;
+        repairedOnLoad = true;
+        log("ledger repaired on load");
+    }
+
+    public boolean repairedOnLoad() {
+        return repairedOnLoad;
     }
 
     public PlayerSkillState copy() {

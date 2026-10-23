@@ -3,6 +3,7 @@ package dev.nostalgiacraft.skills.registry;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.progression.Allocation;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 
@@ -49,7 +50,12 @@ public final class StateCodecs {
                                             long next, int purchased, int granted, int available, long spent,
                                             long refunded, long revision, String fp, List<String> markers,
                                             List<String> audit, Optional<String> sign, List<String> discoveries) {
-        return PlayerSkillState.restore(tree, root.orElse(null), allocs, next, purchased, granted, available, spent,
+        PlayerSkillState state = PlayerSkillState.restore(tree, root.orElse(null), allocs, next, purchased, granted, available, spent,
                 refunded, revision, fp, markers, audit).withRestoredSign(sign).withRestoredDiscoveries(discoveries);
+        if (state.repairedOnLoad()) {
+            NostalgiaSkills.LOGGER.warn("Repaired an inconsistent skill point ledger (purchased {}, granted {}, available {}); now granted {}, available {}",
+                    purchased, granted, available, state.netGrantedPoints(), state.availablePoints());
+        }
+        return state;
     }
 }
