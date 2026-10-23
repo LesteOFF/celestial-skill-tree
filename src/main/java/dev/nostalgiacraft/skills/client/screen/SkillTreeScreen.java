@@ -48,6 +48,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class SkillTreeScreen extends Screen {
@@ -442,10 +443,20 @@ public final class SkillTreeScreen extends Screen {
                 panel = Panel.NONE;
             }
         }
+        refreshSearchHits();
         statesDirty = false;
         tooltipCache = null;
         routeFor = null;
         updateControls();
+    }
+
+    private void refreshSearchHits() {
+        if (search == null) {
+            return;
+        }
+        int kept = searchIndex;
+        onSearch(search.getValue());
+        searchIndex = Math.min(kept, searchHits.size() - 1);
     }
 
     private void dropOutdatedPending(SkillGraphSnapshot graph, PlayerSkillState state) {
@@ -555,8 +566,7 @@ public final class SkillTreeScreen extends Screen {
         if (result.ok() && POINT_BOUGHT_MESSAGES.contains(result.messageKey())) {
             TreeSounds.pointBought();
         }
-        Object[] details = result.detail().split("/");
-        flash(Component.translatable(result.messageKey(), details).withStyle(result.ok() ? ChatFormatting.GREEN : ChatFormatting.RED));
+        flash(ClientSkillState.message(result).withStyle(result.ok() ? ChatFormatting.GREEN : ChatFormatting.RED));
         if (result.ok() && (panel == Panel.RESET || panel == Panel.REFUND)) {
             panel = Panel.NONE;
         }
@@ -778,7 +788,11 @@ public final class SkillTreeScreen extends Screen {
 
     private static String searchableText(SkillNodeDefinition node) {
         return (SkillTexts.name(node).getString() + " " + SkillTexts.description(node).getString()
-                + " " + String.join(" ", node.tags()) + " " + node.effects()).toLowerCase(Locale.ROOT);
+                + " " + String.join(" ", node.tags()) + " " + effectText(node)).toLowerCase(Locale.ROOT);
+    }
+
+    private static String effectText(SkillNodeDefinition node) {
+        return SkillTexts.effectLines(node).stream().map(line -> line.text().getString()).collect(Collectors.joining(" "));
     }
 
     private void nextSearchHit() {
@@ -924,6 +938,7 @@ public final class SkillTreeScreen extends Screen {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         if (panel == Panel.STATS && mouseX > width * STATS_PANEL_LEFT_FRACTION) {
+            panelRenderer.scroll(scrollY);
             return true;
         }
         if (camera.inViewport(mouseX, mouseY) && scrollY != 0) {
@@ -940,6 +955,11 @@ public final class SkillTreeScreen extends Screen {
 
     @Override
     public boolean keyPressed(int key, int scanCode, int modifiers) {
+        if (key == GLFW.GLFW_KEY_ESCAPE && search.isFocused()) {
+            search.setFocused(false);
+            setFocused(null);
+            return true;
+        }
         if (key == GLFW.GLFW_KEY_ESCAPE) {
             closeTopmost();
             return true;
@@ -953,7 +973,7 @@ public final class SkillTreeScreen extends Screen {
         }
         if (panel.isModal()) {
             if (isEnter(key)) {
-                panelRenderer.activateFirst();
+                panelRenderer.activateSafe();
             }
             return true;
         }
@@ -1123,6 +1143,7 @@ public final class SkillTreeScreen extends Screen {
     private void renderPanel(GuiGraphics graphics, int mouseX, int mouseY) {
         panelRenderer.clear();
         if (panel == Panel.NONE || !ClientSkillState.ready()) {
+            panelRenderer.resetScroll();
             return;
         }
         if (panel == Panel.REFUND && !refundStillValid()) {
