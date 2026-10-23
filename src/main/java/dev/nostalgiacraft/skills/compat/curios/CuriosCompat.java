@@ -16,9 +16,11 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.event.entity.living.LivingEvent;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
 
@@ -26,7 +28,7 @@ public final class CuriosCompat {
     public static final String MOD_ID = "curios";
     private static final String API = "top.theillusivec4.curios.api.CuriosApi";
     private static final String CHANGE_EVENT = "top.theillusivec4.curios.api.event.CurioChangeEvent";
-    private static final Map<UUID, Map<String, ResourceLocation>> GRANTED_SLOTS = new HashMap<>();
+    private static final Map<UUID, Map<String, Set<ResourceLocation>>> GRANTED_SLOTS = new HashMap<>();
 
     private CuriosCompat() {
     }
@@ -65,18 +67,25 @@ public final class CuriosCompat {
             String slot = Ids.path(attribute);
             OptionalEvents.guard(MOD_ID, () -> inventory(player).ifPresent(curios -> {
                 Reflection.call(curios, "addTransientSlotModifier", slot, modifier.id(), modifier.amount(), modifier.operation());
-                GRANTED_SLOTS.computeIfAbsent(player.getUUID(), id -> new HashMap<>()).put(slot, modifier.id());
+                GRANTED_SLOTS.computeIfAbsent(player.getUUID(), id -> new HashMap<>())
+                        .computeIfAbsent(slot, key -> new HashSet<>()).add(modifier.id());
             }));
         }
 
         @Override
         public void clear(ServerPlayer player) {
-            Map<String, ResourceLocation> granted = GRANTED_SLOTS.remove(player.getUUID());
+            Map<String, Set<ResourceLocation>> granted = GRANTED_SLOTS.remove(player.getUUID());
             if (granted == null) {
                 return;
             }
             OptionalEvents.guard(MOD_ID, () -> inventory(player).ifPresent(curios ->
-                    granted.forEach((slot, modifierId) -> Reflection.call(curios, "removeSlotModifier", slot, modifierId))));
+                    granted.forEach((slot, modifierIds) -> modifierIds.forEach(modifierId ->
+                            Reflection.call(curios, "removeSlotModifier", slot, modifierId)))));
+        }
+
+        @Override
+        public void forget(UUID player) {
+            GRANTED_SLOTS.remove(player);
         }
     }
 }

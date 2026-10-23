@@ -57,6 +57,8 @@ public final class EffectEngine {
         void apply(ServerPlayer player, String attribute, AttributeModifier modifier);
 
         void clear(ServerPlayer player);
+
+        void forget(UUID player);
     }
 
     public static void registerAttributeTarget(String namespace, AttributeTarget target) {
@@ -88,7 +90,7 @@ public final class EffectEngine {
         BUILDS.remove(player.getUUID());
         ACTIVE_CONDITIONALS.remove(player.getUUID());
         BorrowedNodes.forget(player.getUUID());
-        StolenNodes.forget(player.getUUID());
+        ATTRIBUTE_TARGETS.values().forEach(target -> target.forget(player.getUUID()));
     }
 
     public static ResourceLocation modifierId(String kind, String key) {
