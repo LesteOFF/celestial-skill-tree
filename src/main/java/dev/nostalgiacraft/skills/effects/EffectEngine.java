@@ -103,6 +103,14 @@ public final class EffectEngine {
         return ResourceLocation.fromNamespaceAndPath(NostalgiaSkills.MODID, path);
     }
 
+    public static double attributeValue(LivingEntity entity, Holder<Attribute> attribute) {
+        return entity.getAttributes().hasAttribute(attribute) ? entity.getAttributeValue(attribute) : 0.0;
+    }
+
+    public static boolean isOwnModifier(ResourceLocation modifierId, String kind) {
+        return modifierId.getNamespace().equals(NostalgiaSkills.MODID) && modifierId.getPath().startsWith(kind + "/");
+    }
+
     public static void refresh(ServerPlayer player) {
         CompiledBuild build = SkillTreeManager.graph()
                 .map(graph -> compile(graph, player)).orElse(CompiledBuild.EMPTY);
@@ -123,20 +131,19 @@ public final class EffectEngine {
         return CompiledBuild.compile(graph, state, extras, StolenNodes.of(player));
     }
 
-    private static void applyPermanent(ServerPlayer player, String sumKey, double sum) {
-        String[] attributeAndOperation = sumKey.split("\\|");
-        double amount = capped(attributeAndOperation[0], attributeAndOperation[1], scaled(sum));
+    private static void applyPermanent(ServerPlayer player, CompiledBuild.AttributeKey key, double sum) {
+        double amount = capped(key.attribute(), key.operation(), scaled(sum));
         if (amount == 0) {
             return;
         }
-        AttributeModifier modifier = new AttributeModifier(modifierId(TREE_KIND, sumKey), amount,
-                operationFor(attributeAndOperation[0], attributeAndOperation[1]));
-        AttributeTarget target = ATTRIBUTE_TARGETS.get(Ids.namespace(attributeAndOperation[0]));
+        AttributeModifier modifier = new AttributeModifier(modifierId(TREE_KIND, key.id()), amount,
+                operationFor(key.attribute(), key.operation()));
+        AttributeTarget target = ATTRIBUTE_TARGETS.get(Ids.namespace(key.attribute()));
         if (target != null) {
-            target.apply(player, attributeAndOperation[0], modifier);
+            target.apply(player, key.attribute(), modifier);
             return;
         }
-        holder(attributeAndOperation[0]).ifPresent(attribute -> {
+        holder(key.attribute()).ifPresent(attribute -> {
             AttributeInstance instance = player.getAttribute(attribute);
             if (instance != null) {
                 instance.addTransientModifier(modifier);
@@ -266,7 +273,7 @@ public final class EffectEngine {
             case "wearing" -> wears(player, ModTags.itemTag(condition.string("tag")));
             case "dual_wielding" -> WeaponClasses.isWeapon(player.getMainHandItem()) && WeaponClasses.isWeapon(player.getOffhandItem());
             case "attribute_at_least" -> BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.parse(condition.string("attribute")))
-                    .filter(attribute -> GameplayEvents.attributeValue(player, attribute) >= condition.number("value")).isPresent();
+                    .filter(attribute -> attributeValue(player, attribute) >= condition.number("value")).isPresent();
             default -> EXTRA_CONDITIONS.getOrDefault(condition.type(), (anyPlayer, anyCondition) -> false).test(player, condition);
         };
     }

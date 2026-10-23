@@ -5,7 +5,8 @@ import dev.nostalgiacraft.skills.compat.Reflection;
 import dev.nostalgiacraft.skills.effects.CompiledBuild;
 import dev.nostalgiacraft.skills.effects.EffectEngine;
 import dev.nostalgiacraft.skills.effects.EliteMobs;
-import dev.nostalgiacraft.skills.effects.GameplayEvents;
+import dev.nostalgiacraft.skills.effects.EquipmentEvents;
+import dev.nostalgiacraft.skills.effects.MiningEvents;
 import dev.nostalgiacraft.skills.effects.Triggers;
 import dev.nostalgiacraft.skills.effects.WeaponClasses;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
@@ -43,7 +44,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
-@EventBusSubscriber(modid = NostalgiaSkills.MODID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = NostalgiaSkills.MODID)
 @PrefixGameTestTemplate(false)
 public final class ServerBenchGameTests {
     private static final boolean ENABLED = Boolean.getBoolean("nostalgiaskills.bench");
@@ -81,13 +82,13 @@ public final class ServerBenchGameTests {
             report.add(measure("CompiledBuild.compile", () -> CompiledBuild.compile(graph, ModAttachments.state(player))));
             report.add(measure("EffectEngine.refresh", () -> { EffectEngine.refresh(player); return player; }));
             report.add(measure("equipment change (durability only)", () -> {
-                GameplayEvents.onEquipmentChange(new LivingEquipmentChangeEvent(player, EquipmentSlot.MAINHAND, sword, worn));
+                EquipmentEvents.onEquipmentChange(new LivingEquipmentChangeEvent(player, EquipmentSlot.MAINHAND, sword, worn));
                 return player;
             }));
             player.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.DIAMOND_PICKAXE));
             report.add(measure("BreakSpeed (pickaxe on stone)", () -> {
                 PlayerEvent.BreakSpeed event = new PlayerEvent.BreakSpeed(player, Blocks.STONE.defaultBlockState(), 1f, BlockPos.ZERO);
-                GameplayEvents.onBreakSpeed(event);
+                MiningEvents.onBreakSpeed(event);
                 return event.getNewSpeed();
             }));
             report.add(measure("WeaponClasses.isWeapon", () -> WeaponClasses.isWeapon(sword)));

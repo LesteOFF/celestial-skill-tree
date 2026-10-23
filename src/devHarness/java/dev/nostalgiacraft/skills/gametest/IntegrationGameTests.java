@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@EventBusSubscriber(modid = NostalgiaSkills.MODID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = NostalgiaSkills.MODID)
 @PrefixGameTestTemplate(false)
 public final class IntegrationGameTests {
     private static final List<String> PACK_MODS = List.of("apotheosis", "irons_spellbooks", "curios", "kubejs");

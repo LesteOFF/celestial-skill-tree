@@ -1,8 +1,8 @@
 package dev.nostalgiacraft.skills.gametest;
 
 import dev.nostalgiacraft.skills.NostalgiaSkills;
+import dev.nostalgiacraft.skills.effects.CombatEvents;
 import dev.nostalgiacraft.skills.effects.EffectEngine;
-import dev.nostalgiacraft.skills.effects.GameplayEvents;
 import dev.nostalgiacraft.skills.progression.PathFinder;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.registry.ModAttributes;
@@ -60,7 +60,7 @@ public final class AttributeGameTests {
         target.setHealth(target.getMaxHealth());
         Arrow arrow = new Arrow(target.level(), archer, new ItemStack(Items.ARROW), null);
         arrow.setPos(target.position().add(blocksAway, 0, 0));
-        GameplayEvents.rememberOrigin(arrow);
+        CombatEvents.rememberOrigin(arrow);
         return Scenario.strike(target, archer.damageSources().arrow(arrow, archer), HIT);
     }
 
