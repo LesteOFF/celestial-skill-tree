@@ -252,9 +252,9 @@ public final class PlayerSkillState {
         this.startingRoot = id;
     }
 
-    void addPurchasedPoint() {
-        purchasedPoints++;
-        availablePoints++;
+    void addPurchasedPoints(int points) {
+        purchasedPoints += points;
+        availablePoints += points;
     }
 
     void adjustGranted(int delta) {

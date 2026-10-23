@@ -40,8 +40,14 @@ public final class XpMath {
             throw new IllegalArgumentException("negative experience");
         }
         int level = 0;
-        while (level < MAX_LEVEL && totalForLevel(level + 1) <= total) {
-            level++;
+        int above = MAX_LEVEL + 1;
+        while (above - level > 1) {
+            int middle = (level + above) >>> 1;
+            if (totalForLevel(middle) <= total) {
+                level = middle;
+            } else {
+                above = middle;
+            }
         }
         long rem = total - totalForLevel(level);
         float progress = (float) rem / (float) xpNeededForNextLevel(level);

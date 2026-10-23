@@ -22,6 +22,34 @@ class ProgressionTest {
     }
 
     @Test
+    void aBulkPurchaseCostsTheSameAsSinglePurchasesAndLogsOnce() {
+        PlayerSkillState singles = new PlayerSkillState();
+        long xp = 10_000;
+        for (int i = 0; i < 5; i++) {
+            xp = ProgressionService.purchasePoint(singles, xp, ProgressionService.Settings.DEFAULT).newXpTotal();
+        }
+        PlayerSkillState bulk = new PlayerSkillState();
+        ProgressionService.BulkPurchaseResult result = ProgressionService.purchasePoints(bulk, 10_000, ProgressionService.Settings.DEFAULT, 5);
+        assertEquals(5, result.bought());
+        assertEquals(xp, result.newXpTotal());
+        assertEquals(singles.purchasedPoints(), bulk.purchasedPoints());
+        assertEquals(1, bulk.stateRevision());
+        assertEquals(1, bulk.audit().size());
+        assertTrue(bulk.ledgerHolds());
+    }
+
+    @Test
+    void experienceTotalsMapBackToTheirLevelAtEveryBoundary() {
+        for (int level = 0; level <= XpMath.MAX_LEVEL; level++) {
+            long total = XpMath.totalForLevel(level);
+            assertEquals(level, XpMath.fromTotal(total).level());
+            if (level > 0) {
+                assertEquals(level - 1, XpMath.fromTotal(total - 1).level());
+            }
+        }
+    }
+
+    @Test
     void anEclipseLastsTheDaylightOfItsDayAndAShowerItsNight() {
         long day7 = 7 * 24_000L;
         assertEquals(SkyEvent.ECLIPSE, SkyEventSchedule.current(7, 7, 7, day7));
