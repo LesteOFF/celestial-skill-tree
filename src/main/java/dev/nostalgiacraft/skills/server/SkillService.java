@@ -6,6 +6,7 @@ import dev.nostalgiacraft.skills.config.ServerConfig;
 import dev.nostalgiacraft.skills.data.SkillTreeManager;
 import dev.nostalgiacraft.skills.data.WorldSkillData;
 import dev.nostalgiacraft.skills.effects.EffectEngine;
+import dev.nostalgiacraft.skills.effects.Triggers;
 import dev.nostalgiacraft.skills.graph.GraphCodec;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.graph.SkillSign;
@@ -37,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public final class SkillService {
@@ -144,10 +146,14 @@ public final class SkillService {
         sendState(player);
     }
 
+    private static final Set<RejectReason> STATE_UNCHANGED = Set.of(RejectReason.RATE_LIMITED, RejectReason.DUPLICATE_REQUEST);
+
     private record Request(ServerPlayer player, UUID id) {
         void reject(RejectReason reason, String detail) {
             send(player, new Payloads.TransactionResult(id, false, reason.translationKey(), detail));
-            sendState(player);
+            if (!STATE_UNCHANGED.contains(reason)) {
+                sendState(player);
+            }
         }
 
         void accept(String messageKey, String detail) {
@@ -168,7 +174,13 @@ public final class SkillService {
         return Optional.of(request);
     }
 
-    private static boolean withinRateLimit(ServerPlayer player) {
+    public static void onUseBoon(Payloads.UseBoon message, IPayloadContext context) {
+        if (context.player() instanceof ServerPlayer player && withinRateLimit(player)) {
+            Triggers.fire(player, Triggers.ON_BOON_KEY, null);
+        }
+    }
+
+    public static boolean withinRateLimit(ServerPlayer player) {
         return LIMITER.allow(player.getUUID(), player.serverLevel().getGameTime(), ServerConfig.MAX_REQUESTS_PER_SECOND.get());
     }
 

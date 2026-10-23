@@ -213,9 +213,10 @@ public final class Payloads {
     }
 
     public record TreeViewing(boolean open, String sectorKey) implements CustomPacketPayload {
+        public static final int MAX_SECTOR_KEY_LENGTH = 128;
         public static final Type<TreeViewing> TYPE = typeOf("tree_viewing");
         public static final StreamCodec<ByteBuf, TreeViewing> CODEC = StreamCodec.composite(
-                ByteBufCodecs.BOOL, TreeViewing::open, ByteBufCodecs.STRING_UTF8, TreeViewing::sectorKey, TreeViewing::new);
+                ByteBufCodecs.BOOL, TreeViewing::open, ByteBufCodecs.stringUtf8(MAX_SECTOR_KEY_LENGTH), TreeViewing::sectorKey, TreeViewing::new);
 
         public Type<TreeViewing> type() {
             return TYPE;

@@ -1,9 +1,7 @@
 package dev.nostalgiacraft.skills.network;
 
-import dev.nostalgiacraft.skills.effects.Triggers;
 import dev.nostalgiacraft.skills.server.SkillService;
 import dev.nostalgiacraft.skills.server.TreeViewers;
-import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
@@ -23,8 +21,7 @@ public final class NetworkSetup {
         payloadRegistrar.playToServer(Payloads.ToggleNode.TYPE, Payloads.ToggleNode.CODEC, SkillService::onToggle);
         payloadRegistrar.playToServer(Payloads.DonateXp.TYPE, Payloads.DonateXp.CODEC, SkillService::onDonate);
         payloadRegistrar.playToServer(Payloads.TreeViewing.TYPE, Payloads.TreeViewing.CODEC, TreeViewers::onViewing);
-        payloadRegistrar.playToServer(Payloads.UseBoon.TYPE, Payloads.UseBoon.CODEC,
-                (msg, ctx) -> Triggers.fire((ServerPlayer) ctx.player(), Triggers.ON_BOON_KEY, null));
+        payloadRegistrar.playToServer(Payloads.UseBoon.TYPE, Payloads.UseBoon.CODEC, SkillService::onUseBoon);
         payloadRegistrar.playToClient(Payloads.TreeViewer.TYPE, Payloads.TreeViewer.CODEC, (msg, ctx) -> ClientHandlers.viewer(msg));
         payloadRegistrar.playToClient(Payloads.Gesture.TYPE, Payloads.Gesture.CODEC, (msg, ctx) -> ClientHandlers.gesture(msg));
         payloadRegistrar.playToClient(Payloads.Stargaze.TYPE, Payloads.Stargaze.CODEC, (msg, ctx) -> ClientHandlers.stargaze());
