@@ -5,6 +5,7 @@ import dev.nostalgiacraft.skills.config.ServerConfig;
 import dev.nostalgiacraft.skills.entity.FallingStar;
 import dev.nostalgiacraft.skills.progression.SkyEvent;
 import dev.nostalgiacraft.skills.progression.WorldClock;
+import net.minecraft.SharedConstants;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -13,7 +14,6 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 @EventBusSubscriber(modid = NostalgiaSkills.MODID)
 public final class ShootingStars {
-    private static final int TICKS_PER_SECOND = 20;
     private static final double SECONDS_PER_MINUTE = 60.0;
 
     private ShootingStars() {
@@ -22,7 +22,7 @@ public final class ShootingStars {
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Post event) {
         ServerLevel overworld = event.getServer().overworld();
-        boolean rollNow = event.getServer().getTickCount() % TICKS_PER_SECOND == 0;
+        boolean rollNow = event.getServer().getTickCount() % SharedConstants.TICKS_PER_SECOND == 0;
         boolean showering = SkyEvents.current() == SkyEvent.STAR_SHOWER;
         if (!rollNow || !ServerConfig.SHOOTING_STARS_ENABLED.get() || !(showering || WorldClock.isNight(overworld.getDayTime()))) {
             return;

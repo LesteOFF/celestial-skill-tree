@@ -7,6 +7,7 @@ import dev.nostalgiacraft.skills.progression.Allocation;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
 import net.minecraft.ChatFormatting;
+import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -20,7 +21,6 @@ import java.util.Set;
 
 @EventBusSubscriber(modid = NostalgiaSkills.MODID)
 public final class StolenNodes {
-    private static final int TICKS_PER_SECOND = 20;
 
     private StolenNodes() {
     }
@@ -32,7 +32,7 @@ public final class StolenNodes {
     public static boolean stealNewest(ServerPlayer player, int seconds) {
         Optional<String> newest = newestHeld(player);
         newest.ifPresent(node -> {
-            long returnsAt = player.serverLevel().getGameTime() + (long) seconds * TICKS_PER_SECOND;
+            long returnsAt = player.serverLevel().getGameTime() + (long) seconds * SharedConstants.TICKS_PER_SECOND;
             player.getData(ModAttachments.STOLEN_NODES).put(node, returnsAt);
             EffectEngine.refresh(player);
             player.sendSystemMessage(Component.translatable("message.nostalgiaskills.node_stolen", nameOf(node), seconds)
@@ -56,7 +56,7 @@ public final class StolenNodes {
 
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
-        boolean checksNow = event.getEntity() instanceof ServerPlayer && event.getEntity().tickCount % TICKS_PER_SECOND == 0
+        boolean checksNow = event.getEntity() instanceof ServerPlayer && event.getEntity().tickCount % SharedConstants.TICKS_PER_SECOND == 0
                 && event.getEntity().getExistingData(ModAttachments.STOLEN_NODES).filter(stolen -> !stolen.isEmpty()).isPresent();
         if (checksNow) {
             returnDueNodes((ServerPlayer) event.getEntity());

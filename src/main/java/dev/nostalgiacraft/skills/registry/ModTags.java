@@ -11,11 +11,6 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 
 public final class ModTags {
-    public static final TagKey<Item> LIGHT_WEAPONS = item("light_weapons");
-    public static final TagKey<Item> HEAVY_WEAPONS = item("heavy_weapons");
-    public static final TagKey<Item> BOWS = item("bows");
-    public static final TagKey<Item> CROSSBOWS = item("crossbows");
-    public static final TagKey<Item> MINING_TOOLS = item("mining_tools");
     public static final TagKey<Item> BONUS_HARVEST = item("bonus_harvest");
     public static final TagKey<DamageType> MAGIC = TagKey.create(Registries.DAMAGE_TYPE,
             ResourceLocation.fromNamespaceAndPath(NostalgiaSkills.MODID, "magic"));

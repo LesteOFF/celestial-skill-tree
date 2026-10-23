@@ -15,7 +15,7 @@ public final class RequestGuard {
         }
     };
 
-    public synchronized Optional<RejectReason> admit(UUID requestId, long expectedStateRevision, long stateRevision,
+    public Optional<RejectReason> admit(UUID requestId, long expectedStateRevision, long stateRevision,
                                                      long expectedGraphRevision, long graphRevision,
                                                      boolean graphDependent) {
         if (recent.containsKey(requestId)) {
