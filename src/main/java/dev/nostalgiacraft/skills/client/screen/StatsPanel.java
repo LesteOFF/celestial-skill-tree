@@ -143,7 +143,7 @@ public final class StatsPanel {
 
     private static void addPendingPreview(List<Component> lines, Player player, SkillGraphSnapshot graph,
                                           Collection<String> pending) {
-        Map<String, Double> pendingSums = attributeSums(graph, pending);
+        Map<CompiledBuild.AttributeKey, Double> pendingSums = attributeSums(graph, pending);
         if (pendingSums.isEmpty()) {
             return;
         }
@@ -153,8 +153,8 @@ public final class StatsPanel {
                 Component.literal("   ").append(preview).withStyle(ChatFormatting.DARK_AQUA, ChatFormatting.ITALIC)));
     }
 
-    private static Map<String, Double> attributeSums(SkillGraphSnapshot graph, Collection<String> nodeIds) {
-        Map<String, Double> sums = new TreeMap<>();
+    private static Map<CompiledBuild.AttributeKey, Double> attributeSums(SkillGraphSnapshot graph, Collection<String> nodeIds) {
+        Map<CompiledBuild.AttributeKey, Double> sums = new TreeMap<>();
         nodeIds.stream().flatMap(id -> graph.node(id).stream()).flatMap(node -> node.effects().stream()).forEach(effect -> {
             if (effect instanceof SkillEffect.Attribute attribute) {
                 sums.merge(CompiledBuild.sumKey(attribute.attribute(), attribute.operation()), attribute.amount(), Double::sum);
@@ -163,15 +163,11 @@ public final class StatsPanel {
         return sums;
     }
 
-    private static String[] attributeAndOperation(String sumKey) {
-        return sumKey.split("\\|");
-    }
-
-    private static List<MutableComponent> sumLines(Map<String, Double> sums) {
+    private static List<MutableComponent> sumLines(Map<CompiledBuild.AttributeKey, Double> sums) {
         List<MutableComponent> lines = new ArrayList<>();
-        sums.forEach((sumKey, sum) -> {
-            String attribute = attributeAndOperation(sumKey)[0];
-            String operation = attributeAndOperation(sumKey)[1];
+        sums.forEach((key, sum) -> {
+            String attribute = key.attribute();
+            String operation = key.operation();
             boolean relative = !operation.equals("add_value") || attribute.startsWith(MOD_PREFIX);
             BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.parse(attribute)).ifPresent(holder -> lines.add(
                     Component.translatable(holder.value().getDescriptionId()).append(" " + (relative ? signedPercent(EffectEngine.scaled(sum)) : signed(EffectEngine.scaled(sum))))));
@@ -179,14 +175,14 @@ public final class StatsPanel {
         return lines;
     }
 
-    private static List<MutableComponent> beforeAfterLines(Player player, Map<String, Double> pending) {
+    private static List<MutableComponent> beforeAfterLines(Player player, Map<CompiledBuild.AttributeKey, Double> pending) {
         Map<String, List<AttributeModifier>> replacements = new TreeMap<>();
-        pending.forEach((sumKey, pendingSum) -> {
-            String attribute = attributeAndOperation(sumKey)[0];
-            String operation = attributeAndOperation(sumKey)[1];
-            ResourceLocation modifierId = EffectEngine.modifierId("tree", sumKey);
+        pending.forEach((key, pendingSum) -> {
+            String attribute = key.attribute();
+            String operation = key.operation();
+            ResourceLocation modifierId = EffectEngine.modifierId("tree", key.id());
             double total = EffectEngine.capped(attribute, operation, appliedAmount(player, attribute, modifierId) + EffectEngine.scaled(pendingSum));
-            replacements.computeIfAbsent(attribute, key -> new ArrayList<>())
+            replacements.computeIfAbsent(attribute, unused -> new ArrayList<>())
                     .add(new AttributeModifier(modifierId, total, EffectEngine.operationFor(attribute, operation)));
         });
         List<MutableComponent> lines = new ArrayList<>();

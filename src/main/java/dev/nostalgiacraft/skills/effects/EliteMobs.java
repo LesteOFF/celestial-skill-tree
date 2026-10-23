@@ -54,10 +54,8 @@ public final class EliteMobs {
     private static final String ORIGINAL_KEY = "nostalgiaskills_elite_original";
     private static final String RADAR_TEAM = "nostalgiaskills_constellated";
     private static final String MODIFIER_KIND = "elite";
-    private static final String BASE_HEALTH = "minecraft:generic.max_health|add_multiplied_base";
-    private static final String BASE_DAMAGE = "minecraft:generic.attack_damage|add_multiplied_base";
-    private static final double BASE_HEALTH_BONUS = 0.5;
-    private static final double BASE_DAMAGE_BONUS = 0.25;
+    private static final CompiledBuild.AttributeKey BASE_HEALTH = CompiledBuild.sumKey("minecraft:generic.max_health", "add_multiplied_base");
+    private static final CompiledBuild.AttributeKey BASE_DAMAGE = CompiledBuild.sumKey("minecraft:generic.attack_damage", "add_multiplied_base");
     private static final int CONSTELLATION_BUDGET = 1_000;
     private static final Set<MobSpawnType> WILD_SPAWNS = EnumSet.of(MobSpawnType.NATURAL, MobSpawnType.CHUNK_GENERATION,
             MobSpawnType.STRUCTURE, MobSpawnType.PATROL, MobSpawnType.EVENT, MobSpawnType.REINFORCEMENT,
@@ -152,16 +150,23 @@ public final class EliteMobs {
         }
     }
 
-    private static void demote(LivingEntity copy) {
-        String prefix = MODIFIER_KIND + "/";
+    private record EliteModifier(Holder.Reference<Attribute> attribute, AttributeInstance instance, AttributeModifier modifier) {
+    }
+
+    private static List<EliteModifier> eliteModifiers(LivingEntity monster) {
+        List<EliteModifier> found = new ArrayList<>();
         for (Holder.Reference<Attribute> attribute : BuiltInRegistries.ATTRIBUTE.holders().toList()) {
-            AttributeInstance instance = copy.getAttribute(attribute);
+            AttributeInstance instance = monster.getAttribute(attribute);
             if (instance != null) {
-                List.copyOf(instance.getModifiers()).stream().map(AttributeModifier::id)
-                        .filter(id -> id.getNamespace().equals(NostalgiaSkills.MODID) && id.getPath().startsWith(prefix))
-                        .forEach(instance::removeModifier);
+                instance.getModifiers().stream().filter(modifier -> EffectEngine.isOwnModifier(modifier.id(), MODIFIER_KIND))
+                        .forEach(modifier -> found.add(new EliteModifier(attribute, instance, modifier)));
             }
         }
+        return found;
+    }
+
+    private static void demote(LivingEntity copy) {
+        eliteModifiers(copy).forEach(owned -> owned.instance().removeModifier(owned.modifier().id()));
         copy.getPersistentData().remove(ELITE_KEY);
         copy.getPersistentData().remove(ORIGINAL_KEY);
         copy.setCustomName(null);
@@ -206,17 +211,8 @@ public final class EliteMobs {
     }
 
     public static List<Bonus> bonuses(LivingEntity monster) {
-        String prefix = MODIFIER_KIND + "/";
-        List<Bonus> bonuses = new ArrayList<>();
-        for (Holder.Reference<Attribute> attribute : BuiltInRegistries.ATTRIBUTE.holders().toList()) {
-            AttributeInstance instance = monster.getAttribute(attribute);
-            if (instance != null) {
-                instance.getModifiers().stream()
-                        .filter(modifier -> modifier.id().getNamespace().equals(NostalgiaSkills.MODID) && modifier.id().getPath().startsWith(prefix))
-                        .forEach(modifier -> bonuses.add(new Bonus(attribute.key().location().toString(), modifier.operation(), modifier.amount())));
-            }
-        }
-        return bonuses;
+        return eliteModifiers(monster).stream().map(owned -> new Bonus(owned.attribute().key().location().toString(),
+                owned.modifier().operation(), owned.modifier().amount())).toList();
     }
 
     public static boolean isElite(LivingEntity entity) {
@@ -233,8 +229,8 @@ public final class EliteMobs {
         if (graph.isEmpty()) {
             return false;
         }
-        applyModifier(monster, BASE_HEALTH, BASE_HEALTH_BONUS);
-        applyModifier(monster, BASE_DAMAGE, BASE_DAMAGE_BONUS);
+        applyModifier(monster, BASE_HEALTH, ServerConfig.ELITE_HEALTH_BONUS.get());
+        applyModifier(monster, BASE_DAMAGE, ServerConfig.ELITE_DAMAGE_BONUS.get());
         PlayerSkillState constellation = randomConstellation(graph.get(), random, nodeCount);
         CompiledBuild.compile(graph.get(), constellation).attributeSums().forEach((sumKey, sum) -> applyModifier(monster, sumKey, sum));
         monster.setHealth(monster.getMaxHealth());
@@ -247,11 +243,10 @@ public final class EliteMobs {
         return true;
     }
 
-    private static void applyModifier(Monster monster, String sumKey, double amount) {
-        String[] attributeAndOperation = sumKey.split("\\|");
-        ResourceLocation id = EffectEngine.modifierId(MODIFIER_KIND, sumKey);
-        BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.parse(attributeAndOperation[0])).map(monster::getAttribute)
-                .ifPresent(instance -> addOrIncrease(instance, id, amount, EffectEngine.op(attributeAndOperation[1])));
+    private static void applyModifier(Monster monster, CompiledBuild.AttributeKey key, double amount) {
+        ResourceLocation id = EffectEngine.modifierId(MODIFIER_KIND, key.id());
+        BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.parse(key.attribute())).map(monster::getAttribute)
+                .ifPresent(instance -> addOrIncrease(instance, id, amount, EffectEngine.op(key.operation())));
     }
 
     private static void addOrIncrease(AttributeInstance instance, ResourceLocation id, double amount,

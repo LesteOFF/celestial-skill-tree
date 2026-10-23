@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RankTest {
-    private static final String HEALTH = CompiledBuild.sumKey("minecraft:generic.max_health", "add_value");
+    private static final CompiledBuild.AttributeKey HEALTH = CompiledBuild.sumKey("minecraft:generic.max_health", "add_value");
     private static final int RANKED_COST = 2;
     private static final int MAX_RANK = 3;
 

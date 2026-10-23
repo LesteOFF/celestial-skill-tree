@@ -44,10 +44,9 @@ public final class PetInheritance {
         double share = ServerConfig.PET_TREE_SHARE.get();
         float healthBefore = pet.getHealth() / pet.getMaxHealth();
         INHERITED.forEach(attributeId -> clearInherited(instanceOf(pet, attributeId)));
-        EffectEngine.build(owner).attributeSums().forEach((sumKey, sum) -> {
-            String[] attributeAndOperation = sumKey.split("\\|");
-            if (INHERITED.contains(attributeAndOperation[0])) {
-                apply(pet, sumKey, attributeAndOperation, EffectEngine.scaled(sum) * share);
+        EffectEngine.build(owner).attributeSums().forEach((key, sum) -> {
+            if (INHERITED.contains(key.attribute())) {
+                apply(pet, key, EffectEngine.scaled(sum) * share);
             }
         });
         pet.setHealth(Math.min(pet.getMaxHealth(), healthBefore * pet.getMaxHealth()));
@@ -58,18 +57,14 @@ public final class PetInheritance {
             return;
         }
         List.copyOf(instance.getModifiers()).stream().map(AttributeModifier::id)
-                .filter(PetInheritance::isInherited).forEach(instance::removeModifier);
+                .filter(id -> EffectEngine.isOwnModifier(id, MODIFIER_KIND)).forEach(instance::removeModifier);
     }
 
-    private static boolean isInherited(ResourceLocation modifierId) {
-        return modifierId.getNamespace().equals(NostalgiaSkills.MODID) && modifierId.getPath().startsWith(MODIFIER_KIND + "/");
-    }
-
-    private static void apply(LivingEntity pet, String sumKey, String[] attributeAndOperation, double amount) {
-        AttributeInstance instance = instanceOf(pet, attributeAndOperation[0]);
+    private static void apply(LivingEntity pet, CompiledBuild.AttributeKey key, double amount) {
+        AttributeInstance instance = instanceOf(pet, key.attribute());
         if (instance != null && amount != 0) {
-            ResourceLocation id = EffectEngine.modifierId(MODIFIER_KIND, sumKey);
-            instance.addPermanentModifier(new AttributeModifier(id, amount, EffectEngine.op(attributeAndOperation[1])));
+            ResourceLocation id = EffectEngine.modifierId(MODIFIER_KIND, key.id());
+            instance.addPermanentModifier(new AttributeModifier(id, amount, EffectEngine.op(key.operation())));
         }
     }
 

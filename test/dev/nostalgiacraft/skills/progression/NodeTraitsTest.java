@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 
 class NodeTraitsTest {
-    private static final String HEALTH = CompiledBuild.sumKey("minecraft:generic.max_health", "add_value");
+    private static final CompiledBuild.AttributeKey HEALTH = CompiledBuild.sumKey("minecraft:generic.max_health", "add_value");
 
     private static TestGraphs blackHoleLayout() {
         TestGraphs layout = new TestGraphs().sector("a");

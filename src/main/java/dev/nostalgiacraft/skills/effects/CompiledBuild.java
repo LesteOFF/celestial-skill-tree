@@ -12,15 +12,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public record CompiledBuild(Map<String, Double> attributeSums, List<Keyed<SkillEffect.ConditionalAttribute>> conditional,
+public record CompiledBuild(Map<AttributeKey, Double> attributeSums, List<Keyed<SkillEffect.ConditionalAttribute>> conditional,
                             List<Keyed<SkillEffect.DamageModifier>> damage, List<Keyed<SkillEffect.Trigger>> triggers) {
     public static final CompiledBuild EMPTY = new CompiledBuild(Map.of(), List.of(), List.of(), List.of());
 
     public record Keyed<T>(String key, T effect) {
     }
 
-    public static String sumKey(String attribute, String op) {
-        return attribute + "|" + op;
+    public record AttributeKey(String attribute, String operation) implements Comparable<AttributeKey> {
+        public String id() {
+            return attribute + "|" + operation;
+        }
+
+        @Override
+        public int compareTo(AttributeKey other) {
+            return id().compareTo(other.id());
+        }
+    }
+
+    public static AttributeKey sumKey(String attribute, String operation) {
+        return new AttributeKey(attribute, operation);
     }
 
     public static CompiledBuild compile(SkillGraphSnapshot graph, PlayerSkillState state) {
@@ -76,7 +87,7 @@ public record CompiledBuild(Map<String, Double> attributeSums, List<Keyed<SkillE
     }
 
     private static final class Collector {
-        private final Map<String, Double> attributeSums = new HashMap<>();
+        private final Map<AttributeKey, Double> attributeSums = new HashMap<>();
         private final List<Keyed<SkillEffect.ConditionalAttribute>> conditional = new ArrayList<>();
         private final List<Keyed<SkillEffect.DamageModifier>> damage = new ArrayList<>();
         private final List<Keyed<SkillEffect.Trigger>> triggers = new ArrayList<>();
