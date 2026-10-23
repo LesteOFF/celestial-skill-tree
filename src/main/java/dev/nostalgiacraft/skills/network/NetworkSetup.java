@@ -6,7 +6,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 public final class NetworkSetup {
-    public static final String VERSION = "8";
+    public static final String VERSION = "9";
 
     private NetworkSetup() {
     }
@@ -27,6 +27,8 @@ public final class NetworkSetup {
         payloadRegistrar.playToClient(Payloads.Stargaze.TYPE, Payloads.Stargaze.CODEC, (msg, ctx) -> ClientHandlers.stargaze());
         payloadRegistrar.playToClient(Payloads.GraphSync.TYPE, Payloads.GraphSync.CODEC, (msg, ctx) -> ClientHandlers.graph(msg));
         payloadRegistrar.playToClient(Payloads.StateSync.TYPE, Payloads.StateSync.CODEC, (msg, ctx) -> ClientHandlers.state(msg));
+        payloadRegistrar.playToClient(Payloads.CommunityProgressSync.TYPE, Payloads.CommunityProgressSync.CODEC,
+                (msg, ctx) -> ClientHandlers.community(msg));
         payloadRegistrar.playToClient(Payloads.TransactionResult.TYPE, Payloads.TransactionResult.CODEC, (msg, ctx) -> ClientHandlers.result(msg));
         payloadRegistrar.playToClient(Payloads.OpenScreen.TYPE, Payloads.OpenScreen.CODEC, (msg, ctx) -> ClientHandlers.open(msg));
     }

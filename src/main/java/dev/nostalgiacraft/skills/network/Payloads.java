@@ -183,6 +183,20 @@ public final class Payloads {
         public List<Long> thresholds() {
             return communityTiers.stream().map(TierInfo::xpRequired).toList();
         }
+
+        public WorldRules withCommunityXp(long xp) {
+            return new WorldRules(skyEvent, xp, communityTiers, signs);
+        }
+    }
+
+    public record CommunityProgressSync(long communityXp) implements CustomPacketPayload {
+        public static final Type<CommunityProgressSync> TYPE = typeOf("community_progress");
+        public static final StreamCodec<ByteBuf, CommunityProgressSync> CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_LONG, CommunityProgressSync::communityXp, CommunityProgressSync::new);
+
+        public Type<CommunityProgressSync> type() {
+            return TYPE;
+        }
     }
 
     public record StateSync(int graphRevision, PlayerSkillState state, Economy economy, XpCurve curve,

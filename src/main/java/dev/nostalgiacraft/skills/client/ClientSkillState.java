@@ -165,6 +165,14 @@ public final class ClientSkillState {
         changeListener.run();
     }
 
+    public static void onCommunityProgress(long communityXp) {
+        if (fixture) {
+            return;
+        }
+        worldRules = worldRules.withCommunityXp(communityXp);
+        changeListener.run();
+    }
+
     public static void onResult(Payloads.TransactionResult result) {
         if (result.requestId().equals(inFlight)) {
             inFlight = null;

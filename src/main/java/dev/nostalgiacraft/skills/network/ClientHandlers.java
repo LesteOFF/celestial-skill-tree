@@ -17,6 +17,10 @@ final class ClientHandlers {
         ClientSkillState.onState(stateSync);
     }
 
+    static void community(Payloads.CommunityProgressSync progress) {
+        ClientSkillState.onCommunityProgress(progress.communityXp());
+    }
+
     static void result(Payloads.TransactionResult transactionResult) {
         ClientSkillState.onResult(transactionResult);
     }

@@ -5,6 +5,7 @@ import dev.nostalgiacraft.skills.data.SkillTreeManager;
 import dev.nostalgiacraft.skills.data.WorldSkillData;
 import dev.nostalgiacraft.skills.effects.EffectEngine;
 import dev.nostalgiacraft.skills.graph.CommunityTier;
+import dev.nostalgiacraft.skills.network.Payloads;
 import dev.nostalgiacraft.skills.progression.CommunityProgress;
 import dev.nostalgiacraft.skills.progression.RejectReason;
 import dev.nostalgiacraft.skills.progression.XpMath;
@@ -62,11 +63,14 @@ public final class CommunityTree {
                     Component.translatable(CommunityTier.nameKey(tiers.get(index).id())),
                     Component.translatable(CommunityTier.descriptionKey(tiers.get(index).id()))).withStyle(ChatFormatting.GOLD), false);
         }
+        Payloads.CommunityProgressSync progress = new Payloads.CommunityProgressSync(data.communityXp());
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             if (unlockedNow != unlockedBefore) {
                 EffectEngine.refresh(player);
+                SkillService.sendState(player);
+            } else {
+                SkillService.send(player, progress);
             }
-            SkillService.sendState(player);
         }
     }
 }
