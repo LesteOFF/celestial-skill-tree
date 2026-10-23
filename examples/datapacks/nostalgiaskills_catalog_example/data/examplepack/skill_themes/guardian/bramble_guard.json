@@ -1,6 +1,6 @@
 {
   "class": "nostalgiaskills:guardian",
-  "name": "Thorns",
+  "name": "Bramble Guard",
   "icon": "nostalgiaskills:textures/skill_icons/defense.png",
   "weight": 30,
   "minor": {
@@ -9,7 +9,7 @@
         "type": "attribute",
         "attribute": "minecraft:generic.attack_knockback",
         "operation": "add_value",
-        "amount": 0.1
+        "amount": 0.05
       }
     ]
   },

@@ -1,7 +1,6 @@
 {
   "class": "nostalgiaskills:guardian",
   "name": "Sleeping Giant",
-  "weight": 30,
   "text": "You have far more health, but your attacks are much slower. Hidden until you kill the Ender Dragon.",
   "hidden_until": "minecraft:end/kill_dragon",
   "effects": [
