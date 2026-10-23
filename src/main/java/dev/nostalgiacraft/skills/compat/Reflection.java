@@ -4,8 +4,17 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class Reflection {
+    private static final Map<String, Class<?>> TYPES = new ConcurrentHashMap<>();
+    private static final Map<MethodKey, Method> METHODS = new ConcurrentHashMap<>();
+
+    private record MethodKey(Class<?> owner, String name, List<Class<?>> argumentTypes) {
+    }
+
     private Reflection() {
     }
 
@@ -59,8 +68,14 @@ public final class Reflection {
     }
 
     public static Class<?> type(String className) {
+        Class<?> known = TYPES.get(className);
+        if (known != null) {
+            return known;
+        }
         try {
-            return Class.forName(className);
+            Class<?> found = Class.forName(className);
+            TYPES.put(className, found);
+            return found;
         } catch (ClassNotFoundException failure) {
             throw new IllegalStateException("missing class " + className, failure);
         }
@@ -68,10 +83,21 @@ public final class Reflection {
 
     private static Object invoke(Class<?> owner, Object target, String method, Object[] arguments) {
         try {
-            return find(owner, method, arguments).invoke(target, arguments);
+            return cachedMethod(owner, method, arguments).invoke(target, arguments);
         } catch (ReflectiveOperationException failure) {
             throw new IllegalStateException("cannot call " + owner.getName() + "." + method, failure);
         }
+    }
+
+    private static Method cachedMethod(Class<?> owner, String name, Object[] arguments) throws NoSuchMethodException {
+        MethodKey key = new MethodKey(owner, name, Arrays.stream(arguments).<Class<?>>map(argument -> argument == null ? null : argument.getClass()).toList());
+        Method known = METHODS.get(key);
+        if (known != null) {
+            return known;
+        }
+        Method found = find(owner, name, arguments);
+        METHODS.put(key, found);
+        return found;
     }
 
     private static Method find(Class<?> owner, String name, Object[] arguments) throws NoSuchMethodException {
