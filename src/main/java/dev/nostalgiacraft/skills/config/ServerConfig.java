@@ -4,9 +4,13 @@ import dev.nostalgiacraft.skills.effects.EliteMobs;
 import dev.nostalgiacraft.skills.progression.ProgressionService;
 import dev.nostalgiacraft.skills.progression.XpCurve;
 import dev.nostalgiacraft.skills.server.FallenStars;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
+import java.util.regex.Pattern;
+
 public final class ServerConfig {
+    private static final Pattern OBJECTIVE_NAME = Pattern.compile("[A-Za-z0-9_.+-]*");
     public static final ModConfigSpec SPEC;
 
     public static final ModConfigSpec.BooleanValue XP_PURCHASE_ENABLED;
@@ -118,11 +122,11 @@ public final class ServerConfig {
         LIFESTEAL_COOLDOWN_TICKS = builder.defineInRange("lifestealCooldownTicks", 10, 0, 200);
         builder.pop();
         builder.comment("Item classification tags").push("tags");
-        LIGHT_WEAPON_TAG = builder.define("lightWeapons", "nostalgiaskills:light_weapons");
-        HEAVY_WEAPON_TAG = builder.define("heavyWeapons", "nostalgiaskills:heavy_weapons");
-        BOW_TAG = builder.define("bows", "nostalgiaskills:bows");
-        CROSSBOW_TAG = builder.define("crossbows", "nostalgiaskills:crossbows");
-        MINING_TOOL_TAG = builder.define("miningTools", "nostalgiaskills:mining_tools");
+        LIGHT_WEAPON_TAG = builder.define("lightWeapons", "nostalgiaskills:light_weapons", ServerConfig::isResourceId);
+        HEAVY_WEAPON_TAG = builder.define("heavyWeapons", "nostalgiaskills:heavy_weapons", ServerConfig::isResourceId);
+        BOW_TAG = builder.define("bows", "nostalgiaskills:bows", ServerConfig::isResourceId);
+        CROSSBOW_TAG = builder.define("crossbows", "nostalgiaskills:crossbows", ServerConfig::isResourceId);
+        MINING_TOOL_TAG = builder.define("miningTools", "nostalgiaskills:mining_tools", ServerConfig::isResourceId);
         builder.pop();
         builder.comment("Network abuse limits").push("limits");
         MAX_REQUESTS_PER_SECOND = builder.defineInRange("maxRequestsPerSecond", 10, 1, 100);
@@ -168,7 +172,7 @@ public final class ServerConfig {
         STELLAR_AMMO_BONUS = builder.comment("Extra damage of a gunshot empowered by Stellar Ammo (0.5 = +50%)")
                 .defineInRange("stellarAmmoBonus", 0.5, 0.0, 10.0);
         LAST_LIFE_OBJECTIVE = builder.comment("Lives mods (Third Life and the like): scoreboard objective holding each player's remaining lives; while a player's score equals lastLifeScore they carry a second birth sign, the one opposite their own. Empty disables; /nostalgiaskills extrasign and the KubeJS binding grant the same sign by hand")
-                .define("lastLifeObjective", "");
+                .define("lastLifeObjective", "", ServerConfig::isObjectiveName);
         LAST_LIFE_SCORE = builder.comment("Score of lastLifeObjective that means the player is on their last life")
                 .defineInRange("lastLifeScore", 1, -1_000_000, 1_000_000);
         ECLIPSE_ENABLED = builder.comment("Some days the moon covers the sun from dawn to dusk: resets and refunds need no Orb of Reconfiguration")
@@ -213,5 +217,13 @@ public final class ServerConfig {
     public static ProgressionService.Settings progression() {
         return new ProgressionService.Settings(XP_PURCHASE_ENABLED.get(), POINT_LIMIT.get(),
                 new XpCurve(CURVE_BASE.get(), CURVE_LINEAR.get(), CURVE_QUADRATIC.get(), CURVE_DISCOUNT.get()));
+    }
+
+    private static boolean isResourceId(Object value) {
+        return value instanceof String id && ResourceLocation.tryParse(id) != null;
+    }
+
+    private static boolean isObjectiveName(Object value) {
+        return value instanceof String name && OBJECTIVE_NAME.matcher(name).matches();
     }
 }
