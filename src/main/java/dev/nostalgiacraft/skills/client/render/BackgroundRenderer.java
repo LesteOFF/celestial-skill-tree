@@ -14,14 +14,14 @@ public final class BackgroundRenderer {
     public static final ResourceLocation NEBULA = tex("nebula_far");
     public static final ResourceLocation MOON = tex("moon_crescent");
     public static final ResourceLocation ASTROLABE = tex("astrolabe_ghost");
-    public static final ResourceLocation RUINS = tex("observatory_ruins");
-    public static final ResourceLocation PLATFORM = tex("observatory_platform");
     public static final ResourceLocation MOTES = tex("astral_motes");
 
     static final int BASE_W = 2048;
     static final int BASE_H = 1152;
     private static final double OVERSCAN = 0.06;
     private static final double VEIL_OPACITY = 0.86;
+    private static final double BOTTOM_FADE_START = 0.72;
+    private static final int BOTTOM_FADE_ALPHA = 0xD8;
 
     private BackgroundRenderer() {
     }
@@ -47,20 +47,8 @@ public final class BackgroundRenderer {
         sprite(graphics, ASTROLABE, w * 0.50 - offset(px, 0.06, w), h * 0.52 - offset(py, 0.06, h), 760 * s, 760 * s, 0, 0, 1024, 1024, 1024, 1024);
         double moon = 440 * s;
         sprite(graphics, MOON, w * 0.10 - offset(px, 0.06, w), h * 0.91 - offset(py, 0.06, h), moon, moon, 0, 0, 512, 512, 512, 512);
-        double f = 190 * s;
-        double fx = offset(px, 0.06, w), fy = offset(py, 0.06, h);
-        sprite(graphics, RUINS, w * 0.06 - fx, h * 0.12 - fy, f, f, 0, 0, 256, 256, 512, 512);
-        sprite(graphics, RUINS, w * 0.93 - fx, h * 0.10 - fy, f, f, 256, 0, 256, 256, 512, 512);
-        sprite(graphics, RUINS, w * 0.95 - fx, h * 0.62 - fy, f * 0.8, f * 0.8, 0, 256, 256, 256, 512, 512);
-        sprite(graphics, RUINS, w * 0.87 - fx, h * 0.80 - fy, f * 0.7, f * 0.7, 256, 256, 256, 256, 512, 512);
-        double ph = 118 * s;
-        double pw = 1024 * (ph / 160.0);
-        double off = offset(px, 0.08, w) % pw;
-        int y0 = (int) Math.round(h - ph + offset(py, 0.08, h) * 0.3);
-        for (double x = -pw - off; x < w + pw; x += pw) {
-            sprite(graphics, PLATFORM, x + pw / 2, y0 + ph / 2, pw, ph, 0, 0, 1024, 160, 1024, 160);
-        }
         motes(graphics, w, h, still ? 0 : timeSeconds);
+        bottomFade(graphics, w, h);
         RenderSystem.disableBlend();
     }
 
@@ -69,6 +57,11 @@ public final class BackgroundRenderer {
         if (alpha > 0) {
             graphics.fill(0, 0, w, h, alpha << 24 | Palette.HIDDEN_VEIL);
         }
+    }
+
+    private static void bottomFade(GuiGraphics graphics, int w, int h) {
+        int spaceColor = Palette.DEEP_SPACE & 0xFFFFFF;
+        graphics.fillGradient(0, (int) (h * BOTTOM_FADE_START), w, h, spaceColor, BOTTOM_FADE_ALPHA << 24 | spaceColor);
     }
 
     private static double offset(double pan, double factor, int size) {

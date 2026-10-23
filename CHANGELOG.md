@@ -21,6 +21,7 @@
 - The server config reload re-prices the tree and re-applies the caps.
 - Faster tree rendering, sky events, reconcile and point purchases.
 - The QA harness and game tests are no longer in the released jar.
+- The skill tree background is open space only: the stone platform and floating ruins are gone.
 
 ### Fixed
 
