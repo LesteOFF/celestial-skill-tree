@@ -289,6 +289,7 @@ final class InWorldQa {
         addEclipseSteps();
         addCommunitySteps();
         addSkySteps();
+        addShowcaseSteps();
         script.pause("let the screenshots reach the disk", 2 * SETTLE_TICKS);
     }
 
@@ -623,5 +624,26 @@ final class InWorldQa {
         }, () -> script.ticks() >= STAR_FLIGHT_TICKS, 2 * STAR_FLIGHT_TICKS);
         script.then("capture falling_stars", () -> script.capture(SHOT_PREFIX + "falling_stars" + SHOT_SUFFIX));
         script.step("stop the star shower", () -> command("nostalgiaskills shower stop"), () -> skyEvent() == SkyEvent.NONE, COMMAND_TICKS);
+    }
+
+    private void addShowcaseSteps() {
+        String small = ",transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[0.6f,0.6f,0.6f]}}";
+        script.step("lay out the blocks and items", () -> {
+            command("time set noon");
+            command("weather clear");
+            command("tp @s ~ ~ ~ 180 25");
+            command("setblock ~-2 ~ ~-3 nostalgiaskills:stellar_condenser");
+            command("setblock ~ ~ ~-3 nostalgiaskills:community_basin");
+            command("setblock ~2 ~ ~-3 nostalgiaskills:telescope[facing=north]");
+            command("summon minecraft:item_display ~-1 ~2.3 ~-3 {item:{id:\"nostalgiaskills:living_fragment\",count:1},billboard:\"center\"" + small);
+            command("summon minecraft:item_display ~1 ~2.3 ~-3 {item:{id:\"nostalgiaskills:stellar_ammo\",count:1},billboard:\"center\"" + small);
+        }, () -> script.ticks() >= SKY_FADE_TICKS, 2 * SKY_FADE_TICKS);
+        script.then("capture showcase", () -> script.capture(SHOT_PREFIX + "showcase" + SHOT_SUFFIX));
+        script.step("look at the telescope from the side", () -> command("tp @s ~4.5 ~0.5 ~-3 90 15"),
+                () -> script.ticks() >= SETTLE_TICKS, 2 * SETTLE_TICKS);
+        script.then("capture showcase_side", () -> script.capture(SHOT_PREFIX + "showcase_side" + SHOT_SUFFIX));
+        script.step("look into the community basin", () -> command("tp @s 0.5 -58.2 -1 180 60"),
+                () -> script.ticks() >= SETTLE_TICKS, 2 * SETTLE_TICKS);
+        script.then("capture showcase_basin", () -> script.capture(SHOT_PREFIX + "showcase_basin" + SHOT_SUFFIX));
     }
 }
