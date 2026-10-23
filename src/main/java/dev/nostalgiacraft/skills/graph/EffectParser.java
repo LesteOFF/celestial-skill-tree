@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -17,6 +18,8 @@ public final class EffectParser {
     private static final double MIN_DAMAGE_MODIFIER = -0.95;
     private static final double MAX_DAMAGE_MODIFIER = 10;
     private static final int MAX_COOLDOWN_TICKS = 72_000;
+    private static final int MIN_RISKY_COOLDOWN_TICKS = 20;
+    private static final Set<String> RISKY_ACTIONS = Set.of("cheat_death", "burst", "smite_target", "chaos_target", "raise_ally");
     private static final double MAX_HEAL = 100;
     private static final double MAX_MANA_RESTORE = 10_000;
     private static final int MAX_DURATION_TICKS = 12_000;
@@ -107,10 +110,11 @@ public final class EffectParser {
             effect.error("trigger", "unknown trigger '" + trigger + "' (use one of " + new TreeSet<>(SkillEffect.TRIGGERS)
                     + " or a namespaced id fired by another mod)");
         }
-        int cooldown = effect.integerWithin("cooldown_ticks", 0, 0, MAX_COOLDOWN_TICKS);
+        Optional<SkillEffect.Action> action = effect.object("action").flatMap(this::action);
+        int minimumCooldown = action.filter(parsed -> RISKY_ACTIONS.contains(parsed.type())).isPresent() ? MIN_RISKY_COOLDOWN_TICKS : 0;
+        int cooldown = effect.integerWithin("cooldown_ticks", 0, minimumCooldown, MAX_COOLDOWN_TICKS);
         Optional<Condition> condition = effect.has("condition") ? condition(effect) : Optional.empty();
-        return effect.object("action").flatMap(this::action)
-                .map(action -> new SkillEffect.Trigger(trigger, action, cooldown, condition));
+        return action.map(parsed -> new SkillEffect.Trigger(trigger, parsed, cooldown, condition));
     }
 
     private Optional<SkillEffect.Action> action(JsonFields action) {

@@ -77,7 +77,7 @@ public final class Triggers {
             case "chaos_target" -> BoonActions.chaos(player, target, action.amount());
             case "launch_target" -> BoonActions.launch(target, action.amount());
             case "smite_target" -> BoonActions.smite(player, target, action.amount());
-            case "cheat_death" -> player.setHealth((float) action.amount());
+            case "cheat_death" -> BoonActions.cheatDeath(player, action.amount());
             case "raise_ally" -> BoonActions.raiseAlly(player, action, target);
             default -> {
                 ActionHandler extra = EXTRA_ACTIONS.get(action.type());

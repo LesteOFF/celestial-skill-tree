@@ -31,6 +31,7 @@ final class BoonActions {
     private static final double CHAOS_LAUNCH_SPEED = 1.0;
     private static final int CHAOS_BURN_TICKS = 100;
     private static final int CHAOS_OUTCOMES = 4;
+    private static final int CHEAT_DEATH_INVULNERABLE_TICKS = 40;
 
     private BoonActions() {
     }
@@ -56,6 +57,13 @@ final class BoonActions {
         BuiltInRegistries.MOB_EFFECT.getHolder(ResourceLocation.parse(action.effect())).ifPresent(mobEffect ->
                 enemiesAround(player, action.amount()).forEach(near ->
                         near.addEffect(new MobEffectInstance(mobEffect, action.durationTicks(), action.amplifier()), player)));
+    }
+
+    static void cheatDeath(ServerPlayer player, double health) {
+        player.setHealth((float) health);
+        player.clearFire();
+        player.resetFallDistance();
+        player.invulnerableTime = CHEAT_DEATH_INVULNERABLE_TICKS;
     }
 
     static void launch(LivingEntity target, double speed) {
