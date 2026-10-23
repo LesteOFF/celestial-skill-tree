@@ -1,24 +1,28 @@
 package dev.nostalgiacraft.skills.client.screen;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import dev.nostalgiacraft.skills.client.ClientSkillState;
+import dev.nostalgiacraft.skills.client.render.Palette;
 import dev.nostalgiacraft.skills.network.Payloads;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.progression.RejectReason;
 import dev.nostalgiacraft.skills.progression.XpCurve;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 final class TreeHud {
     interface Actions {
@@ -40,38 +44,62 @@ final class TreeHud {
 
         void fit();
 
+        void toggleHelp();
+
         void search(String text);
     }
 
-    private static final int MARGIN = 8;
-    private static final int GAP = 6;
-    private static final int ROW_SPACING = 4;
-    private static final int TOP = 6;
-    private static final int BUTTON_HEIGHT = 20;
-    private static final int BUTTON_TEXT_PADDING = 20;
-    private static final int MIN_BUTTON_WIDTH = 132;
-    private static final int MAX_BUTTON_WIDTH = 150;
-    private static final int NARROW_WIDTH = 60;
-    private static final int CAMERA_BUTTON_WIDTH = 44;
-    private static final int BESIDE_SEARCH_WIDTH = 120;
-    private static final int BELOW_SEARCH_WIDTH = 140;
-    private static final int COMMUNITY_BUTTON_WIDTH = 72;
-    private static final int COMMUNITY_BUTTON_BOTTOM_OFFSET = 26;
-    private static final int SIGN_BUTTON_BOTTOM_OFFSET = 50;
-    private static final int HIDDEN_BUTTON_BOTTOM_OFFSET = 74;
-    private static final int POINTS_LABEL_SAMPLE = 888;
+    private record Island(int x, int y, int width, int height) {
+        boolean contains(double pointX, double pointY) {
+            return pointX >= x && pointX < x + width && pointY >= y && pointY < y + height;
+        }
+    }
+
+    static final int EDGE = 6;
+    private static final int ISLAND_GAP = 4;
+    private static final int PAD = 3;
+    private static final int CONTROL = 13;
+    private static final int ISLAND_HEIGHT = CONTROL + 2 * PAD;
+    private static final int GAP = 2;
+    private static final int SECTION_GAP = 8;
+    private static final int ICON_TOP = (ISLAND_HEIGHT - HudSprites.ICON_SIZE) / 2;
+    private static final int TEXT_TOP = (ISLAND_HEIGHT - 8) / 2 + 1;
+    private static final int CONTENT_LEFT = PAD + 2;
+    private static final int TEXT_BUTTON_PADDING = 14;
+    private static final int MIN_SEARCH_WIDTH = 100;
+    private static final int MAX_SEARCH_WIDTH = 170;
+    private static final int SEARCH_TEXT_LEFT = CONTENT_LEFT + HudSprites.ICON_SIZE + 4;
+    private static final int COUNTER_SPACE = 30;
+    private static final int ICON_TEXT_GAP = 3;
+    private static final int POINTS_SAMPLE = 8888;
+    private static final int XP_WIDTH = 120;
+    private static final int MIN_XP_WIDTH = 50;
+    private static final int TOOLTIP_WIDTH = 220;
 
     private final Actions actions;
-    private Button buyButton;
-    private Button pointsButton;
-    private Button statsButton;
-    private Button confirmButton;
-    private Button cancelButton;
-    private Button communityButton;
-    private Button signButton;
-    private Button hiddenButton;
+    private Font font;
+    private SkillButton buyButton;
+    private SkillButton statsButton;
+    private SkillButton communityButton;
+    private SkillButton signButton;
+    private SkillButton hiddenButton;
+    private SkillButton filterButton;
+    private SkillButton confirmButton;
+    private SkillButton cancelButton;
+    private List<SkillButton> tools = List.of();
     private EditBox search;
-    private int controlsBottom;
+    private SearchFilter filter = SearchFilter.ALL;
+    private int width;
+    private int height;
+    private Island searchIsland;
+    private Island dock;
+    private Island bottomIsland;
+    private Island pendingIsland;
+    private int pointsWidth;
+    private int xpLeft;
+    private int xpRight;
+    private int pointsLeft;
+    private Component pointsTooltip = Component.empty();
     private List<Object> shown = List.of();
 
     TreeHud(Actions actions) {
@@ -86,70 +114,170 @@ final class TreeHud {
         return search;
     }
 
-    int controlsBottom() {
-        return controlsBottom;
+    SearchFilter filter() {
+        return filter;
+    }
+
+    int panelTop() {
+        return EDGE;
+    }
+
+    int messageY() {
+        return EDGE + TEXT_TOP;
+    }
+
+    boolean covers(double mouseX, double mouseY) {
+        return searchIsland.contains(mouseX, mouseY) || dock.contains(mouseX, mouseY) || bottomIsland.contains(mouseX, mouseY)
+                || confirmButton.visible && pendingIsland.contains(mouseX, mouseY);
     }
 
     void layout(Font font, int width, int height, Consumer<AbstractWidget> add) {
-        int buttonWidth = mainButtonWidth(font, width);
-        int groupWidth = 3 * buttonWidth + 2 * GAP;
-        int groupLeft = (width - groupWidth) / 2;
-        int secondRowY = TOP + BUTTON_HEIGHT + ROW_SPACING;
-        addMainButtons(width, groupLeft, secondRowY, buttonWidth, add);
-        boolean toolsFitBeside = groupLeft - MARGIN >= NARROW_WIDTH
-                && width - (groupLeft + groupWidth) - MARGIN >= 2 * CAMERA_BUTTON_WIDTH + GAP;
-        int toolsY = toolsFitBeside ? TOP : secondRowY + BUTTON_HEIGHT + ROW_SPACING;
-        int searchWidth = toolsFitBeside ? Math.min(BESIDE_SEARCH_WIDTH, Math.max(NARROW_WIDTH, groupLeft - 2 * MARGIN))
-                : Math.min(BELOW_SEARCH_WIDTH, width / 3);
-        addTools(font, width, toolsY, searchWidth, add);
-        communityButton = corner(height - COMMUNITY_BUTTON_BOTTOM_OFFSET, "community", actions::openCommunity, add);
-        signButton = corner(height - SIGN_BUTTON_BOTTOM_OFFSET, "sign", actions::openSign, add);
-        hiddenButton = corner(height - HIDDEN_BUTTON_BOTTOM_OFFSET, "hidden", actions::toggleHiddenRegion, add);
-        controlsBottom = (toolsFitBeside ? secondRowY : toolsY) + BUTTON_HEIGHT + ROW_SPACING;
+        this.font = font;
+        this.width = width;
+        this.height = height;
+        addSearchIsland(add);
+        addDock(add);
+        addBottomIsland(add);
+        addPendingIsland(add);
         shown = List.of();
     }
 
-    private static int mainButtonWidth(Font font, int width) {
-        int widestLabel = Stream.of(text("buy_point"), text("points_left", POINTS_LABEL_SAMPLE), text("show_stats"),
-                text("confirm"), text("cancel")).mapToInt(font::width).max().orElse(0);
-        int preferred = Mth.clamp(widestLabel + BUTTON_TEXT_PADDING, MIN_BUTTON_WIDTH, MAX_BUTTON_WIDTH);
-        int available = width - 2 * MARGIN;
-        return 3 * preferred + 2 * GAP > available ? Math.max(NARROW_WIDTH, (available - 2 * GAP) / 3) : preferred;
-    }
-
-    private void addMainButtons(int width, int groupLeft, int secondRowY, int buttonWidth, Consumer<AbstractWidget> add) {
-        int step = buttonWidth + GAP;
-        buyButton = button(groupLeft, TOP, buttonWidth, text("buy_point"),
-                () -> actions.buy(Screen.hasShiftDown() ? bulkBuyTarget() : 1), add);
-        pointsButton = button(groupLeft + step, TOP, buttonWidth, Component.empty(), () -> { }, add);
-        pointsButton.active = false;
-        statsButton = button(groupLeft + 2 * step, TOP, buttonWidth, text("show_stats"), actions::toggleStats, add);
-        int secondRowLeft = (width - (2 * buttonWidth + GAP)) / 2;
-        confirmButton = button(secondRowLeft, secondRowY, buttonWidth, text("confirm"), actions::confirm, add);
-        cancelButton = button(secondRowLeft + step, secondRowY, buttonWidth, text("cancel"), actions::cancel, add);
-    }
-
-    private void addTools(Font font, int width, int y, int searchWidth, Consumer<AbstractWidget> add) {
-        search = new EditBox(font, MARGIN, y, searchWidth, BUTTON_HEIGHT, text("search"));
+    private void addSearchIsland(Consumer<AbstractWidget> add) {
+        int searchWidth = Mth.clamp(width / 4, MIN_SEARCH_WIDTH, MAX_SEARCH_WIDTH);
+        searchIsland = new Island(EDGE, EDGE, searchWidth, ISLAND_HEIGHT);
+        String previous = search == null ? "" : search.getValue();
+        search = new EditBox(font, EDGE + SEARCH_TEXT_LEFT, EDGE + TEXT_TOP,
+                searchWidth - SEARCH_TEXT_LEFT - PAD - CONTROL - COUNTER_SPACE, font.lineHeight, text("search"));
+        search.setBordered(false);
+        search.setTextColor(Palette.TEXT);
         search.setHint(text("search_hint"));
+        search.setValue(previous);
         search.setResponder(actions::search);
         add.accept(search);
-        int cameraLeft = width - MARGIN - 2 * CAMERA_BUTTON_WIDTH - GAP;
-        button(cameraLeft, y, CAMERA_BUTTON_WIDTH, text("home"), actions::home, add).setTooltip(Tooltip.create(text("home_tooltip")));
-        button(cameraLeft + CAMERA_BUTTON_WIDTH + GAP, y, CAMERA_BUTTON_WIDTH, text("fit"), actions::fit, add)
-                .setTooltip(Tooltip.create(text("fit_tooltip")));
+        filterButton = icon(filter.icon(), "filter", this::cycleFilter, add);
+        filterButton.setPosition(EDGE + searchWidth - PAD - CONTROL, EDGE + PAD);
+        filterButton.setTooltip(Tooltip.create(filterTooltip()));
     }
 
-    private static Button corner(int y, String key, Runnable action, Consumer<AbstractWidget> add) {
-        Button button = button(MARGIN, y, COMMUNITY_BUTTON_WIDTH, text(key), action, add);
+    private void addDock(Consumer<AbstractWidget> add) {
+        statsButton = icon(HudSprites.STATS, "show_stats", actions::toggleStats, add);
+        communityButton = icon(HudSprites.COMMUNITY, "community", actions::openCommunity, add);
+        signButton = icon(HudSprites.SIGN, "sign", actions::openSign, add);
+        hiddenButton = icon(HudSprites.HIDDEN, "hidden", actions::toggleHiddenRegion, add);
+        tools = List.of(statsButton, communityButton, signButton, hiddenButton, icon(HudSprites.HOME, "home", actions::home, add),
+                icon(HudSprites.FIT, "fit", actions::fit, add), icon(HudSprites.HELP, "help", actions::toggleHelp, add));
+        arrangeDock();
+    }
+
+    private void arrangeDock() {
+        int top = EDGE + ISLAND_HEIGHT + ISLAND_GAP;
+        int y = top + PAD;
+        for (Button button : tools) {
+            if (button.visible) {
+                button.setPosition(EDGE + PAD, y);
+                y += CONTROL + GAP;
+            }
+        }
+        dock = new Island(EDGE, top, ISLAND_HEIGHT, y - GAP + PAD - top);
+    }
+
+    private void addBottomIsland(Consumer<AbstractWidget> add) {
+        pointsWidth = HudSprites.ICON_SIZE + ICON_TEXT_GAP + font.width(String.valueOf(POINTS_SAMPLE));
+        Component buyLabel = text("buy_points");
+        int buyWidth = textWidth(buyLabel);
+        int fixedWidth = 2 * CONTENT_LEFT + pointsWidth + buyWidth + 2 * SECTION_GAP;
+        int xpWidth = Mth.clamp(width - 2 * EDGE - fixedWidth, MIN_XP_WIDTH, XP_WIDTH);
+        int islandWidth = fixedWidth + xpWidth;
+        bottomIsland = new Island((width - islandWidth) / 2, height - EDGE - ISLAND_HEIGHT, islandWidth, ISLAND_HEIGHT);
+        int buyX = bottomIsland.x() + CONTENT_LEFT + pointsWidth + SECTION_GAP;
+        buyButton = textButton(buyX, bottomIsland.y() + PAD, buyLabel,
+                () -> actions.buy(Screen.hasShiftDown() ? bulkBuyTarget() : 1), SkillButton.BUY, add);
+        xpLeft = buyButton.getRight() + SECTION_GAP;
+        xpRight = xpLeft + xpWidth;
+    }
+
+    private void addPendingIsland(Consumer<AbstractWidget> add) {
+        confirmButton = textButton(0, 0, text("confirm"), actions::confirm, SkillButton.PRIMARY, add);
+        cancelButton = textButton(0, 0, text("cancel"), actions::cancel, SkillButton.PLAIN, add);
+        arrangePendingIsland();
+    }
+
+    private void arrangePendingIsland() {
+        confirmButton.setWidth(textWidth(confirmButton.getMessage()));
+        int islandWidth = 2 * PAD + confirmButton.getWidth() + GAP + cancelButton.getWidth();
+        pendingIsland = new Island((width - islandWidth) / 2, bottomIsland.y() - ISLAND_GAP - ISLAND_HEIGHT, islandWidth, ISLAND_HEIGHT);
+        confirmButton.setPosition(pendingIsland.x() + PAD, pendingIsland.y() + PAD);
+        cancelButton.setPosition(confirmButton.getRight() + GAP, pendingIsland.y() + PAD);
+    }
+
+    private int textWidth(Component label) {
+        return font.width(label) + TEXT_BUTTON_PADDING;
+    }
+
+    private static SkillButton icon(ResourceLocation sprite, String key, Runnable action, Consumer<AbstractWidget> add) {
+        SkillButton button = SkillButton.icon(0, 0, CONTROL, sprite, text(key), pressed -> action.run());
         button.setTooltip(Tooltip.create(text(key + "_tooltip")));
-        return button;
-    }
-
-    private static Button button(int x, int y, int width, Component label, Runnable action, Consumer<AbstractWidget> add) {
-        Button button = new SkillButton(x, y, width, BUTTON_HEIGHT, label, pressed -> action.run());
         add.accept(button);
         return button;
+    }
+
+    private SkillButton textButton(int x, int y, Component label, Runnable action, WidgetSprites sprites, Consumer<AbstractWidget> add) {
+        SkillButton button = new SkillButton(x, y, textWidth(label), CONTROL, label, pressed -> action.run(), sprites);
+        add.accept(button);
+        return button;
+    }
+
+    private void cycleFilter() {
+        filter = filter.next();
+        filterButton.setIcon(filter.icon());
+        filterButton.setTooltip(Tooltip.create(filterTooltip()));
+        actions.search(search.getValue());
+    }
+
+    private Component filterTooltip() {
+        return text("filter_tooltip", text("filter." + filter.key()).withStyle(ChatFormatting.YELLOW));
+    }
+
+    void renderIslands(GuiGraphics graphics) {
+        RenderSystem.enableBlend();
+        boolean typing = search != null && search.isFocused();
+        panel(graphics, searchIsland, typing ? HudSprites.PANEL_HIGHLIGHTED : HudSprites.PANEL);
+        panel(graphics, dock, HudSprites.PANEL);
+        panel(graphics, bottomIsland, HudSprites.PANEL);
+        if (confirmButton.visible) {
+            panel(graphics, pendingIsland, HudSprites.PANEL);
+        }
+        graphics.blitSprite(HudSprites.SEARCH, searchIsland.x() + CONTENT_LEFT, searchIsland.y() + ICON_TOP, HudSprites.ICON_SIZE,
+                HudSprites.ICON_SIZE);
+        graphics.blitSprite(HudSprites.POINT, bottomIsland.x() + CONTENT_LEFT, bottomIsland.y() + ICON_TOP, HudSprites.ICON_SIZE,
+                HudSprites.ICON_SIZE);
+        RenderSystem.disableBlend();
+    }
+
+    private static void panel(GuiGraphics graphics, Island island, ResourceLocation sprite) {
+        graphics.blitSprite(sprite, island.x(), island.y(), island.width(), island.height());
+    }
+
+    void renderOverlay(GuiGraphics graphics, int mouseX, int mouseY, int hitIndex, int hitCount, boolean searching) {
+        renderSearchCounter(graphics, hitIndex, hitCount, searching);
+        int pointsX = bottomIsland.x() + CONTENT_LEFT;
+        graphics.drawString(font, String.valueOf(pointsLeft), pointsX + HudSprites.ICON_SIZE + ICON_TEXT_GAP, bottomIsland.y() + TEXT_TOP,
+                pointsLeft > 0 ? Palette.GOLD : Palette.textDim(), true);
+        ProgressBar.render(graphics, font, xpLeft, xpRight, bottomIsland.y() + ISLAND_HEIGHT / 2, mouseX, mouseY);
+        boolean overPoints = mouseX >= pointsX && mouseX < pointsX + pointsWidth && bottomIsland.contains(mouseX, mouseY);
+        if (overPoints) {
+            TooltipPanel.render(graphics, font, font.split(pointsTooltip, TOOLTIP_WIDTH), mouseX, mouseY);
+        }
+    }
+
+    private void renderSearchCounter(GuiGraphics graphics, int hitIndex, int hitCount, boolean searching) {
+        if (!searching) {
+            return;
+        }
+        Component counter = hitCount == 0 ? text("search_none").withStyle(ChatFormatting.RED)
+                : Component.literal(hitIndex < 0 ? String.valueOf(hitCount) : (hitIndex + 1) + "/" + hitCount);
+        graphics.drawString(font, counter, filterButton.getX() - GAP - font.width(counter), searchIsland.y() + TEXT_TOP,
+                Palette.textDim(), false);
     }
 
     void updateIfChanged(PendingSelection pending, NodeStates nodeStates) {
@@ -174,23 +302,35 @@ final class TreeHud {
         PlayerSkillState state = ClientSkillState.state().orElse(null);
         int available = state == null ? 0 : state.availablePoints();
         int pendingCost = nodeStates.pendingCost();
-        pointsButton.setMessage(text("points_left", available - pendingCost));
-        pointsButton.setTooltip(Tooltip.create(text("points_tooltip", available, pendingCost)));
+        pointsLeft = available - pendingCost;
+        pointsTooltip = text("points_left", pointsLeft).withStyle(ChatFormatting.GOLD).append("\n")
+                .append(text("points_tooltip", available, pendingCost).withStyle(ChatFormatting.GRAY));
         updateBuyButton(ready && !busy, state == null ? 0 : state.purchasedPoints());
-        confirmButton.active = ready && !busy && !pending.isEmpty() && pendingCost <= available;
-        confirmButton.setTooltip(Tooltip.create(confirmTooltip(pending, pendingCost, busy, available)));
-        cancelButton.active = !pending.isEmpty();
-        cancelButton.setTooltip(Tooltip.create(text(pending.isEmpty() ? "cancel_tooltip_empty" : "cancel_tooltip")));
+        updatePendingIsland(pending, pendingCost, busy, ready, available);
         statsButton.active = ready;
-        communityButton.visible = !ClientSkillState.worldRules().communityTiers().isEmpty();
+        offerWhen(communityButton, !ClientSkillState.worldRules().communityTiers().isEmpty(), "community");
+        offerWhen(hiddenButton, ClientSkillState.graph().flatMap(TreeRegion::hidden).isPresent(), "hidden");
         signButton.visible = state != null && state.sign().isPresent();
-        hiddenButton.visible = ClientSkillState.graph().flatMap(TreeRegion::hidden).isPresent();
+        arrangeDock();
+    }
+
+    private static void offerWhen(SkillButton button, boolean available, String key) {
+        button.active = available;
+        button.setTooltip(Tooltip.create(text(available ? key + "_tooltip" : key + "_unavailable_tooltip")));
+    }
+
+    private void updatePendingIsland(PendingSelection pending, int pendingCost, boolean busy, boolean ready, int available) {
+        boolean hasPending = !pending.isEmpty();
+        confirmButton.visible = hasPending;
+        cancelButton.visible = hasPending;
+        confirmButton.active = ready && !busy && pendingCost <= available;
+        confirmButton.setMessage(text("confirm_count", pending.request().size()));
+        confirmButton.setTooltip(Tooltip.create(confirmTooltip(pending, pendingCost, busy, available)));
+        cancelButton.setTooltip(Tooltip.create(text("cancel_tooltip")));
+        arrangePendingIsland();
     }
 
     private static Component confirmTooltip(PendingSelection pending, int pendingCost, boolean busy, int available) {
-        if (pending.isEmpty()) {
-            return text("confirm_tooltip_empty");
-        }
         if (busy) {
             return text("confirm_tooltip_busy");
         }
@@ -218,14 +358,16 @@ final class TreeHud {
             return text("buy_tooltip_max", economy.pointLimit());
         }
         int cost = economy.nextPointCost();
-        MutableComponent tooltip = Component.empty().append(text("buy_tooltip", cost, balance, Math.max(0, balance - cost)));
+        MutableComponent tooltip = text("buy_point").withStyle(ChatFormatting.GOLD).append("\n")
+                .append(text("buy_tooltip", GuiText.number(cost), GuiText.number(balance), GuiText.number(Math.max(0, balance - cost))));
         if (balance < cost) {
-            tooltip.append("\n").append(text("buy_tooltip_short", cost - balance).withStyle(ChatFormatting.RED));
+            tooltip.append("\n").append(text("buy_tooltip_short", GuiText.number(cost - balance)).withStyle(ChatFormatting.RED));
         }
         XpCurve curve = ClientSkillState.curve();
         int bulk = curve.affordableCount(purchased, balance, bulkBuyTarget());
         if (bulk > 1) {
-            tooltip.append("\n").append(text("buy_tooltip_bulk", bulk, curve.totalCost(purchased, bulk)).withStyle(ChatFormatting.AQUA));
+            tooltip.append("\n").append(text("buy_tooltip_bulk", bulk, GuiText.number(curve.totalCost(purchased, bulk)))
+                    .withStyle(ChatFormatting.AQUA));
         }
         return tooltip;
     }

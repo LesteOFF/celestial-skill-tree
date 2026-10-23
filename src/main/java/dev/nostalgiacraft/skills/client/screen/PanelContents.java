@@ -1,6 +1,8 @@
 package dev.nostalgiacraft.skills.client.screen;
 
+import dev.nostalgiacraft.skills.client.ClientSetup;
 import dev.nostalgiacraft.skills.client.ClientSkillState;
+import dev.nostalgiacraft.skills.client.TreeKeys;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.graph.SkillNodeDefinition;
 import dev.nostalgiacraft.skills.network.Payloads;
@@ -10,6 +12,7 @@ import dev.nostalgiacraft.skills.progression.RefundService;
 import dev.nostalgiacraft.skills.progression.RespecService;
 import dev.nostalgiacraft.skills.progression.SkyEvent;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
@@ -21,8 +24,23 @@ import java.util.function.Function;
 
 final class PanelContents {
     private static final int MAX_LISTED_NODES = 10;
+    private static final List<String> MOUSE_CONTROLS = List.of("click", "shift_click", "right_click", "drag", "scroll");
 
     private PanelContents() {
+    }
+
+    static List<Component> help() {
+        List<Component> lines = new ArrayList<>();
+        lines.add(GuiText.of("help.title").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+        MOUSE_CONTROLS.forEach(control -> lines.add(GuiText.of("help." + control)));
+        TreeKeys.ALL.forEach(mapping -> lines.add(keyLine(mapping)));
+        lines.add(keyLine(ClientSetup.OPEN_KEY).append(GuiText.of("help.closes").withStyle(ChatFormatting.GRAY)));
+        return lines;
+    }
+
+    private static MutableComponent keyLine(KeyMapping mapping) {
+        return Component.empty().append(mapping.getTranslatedKeyMessage().copy().withStyle(ChatFormatting.YELLOW))
+                .append("  ").append(Component.translatable(mapping.getName()));
     }
 
     static List<Component> reset(SkillGraphSnapshot graph, PlayerSkillState state, Payloads.Economy economy) {

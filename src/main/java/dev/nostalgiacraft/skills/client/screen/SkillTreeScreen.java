@@ -2,13 +2,16 @@ package dev.nostalgiacraft.skills.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.nostalgiacraft.skills.client.ClientRequests;
+import dev.nostalgiacraft.skills.client.ClientSetup;
 import dev.nostalgiacraft.skills.client.ClientSkillState;
+import dev.nostalgiacraft.skills.client.TreeKeys;
 import dev.nostalgiacraft.skills.client.render.BackgroundRenderer;
 import dev.nostalgiacraft.skills.client.render.GraphRenderer;
 import dev.nostalgiacraft.skills.client.render.Palette;
 import dev.nostalgiacraft.skills.client.render.SpriteBatch;
 import dev.nostalgiacraft.skills.client.sound.TreeSounds;
 import dev.nostalgiacraft.skills.config.ClientConfig;
+import dev.nostalgiacraft.skills.effects.BorrowedNodes;
 import dev.nostalgiacraft.skills.graph.NodeType;
 import dev.nostalgiacraft.skills.graph.Sector;
 import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
@@ -23,6 +26,7 @@ import dev.nostalgiacraft.skills.progression.RejectReason;
 import dev.nostalgiacraft.skills.progression.ToggleService;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
@@ -33,16 +37,18 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public final class SkillTreeScreen extends Screen {
     enum Panel {
-        NONE, STATS, RESET, DISCARD, DEPENDENTS, REFUND;
+        NONE, STATS, RESET, DISCARD, DEPENDENTS, REFUND, HELP;
 
         boolean isModal() {
             return this != NONE && this != STATS;
@@ -53,14 +59,14 @@ public final class SkillTreeScreen extends Screen {
     private static final double HIT_MARGIN_GUI_PX = 2.0;
     private static final long MESSAGE_MILLIS = 4000;
     private static final int MIN_SEARCH_LENGTH = 2;
-    private static final double ZOOM_STEP = 1.15;
     private static final double OPENING_ZOOM = 0.6;
     private static final double FIT_PADDING = 40;
     private static final double STATS_PANEL_LEFT_FRACTION = 0.62;
     private static final double MIN_FOCUS_DIRECTION_COSINE = 0.5;
     private static final double NEIGHBOUR_FOCUS_BONUS = 15;
-    private static final int BOTTOM_BAR_HEIGHT = 34;
-    private static final int ZOOM_LABEL_MARGIN = 8;
+    private static final double FOCUS_ZOOM = 1.0;
+    private static final double MAX_FRAME_SECONDS = 0.1;
+    private static final int ZOOM_LABEL_RISE = 8;
     private static final float STARGAZING_PITCH = -70f;
     private static final int REAL_SKY_TINT = 0x40050C10;
     private static final int MIN_TOOLTIP_WIDTH = 120;
@@ -118,6 +124,11 @@ public final class SkillTreeScreen extends Screen {
         }
 
         @Override
+        public void toggleHelp() {
+            panel = panel == Panel.HELP ? Panel.NONE : Panel.HELP;
+        }
+
+        @Override
         public void search(String query) {
             onSearch(query);
         }
@@ -150,8 +161,10 @@ public final class SkillTreeScreen extends Screen {
     private String routeFor;
     private Optional<PathFinder.Route> route = Optional.empty();
     private TooltipCard tooltipCache;
-    private String tooltipFor;
-    private long tooltipStateRevision = -1;
+    private List<Object> tooltipKey = List.of();
+    private final Map<KeyMapping, Runnable> keyActions = new LinkedHashMap<>();
+    private boolean syncRequested;
+    private long lastFrameAt = Util.getMillis();
 
     private boolean pressed;
     private boolean dragging;
@@ -171,6 +184,28 @@ public final class SkillTreeScreen extends Screen {
 
     public SkillTreeScreen() {
         super(Component.translatable("gui.nostalgiaskills.title"));
+        bindKeys();
+    }
+
+    private void bindKeys() {
+        keyActions.put(TreeKeys.UNDO, () -> travelPending(pending.undo()));
+        keyActions.put(TreeKeys.REDO, () -> travelPending(pending.redo()));
+        keyActions.put(TreeKeys.SEARCH, this::focusSearch);
+        keyActions.put(TreeKeys.CONFIRM, this::confirm);
+        keyActions.put(TreeKeys.MARK, this::toggleFocused);
+        keyActions.put(TreeKeys.TOGGLE, () -> sendToggle(focusId));
+        keyActions.put(TreeKeys.HOME, this::home);
+        keyActions.put(TreeKeys.FIT, this::fit);
+        keyActions.put(TreeKeys.NEXT_HIT, () -> stepSearchHit(hasShiftDown() ? -1 : 1));
+        keyActions.put(TreeKeys.HELP, () -> panel = Panel.HELP);
+        keyActions.put(TreeKeys.ZOOM_IN, () -> zoomAround(camera.vcx(), camera.vcy(), 1));
+        keyActions.put(TreeKeys.ZOOM_OUT, () -> zoomAround(camera.vcx(), camera.vcy(), -1));
+        keyActions.put(TreeKeys.FOCUS_UP, () -> moveFocus(0, -1));
+        keyActions.put(TreeKeys.FOCUS_LEFT, () -> moveFocus(-1, 0));
+        keyActions.put(TreeKeys.FOCUS_DOWN, () -> moveFocus(0, 1));
+        keyActions.put(TreeKeys.FOCUS_RIGHT, () -> moveFocus(1, 0));
+        List.of(TreeKeys.PAN_UP, TreeKeys.PAN_LEFT, TreeKeys.PAN_DOWN, TreeKeys.PAN_RIGHT).forEach(pan -> keyActions.put(pan, () -> { }));
+        keyActions.put(ClientSetup.OPEN_KEY, this::closeTopmost);
     }
 
     public static SkillTreeScreen underTheRealSky() {
@@ -208,16 +243,31 @@ public final class SkillTreeScreen extends Screen {
     @Override
     protected void init() {
         ClientSkillState.setListeners(this::onResult, () -> statesDirty = true);
-        ClientRequests.send(new Payloads.RequestSync(ClientSkillState.graph().map(SkillGraphSnapshot::fingerprint).orElse("")));
+        statesDirty = true;
+        requestSyncOnce();
         playOpeningSoundOnce();
+        lookAtTheSky();
         hud.layout(font, width, height, this::addRenderableWidget);
         double centerX = camera.centerX();
         double centerY = camera.centerY();
-        camera.setViewport(0, hud.controlsBottom(), width, height - BOTTOM_BAR_HEIGHT);
+        camera.setViewport(0, 0, width, height);
         if (cameraPlaced) {
             camera.centerOn(centerX, centerY);
         }
         hud.update(pending, nodeStates);
+    }
+
+    private void requestSyncOnce() {
+        if (!syncRequested) {
+            syncRequested = true;
+            ClientRequests.send(new Payloads.RequestSync(ClientSkillState.graph().map(SkillGraphSnapshot::fingerprint).orElse("")));
+        }
+    }
+
+    private void lookAtTheSky() {
+        if (stargazing && minecraft != null && minecraft.player != null) {
+            minecraft.player.setXRot(STARGAZING_PITCH);
+        }
     }
 
     private void playOpeningSoundOnce() {
@@ -329,7 +379,7 @@ public final class SkillTreeScreen extends Screen {
     private void dropOutdatedPending(SkillGraphSnapshot graph, PlayerSkillState state) {
         boolean graphChanged = seenGraphRevision != -1 && seenGraphRevision != ClientSkillState.graphRevision();
         if (graphChanged && !pending.isEmpty()) {
-            pending.clear();
+            pending.forget();
             flash(text("pending_invalidated"));
         }
         seenGraphRevision = ClientSkillState.graphRevision();
@@ -351,7 +401,7 @@ public final class SkillTreeScreen extends Screen {
     private void onResult(Payloads.TransactionResult result) {
         if (result.ok() && result.messageKey().equals(Payloads.TransactionResult.ALLOCATED)) {
             celebrateAllocation();
-            pending.clear();
+            pending.forget();
         }
         if (result.ok() && POINT_BOUGHT_MESSAGES.contains(result.messageKey())) {
             TreeSounds.pointBought();
@@ -391,6 +441,13 @@ public final class SkillTreeScreen extends Screen {
         ClientRequests.send(new Payloads.ConfirmAllocation(ClientRequests.newRequest(), playerState().stateRevision(), ClientSkillState.graphRevision(),
                 confirming));
         hud.update(pending, nodeStates);
+    }
+
+    private void travelPending(boolean moved) {
+        if (moved) {
+            statesDirty = true;
+            TreeSounds.nodeMarked();
+        }
     }
 
     private void cancelPending() {
@@ -548,33 +605,49 @@ public final class SkillTreeScreen extends Screen {
         searchHits.clear();
         searchIndex = -1;
         String query = text.trim().toLowerCase(Locale.ROOT);
-        if (query.length() < MIN_SEARCH_LENGTH) {
+        boolean byText = query.length() >= MIN_SEARCH_LENGTH;
+        SearchFilter filter = hud.filter();
+        if (!byText && filter == SearchFilter.ALL) {
             return;
         }
         ClientSkillState.graph().ifPresent(graph -> graph.nodes().values().stream()
-                .filter(node -> isVisible(node) && searchableText(node).contains(query))
+                .filter(node -> isVisible(node) && filter.accepts(nodeStates.of(node.id())))
+                .filter(node -> !byText || searchableText(graph, node).contains(query))
                 .forEach(node -> searchHits.add(node.id())));
+    }
+
+    private boolean searching() {
+        return hud.search() != null && (hud.search().getValue().trim().length() >= MIN_SEARCH_LENGTH || hud.filter() != SearchFilter.ALL);
     }
 
     private boolean isVisible(SkillNodeDefinition node) {
         return nodeStates.of(node.id()) != NodeState.HIDDEN;
     }
 
-    private static String searchableText(SkillNodeDefinition node) {
-        return (SkillTexts.name(node).getString() + " " + SkillTexts.description(node).getString()
+    private static String searchableText(SkillGraphSnapshot graph, SkillNodeDefinition node) {
+        return (SkillTexts.name(node).getString() + " " + SkillTexts.description(node).getString() + " " + sectorName(graph, node)
                 + " " + String.join(" ", node.tags()) + " " + effectText(node)).toLowerCase(Locale.ROOT);
+    }
+
+    private static String sectorName(SkillGraphSnapshot graph, SkillNodeDefinition node) {
+        return graph.sectors().stream().filter(sector -> sector.id().equals(node.sector())).findFirst()
+                .map(sector -> Component.translatable(sector.nameKey()).getString()).orElse("");
     }
 
     private static String effectText(SkillNodeDefinition node) {
         return SkillTexts.effectLines(node).stream().map(line -> line.text().getString()).collect(Collectors.joining(" "));
     }
 
-    private void nextSearchHit() {
+    private void stepSearchHit(int direction) {
         if (searchHits.isEmpty()) {
             return;
         }
         List<String> hits = List.copyOf(searchHits);
-        searchIndex = (searchIndex + 1) % hits.size();
+        int start = searchIndex < 0 && direction < 0 ? 0 : searchIndex;
+        searchIndex = Math.floorMod(start + direction, hits.size());
+        if (camera.zoomValue() < FOCUS_ZOOM) {
+            camera.zoom = Math.min(FOCUS_ZOOM, ClientConfig.ZOOM_MAX.get());
+        }
         focus(hits.get(searchIndex));
     }
 
@@ -635,7 +708,7 @@ public final class SkillTreeScreen extends Screen {
     }
 
     private String nodeAt(double mouseX, double mouseY) {
-        if (ClientSkillState.graph().isEmpty() || !camera.inViewport(mouseX, mouseY)) {
+        if (ClientSkillState.graph().isEmpty() || !camera.inViewport(mouseX, mouseY) || hud.covers(mouseX, mouseY)) {
             return null;
         }
         String nearest = null;
@@ -664,6 +737,9 @@ public final class SkillTreeScreen extends Screen {
         if (hud.search().isFocused()) {
             hud.search().setFocused(false);
             setFocused(null);
+        }
+        if (hud.covers(mouseX, mouseY)) {
+            return true;
         }
         if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
             sendToggle(nodeAt(mouseX, mouseY));
@@ -716,11 +792,15 @@ public final class SkillTreeScreen extends Screen {
             return true;
         }
         if (camera.inViewport(mouseX, mouseY) && scrollY != 0) {
-            double minZoom = Math.min(ClientConfig.ZOOM_MIN.get(), camera.zoomValue());
-            camera.zoomAt(mouseX, mouseY, Math.pow(ZOOM_STEP, scrollY), minZoom, ClientConfig.ZOOM_MAX.get());
+            zoomAround(mouseX, mouseY, scrollY);
             return true;
         }
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+
+    private void zoomAround(double screenX, double screenY, double steps) {
+        double minZoom = Math.min(ClientConfig.ZOOM_MIN.get(), camera.zoomValue());
+        camera.zoomAt(screenX, screenY, Math.pow(ClientConfig.ZOOM_STEP.get(), steps), minZoom, ClientConfig.ZOOM_MAX.get());
     }
 
     private static boolean isEnter(int key) {
@@ -740,10 +820,14 @@ public final class SkillTreeScreen extends Screen {
         }
         if (hud.search().isFocused()) {
             if (isEnter(key)) {
-                nextSearchHit();
+                stepSearchHit(hasShiftDown() ? -1 : 1);
                 return true;
             }
             return hud.search().keyPressed(key, scanCode, modifiers);
+        }
+        if (panel == Panel.HELP && TreeKeys.matches(TreeKeys.HELP, key, scanCode)) {
+            closePanel();
+            return true;
         }
         if (panel.isModal()) {
             if (isEnter(key)) {
@@ -751,7 +835,7 @@ public final class SkillTreeScreen extends Screen {
             }
             return true;
         }
-        return treeKeyPressed(key) || super.keyPressed(key, scanCode, modifiers);
+        return treeKeyPressed(key, scanCode) || super.keyPressed(key, scanCode, modifiers);
     }
 
     private void closeTopmost() {
@@ -764,22 +848,18 @@ public final class SkillTreeScreen extends Screen {
         }
     }
 
-    private boolean treeKeyPressed(int key) {
-        switch (key) {
-            case GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> confirm();
-            case GLFW.GLFW_KEY_HOME -> home();
-            case GLFW.GLFW_KEY_LEFT -> moveFocus(-1, 0);
-            case GLFW.GLFW_KEY_RIGHT -> moveFocus(1, 0);
-            case GLFW.GLFW_KEY_UP -> moveFocus(0, -1);
-            case GLFW.GLFW_KEY_DOWN -> moveFocus(0, 1);
-            case GLFW.GLFW_KEY_SPACE -> toggleFocused();
-            case GLFW.GLFW_KEY_F -> focusSearchOrFit();
-            case GLFW.GLFW_KEY_T -> sendToggle(focusId);
-            default -> {
-                return false;
+    private boolean treeKeyPressed(int key, int scanCode) {
+        if (key == GLFW.GLFW_KEY_KP_ENTER) {
+            confirm();
+            return true;
+        }
+        for (Map.Entry<KeyMapping, Runnable> binding : keyActions.entrySet()) {
+            if (TreeKeys.matches(binding.getKey(), key, scanCode)) {
+                binding.getValue().run();
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     private void toggleFocused() {
@@ -788,13 +868,29 @@ public final class SkillTreeScreen extends Screen {
         }
     }
 
-    private void focusSearchOrFit() {
-        if (hasControlDown()) {
-            setFocused(hud.search());
-            hud.search().setFocused(true);
-        } else {
-            fit();
+    private void focusSearch() {
+        setFocused(hud.search());
+        hud.search().setFocused(true);
+    }
+
+    private void panWithHeldKeys() {
+        long now = Util.getMillis();
+        double seconds = Math.min(MAX_FRAME_SECONDS, (now - lastFrameAt) / 1000.0);
+        lastFrameAt = now;
+        if (minecraft == null || hud.search().isFocused() || panel.isModal()) {
+            return;
         }
+        long window = minecraft.getWindow().getWindow();
+        double distance = ClientConfig.PAN_SPEED.get() * seconds;
+        int right = held(TreeKeys.PAN_RIGHT, window) - held(TreeKeys.PAN_LEFT, window);
+        int down = held(TreeKeys.PAN_DOWN, window) - held(TreeKeys.PAN_UP, window);
+        if (right != 0 || down != 0) {
+            camera.pan(-right * distance, -down * distance);
+        }
+    }
+
+    private static int held(KeyMapping mapping, long window) {
+        return TreeKeys.held(mapping, window) ? 1 : 0;
     }
 
     private int effectiveMouseX(int mouseX) {
@@ -822,6 +918,7 @@ public final class SkillTreeScreen extends Screen {
         placeCamera();
         if (ClientSkillState.graph().isEmpty() || ClientSkillState.state().isEmpty()) {
             graphics.drawCenteredString(font, text("loading"), width / 2, height / 2, Palette.TEXT);
+            hud.renderIslands(graphics);
             return;
         }
         SkillGraphSnapshot graph = graph();
@@ -849,6 +946,7 @@ public final class SkillTreeScreen extends Screen {
         graphics.setColor(1f, 1f, 1f, 1f);
         RenderSystem.disableBlend();
         graphics.disableScissor();
+        hud.renderIslands(graphics);
     }
 
     private GraphRenderer.Ranks ranksOf(SkillNodeDefinition node, PlayerSkillState state) {
@@ -892,12 +990,14 @@ public final class SkillTreeScreen extends Screen {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         int pointerX = effectiveMouseX(mouseX);
         int pointerY = effectiveMouseY(mouseY);
+        panWithHeldKeys();
         super.render(graphics, pointerX, pointerY, partialTick);
-        ProgressBar.render(graphics, font, width, height, pointerX, pointerY);
-        Component zoom = text("zoom", String.format(Locale.ROOT, "%.2f×", camera.zoomValue()));
-        graphics.drawString(font, zoom, width - font.width(zoom) - ZOOM_LABEL_MARGIN, height - 12, Palette.TEXT_DIM, true);
+        hud.renderOverlay(graphics, pointerX, pointerY, searchIndex, searchHits.size(), searching());
+        Component zoom = text("zoom", String.format(GuiText.locale(), "%.2f×", camera.zoomValue()));
+        graphics.drawString(font, zoom, width - font.width(zoom) - TreeHud.EDGE, height - TreeHud.EDGE - ZOOM_LABEL_RISE,
+                Palette.textDim(), true);
         if (message != null && Util.getMillis() < messageUntil) {
-            graphics.drawCenteredString(font, message, width / 2, hud.controlsBottom() + 4, Palette.TEXT);
+            graphics.drawCenteredString(font, message, width / 2, hud.messageY(), Palette.TEXT);
         }
         renderPanel(graphics, pointerX, pointerY);
         if (hoverId != null && ClientSkillState.ready() && panel != Panel.STATS) {
@@ -907,15 +1007,20 @@ public final class SkillTreeScreen extends Screen {
 
     private void renderNodeTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
         PlayerSkillState state = playerState();
-        if (tooltipCache == null || !hoverId.equals(tooltipFor) || tooltipStateRevision != state.stateRevision()) {
-            tooltipFor = hoverId;
-            tooltipStateRevision = state.stateRevision();
+        boolean detailed = ClientConfig.DETAILED_TOOLTIPS.get() || hasShiftDown();
+        List<Object> key = List.of(hoverId, state.stateRevision(), detailed, lentNodes());
+        if (tooltipCache == null || !key.equals(tooltipKey)) {
+            tooltipKey = key;
             Optional<PathFinder.Route> hoveredRoute = hoverId.equals(routeFor) ? route : Optional.empty();
             tooltipCache = SkillTooltips.build(graph(), state, pending.request(), graph().nodes().get(hoverId), nodeStates.of(hoverId),
-                    nodeStates.pendingCost(), hoveredRoute, ClientConfig.DETAILED_TOOLTIPS.get());
+                    nodeStates.pendingCost(), hoveredRoute, detailed);
         }
         int maxWidth = Math.max(MIN_TOOLTIP_WIDTH, Math.min(MAX_TOOLTIP_WIDTH, width / 2 - 12));
         TooltipPanel.render(graphics, font, tooltipCache, maxWidth, mouseX, mouseY);
+    }
+
+    private Set<String> lentNodes() {
+        return minecraft == null || minecraft.player == null ? Set.of() : Set.copyOf(BorrowedNodes.lentTo(minecraft.player));
     }
 
     private void renderPanel(GuiGraphics graphics, int mouseX, int mouseY) {
@@ -928,7 +1033,7 @@ public final class SkillTreeScreen extends Screen {
             panel = Panel.NONE;
             return;
         }
-        panelRenderer.render(graphics, font, panelView(), width, height, hud.controlsBottom(), mouseX, mouseY);
+        panelRenderer.render(graphics, font, panelView(), width, height, hud.panelTop(), mouseX, mouseY);
     }
 
     private boolean refundStillValid() {
@@ -960,6 +1065,8 @@ public final class SkillTreeScreen extends Screen {
                     new PanelRenderer.Action(text("discard.keep"), this::closePanel, false)), false);
             case DEPENDENTS -> modal(PanelContents.dependents(graph(), dependentsOf, dependents),
                     new PanelRenderer.Action(text("dependents.remove"), this::removeDependentChain, true));
+            case HELP -> new PanelRenderer.View(PanelContents.help(),
+                    List.of(new PanelRenderer.Action(text("close"), this::closePanel, false)), false);
             case NONE -> throw new IllegalStateException("no panel is open");
         };
     }
@@ -985,8 +1092,9 @@ public final class SkillTreeScreen extends Screen {
     }
 
     private void removeDependentChain() {
-        pending.remove(dependentsOf);
-        pending.removeAll(dependents);
+        Set<String> removed = new HashSet<>(dependents);
+        removed.add(dependentsOf);
+        pending.removeAll(removed);
         statesDirty = true;
         panel = Panel.NONE;
     }
@@ -995,11 +1103,5 @@ public final class SkillTreeScreen extends Screen {
     public void tick() {
         super.tick();
         hud.updateIfChanged(pending, nodeStates);
-    }
-
-    private List<Object> controlsKey() {
-        long stateRevision = ClientSkillState.state().map(PlayerSkillState::stateRevision).orElse(-1L);
-        return List.of(ClientSkillState.ready(), ClientSkillState.requestInFlight(), stateRevision, nodeStates, ClientSkillState.xpBalance(),
-                ClientSkillState.economy(), ClientSkillState.curve(), ClientSkillState.worldRules(), pending.request().size());
     }
 }

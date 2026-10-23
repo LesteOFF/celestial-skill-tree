@@ -40,6 +40,7 @@ public final class ClientSetup {
         public static void keys(RegisterKeyMappingsEvent e) {
             e.register(OPEN_KEY);
             e.register(BOON_KEY);
+            TreeKeys.ALL.forEach(e::register);
         }
 
         @SubscribeEvent
