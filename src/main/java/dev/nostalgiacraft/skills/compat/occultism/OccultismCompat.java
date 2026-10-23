@@ -24,8 +24,10 @@ import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public final class OccultismCompat {
     public static final String MOD_ID = "occultism";
@@ -33,6 +35,7 @@ public final class OccultismCompat {
     private static final String BUILD_KEY = "nostalgiaskills_build";
     private static final String ROOT_KEY = "root";
     private static final String NODES_KEY = "nodes";
+    private static final String DISABLED_KEY = "disabled";
     private static final String SWAPPED_AT_KEY = "nostalgiaskills_build_swapped_at";
     private static final int TICKS_PER_SECOND = 20;
 
@@ -83,8 +86,8 @@ public final class OccultismCompat {
     private static void announce(ServerPlayer player, Build given) {
         EffectEngine.refresh(player);
         Build taken = Build.of(ModAttachments.state(player));
-        SkillEvents.post(new SkillEvents.BuildReset(player, given.nodes(), 0));
-        SkillEvents.post(new SkillEvents.NodesLearned(player, taken.nodes()));
+        SkillEvents.post(new SkillEvents.BuildReset(player, given.learned(), 0));
+        SkillEvents.post(new SkillEvents.NodesLearned(player, taken.learned()));
         SkillService.sendState(player);
         player.sendSystemMessage(Component.translatable("message.nostalgiaskills.familiar_swap.done", given.size(), taken.size()));
     }
@@ -92,16 +95,24 @@ public final class OccultismCompat {
     private static Build stored(Entity familiar) {
         CompoundTag saved = familiar.getPersistentData().getCompound(BUILD_KEY);
         Optional<String> root = Optional.of(saved.getString(ROOT_KEY)).filter(id -> !id.isEmpty());
-        List<String> nodes = saved.getList(NODES_KEY, Tag.TAG_STRING).stream().map(Tag::getAsString).toList();
-        return new Build(root, nodes);
+        return new Build(root, strings(saved, NODES_KEY), Set.copyOf(strings(saved, DISABLED_KEY)));
+    }
+
+    private static List<String> strings(CompoundTag saved, String key) {
+        return saved.getList(key, Tag.TAG_STRING).stream().map(Tag::getAsString).toList();
+    }
+
+    private static ListTag stringList(Collection<String> values) {
+        ListTag list = new ListTag();
+        values.forEach(value -> list.add(StringTag.valueOf(value)));
+        return list;
     }
 
     private static void store(Entity familiar, Build build, long now) {
         CompoundTag saved = new CompoundTag();
         saved.putString(ROOT_KEY, build.startingRoot().orElse(""));
-        ListTag nodes = new ListTag();
-        build.nodes().forEach(id -> nodes.add(StringTag.valueOf(id)));
-        saved.put(NODES_KEY, nodes);
+        saved.put(NODES_KEY, stringList(build.nodes()));
+        saved.put(DISABLED_KEY, stringList(build.disabled()));
         familiar.getPersistentData().put(BUILD_KEY, saved);
         familiar.getPersistentData().putLong(SWAPPED_AT_KEY, now);
     }

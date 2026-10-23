@@ -34,4 +34,27 @@ class BuildSwapServiceTest {
         assertEquals(4, state.availablePoints());
         assertTrue(state.ledgerHolds());
     }
+
+    @Test
+    void aSwappedBuildKeepsItsRanksAndSwitchedOffKeystones() {
+        TestGraphs layout = new TestGraphs().sector("a");
+        layout.minor("a/m1", "a");
+        layout.node("a/r1", "a", "notable", 2).addProperty("max_rank", 3);
+        layout.keystone("a/k1", "a", null).node("a/k1", "a", "keystone", 3).addProperty("toggleable", true);
+        layout.chain("a/hub", "a/m1", "a/r1", "a/k1");
+        SkillGraphSnapshot graph = layout.build();
+        PlayerSkillState state = new PlayerSkillState();
+        LedgerService.grant(state, 30, 120, false);
+        AllocationService.confirm(graph, state, List.of(id("a/hub"), id("a/m1"), id("a/r1"), id("a/r1"), id("a/k1")));
+        ToggleService.toggle(graph, state, id("a/k1"));
+
+        BuildSwapService.Result stored = BuildSwapService.swap(graph, state, Build.EMPTY);
+        BuildSwapService.Result back = BuildSwapService.swap(graph, state, stored.previous());
+
+        assertTrue(back.ok(), () -> "rejected: " + back.rejection());
+        assertEquals(2, state.rank(id("a/r1")));
+        assertTrue(state.isDisabled(id("a/k1")));
+        assertEquals(4, stored.previous().size());
+        assertTrue(state.ledgerHolds());
+    }
 }
