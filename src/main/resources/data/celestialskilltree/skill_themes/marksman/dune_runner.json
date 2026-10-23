@@ -1,0 +1,58 @@
+{
+  "class": "celestialskilltree:marksman",
+  "requires_any_mod": [
+    "biomeswevegone",
+    "ohthetreesyoullgrow",
+    "terrablender"
+  ],
+  "name": "theme.celestialskilltree.marksman.dune_runner",
+  "icon": "celestialskilltree:textures/skill_icons/footprint.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.movement_speed",
+        "operation": "add_multiplied_base",
+        "amount": 0.015,
+        "condition": {
+          "type": "in_biome_tag",
+          "tag": "c:is_desert"
+        }
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "mirage_step",
+      "name": "skill.celestialskilltree.marksman.mirage_step.name",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "celestialskilltree:dodge_chance",
+          "operation": "add_value",
+          "amount": 0.04,
+          "condition": {
+            "type": "in_biome_tag",
+            "tag": "c:is_desert"
+          }
+        }
+      ]
+    },
+    {
+      "id": "dune_sniper",
+      "name": "skill.celestialskilltree.marksman.dune_sniper.name",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "celestialskilltree:projectile_damage",
+          "operation": "add_value",
+          "amount": 0.05,
+          "condition": {
+            "type": "in_biome_tag",
+            "tag": "c:is_desert"
+          }
+        }
+      ]
+    }
+  ]
+}

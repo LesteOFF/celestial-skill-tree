@@ -1,0 +1,30 @@
+{
+  "class": "celestialskilltree:artificer",
+  "name": "theme.celestialskilltree.artificer.lung_capacity",
+  "icon": "celestialskilltree:textures/skill_icons/exploration.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.oxygen_bonus",
+        "operation": "add_value",
+        "amount": 0.25
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "fresh_air",
+      "name": "skill.celestialskilltree.artificer.fresh_air.name",
+      "icon": "celestialskilltree:textures/skill_icons/mining.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:player.submerged_mining_speed",
+          "operation": "add_value",
+          "amount": 0.3
+        }
+      ]
+    }
+  ]
+}

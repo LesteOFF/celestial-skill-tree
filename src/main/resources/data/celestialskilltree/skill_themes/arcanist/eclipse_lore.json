@@ -1,0 +1,39 @@
+{
+  "class": "celestialskilltree:arcanist",
+  "name": "theme.celestialskilltree.arcanist.eclipse_lore",
+  "icon": "celestialskilltree:textures/skill_icons/eclipse.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "celestialskilltree:magic_resistance",
+        "operation": "add_value",
+        "amount": 0.03,
+        "condition": {
+          "type": "sky_event",
+          "event": "eclipse"
+        }
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "infinite_weave",
+      "name": "skill.celestialskilltree.arcanist.infinite_weave.name",
+      "icon": "celestialskilltree:textures/skill_icons/hourglass.png",
+      "requires_mod": "avaritia",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "celestialskilltree:potion_duration",
+          "operation": "add_value",
+          "amount": 0.15,
+          "condition": {
+            "type": "wearing",
+            "tag": "celestialskilltree:armor/infinity"
+          }
+        }
+      ]
+    }
+  ]
+}

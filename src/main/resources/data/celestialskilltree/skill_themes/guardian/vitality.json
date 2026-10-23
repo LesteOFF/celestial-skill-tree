@@ -1,0 +1,124 @@
+{
+  "class": "celestialskilltree:guardian",
+  "name": "theme.celestialskilltree.guardian.vitality",
+  "icon": "celestialskilltree:textures/skill_icons/health.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.max_health",
+        "operation": "add_value",
+        "amount": 1.0
+      },
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.max_health",
+        "operation": "add_multiplied_base",
+        "amount": 0.01
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "beacon_keep",
+      "name": "skill.celestialskilltree.guardian.beacon_keep.name",
+      "icon": "celestialskilltree:textures/skill_icons/healing.png",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "on_hurt",
+          "action": {
+            "type": "self_effect",
+            "effect": "minecraft:regeneration",
+            "duration_ticks": 60,
+            "amplifier": 0
+          },
+          "cooldown_ticks": 300
+        }
+      ]
+    },
+    {
+      "id": "iron_will",
+      "name": "skill.celestialskilltree.guardian.iron_will.name",
+      "icon": "celestialskilltree:textures/skill_icons/health.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.max_health",
+          "operation": "add_multiplied_base",
+          "amount": 0.05
+        },
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.max_health",
+          "operation": "add_value",
+          "amount": 0.5
+        }
+      ],
+      "max_rank": 2
+    },
+    {
+      "id": "sentinel",
+      "name": "skill.celestialskilltree.guardian.sentinel.name",
+      "icon": "celestialskilltree:textures/skill_icons/armor.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.armor",
+          "operation": "add_multiplied_total",
+          "amount": 0.1
+        },
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.armor",
+          "operation": "add_value",
+          "amount": 0.5
+        }
+      ]
+    },
+    {
+      "id": "unbroken",
+      "name": "skill.celestialskilltree.guardian.unbroken.name",
+      "icon": "celestialskilltree:textures/skill_icons/defense.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.knockback_resistance",
+          "operation": "add_value",
+          "amount": 0.1
+        },
+        {
+          "type": "trigger",
+          "trigger": "on_low_health",
+          "action": {
+            "type": "self_effect",
+            "effect": "minecraft:resistance",
+            "duration_ticks": 100,
+            "amplifier": 1
+          },
+          "cooldown_ticks": 1200
+        }
+      ],
+      "text": "skill.celestialskilltree.guardian.unbroken.text"
+    },
+    {
+      "id": "warden",
+      "name": "skill.celestialskilltree.guardian.warden.name",
+      "icon": "celestialskilltree:textures/skill_icons/health.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.max_health",
+          "operation": "add_value",
+          "amount": 2.0
+        },
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.armor",
+          "operation": "add_value",
+          "amount": 1.0
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "class": "celestialskilltree:arcanist",
+  "requires_mod": "celestial_artifacts",
+  "hidden_until": "celestialskilltree:worn/celestial_artifacts/truth_etching",
+  "name": "skill.celestialskilltree.arcanist.mark_of_truth.name",
+  "text": "skill.celestialskilltree.arcanist.mark_of_truth.text",
+  "icon": "celestialskilltree:textures/skill_icons/insight.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:crit_chance",
+      "operation": "add_value",
+      "amount": 0.08
+    }
+  ]
+}

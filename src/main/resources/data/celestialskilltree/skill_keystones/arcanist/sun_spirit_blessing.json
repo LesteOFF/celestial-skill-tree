@@ -1,0 +1,32 @@
+{
+  "class": "celestialskilltree:arcanist",
+  "requires_mod": "aether",
+  "hidden_until": "aether:gold_dungeon",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.arcanist.sun_spirit_blessing.name",
+  "text": "skill.celestialskilltree.arcanist.sun_spirit_blessing.text",
+  "icon": "celestialskilltree:textures/skill_icons/halo.png",
+  "effects": [
+    {
+      "type": "damage_modifier",
+      "direction": "taken",
+      "scope": "fire",
+      "amount": -0.95
+    },
+    {
+      "type": "damage_modifier",
+      "direction": "taken",
+      "scope": "#minecraft:is_freezing",
+      "amount": 1.0
+    },
+    {
+      "type": "trigger",
+      "trigger": "on_hurt",
+      "cooldown_ticks": 0,
+      "action": {
+        "type": "ignite_target",
+        "duration_ticks": 100
+      }
+    }
+  ]
+}

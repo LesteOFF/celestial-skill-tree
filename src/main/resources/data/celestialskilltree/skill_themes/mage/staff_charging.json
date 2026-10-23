@@ -1,0 +1,17 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "malum",
+  "name": "theme.celestialskilltree.mage.staff_charging",
+  "icon": "celestialskilltree:textures/skill_icons/staff.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "malum:charge_recovery_rate",
+        "operation": "add_value",
+        "amount": 0.02
+      }
+    ]
+  },
+  "notables": []
+}

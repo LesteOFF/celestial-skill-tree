@@ -1,0 +1,16 @@
+{
+  "class": "celestialskilltree:marksman",
+  "name": "theme.celestialskilltree.marksman.keen_reflexes",
+  "icon": "celestialskilltree:textures/skill_icons/reflex.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "celestialskilltree:dodge_chance",
+        "operation": "add_value",
+        "amount": 0.004
+      }
+    ]
+  },
+  "notables": []
+}

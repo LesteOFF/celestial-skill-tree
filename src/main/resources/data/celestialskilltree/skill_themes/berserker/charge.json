@@ -1,0 +1,19 @@
+{
+  "class": "celestialskilltree:berserker",
+  "name": "theme.celestialskilltree.berserker.charge",
+  "icon": "celestialskilltree:textures/skill_icons/charge.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.movement_speed",
+        "operation": "add_multiplied_base",
+        "amount": 0.02,
+        "condition": {
+          "type": "sprinting"
+        }
+      }
+    ]
+  },
+  "notables": []
+}

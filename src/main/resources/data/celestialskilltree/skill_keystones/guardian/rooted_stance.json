@@ -1,0 +1,26 @@
+{
+  "class": "celestialskilltree:guardian",
+  "name": "skill.celestialskilltree.guardian.rooted_stance.name",
+  "icon": "celestialskilltree:textures/skill_icons/keystone_rooted_stance.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.knockback_resistance",
+      "operation": "add_value",
+      "amount": 0.4
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.armor",
+      "operation": "add_value",
+      "amount": 4.0
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.jump_strength",
+      "operation": "add_multiplied_base",
+      "amount": -0.15
+    }
+  ],
+  "text": "skill.celestialskilltree.guardian.rooted_stance.text"
+}

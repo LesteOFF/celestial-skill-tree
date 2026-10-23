@@ -1,0 +1,22 @@
+{
+  "class": "celestialskilltree:berserker",
+  "requires_mod": "celestial_artifacts",
+  "hidden_until": "celestialskilltree:worn/celestial_artifacts/chaotic_etching",
+  "name": "skill.celestialskilltree.berserker.mark_of_chaos.name",
+  "text": "skill.celestialskilltree.berserker.mark_of_chaos.text",
+  "icon": "celestialskilltree:textures/skill_icons/risk.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:crit_damage",
+      "operation": "add_value",
+      "amount": 0.3
+    },
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:damage_reduction",
+      "operation": "add_value",
+      "amount": -0.1
+    }
+  ]
+}

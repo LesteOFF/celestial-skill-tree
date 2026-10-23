@@ -1,0 +1,61 @@
+{
+  "class": "celestialskilltree:marksman",
+  "requires_mod": "scguns",
+  "name": "theme.celestialskilltree.marksman.gunslinger",
+  "icon": "celestialskilltree:textures/skill_icons/projectile.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "celestialskilltree:projectile_damage",
+        "operation": "add_value",
+        "amount": 0.01,
+        "condition": {
+          "type": "holding",
+          "tag": "celestialskilltree:firearms"
+        }
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "dead_eye",
+      "name": "skill.celestialskilltree.marksman.dead_eye.name",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "celestialskilltree:projectile_damage",
+          "operation": "add_value",
+          "amount": 0.08,
+          "condition": {
+            "type": "holding",
+            "tag": "celestialskilltree:firearms"
+          }
+        },
+        {
+          "type": "trigger",
+          "trigger": "celestialskilltree:on_headshot",
+          "cooldown_ticks": 100,
+          "action": {
+            "type": "self_effect",
+            "effect": "minecraft:strength",
+            "duration_ticks": 60,
+            "amplifier": 0
+          }
+        },
+        {
+          "type": "trigger",
+          "trigger": "celestialskilltree:on_reload",
+          "cooldown_ticks": 200,
+          "action": {
+            "type": "self_effect",
+            "effect": "minecraft:speed",
+            "duration_ticks": 60,
+            "amplifier": 0
+          }
+        }
+      ],
+      "text": "skill.celestialskilltree.marksman.dead_eye.text"
+    }
+  ]
+}

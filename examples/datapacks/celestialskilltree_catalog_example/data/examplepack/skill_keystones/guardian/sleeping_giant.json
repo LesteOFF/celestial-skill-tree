@@ -1,0 +1,20 @@
+{
+  "class": "celestialskilltree:guardian",
+  "name": "Sleeping Giant",
+  "text": "You have far more health, but your attacks are much slower. Hidden until you kill the Ender Dragon.",
+  "hidden_until": "minecraft:end/kill_dragon",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.max_health",
+      "operation": "add_value",
+      "amount": 10
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.attack_speed",
+      "operation": "add_multiplied_base",
+      "amount": -0.2
+    }
+  ]
+}

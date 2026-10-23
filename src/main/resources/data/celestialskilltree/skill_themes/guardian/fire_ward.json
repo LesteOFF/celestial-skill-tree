@@ -1,0 +1,16 @@
+{
+  "class": "celestialskilltree:guardian",
+  "name": "theme.celestialskilltree.guardian.fire_ward",
+  "icon": "celestialskilltree:textures/skill_icons/fire_guard.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "damage_modifier",
+        "direction": "taken",
+        "scope": "fire",
+        "amount": -0.02
+      }
+    ]
+  },
+  "notables": []
+}

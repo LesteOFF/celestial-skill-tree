@@ -1,0 +1,28 @@
+{
+  "class": "celestialskilltree:guardian",
+  "requires_mod": "twilightforest",
+  "hidden_until": "twilightforest:progress_naga",
+  "name": "skill.celestialskilltree.guardian.naga_scales.name",
+  "text": "skill.celestialskilltree.guardian.naga_scales.text",
+  "icon": "celestialskilltree:textures/skill_icons/plate.png",
+  "effects": [
+    {
+      "type": "damage_modifier",
+      "direction": "dealt",
+      "scope": "melee",
+      "amount": 0.3,
+      "condition": {
+        "type": "sprinting"
+      }
+    },
+    {
+      "type": "conditional_attribute",
+      "attribute": "minecraft:generic.attack_knockback",
+      "operation": "add_value",
+      "amount": 2.0,
+      "condition": {
+        "type": "sprinting"
+      }
+    }
+  ]
+}

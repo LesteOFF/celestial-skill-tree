@@ -1,0 +1,30 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "irons_spellbooks",
+  "name": "theme.celestialskilltree.mage.swift_recovery",
+  "icon": "celestialskilltree:textures/skill_icons/hourglass.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "irons_spellbooks:cooldown_reduction",
+        "operation": "add_multiplied_base",
+        "amount": 0.01
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "unbroken_focus",
+      "name": "skill.celestialskilltree.mage.unbroken_focus.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "irons_spellbooks:cooldown_reduction",
+          "operation": "add_multiplied_base",
+          "amount": 0.05
+        }
+      ]
+    }
+  ]
+}

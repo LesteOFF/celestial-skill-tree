@@ -1,0 +1,51 @@
+{
+  "class": "celestialskilltree:duelist",
+  "name": "theme.celestialskilltree.duelist.light_step",
+  "icon": "celestialskilltree:textures/skill_icons/mobility.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.movement_speed",
+        "operation": "add_multiplied_base",
+        "amount": 0.01
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "fleet_footwork",
+      "name": "skill.celestialskilltree.duelist.fleet_footwork.name",
+      "icon": "celestialskilltree:textures/skill_icons/dodge.png",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "on_dodge",
+          "action": {
+            "type": "self_effect",
+            "effect": "minecraft:speed",
+            "duration_ticks": 60,
+            "amplifier": 1
+          },
+          "cooldown_ticks": 160
+        }
+      ]
+    },
+    {
+      "id": "quickstep",
+      "name": "skill.celestialskilltree.duelist.quickstep.name",
+      "icon": "celestialskilltree:textures/skill_icons/mobility.png",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.movement_speed",
+          "operation": "add_multiplied_base",
+          "amount": 0.05,
+          "condition": {
+            "type": "sprinting"
+          }
+        }
+      ]
+    }
+  ]
+}

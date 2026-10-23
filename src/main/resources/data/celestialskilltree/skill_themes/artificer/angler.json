@@ -1,0 +1,42 @@
+{
+  "class": "celestialskilltree:artificer",
+  "requires_mod": "starcatcher",
+  "name": "theme.celestialskilltree.artificer.angler",
+  "icon": "celestialskilltree:textures/skill_icons/wave.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "starcatcher:handle_rotation_speed_multiplier",
+        "operation": "add_value",
+        "amount": 0.03
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "steady_line",
+      "name": "skill.celestialskilltree.artificer.steady_line.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "starcatcher:penalty_multiplier",
+          "operation": "add_value",
+          "amount": -0.1
+        }
+      ]
+    },
+    {
+      "id": "patient_angler",
+      "name": "skill.celestialskilltree.artificer.patient_angler.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "starcatcher:base_decay_multiplier",
+          "operation": "add_value",
+          "amount": -0.1
+        }
+      ]
+    }
+  ]
+}

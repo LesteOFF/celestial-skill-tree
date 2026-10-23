@@ -1,0 +1,27 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "malum",
+  "name": "skill.celestialskilltree.mage.soul_reaper.name",
+  "text": "skill.celestialskilltree.mage.soul_reaper.text",
+  "icon": "celestialskilltree:textures/skill_icons/soul.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "malum:spirit_spoils",
+      "operation": "add_value",
+      "amount": 2
+    },
+    {
+      "type": "attribute",
+      "attribute": "malum:arcane_resonance",
+      "operation": "add_value",
+      "amount": 0.25
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.max_health",
+      "operation": "add_value",
+      "amount": -4.0
+    }
+  ]
+}

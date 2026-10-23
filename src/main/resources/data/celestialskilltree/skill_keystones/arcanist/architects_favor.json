@@ -1,0 +1,22 @@
+{
+  "class": "celestialskilltree:arcanist",
+  "requires_mod": "enigmaticlegacyplus",
+  "hidden_until": "celestialskilltree:worn/enigmaticlegacyplus/cosmic_scroll",
+  "name": "skill.celestialskilltree.arcanist.architects_favor.name",
+  "text": "skill.celestialskilltree.arcanist.architects_favor.text",
+  "icon": "celestialskilltree:textures/skill_icons/star.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:potion_duration",
+      "operation": "add_value",
+      "amount": 0.3
+    },
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:healing_received",
+      "operation": "add_value",
+      "amount": 0.1
+    }
+  ]
+}

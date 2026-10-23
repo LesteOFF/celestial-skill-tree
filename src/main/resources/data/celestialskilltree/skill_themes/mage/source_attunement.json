@@ -1,0 +1,58 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "ars_nouveau",
+  "name": "theme.celestialskilltree.mage.source_attunement",
+  "icon": "celestialskilltree:textures/skill_icons/mana_flow.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "ars_nouveau:ars_nouveau.perk.mana_regen",
+        "operation": "add_value",
+        "amount": 0.15
+      },
+      {
+        "type": "attribute",
+        "attribute": "ars_nouveau:ars_nouveau.perk.warding",
+        "operation": "add_value",
+        "amount": 0.1
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "attuned_source",
+      "name": "skill.celestialskilltree.mage.attuned_source.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "ars_nouveau:ars_nouveau.perk.mana_regen",
+          "operation": "add_value",
+          "amount": 1.0
+        },
+        {
+          "type": "attribute",
+          "attribute": "ars_nouveau:ars_nouveau.perk.warding",
+          "operation": "add_value",
+          "amount": 0.5
+        }
+      ]
+    },
+    {
+      "id": "mending_resolve",
+      "name": "skill.celestialskilltree.mage.mending_resolve.name",
+      "icon": "celestialskilltree:textures/skill_icons/healing.png",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "celestialskilltree:on_spell_resolve",
+          "cooldown_ticks": 100,
+          "action": {
+            "type": "heal",
+            "amount": 1
+          }
+        }
+      ]
+    }
+  ]
+}

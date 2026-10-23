@@ -1,0 +1,10 @@
+{
+  "priority": 10,
+  "style": "celestialskilltree:constellation",
+  "filter": {
+    "type": "obscure_tooltips:mod",
+    "mods": [
+      "celestialskilltree"
+    ]
+  }
+}

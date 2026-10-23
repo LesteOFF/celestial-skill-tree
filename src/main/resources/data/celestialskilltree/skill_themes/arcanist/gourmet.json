@@ -1,0 +1,49 @@
+{
+  "class": "celestialskilltree:arcanist",
+  "name": "theme.celestialskilltree.arcanist.gourmet",
+  "icon": "celestialskilltree:textures/skill_icons/potion.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "celestialskilltree:potion_duration",
+        "operation": "add_value",
+        "amount": 0.03
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "hearty_meal",
+      "name": "skill.celestialskilltree.arcanist.hearty_meal.name",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "on_eat",
+          "cooldown_ticks": 200,
+          "action": {
+            "type": "heal",
+            "amount": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "second_helping",
+      "name": "skill.celestialskilltree.arcanist.second_helping.name",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "on_eat",
+          "cooldown_ticks": 1200,
+          "action": {
+            "type": "self_effect",
+            "effect": "minecraft:absorption",
+            "duration_ticks": 400,
+            "amplifier": 0
+          }
+        }
+      ]
+    }
+  ]
+}

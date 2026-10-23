@@ -1,0 +1,31 @@
+{
+  "class": "celestialskilltree:berserker",
+  "requires_mod": "cataclysm",
+  "hidden_until": "cataclysm:kill_ignis",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.berserker.ignis_ember.name",
+  "text": "skill.celestialskilltree.berserker.ignis_ember.text",
+  "icon": "celestialskilltree:textures/skill_icons/fire.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 0,
+      "action": {
+        "type": "target_effect",
+        "effect": "cataclysm:blazing_brand",
+        "duration_ticks": 200,
+        "amplifier": 0
+      }
+    },
+    {
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 0,
+      "action": {
+        "type": "ignite_target",
+        "duration_ticks": 100
+      }
+    }
+  ]
+}

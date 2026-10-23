@@ -1,0 +1,27 @@
+{
+  "class": "celestialskilltree:berserker",
+  "exclusive_with": "celestialskilltree:berserker/blind_rage",
+  "name": "skill.celestialskilltree.berserker.controlled_rage.name",
+  "text": "skill.celestialskilltree.berserker.controlled_rage.text",
+  "icon": "celestialskilltree:textures/skill_icons/shield_bash.png",
+  "effects": [
+    {
+      "type": "damage_modifier",
+      "direction": "dealt",
+      "scope": "melee",
+      "amount": 0.12
+    },
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:damage_reduction",
+      "operation": "add_value",
+      "amount": 0.05
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.attack_speed",
+      "operation": "add_multiplied_base",
+      "amount": -0.05
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "attr": "celestialskilltree:dodge_chance",
+  "base": 0.02,
+  "base_high": 2.0,
+  "base_low": 1.0,
+  "mainWeight": 50,
+  "main_high": 0.4,
+  "main_low": 0.2,
+  "op": "ADD_VALUE",
+  "subWeight": 50,
+  "sub_high": 0.4,
+  "sub_low": 0.2
+}

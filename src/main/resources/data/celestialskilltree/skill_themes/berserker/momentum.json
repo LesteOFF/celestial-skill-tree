@@ -1,0 +1,42 @@
+{
+  "class": "celestialskilltree:berserker",
+  "name": "theme.celestialskilltree.berserker.momentum",
+  "icon": "celestialskilltree:textures/skill_icons/melee.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.attack_knockback",
+        "operation": "add_value",
+        "amount": 0.05
+      },
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.attack_knockback",
+        "operation": "add_multiplied_total",
+        "amount": 0.01
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "warlords_march",
+      "name": "skill.celestialskilltree.berserker.warlords_march.name",
+      "icon": "celestialskilltree:textures/skill_icons/damage.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.attack_damage",
+          "operation": "add_multiplied_total",
+          "amount": 0.05
+        },
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.attack_damage",
+          "operation": "add_value",
+          "amount": 0.2
+        }
+      ]
+    }
+  ]
+}

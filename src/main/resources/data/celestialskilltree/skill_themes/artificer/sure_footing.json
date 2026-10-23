@@ -1,0 +1,30 @@
+{
+  "class": "celestialskilltree:artificer",
+  "name": "theme.celestialskilltree.artificer.sure_footing",
+  "icon": "celestialskilltree:textures/skill_icons/exploration.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.safe_fall_distance",
+        "operation": "add_value",
+        "amount": 0.5
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "reinforced_handles",
+      "name": "skill.celestialskilltree.artificer.reinforced_handles.name",
+      "icon": "celestialskilltree:textures/skill_icons/tools.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:tool_preservation",
+          "operation": "add_value",
+          "amount": 0.1
+        }
+      ]
+    }
+  ]
+}

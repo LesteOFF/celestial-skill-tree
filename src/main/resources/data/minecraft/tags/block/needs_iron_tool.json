@@ -1,7 +1,7 @@
 {
   "replace": false,
   "values": [
-    "nostalgiaskills:stellar_condenser",
-    "nostalgiaskills:community_basin"
+    "celestialskilltree:stellar_condenser",
+    "celestialskilltree:community_basin"
   ]
 }

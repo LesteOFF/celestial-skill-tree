@@ -1,0 +1,16 @@
+{
+  "class": "celestialskilltree:duelist",
+  "name": "theme.celestialskilltree.duelist.acrobat",
+  "icon": "celestialskilltree:textures/skill_icons/jump.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.jump_strength",
+        "operation": "add_multiplied_base",
+        "amount": 0.02
+      }
+    ]
+  },
+  "notables": []
+}

@@ -1,0 +1,28 @@
+{
+  "class": "celestialskilltree:berserker",
+  "requires_mod": "mowziesmobs",
+  "hidden_until": "mowziesmobs:kill_ferrous_wroughtnaut",
+  "name": "skill.celestialskilltree.berserker.wroughtnaut_might.name",
+  "text": "skill.celestialskilltree.berserker.wroughtnaut_might.text",
+  "icon": "celestialskilltree:textures/skill_icons/heavy_weapon.png",
+  "effects": [
+    {
+      "type": "damage_modifier",
+      "direction": "taken",
+      "scope": "melee",
+      "amount": -0.6,
+      "condition": {
+        "type": "sneaking"
+      }
+    },
+    {
+      "type": "conditional_attribute",
+      "attribute": "minecraft:generic.knockback_resistance",
+      "operation": "add_value",
+      "amount": 1.0,
+      "condition": {
+        "type": "sneaking"
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "class": "celestialskilltree:marksman",
+  "requires_mod": "aquamirae",
+  "hidden_until": "celestialskilltree:kill/aquamirae/maze_mother",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.marksman.mothers_lure.name",
+  "text": "skill.celestialskilltree.marksman.mothers_lure.text",
+  "icon": "celestialskilltree:textures/skill_icons/exploration.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_full_charge_hit",
+      "cooldown_ticks": 200,
+      "action": {
+        "type": "area_effect",
+        "effect": "minecraft:glowing",
+        "duration_ticks": 200,
+        "amplifier": 0,
+        "amount": 12
+      }
+    }
+  ]
+}

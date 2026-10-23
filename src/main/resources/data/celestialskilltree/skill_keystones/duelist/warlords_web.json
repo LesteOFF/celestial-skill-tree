@@ -1,0 +1,19 @@
+{
+  "class": "celestialskilltree:duelist",
+  "requires_mod": "born_in_chaos_v1",
+  "hidden_until": "born_in_chaos_v1:spider_warlord",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.duelist.warlords_web.name",
+  "text": "skill.celestialskilltree.duelist.warlords_web.text",
+  "icon": "celestialskilltree:textures/skill_icons/lunge.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 160,
+      "action": {
+        "type": "web_target"
+      }
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "class": "celestialskilltree:guardian",
+  "requires_mod": "farmersdelight",
+  "name": "theme.celestialskilltree.guardian.hearty_table",
+  "icon": "celestialskilltree:textures/skill_icons/healing.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "celestialskilltree:healing_received",
+        "operation": "add_value",
+        "amount": 0.02
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "warm_meal",
+      "name": "skill.celestialskilltree.guardian.warm_meal.name",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "on_low_health",
+          "cooldown_ticks": 1200,
+          "action": {
+            "type": "self_effect",
+            "effect": "farmersdelight:comfort",
+            "duration_ticks": 300,
+            "amplifier": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "good_appetite",
+      "name": "skill.celestialskilltree.guardian.good_appetite.name",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "on_kill",
+          "cooldown_ticks": 600,
+          "action": {
+            "type": "self_effect",
+            "effect": "farmersdelight:nourishment",
+            "duration_ticks": 400,
+            "amplifier": 0
+          }
+        }
+      ]
+    }
+  ]
+}

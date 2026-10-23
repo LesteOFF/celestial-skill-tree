@@ -1,0 +1,30 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "ars_nouveau",
+  "name": "theme.celestialskilltree.mage.source_flow",
+  "icon": "celestialskilltree:textures/skill_icons/mana_flow.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "ars_nouveau:ars_nouveau.perk.mana_regen",
+        "operation": "add_value",
+        "amount": 0.25
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "source_spring",
+      "name": "skill.celestialskilltree.mage.source_spring.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "ars_nouveau:ars_nouveau.perk.mana_regen",
+          "operation": "add_value",
+          "amount": 2
+        }
+      ]
+    }
+  ]
+}

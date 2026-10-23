@@ -1,0 +1,36 @@
+{
+  "items": {
+    "celestialskilltree:star_fragment": {
+      "theme": "cosmic",
+      "badges": []
+    },
+    "celestialskilltree:living_fragment": {
+      "theme": "cosmic",
+      "badges": []
+    },
+    "celestialskilltree:fallen_star": {
+      "theme": "cosmic",
+      "badges": []
+    },
+    "celestialskilltree:orb_of_reconfiguration": {
+      "theme": "cosmic",
+      "badges": []
+    },
+    "celestialskilltree:stellar_ammo": {
+      "theme": "cosmic",
+      "badges": []
+    },
+    "celestialskilltree:telescope": {
+      "theme": "cosmic",
+      "badges": []
+    },
+    "celestialskilltree:stellar_condenser": {
+      "theme": "cosmic",
+      "badges": []
+    },
+    "celestialskilltree:community_basin": {
+      "theme": "cosmic",
+      "badges": []
+    }
+  }
+}

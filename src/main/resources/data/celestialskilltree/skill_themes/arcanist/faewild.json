@@ -1,0 +1,54 @@
+{
+  "class": "celestialskilltree:arcanist",
+  "requires_mod": "biomeswevegone",
+  "name": "theme.celestialskilltree.arcanist.faewild",
+  "icon": "celestialskilltree:textures/skill_icons/leaf.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "celestialskilltree:magic_resistance",
+        "operation": "add_value",
+        "amount": 0.01,
+        "condition": {
+          "type": "in_biome_tag",
+          "tag": "c:is_magical"
+        }
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "fae_touched",
+      "name": "skill.celestialskilltree.arcanist.fae_touched.name",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.luck",
+          "operation": "add_value",
+          "amount": 1,
+          "condition": {
+            "type": "in_biome_tag",
+            "tag": "c:is_magical"
+          }
+        }
+      ]
+    },
+    {
+      "id": "glade_ward",
+      "name": "skill.celestialskilltree.arcanist.glade_ward.name",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "celestialskilltree:healing_received",
+          "operation": "add_value",
+          "amount": 0.08,
+          "condition": {
+            "type": "in_biome_tag",
+            "tag": "c:is_magical"
+          }
+        }
+      ]
+    }
+  ]
+}

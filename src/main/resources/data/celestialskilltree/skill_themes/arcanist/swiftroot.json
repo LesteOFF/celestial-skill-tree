@@ -1,0 +1,16 @@
+{
+  "class": "celestialskilltree:arcanist",
+  "name": "theme.celestialskilltree.arcanist.swiftroot",
+  "icon": "celestialskilltree:textures/skill_icons/root.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.movement_speed",
+        "operation": "add_multiplied_base",
+        "amount": 0.008
+      }
+    ]
+  },
+  "notables": []
+}

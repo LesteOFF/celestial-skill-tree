@@ -1,0 +1,30 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "irons_spellbooks",
+  "name": "theme.celestialskilltree.mage.quick_casting",
+  "icon": "celestialskilltree:textures/skill_icons/book.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "irons_spellbooks:cast_time_reduction",
+        "operation": "add_multiplied_base",
+        "amount": 0.01
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "fluent_incantation",
+      "name": "skill.celestialskilltree.mage.fluent_incantation.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "irons_spellbooks:cast_time_reduction",
+          "operation": "add_multiplied_base",
+          "amount": 0.05
+        }
+      ]
+    }
+  ]
+}

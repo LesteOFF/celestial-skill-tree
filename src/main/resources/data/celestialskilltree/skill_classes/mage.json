@@ -1,0 +1,44 @@
+{
+  "name": "sector.celestialskilltree.mage",
+  "icon": "celestialskilltree:textures/skill_icons/hub_arcanist.png",
+  "requires_any_mod": [
+    "irons_spellbooks",
+    "ars_nouveau",
+    "malum"
+  ],
+  "fallback_class": "celestialskilltree:arcanist",
+  "nodes": 120,
+  "hub": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "celestialskilltree:magic_resistance",
+        "operation": "add_value",
+        "amount": 0.03
+      },
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.max_health",
+        "operation": "add_value",
+        "amount": 1.0
+      }
+    ]
+  },
+  "trunk": {
+    "name": "trunk.celestialskilltree.mage",
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "celestialskilltree:magic_resistance",
+        "operation": "add_value",
+        "amount": 0.005
+      },
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.max_health",
+        "operation": "add_value",
+        "amount": 0.25
+      }
+    ]
+  }
+}

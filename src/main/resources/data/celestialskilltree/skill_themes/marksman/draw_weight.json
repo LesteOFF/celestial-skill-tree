@@ -1,0 +1,74 @@
+{
+  "class": "celestialskilltree:marksman",
+  "name": "theme.celestialskilltree.marksman.draw_weight",
+  "icon": "celestialskilltree:textures/skill_icons/bow.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "celestialskilltree:charged_shot_damage",
+        "operation": "add_value",
+        "amount": 0.03
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "full_quiver",
+      "name": "skill.celestialskilltree.marksman.full_quiver.name",
+      "icon": "celestialskilltree:textures/skill_icons/projectile.png",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "on_projectile_kill",
+          "action": {
+            "type": "heal",
+            "amount": 2.0
+          },
+          "cooldown_ticks": 100
+        }
+      ]
+    },
+    {
+      "id": "rangefinder",
+      "name": "skill.celestialskilltree.marksman.rangefinder.name",
+      "icon": "celestialskilltree:textures/skill_icons/range.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:long_range_damage",
+          "operation": "add_value",
+          "amount": 0.12
+        }
+      ]
+    },
+    {
+      "id": "practiced_draw",
+      "name": "skill.celestialskilltree.marksman.practiced_draw.name",
+      "icon": "celestialskilltree:textures/skill_icons/bow.png",
+      "max_rank": 5,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:projectile_damage",
+          "operation": "add_value",
+          "amount": 0.03
+        }
+      ]
+    },
+    {
+      "id": "focal_point",
+      "name": "skill.celestialskilltree.marksman.focal_point.name",
+      "icon": "celestialskilltree:textures/skill_icons/black_hole.png",
+      "neighbour_multiplier": 2.0,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:projectile_damage",
+          "operation": "add_value",
+          "amount": 0.03
+        }
+      ]
+    }
+  ]
+}

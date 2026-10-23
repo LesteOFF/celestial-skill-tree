@@ -1,0 +1,30 @@
+{
+  "class": "celestialskilltree:guardian",
+  "name": "theme.celestialskilltree.guardian.last_stand",
+  "icon": "celestialskilltree:textures/skill_icons/last_stand.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.armor",
+        "operation": "add_value",
+        "amount": 0.8,
+        "condition": {
+          "type": "health_below",
+          "fraction": 0.5
+        }
+      },
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.armor",
+        "operation": "add_multiplied_total",
+        "amount": 0.016,
+        "condition": {
+          "type": "health_below",
+          "fraction": 0.5
+        }
+      }
+    ]
+  },
+  "notables": []
+}

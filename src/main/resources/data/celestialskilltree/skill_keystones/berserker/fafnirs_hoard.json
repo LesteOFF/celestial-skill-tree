@@ -1,0 +1,26 @@
+{
+  "class": "celestialskilltree:berserker",
+  "requires_mod": "gaze",
+  "hidden_until": "celestialskilltree:worn/gaze/rune_of_fafnir",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.berserker.fafnirs_hoard.name",
+  "text": "skill.celestialskilltree.berserker.fafnirs_hoard.text",
+  "icon": "celestialskilltree:textures/skill_icons/critical.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:crit_damage",
+      "operation": "add_value",
+      "amount": 0.2
+    },
+    {
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 200,
+      "action": {
+        "type": "ignite_target",
+        "duration_ticks": 100
+      }
+    }
+  ]
+}

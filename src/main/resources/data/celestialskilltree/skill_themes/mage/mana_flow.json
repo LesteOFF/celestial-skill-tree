@@ -1,0 +1,30 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "irons_spellbooks",
+  "name": "theme.celestialskilltree.mage.mana_flow",
+  "icon": "celestialskilltree:textures/skill_icons/mana_flow.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "irons_spellbooks:mana_regen",
+        "operation": "add_multiplied_base",
+        "amount": 0.02
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "flowing_mana",
+      "name": "skill.celestialskilltree.mage.flowing_mana.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "irons_spellbooks:mana_regen",
+          "operation": "add_multiplied_base",
+          "amount": 0.08
+        }
+      ]
+    }
+  ]
+}

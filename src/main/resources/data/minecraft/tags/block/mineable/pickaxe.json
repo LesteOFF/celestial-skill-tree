@@ -1,8 +1,8 @@
 {
   "replace": false,
   "values": [
-    "nostalgiaskills:stellar_condenser",
-    "nostalgiaskills:community_basin",
-    "nostalgiaskills:telescope"
+    "celestialskilltree:stellar_condenser",
+    "celestialskilltree:community_basin",
+    "celestialskilltree:telescope"
   ]
 }

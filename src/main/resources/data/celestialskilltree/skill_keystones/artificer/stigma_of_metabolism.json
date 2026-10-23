@@ -1,0 +1,28 @@
+{
+  "class": "celestialskilltree:artificer",
+  "requires_mod": [
+    "curseofpandora",
+    "curios"
+  ],
+  "hidden_until": "celestialskilltree:worn/curseofpandora/curse_of_metabolism",
+  "name": "skill.celestialskilltree.artificer.stigma_of_metabolism.name",
+  "text": "skill.celestialskilltree.artificer.stigma_of_metabolism.text",
+  "icon": "celestialskilltree:textures/skill_icons/mobility.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_eat",
+      "cooldown_ticks": 0,
+      "action": {
+        "type": "self_effect",
+        "effect": "minecraft:saturation",
+        "duration_ticks": 4,
+        "amplifier": 4
+      },
+      "condition": {
+        "type": "has_curio",
+        "tag": "celestialskilltree:curse/metabolism"
+      }
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "class": "celestialskilltree:berserker",
+  "requires_mod": "block_factorys_bosses",
+  "hidden_until": "celestialskilltree:kill/block_factorys_bosses/infernal_dragon",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.berserker.infernal_breath.name",
+  "text": "skill.celestialskilltree.berserker.infernal_breath.text",
+  "icon": "celestialskilltree:textures/skill_icons/fire.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 160,
+      "action": {
+        "type": "ignite_target",
+        "duration_ticks": 160
+      }
+    },
+    {
+      "type": "damage_modifier",
+      "direction": "taken",
+      "scope": "fire",
+      "amount": -0.5
+    }
+  ]
+}

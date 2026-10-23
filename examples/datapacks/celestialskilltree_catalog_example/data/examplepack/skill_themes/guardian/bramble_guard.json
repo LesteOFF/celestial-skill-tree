@@ -1,0 +1,30 @@
+{
+  "class": "celestialskilltree:guardian",
+  "name": "Bramble Guard",
+  "icon": "celestialskilltree:textures/skill_icons/defense.png",
+  "weight": 30,
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.attack_knockback",
+        "operation": "add_value",
+        "amount": 0.05
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "briar_wall",
+      "name": "Briar Wall",
+      "effects": [
+        {
+          "type": "damage_modifier",
+          "direction": "taken",
+          "scope": "melee",
+          "amount": -0.05
+        }
+      ]
+    }
+  ]
+}

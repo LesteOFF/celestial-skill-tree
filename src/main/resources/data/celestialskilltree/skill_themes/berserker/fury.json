@@ -1,0 +1,53 @@
+{
+  "class": "celestialskilltree:berserker",
+  "name": "theme.celestialskilltree.berserker.fury",
+  "icon": "celestialskilltree:textures/skill_icons/damage.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "celestialskilltree:low_health_damage",
+        "operation": "add_value",
+        "amount": 0.03
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "frenzy",
+      "name": "skill.celestialskilltree.berserker.frenzy.name",
+      "icon": "celestialskilltree:textures/skill_icons/mobility.png",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "on_kill",
+          "action": {
+            "type": "self_effect",
+            "effect": "minecraft:speed",
+            "duration_ticks": 60,
+            "amplifier": 1
+          },
+          "cooldown_ticks": 200
+        }
+      ]
+    },
+    {
+      "id": "rising_rage",
+      "name": "skill.celestialskilltree.berserker.rising_rage.name",
+      "icon": "celestialskilltree:textures/skill_icons/risk.png",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "on_hurt",
+          "action": {
+            "type": "self_effect",
+            "effect": "minecraft:strength",
+            "duration_ticks": 60,
+            "amplifier": 0
+          },
+          "cooldown_ticks": 200
+        }
+      ]
+    }
+  ]
+}

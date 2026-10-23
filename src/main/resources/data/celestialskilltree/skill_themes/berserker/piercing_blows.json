@@ -1,0 +1,36 @@
+{
+  "class": "celestialskilltree:berserker",
+  "requires_mod": "apothic_attributes",
+  "name": "theme.celestialskilltree.berserker.piercing_blows",
+  "icon": "celestialskilltree:textures/skill_icons/damage.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "apothic_attributes:armor_pierce",
+        "operation": "add_value",
+        "amount": 0.5
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "armor_breaker",
+      "name": "skill.celestialskilltree.berserker.armor_breaker.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "apothic_attributes:armor_shred",
+          "operation": "add_value",
+          "amount": 0.05
+        },
+        {
+          "type": "attribute",
+          "attribute": "apothic_attributes:prot_pierce",
+          "operation": "add_value",
+          "amount": 2
+        }
+      ]
+    }
+  ]
+}

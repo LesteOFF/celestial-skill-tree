@@ -1,1 +1,1 @@
-dev.nostalgiacraft.skills.compat.kubejs.NostalgiaSkillsPlugin
+dev.lesteoff.celestialskilltree.compat.kubejs.CelestialSkillTreePlugin

@@ -1,0 +1,37 @@
+{
+  "name": "sector.celestialskilltree.arcanist",
+  "icon": "celestialskilltree:textures/skill_icons/hub_arcanist.png",
+  "hub": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "celestialskilltree:potion_duration",
+        "operation": "add_value",
+        "amount": 0.05
+      },
+      {
+        "type": "attribute",
+        "attribute": "celestialskilltree:healing_received",
+        "operation": "add_value",
+        "amount": 0.03
+      }
+    ]
+  },
+  "trunk": {
+    "name": "trunk.celestialskilltree.arcanist",
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "celestialskilltree:potion_duration",
+        "operation": "add_value",
+        "amount": 0.01
+      },
+      {
+        "type": "attribute",
+        "attribute": "celestialskilltree:healing_received",
+        "operation": "add_value",
+        "amount": 0.005
+      }
+    ]
+  }
+}

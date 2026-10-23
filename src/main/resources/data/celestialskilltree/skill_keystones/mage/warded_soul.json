@@ -1,0 +1,27 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "malum",
+  "name": "skill.celestialskilltree.mage.warded_soul.name",
+  "text": "skill.celestialskilltree.mage.warded_soul.text",
+  "icon": "celestialskilltree:textures/skill_icons/rune_shield.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "malum:soul_ward_capacity",
+      "operation": "add_value",
+      "amount": 6
+    },
+    {
+      "type": "attribute",
+      "attribute": "malum:soul_ward_recovery_rate",
+      "operation": "add_value",
+      "amount": 0.1
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.armor",
+      "operation": "add_multiplied_total",
+      "amount": -0.2
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "class": "celestialskilltree:duelist",
+  "requires_mod": "bettercombat",
+  "name": "theme.celestialskilltree.duelist.long_blades",
+  "icon": "celestialskilltree:textures/skill_icons/range.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:player.entity_interaction_range",
+        "operation": "add_value",
+        "amount": 0.05
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "polearm_training",
+      "name": "skill.celestialskilltree.duelist.polearm_training.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:player.entity_interaction_range",
+          "operation": "add_value",
+          "amount": 0.25
+        }
+      ]
+    }
+  ]
+}

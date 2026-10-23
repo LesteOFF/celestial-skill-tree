@@ -1,0 +1,26 @@
+{
+  "class": "celestialskilltree:berserker",
+  "name": "skill.celestialskilltree.berserker.juggernaut.name",
+  "icon": "celestialskilltree:textures/skill_icons/keystone_juggernaut.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:heavy_weapon_damage",
+      "operation": "add_value",
+      "amount": 0.2
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.knockback_resistance",
+      "operation": "add_value",
+      "amount": 0.3
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.attack_speed",
+      "operation": "add_multiplied_base",
+      "amount": -0.15
+    }
+  ],
+  "text": "skill.celestialskilltree.berserker.juggernaut.text"
+}

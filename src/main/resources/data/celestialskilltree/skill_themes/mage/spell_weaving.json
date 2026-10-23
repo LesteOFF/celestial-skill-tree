@@ -1,0 +1,60 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "ars_nouveau",
+  "name": "theme.celestialskilltree.mage.spell_weaving",
+  "icon": "celestialskilltree:textures/skill_icons/wand.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "ars_nouveau:ars_nouveau.perk.spell_damage",
+        "operation": "add_value",
+        "amount": 0.1
+      },
+      {
+        "type": "attribute",
+        "attribute": "ars_nouveau:ars_nouveau.perk.max_mana",
+        "operation": "add_value",
+        "amount": 2
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "woven_power",
+      "name": "skill.celestialskilltree.mage.woven_power.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "ars_nouveau:ars_nouveau.perk.spell_damage",
+          "operation": "add_value",
+          "amount": 0.6
+        },
+        {
+          "type": "attribute",
+          "attribute": "ars_nouveau:ars_nouveau.perk.max_mana",
+          "operation": "add_value",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "id": "quickened_glyphs",
+      "name": "skill.celestialskilltree.mage.quickened_glyphs.name",
+      "icon": "celestialskilltree:textures/skill_icons/caster_step.png",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "celestialskilltree:on_glyph_cast",
+          "cooldown_ticks": 200,
+          "action": {
+            "type": "self_effect",
+            "effect": "minecraft:speed",
+            "duration_ticks": 60,
+            "amplifier": 0
+          }
+        }
+      ]
+    }
+  ]
+}

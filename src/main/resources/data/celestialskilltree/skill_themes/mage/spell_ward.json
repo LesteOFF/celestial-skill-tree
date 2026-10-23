@@ -1,0 +1,52 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "irons_spellbooks",
+  "name": "theme.celestialskilltree.mage.spell_ward",
+  "icon": "celestialskilltree:textures/skill_icons/rune_shield.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "irons_spellbooks:spell_resist",
+        "operation": "add_multiplied_base",
+        "amount": 0.01
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "warded_mind",
+      "name": "skill.celestialskilltree.mage.warded_mind.name",
+      "icon": "celestialskilltree:textures/skill_icons/black_hole.png",
+      "neighbour_multiplier": 1.75,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "irons_spellbooks:spell_resist",
+          "operation": "add_multiplied_base",
+          "amount": 0.05
+        },
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:magic_resistance",
+          "operation": "add_value",
+          "amount": 0.03
+        }
+      ]
+    },
+    {
+      "id": "spell_hardening",
+      "name": "skill.celestialskilltree.mage.spell_hardening.name",
+      "icon": "celestialskilltree:textures/skill_icons/magic.png",
+      "max_rank": 3,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:magic_resistance",
+          "operation": "add_value",
+          "amount": 0.02
+        }
+      ]
+    }
+  ]
+}

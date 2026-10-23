@@ -1,0 +1,24 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "irons_spellbooks",
+  "name": "skill.celestialskilltree.mage.blood_for_mana.name",
+  "text": "skill.celestialskilltree.mage.blood_for_mana.text",
+  "icon": "celestialskilltree:textures/skill_icons/school_blood.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "celestialskilltree:on_mana_empty",
+      "cooldown_ticks": 20,
+      "action": {
+        "type": "blood_for_mana",
+        "amount": 60
+      }
+    },
+    {
+      "type": "attribute",
+      "attribute": "irons_spellbooks:mana_regen",
+      "operation": "add_multiplied_total",
+      "amount": -0.25
+    }
+  ]
+}

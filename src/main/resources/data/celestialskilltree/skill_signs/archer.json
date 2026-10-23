@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:projectile_damage",
+      "operation": "add_value",
+      "amount": 0.05
+    }
+  ],
+  "partner_effects": [
+    {
+      "requires_mod": "l2damagetracker",
+      "description": "sign.celestialskilltree.archer.description.l2damagetracker",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "l2damagetracker:bow_strength",
+          "operation": "add_multiplied_base",
+          "amount": 0.05
+        }
+      ]
+    }
+  ]
+}

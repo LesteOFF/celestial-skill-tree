@@ -1,0 +1,41 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "forbidden_arcanus",
+  "name": "theme.celestialskilltree.mage.aureal_flow",
+  "icon": "celestialskilltree:textures/skill_icons/halo.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "forbidden_arcanus:generic.aureal_regeneration",
+        "operation": "add_value",
+        "amount": 0.2
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "aureal_resonance",
+      "name": "skill.celestialskilltree.mage.aureal_resonance.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "forbidden_arcanus:generic.magic_protection",
+          "operation": "add_value",
+          "amount": 0.05
+        },
+        {
+          "type": "conditional_attribute",
+          "attribute": "celestialskilltree:magic_resistance",
+          "operation": "add_value",
+          "amount": 0.1,
+          "condition": {
+            "type": "attribute_at_least",
+            "attribute": "forbidden_arcanus:generic.aureal_regeneration",
+            "value": 1
+          }
+        }
+      ]
+    }
+  ]
+}

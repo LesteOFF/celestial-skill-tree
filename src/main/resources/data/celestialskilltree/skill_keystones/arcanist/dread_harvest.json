@@ -1,0 +1,21 @@
+{
+  "class": "celestialskilltree:arcanist",
+  "requires_mod": "iceandfire",
+  "hidden_until": "celestialskilltree:kill/iceandfire/dread_lich",
+  "name": "skill.celestialskilltree.arcanist.dread_harvest.name",
+  "text": "skill.celestialskilltree.arcanist.dread_harvest.text",
+  "icon": "celestialskilltree:textures/skill_icons/soul.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_kill",
+      "cooldown_ticks": 100,
+      "action": {
+        "type": "self_effect",
+        "effect": "minecraft:absorption",
+        "duration_ticks": 200,
+        "amplifier": 1
+      }
+    }
+  ]
+}

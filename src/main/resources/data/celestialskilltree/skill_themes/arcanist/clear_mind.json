@@ -1,0 +1,48 @@
+{
+  "class": "celestialskilltree:arcanist",
+  "name": "theme.celestialskilltree.arcanist.clear_mind",
+  "icon": "celestialskilltree:textures/skill_icons/luck.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.luck",
+        "operation": "add_value",
+        "amount": 0.25
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "resonance",
+      "name": "skill.celestialskilltree.arcanist.resonance.name",
+      "icon": "celestialskilltree:textures/skill_icons/magic.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:magic_resistance",
+          "operation": "add_value",
+          "amount": 0.08
+        }
+      ]
+    },
+    {
+      "id": "sympathetic_link",
+      "name": "skill.celestialskilltree.arcanist.sympathetic_link.name",
+      "icon": "celestialskilltree:textures/skill_icons/potion.png",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "on_potion",
+          "action": {
+            "type": "self_effect",
+            "effect": "minecraft:speed",
+            "duration_ticks": 100,
+            "amplifier": 0
+          },
+          "cooldown_ticks": 200
+        }
+      ]
+    }
+  ]
+}

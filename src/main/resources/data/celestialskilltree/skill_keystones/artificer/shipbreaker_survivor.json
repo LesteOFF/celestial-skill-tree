@@ -1,0 +1,19 @@
+{
+  "class": "celestialskilltree:artificer",
+  "requires_mod": "aquamirae",
+  "hidden_until": "aquamirae:adventure/survive_the_shipbreaker",
+  "name": "skill.celestialskilltree.artificer.shipbreaker_survivor.name",
+  "text": "skill.celestialskilltree.artificer.shipbreaker_survivor.text",
+  "icon": "celestialskilltree:textures/skill_icons/keystone_wayfinder.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "celestialskilltree:on_fatal_blow",
+      "cooldown_ticks": 6000,
+      "action": {
+        "type": "cheat_death",
+        "amount": 2
+      }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "class": "celestialskilltree:marksman",
+  "requires_mod": "mowziesmobs",
+  "hidden_until": "celestialskilltree:kill/mowziesmobs/naga",
+  "name": "skill.celestialskilltree.marksman.naga_spit.name",
+  "text": "skill.celestialskilltree.marksman.naga_spit.text",
+  "icon": "celestialskilltree:textures/skill_icons/antidote.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_full_charge_hit",
+      "cooldown_ticks": 100,
+      "action": {
+        "type": "target_effect",
+        "effect": "minecraft:poison",
+        "duration_ticks": 100,
+        "amplifier": 1
+      }
+    }
+  ]
+}

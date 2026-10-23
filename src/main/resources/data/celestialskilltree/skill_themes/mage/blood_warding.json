@@ -1,0 +1,17 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "irons_spellbooks",
+  "name": "theme.celestialskilltree.mage.blood_warding",
+  "icon": "celestialskilltree:textures/skill_icons/school_blood_ward.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "irons_spellbooks:blood_magic_resist",
+        "operation": "add_multiplied_base",
+        "amount": 0.01
+      }
+    ]
+  },
+  "notables": []
+}

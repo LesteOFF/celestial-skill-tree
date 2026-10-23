@@ -1,0 +1,20 @@
+{
+  "class": "celestialskilltree:guardian",
+  "name": "skill.celestialskilltree.guardian.living_aegis.name",
+  "icon": "celestialskilltree:textures/skill_icons/keystone_living_aegis.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:damage_reduction",
+      "operation": "add_value",
+      "amount": 0.1
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.attack_damage",
+      "operation": "add_multiplied_total",
+      "amount": -0.15
+    }
+  ],
+  "text": "skill.celestialskilltree.guardian.living_aegis.text"
+}

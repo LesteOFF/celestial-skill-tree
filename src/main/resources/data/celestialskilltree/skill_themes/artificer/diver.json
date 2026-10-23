@@ -1,0 +1,35 @@
+{
+  "class": "celestialskilltree:artificer",
+  "name": "theme.celestialskilltree.artificer.diver",
+  "icon": "celestialskilltree:textures/skill_icons/diver.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:player.submerged_mining_speed",
+        "operation": "add_value",
+        "amount": 0.05
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "abyssal_diver",
+      "name": "skill.celestialskilltree.artificer.abyssal_diver.name",
+      "icon": "celestialskilltree:textures/skill_icons/diver.png",
+      "requires_mod": "aquamirae",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.water_movement_efficiency",
+          "operation": "add_value",
+          "amount": 0.3,
+          "condition": {
+            "type": "wearing",
+            "tag": "celestialskilltree:armor/abyssal"
+          }
+        }
+      ]
+    }
+  ]
+}

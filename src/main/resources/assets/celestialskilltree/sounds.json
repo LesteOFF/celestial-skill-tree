@@ -1,0 +1,54 @@
+{
+  "entity.falling_star.falling": {
+    "subtitle": "subtitles.celestialskilltree.falling_star.falling",
+    "sounds": [
+      "celestialskilltree:entity/falling_star/falling_loop"
+    ]
+  },
+  "entity.falling_star.impact": {
+    "subtitle": "subtitles.celestialskilltree.falling_star.impact",
+    "sounds": [
+      "celestialskilltree:entity/falling_star/impact1",
+      "celestialskilltree:entity/falling_star/impact2",
+      "celestialskilltree:entity/falling_star/impact3",
+      "celestialskilltree:entity/falling_star/impact4"
+    ]
+  },
+  "event.eclipse.start": {
+    "subtitle": "subtitles.celestialskilltree.eclipse.start",
+    "sounds": [
+      "celestialskilltree:event/eclipse"
+    ]
+  },
+  "event.star_shower.start": {
+    "subtitle": "subtitles.celestialskilltree.star_shower.start",
+    "sounds": [
+      "celestialskilltree:event/star_shower"
+    ]
+  },
+  "ui.tree_open": {
+    "sounds": [
+      "celestialskilltree:ui/tree_open"
+    ]
+  },
+  "ui.node_mark": {
+    "sounds": [
+      "celestialskilltree:ui/node_mark"
+    ]
+  },
+  "ui.point_buy": {
+    "sounds": [
+      "celestialskilltree:ui/point_buy"
+    ]
+  },
+  "ui.confirm": {
+    "sounds": [
+      "celestialskilltree:ui/confirm"
+    ]
+  },
+  "ui.keystone": {
+    "sounds": [
+      "celestialskilltree:ui/keystone"
+    ]
+  }
+}

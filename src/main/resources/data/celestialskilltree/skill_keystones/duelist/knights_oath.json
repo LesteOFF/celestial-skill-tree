@@ -1,0 +1,20 @@
+{
+  "class": "celestialskilltree:duelist",
+  "requires_mod": "block_factorys_bosses",
+  "hidden_until": "block_factorys_bosses:kill_underworld_knight",
+  "name": "skill.celestialskilltree.duelist.knights_oath.name",
+  "text": "skill.celestialskilltree.duelist.knights_oath.text",
+  "icon": "celestialskilltree:textures/skill_icons/parry.png",
+  "effects": [
+    {
+      "type": "damage_modifier",
+      "direction": "dealt",
+      "scope": "all",
+      "amount": 0.5,
+      "condition": {
+        "type": "target_health_above",
+        "fraction": 0.99
+      }
+    }
+  ]
+}

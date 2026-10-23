@@ -1,0 +1,28 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "ars_nouveau",
+  "hidden_until": "celestialskilltree:kill/ars_nouveau/wilden_boss",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.mage.chimera_rage.name",
+  "text": "skill.celestialskilltree.mage.chimera_rage.text",
+  "icon": "celestialskilltree:textures/skill_icons/cornered.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_low_health",
+      "cooldown_ticks": 1800,
+      "action": {
+        "type": "self_effect",
+        "effect": "minecraft:strength",
+        "duration_ticks": 200,
+        "amplifier": 1
+      }
+    },
+    {
+      "type": "attribute",
+      "attribute": "ars_nouveau:ars_nouveau.perk.spell_damage",
+      "operation": "add_value",
+      "amount": 1
+    }
+  ]
+}

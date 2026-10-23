@@ -1,0 +1,26 @@
+{
+  "type": "neoforge:add_table",
+  "table": "celestialskilltree:gameplay/structure_bonus",
+  "conditions": [
+    {
+      "condition": "minecraft:location_check",
+      "predicate": {
+        "structures": "#celestialskilltree:loot_structures"
+      }
+    },
+    {
+      "condition": "minecraft:inverted",
+      "term": {
+        "condition": "minecraft:match_tool",
+        "predicate": {}
+      }
+    },
+    {
+      "condition": "minecraft:inverted",
+      "term": {
+        "condition": "minecraft:damage_source_properties",
+        "predicate": {}
+      }
+    }
+  ]
+}

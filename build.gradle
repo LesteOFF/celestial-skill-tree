@@ -53,10 +53,13 @@ neoForge {
             client()
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
             if (project.hasProperty('visualqa')) {
-                systemProperty 'nostalgiaskills.visualqa', 'true'
+                systemProperty 'celestialskilltree.visualqa', 'true'
+            }
+            if (project.hasProperty('gallery')) {
+                systemProperty 'celestialskilltree.gallery', 'true'
             }
             if (project.hasProperty('renderbench')) {
-                systemProperty 'nostalgiaskills.renderbench', 'true'
+                systemProperty 'celestialskilltree.renderbench', 'true'
             }
         }
         server {
@@ -76,23 +79,23 @@ neoForge {
             client()
             gameDirectory = file('run_mpqa/alpha')
             programArguments.addAll('--username', 'Alpha')
-            systemProperty 'nostalgiaskills.mpqa', (project.findProperty('mpqaAlpha') ?: 'alpha').toString()
-            systemProperty 'nostalgiaskills.mpqa.address', '127.0.0.1:25565'
+            systemProperty 'celestialskilltree.mpqa', (project.findProperty('mpqaAlpha') ?: 'alpha').toString()
+            systemProperty 'celestialskilltree.mpqa.address', '127.0.0.1:25565'
         }
         mpqaBeta {
             sourceSet = sourceSets.devHarness
             client()
             gameDirectory = file('run_mpqa/beta')
             programArguments.addAll('--username', 'Beta')
-            systemProperty 'nostalgiaskills.mpqa', (project.findProperty('mpqaBeta') ?: 'beta').toString()
-            systemProperty 'nostalgiaskills.mpqa.address', '127.0.0.1:25566'
+            systemProperty 'celestialskilltree.mpqa', (project.findProperty('mpqaBeta') ?: 'beta').toString()
+            systemProperty 'celestialskilltree.mpqa.address', '127.0.0.1:25566'
         }
         gameTestServer {
             sourceSet = sourceSets.devHarness
             type = "gameTestServer"
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
             if (project.hasProperty('bench')) {
-                systemProperty 'nostalgiaskills.bench', 'true'
+                systemProperty 'celestialskilltree.bench', 'true'
             }
         }
         packGameTestServer {
@@ -185,7 +188,7 @@ sourceSets.test.java.srcDirs = ['test']
 
 test {
     useJUnitPlatform()
-    systemProperty 'nostalgiaskills.dataRoot', file('src/main/resources/data/nostalgiaskills').absolutePath
+    systemProperty 'celestialskilltree.dataRoot', file('src/main/resources/data/celestialskilltree').absolutePath
 }
 
 var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
@@ -225,7 +228,7 @@ tasks.register('validateTree', JavaExec) {
     group = 'verification'
     description = 'Validates the skill catalog and generates one tree outside the game: -PtreeDir=<data dir> -Pseed=<n>'
     classpath = sourceSets.test.runtimeClasspath
-    mainClass = 'dev.nostalgiacraft.skills.generation.CatalogValidatorCli'
+    mainClass = 'dev.lesteoff.celestialskilltree.generation.CatalogValidatorCli'
     args = [project.findProperty('treeDir') ?: 'src/main/resources/data', project.findProperty('seed') ?: '0']
 }
 
@@ -233,7 +236,7 @@ tasks.register('benchProgression', JavaExec) {
     group = 'verification'
     description = 'Times the progression rules (reconcile, refund, batch confirm, bulk purchase) on the shipped tree'
     classpath = sourceSets.test.runtimeClasspath
-    mainClass = 'dev.nostalgiacraft.skills.generation.ProgressionBenchCli'
+    mainClass = 'dev.lesteoff.celestialskilltree.generation.ProgressionBenchCli'
     args = [project.findProperty('treeDir') ?: 'src/main/resources/data']
 }
 
@@ -241,7 +244,7 @@ tasks.register('previewTree', JavaExec) {
     group = 'verification'
     description = 'Draws the generated tree shape to a PNG: -Pclasses=6 -Pskills=100 -Pout=build/preview/tree.png'
     classpath = sourceSets.test.runtimeClasspath
-    mainClass = 'dev.nostalgiacraft.skills.generation.TreePreviewCli'
+    mainClass = 'dev.lesteoff.celestialskilltree.generation.TreePreviewCli'
     systemProperty 'java.awt.headless', 'true'
     args = [project.findProperty('classes') ?: '6', project.findProperty('skills') ?: '100',
             project.findProperty('out') ?: 'build/preview/tree.png']

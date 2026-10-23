@@ -1,0 +1,22 @@
+{
+  "class": "celestialskilltree:berserker",
+  "requires_mod": "iceandfire",
+  "hidden_until": "iceandfire:iceandfire/kill_if_dragon",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.berserker.dragonbane.name",
+  "text": "skill.celestialskilltree.berserker.dragonbane.text",
+  "icon": "celestialskilltree:textures/skill_icons/keystone_juggernaut.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 300,
+      "action": {
+        "type": "target_effect",
+        "effect": "iceandfire:frozen",
+        "duration_ticks": 60,
+        "amplifier": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "celestialskilltree:block/telescope"
+    },
+    "facing=east": {
+      "model": "celestialskilltree:block/telescope",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "celestialskilltree:block/telescope",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "celestialskilltree:block/telescope",
+      "y": 270
+    }
+  }
+}

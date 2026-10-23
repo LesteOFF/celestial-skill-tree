@@ -1,0 +1,95 @@
+{
+  "class": "celestialskilltree:berserker",
+  "name": "theme.celestialskilltree.berserker.heavy_swing",
+  "icon": "celestialskilltree:textures/skill_icons/heavy_weapon.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "celestialskilltree:heavy_weapon_damage",
+        "operation": "add_value",
+        "amount": 0.03
+      },
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.attack_damage",
+        "operation": "add_value",
+        "amount": 0.12,
+        "condition": {
+          "type": "holding",
+          "tag": "celestialskilltree:heavy_weapons"
+        }
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "cleaving_blows",
+      "name": "skill.celestialskilltree.berserker.cleaving_blows.name",
+      "icon": "celestialskilltree:textures/skill_icons/melee.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:player.sweeping_damage_ratio",
+          "operation": "add_value",
+          "amount": 0.25
+        }
+      ]
+    },
+    {
+      "id": "heavy_handed",
+      "name": "skill.celestialskilltree.berserker.heavy_handed.name",
+      "icon": "celestialskilltree:textures/skill_icons/heavy_weapon.png",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.attack_speed",
+          "operation": "add_multiplied_base",
+          "amount": 0.1,
+          "condition": {
+            "type": "holding",
+            "tag": "celestialskilltree:heavy_weapons"
+          }
+        },
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.attack_speed",
+          "operation": "add_value",
+          "amount": 0.2,
+          "condition": {
+            "type": "holding",
+            "tag": "celestialskilltree:heavy_weapons"
+          }
+        }
+      ]
+    },
+    {
+      "id": "brute_training",
+      "name": "skill.celestialskilltree.berserker.brute_training.name",
+      "icon": "celestialskilltree:textures/skill_icons/heavy_weapon.png",
+      "max_rank": 3,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:heavy_weapon_damage",
+          "operation": "add_value",
+          "amount": 0.04
+        }
+      ]
+    },
+    {
+      "id": "eye_of_the_storm",
+      "name": "skill.celestialskilltree.berserker.eye_of_the_storm.name",
+      "icon": "celestialskilltree:textures/skill_icons/black_hole.png",
+      "neighbour_multiplier": 1.5,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:heavy_weapon_damage",
+          "operation": "add_value",
+          "amount": 0.03
+        }
+      ]
+    }
+  ]
+}

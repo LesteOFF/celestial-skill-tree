@@ -1,0 +1,30 @@
+{
+  "class": "celestialskilltree:artificer",
+  "requires_mod": "iceandfire",
+  "hidden_until": "iceandfire:iceandfire/kill_hydra",
+  "name": "skill.celestialskilltree.artificer.hydra_serum.name",
+  "text": "skill.celestialskilltree.artificer.hydra_serum.text",
+  "icon": "celestialskilltree:textures/skill_icons/antidote.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 100,
+      "action": {
+        "type": "target_effect",
+        "effect": "minecraft:poison",
+        "duration_ticks": 100,
+        "amplifier": 1
+      }
+    },
+    {
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 100,
+      "action": {
+        "type": "heal",
+        "amount": 2
+      }
+    }
+  ]
+}

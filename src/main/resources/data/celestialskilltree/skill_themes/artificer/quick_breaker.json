@@ -1,0 +1,45 @@
+{
+  "class": "celestialskilltree:artificer",
+  "name": "theme.celestialskilltree.artificer.quick_breaker",
+  "icon": "celestialskilltree:textures/skill_icons/cracked_block.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:player.block_break_speed",
+        "operation": "add_multiplied_base",
+        "amount": 0.01
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "seasoned_hands",
+      "name": "skill.celestialskilltree.artificer.seasoned_hands.name",
+      "icon": "celestialskilltree:textures/skill_icons/mining.png",
+      "max_rank": 4,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:player.block_break_speed",
+          "operation": "add_multiplied_base",
+          "amount": 0.02
+        }
+      ]
+    },
+    {
+      "id": "core_sample",
+      "name": "skill.celestialskilltree.artificer.core_sample.name",
+      "icon": "celestialskilltree:textures/skill_icons/black_hole.png",
+      "neighbour_multiplier": 1.25,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:player.block_break_speed",
+          "operation": "add_multiplied_base",
+          "amount": 0.03
+        }
+      ]
+    }
+  ]
+}

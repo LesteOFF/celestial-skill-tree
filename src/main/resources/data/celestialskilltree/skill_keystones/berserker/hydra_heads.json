@@ -1,0 +1,21 @@
+{
+  "class": "celestialskilltree:berserker",
+  "requires_mod": "twilightforest",
+  "hidden_until": "twilightforest:progress_hydra",
+  "name": "skill.celestialskilltree.berserker.hydra_heads.name",
+  "text": "skill.celestialskilltree.berserker.hydra_heads.text",
+  "icon": "celestialskilltree:textures/skill_icons/damage.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_hurt",
+      "cooldown_ticks": 0,
+      "action": {
+        "type": "stacking_self_effect",
+        "effect": "minecraft:strength",
+        "duration_ticks": 120,
+        "amplifier": 2
+      }
+    }
+  ]
+}

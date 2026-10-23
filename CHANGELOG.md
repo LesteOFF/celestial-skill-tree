@@ -17,6 +17,8 @@
 
 ### Changed
 
+- Renamed from Nostalgia Skills to Celestial Skill Tree: the mod id is now `celestialskilltree`, the command
+  `/celestialskilltree` (or `/celestial`) and the config files `celestialskilltree-*.toml`.
 - Rebalanced ranks, black hole multipliers, healing and potion bonuses.
 - The server config reload re-prices the tree and re-applies the caps.
 - Faster tree rendering, sky events, reconcile and point purchases.

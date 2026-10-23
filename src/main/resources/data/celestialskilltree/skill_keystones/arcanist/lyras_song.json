@@ -1,0 +1,16 @@
+{
+  "class": "celestialskilltree:arcanist",
+  "requires_mod": "vp",
+  "hidden_until": "celestialskilltree:worn/vp/lyra",
+  "name": "skill.celestialskilltree.arcanist.lyras_song.name",
+  "text": "skill.celestialskilltree.arcanist.lyras_song.text",
+  "icon": "celestialskilltree:textures/skill_icons/star.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:potion_duration",
+      "operation": "add_value",
+      "amount": 0.25
+    }
+  ]
+}

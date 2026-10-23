@@ -1,0 +1,20 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "irons_spellbooks",
+  "hidden_until": "celestialskilltree:spell/irons_spellbooks/sonic_boom",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.mage.thunderclap.name",
+  "text": "skill.celestialskilltree.mage.thunderclap.text",
+  "icon": "celestialskilltree:textures/skill_icons/echo.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "celestialskilltree:on_spell_cast",
+      "cooldown_ticks": 200,
+      "action": {
+        "type": "gust",
+        "amount": 6
+      }
+    }
+  ]
+}

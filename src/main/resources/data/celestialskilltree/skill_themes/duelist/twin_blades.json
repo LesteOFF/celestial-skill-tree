@@ -1,0 +1,72 @@
+{
+  "class": "celestialskilltree:duelist",
+  "requires_mod": "bettercombat",
+  "name": "theme.celestialskilltree.duelist.twin_blades",
+  "icon": "celestialskilltree:textures/skill_icons/attack_speed.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.attack_speed",
+        "operation": "add_multiplied_base",
+        "amount": 0.01,
+        "condition": {
+          "type": "dual_wielding"
+        }
+      },
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.attack_speed",
+        "operation": "add_value",
+        "amount": 0.02,
+        "condition": {
+          "type": "dual_wielding"
+        }
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "flurry_finish",
+      "name": "skill.celestialskilltree.duelist.flurry_finish.name",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.attack_damage",
+          "operation": "add_multiplied_total",
+          "amount": 0.08,
+          "condition": {
+            "type": "dual_wielding"
+          }
+        },
+        {
+          "type": "trigger",
+          "trigger": "celestialskilltree:on_combo_finisher",
+          "cooldown_ticks": 100,
+          "action": {
+            "type": "self_effect",
+            "effect": "minecraft:speed",
+            "duration_ticks": 60,
+            "amplifier": 0
+          }
+        }
+      ],
+      "text": "skill.celestialskilltree.duelist.flurry_finish.text"
+    },
+    {
+      "id": "matched_pair",
+      "name": "skill.celestialskilltree.duelist.matched_pair.name",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "celestialskilltree:crit_chance",
+          "operation": "add_value",
+          "amount": 0.03,
+          "condition": {
+            "type": "dual_wielding"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "bonusParameters": {
+    "irons_jewelry:attribute": {
+      "amount": 0.02,
+      "attribute": "celestialskilltree:lifesteal",
+      "operation": "add_value"
+    }
+  },
+  "descriptionId": "skill.celestialskilltree.compat.irons_jewelry.stellar_lifesteal",
+  "ingredient": {
+    "item": "minecraft:ghast_tear"
+  },
+  "paletteLocation": "irons_jewelry:palettes/ruby",
+  "quality": 2.0
+}

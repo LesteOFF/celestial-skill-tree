@@ -1,0 +1,20 @@
+{
+  "class": "celestialskilltree:marksman",
+  "requires_mod": "block_factorys_bosses",
+  "hidden_until": "block_factorys_bosses:kill_sandworm",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.marksman.sandworm_dunes.name",
+  "text": "skill.celestialskilltree.marksman.sandworm_dunes.text",
+  "icon": "celestialskilltree:textures/skill_icons/sneak_shot.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 120,
+      "action": {
+        "type": "launch_target",
+        "amount": 1.0
+      }
+    }
+  ]
+}

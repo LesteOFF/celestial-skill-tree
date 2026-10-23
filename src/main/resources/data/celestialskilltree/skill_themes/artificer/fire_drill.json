@@ -1,0 +1,16 @@
+{
+  "class": "celestialskilltree:artificer",
+  "name": "theme.celestialskilltree.artificer.fire_drill",
+  "icon": "celestialskilltree:textures/skill_icons/extinguish.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.burning_time",
+        "operation": "add_multiplied_base",
+        "amount": -0.04
+      }
+    ]
+  },
+  "notables": []
+}

@@ -1,0 +1,21 @@
+{
+  "class": "celestialskilltree:artificer",
+  "exclusive_with": "celestialskilltree:artificer/spelunker",
+  "name": "skill.celestialskilltree.artificer.swift_pick.name",
+  "text": "skill.celestialskilltree.artificer.swift_pick.text",
+  "icon": "celestialskilltree:textures/skill_icons/mining.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:mining_speed",
+      "operation": "add_value",
+      "amount": 0.3
+    },
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:tool_preservation",
+      "operation": "add_value",
+      "amount": -0.15
+    }
+  ]
+}

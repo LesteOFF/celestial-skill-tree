@@ -1,0 +1,42 @@
+{
+  "class": "celestialskilltree:arcanist",
+  "requires_mod": "puffish_attributes",
+  "name": "theme.celestialskilltree.arcanist.arcane_spark",
+  "icon": "celestialskilltree:textures/skill_icons/magic.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "puffish_attributes:magic_damage",
+        "operation": "add_multiplied_base",
+        "amount": 0.01
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "arcane_surge",
+      "name": "skill.celestialskilltree.arcanist.arcane_surge.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "puffish_attributes:magic_damage",
+          "operation": "add_multiplied_base",
+          "amount": 0.04
+        }
+      ]
+    },
+    {
+      "id": "spell_guard",
+      "name": "skill.celestialskilltree.arcanist.spell_guard.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "puffish_attributes:magic_resistance",
+          "operation": "add_multiplied_base",
+          "amount": 0.04
+        }
+      ]
+    }
+  ]
+}

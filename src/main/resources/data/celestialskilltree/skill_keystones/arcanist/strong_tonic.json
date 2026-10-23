@@ -1,0 +1,21 @@
+{
+  "class": "celestialskilltree:arcanist",
+  "exclusive_with": "celestialskilltree:arcanist/long_brew",
+  "name": "skill.celestialskilltree.arcanist.strong_tonic.name",
+  "text": "skill.celestialskilltree.arcanist.strong_tonic.text",
+  "icon": "celestialskilltree:textures/skill_icons/healing.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:healing_received",
+      "operation": "add_value",
+      "amount": 0.25
+    },
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:potion_duration",
+      "operation": "add_value",
+      "amount": -0.2
+    }
+  ]
+}

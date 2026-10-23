@@ -1,0 +1,109 @@
+{
+  "version": 3,
+  "name": "use_orb",
+  "author": "Celestial Skill Tree",
+  "description": "The orb is held out at arm length before the build is reset.",
+  "emote": {
+    "beginTick": 0,
+    "endTick": 28,
+    "stopTick": 36,
+    "isLoop": false,
+    "returnTick": 0,
+    "nsfw": false,
+    "degrees": true,
+    "moves": [
+      {
+        "tick": 0,
+        "easing": "EASEINOUTQUAD",
+        "rightArm": {
+          "pitch": 0,
+          "yaw": 0
+        }
+      },
+      {
+        "tick": 0,
+        "easing": "EASEINOUTQUAD",
+        "leftArm": {
+          "pitch": 0,
+          "yaw": 0
+        }
+      },
+      {
+        "tick": 0,
+        "easing": "EASEINOUTQUAD",
+        "head": {
+          "pitch": 0
+        }
+      },
+      {
+        "tick": 8,
+        "easing": "EASEINOUTQUAD",
+        "rightArm": {
+          "pitch": -95,
+          "yaw": -18
+        }
+      },
+      {
+        "tick": 8,
+        "easing": "EASEINOUTQUAD",
+        "leftArm": {
+          "pitch": -80,
+          "yaw": 28
+        }
+      },
+      {
+        "tick": 8,
+        "easing": "EASEINOUTQUAD",
+        "head": {
+          "pitch": 12
+        }
+      },
+      {
+        "tick": 20,
+        "easing": "EASEINOUTQUAD",
+        "rightArm": {
+          "pitch": -95,
+          "yaw": -18
+        }
+      },
+      {
+        "tick": 20,
+        "easing": "EASEINOUTQUAD",
+        "leftArm": {
+          "pitch": -80,
+          "yaw": 28
+        }
+      },
+      {
+        "tick": 20,
+        "easing": "EASEINOUTQUAD",
+        "head": {
+          "pitch": 12
+        }
+      },
+      {
+        "tick": 28,
+        "easing": "EASEINOUTQUAD",
+        "rightArm": {
+          "pitch": 0,
+          "yaw": 0
+        }
+      },
+      {
+        "tick": 28,
+        "easing": "EASEINOUTQUAD",
+        "leftArm": {
+          "pitch": 0,
+          "yaw": 0
+        }
+      },
+      {
+        "tick": 28,
+        "easing": "EASEINOUTQUAD",
+        "head": {
+          "pitch": 0
+        }
+      }
+    ]
+  }
+}

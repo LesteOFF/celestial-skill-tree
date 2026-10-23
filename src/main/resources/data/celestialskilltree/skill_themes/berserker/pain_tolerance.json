@@ -1,0 +1,16 @@
+{
+  "class": "celestialskilltree:berserker",
+  "name": "theme.celestialskilltree.berserker.pain_tolerance",
+  "icon": "celestialskilltree:textures/skill_icons/parry.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "damage_modifier",
+        "direction": "taken",
+        "scope": "melee",
+        "amount": -0.01
+      }
+    ]
+  },
+  "notables": []
+}

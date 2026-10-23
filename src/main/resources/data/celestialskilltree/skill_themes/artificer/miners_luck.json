@@ -1,0 +1,16 @@
+{
+  "class": "celestialskilltree:artificer",
+  "name": "theme.celestialskilltree.artificer.miners_luck",
+  "icon": "celestialskilltree:textures/skill_icons/dice.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.luck",
+        "operation": "add_value",
+        "amount": 0.2
+      }
+    ]
+  },
+  "notables": []
+}

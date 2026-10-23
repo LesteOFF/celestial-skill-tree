@@ -1,0 +1,20 @@
+{
+  "class": "celestialskilltree:berserker",
+  "requires_mod": "iceandfire",
+  "hidden_until": "celestialskilltree:kill/iceandfire/cyclops",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.berserker.cyclops_stomp.name",
+  "text": "skill.celestialskilltree.berserker.cyclops_stomp.text",
+  "icon": "celestialskilltree:textures/skill_icons/mountain.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 200,
+      "action": {
+        "type": "burst",
+        "amount": 8
+      }
+    }
+  ]
+}

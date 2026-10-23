@@ -1,0 +1,28 @@
+{
+  "class": "celestialskilltree:guardian",
+  "name": "theme.celestialskilltree.guardian.shield_arm",
+  "icon": "celestialskilltree:textures/skill_icons/raised_shield.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.armor",
+        "operation": "add_value",
+        "amount": 0.6,
+        "condition": {
+          "type": "blocking"
+        }
+      },
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.armor",
+        "operation": "add_multiplied_total",
+        "amount": 0.012,
+        "condition": {
+          "type": "blocking"
+        }
+      }
+    ]
+  },
+  "notables": []
+}

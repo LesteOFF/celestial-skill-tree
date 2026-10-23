@@ -1,0 +1,21 @@
+{
+  "class": "celestialskilltree:guardian",
+  "requires_mod": "curios",
+  "name": "skill.celestialskilltree.guardian.charm_keeper.name",
+  "text": "skill.celestialskilltree.guardian.charm_keeper.text",
+  "icon": "celestialskilltree:textures/skill_icons/luck.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "curios:charm",
+      "operation": "add_value",
+      "amount": 1
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.armor",
+      "operation": "add_value",
+      "amount": -3
+    }
+  ]
+}

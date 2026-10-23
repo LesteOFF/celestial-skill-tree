@@ -1,0 +1,22 @@
+{
+  "class": "celestialskilltree:duelist",
+  "requires_mod": "twilightforest",
+  "hidden_until": "twilightforest:progress_glacier",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.duelist.frozen_court.name",
+  "text": "skill.celestialskilltree.duelist.frozen_court.text",
+  "icon": "celestialskilltree:textures/skill_icons/school_ice.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_full_charge_hit",
+      "cooldown_ticks": 0,
+      "action": {
+        "type": "target_effect",
+        "effect": "twilightforest:frosted",
+        "duration_ticks": 100,
+        "amplifier": 2
+      }
+    }
+  ]
+}

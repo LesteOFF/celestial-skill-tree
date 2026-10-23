@@ -1,0 +1,22 @@
+{
+  "class": "celestialskilltree:artificer",
+  "requires_mod": "aquamirae",
+  "hidden_until": "celestialskilltree:kill/aquamirae/captain_cornelia",
+  "name": "skill.celestialskilltree.artificer.captains_compass.name",
+  "text": "skill.celestialskilltree.artificer.captains_compass.text",
+  "icon": "celestialskilltree:textures/skill_icons/diver.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "neoforge:swim_speed",
+      "operation": "add_multiplied_base",
+      "amount": 0.3
+    },
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.oxygen_bonus",
+      "operation": "add_value",
+      "amount": 2
+    }
+  ]
+}

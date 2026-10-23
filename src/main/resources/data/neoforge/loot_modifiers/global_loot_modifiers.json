@@ -1,7 +1,7 @@
 {
   "replace": false,
   "entries": [
-    "nostalgiaskills:structure_bonus",
-    "nostalgiaskills:night_fishing"
+    "celestialskilltree:structure_bonus",
+    "celestialskilltree:night_fishing"
   ]
 }

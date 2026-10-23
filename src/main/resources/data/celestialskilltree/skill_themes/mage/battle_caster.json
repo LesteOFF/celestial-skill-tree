@@ -1,0 +1,17 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "irons_spellbooks",
+  "name": "theme.celestialskilltree.mage.battle_caster",
+  "icon": "celestialskilltree:textures/skill_icons/caster_step.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "irons_spellbooks:casting_movespeed",
+        "operation": "add_multiplied_base",
+        "amount": 0.02
+      }
+    ]
+  },
+  "notables": []
+}

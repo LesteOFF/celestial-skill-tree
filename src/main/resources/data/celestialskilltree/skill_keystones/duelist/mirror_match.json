@@ -1,0 +1,22 @@
+{
+  "class": "celestialskilltree:duelist",
+  "requires_mod": "darkdoppelganger",
+  "hidden_until": "darkdoppelganger:kill",
+  "name": "skill.celestialskilltree.duelist.mirror_match.name",
+  "text": "skill.celestialskilltree.duelist.mirror_match.text",
+  "icon": "celestialskilltree:textures/skill_icons/reflex.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:dodge_chance",
+      "operation": "add_value",
+      "amount": 0.08
+    },
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:crit_chance",
+      "operation": "add_value",
+      "amount": 0.05
+    }
+  ]
+}

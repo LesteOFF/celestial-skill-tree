@@ -1,0 +1,20 @@
+{
+  "class": "celestialskilltree:artificer",
+  "requires_mod": "draconicevolution",
+  "hidden_until": "celestialskilltree:kill/draconicevolution/draconic_guardian",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.artificer.chaos_heart.name",
+  "text": "skill.celestialskilltree.artificer.chaos_heart.text",
+  "icon": "celestialskilltree:textures/skill_icons/crystal.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 80,
+      "action": {
+        "type": "chaos_target",
+        "amount": 8
+      }
+    }
+  ]
+}

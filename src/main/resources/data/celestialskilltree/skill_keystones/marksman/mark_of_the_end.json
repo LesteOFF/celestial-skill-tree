@@ -1,0 +1,16 @@
+{
+  "class": "celestialskilltree:marksman",
+  "requires_mod": "celestial_artifacts",
+  "hidden_until": "celestialskilltree:worn/celestial_artifacts/end_etching",
+  "name": "skill.celestialskilltree.marksman.mark_of_the_end.name",
+  "text": "skill.celestialskilltree.marksman.mark_of_the_end.text",
+  "icon": "celestialskilltree:textures/skill_icons/range.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:long_range_damage",
+      "operation": "add_value",
+      "amount": 0.25
+    }
+  ]
+}

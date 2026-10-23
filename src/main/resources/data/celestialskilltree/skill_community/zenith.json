@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "xp_required": 50000,
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.max_health",
+      "operation": "add_value",
+      "amount": 2.0
+    },
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:healing_received",
+      "operation": "add_value",
+      "amount": 0.1
+    }
+  ]
+}

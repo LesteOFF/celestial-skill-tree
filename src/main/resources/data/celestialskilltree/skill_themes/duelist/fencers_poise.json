@@ -1,0 +1,86 @@
+{
+  "class": "celestialskilltree:duelist",
+  "name": "theme.celestialskilltree.duelist.fencers_poise",
+  "icon": "celestialskilltree:textures/skill_icons/light_weapon.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "celestialskilltree:light_weapon_damage",
+        "operation": "add_value",
+        "amount": 0.03
+      },
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.attack_damage",
+        "operation": "add_value",
+        "amount": 0.09,
+        "condition": {
+          "type": "holding",
+          "tag": "celestialskilltree:light_weapons"
+        }
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "disarming_touch",
+      "name": "skill.celestialskilltree.duelist.disarming_touch.name",
+      "icon": "celestialskilltree:textures/skill_icons/critical.png",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "on_crit",
+          "action": {
+            "type": "target_effect",
+            "effect": "minecraft:weakness",
+            "duration_ticks": 60,
+            "amplifier": 0
+          },
+          "cooldown_ticks": 100
+        }
+      ]
+    },
+    {
+      "id": "lunge_mastery",
+      "name": "skill.celestialskilltree.duelist.lunge_mastery.name",
+      "icon": "celestialskilltree:textures/skill_icons/melee.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:player.entity_interaction_range",
+          "operation": "add_value",
+          "amount": 0.5
+        }
+      ]
+    },
+    {
+      "id": "blade_discipline",
+      "name": "skill.celestialskilltree.duelist.blade_discipline.name",
+      "icon": "celestialskilltree:textures/skill_icons/light_weapon.png",
+      "max_rank": 2,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:light_weapon_damage",
+          "operation": "add_value",
+          "amount": 0.03
+        }
+      ]
+    },
+    {
+      "id": "still_point",
+      "name": "skill.celestialskilltree.duelist.still_point.name",
+      "icon": "celestialskilltree:textures/skill_icons/black_hole.png",
+      "neighbour_multiplier": 2.0,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:light_weapon_damage",
+          "operation": "add_value",
+          "amount": 0.03
+        }
+      ]
+    }
+  ]
+}

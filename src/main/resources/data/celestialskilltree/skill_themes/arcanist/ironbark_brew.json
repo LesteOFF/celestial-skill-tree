@@ -1,0 +1,22 @@
+{
+  "class": "celestialskilltree:arcanist",
+  "name": "theme.celestialskilltree.arcanist.ironbark_brew",
+  "icon": "celestialskilltree:textures/skill_icons/plate.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.armor",
+        "operation": "add_value",
+        "amount": 0.3
+      },
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.armor",
+        "operation": "add_multiplied_total",
+        "amount": 0.006
+      }
+    ]
+  },
+  "notables": []
+}

@@ -1,0 +1,85 @@
+{
+  "class": "celestialskilltree:artificer",
+  "name": "theme.celestialskilltree.artificer.careful_hands",
+  "icon": "celestialskilltree:textures/skill_icons/tools.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "celestialskilltree:tool_preservation",
+        "operation": "add_value",
+        "amount": 0.02
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "junction_lamp",
+      "name": "skill.celestialskilltree.artificer.junction_lamp.name",
+      "icon": "celestialskilltree:textures/skill_icons/mining.png",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "on_block_break",
+          "action": {
+            "type": "self_effect",
+            "effect": "minecraft:haste",
+            "duration_ticks": 60,
+            "amplifier": 0
+          },
+          "cooldown_ticks": 200
+        }
+      ]
+    },
+    {
+      "id": "lantern_post",
+      "name": "skill.celestialskilltree.artificer.lantern_post.name",
+      "icon": "celestialskilltree:textures/skill_icons/mining.png",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "celestialskilltree:mining_speed",
+          "operation": "add_value",
+          "amount": 0.15,
+          "condition": {
+            "type": "below_y",
+            "y": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "shoring",
+      "name": "skill.celestialskilltree.artificer.shoring.name",
+      "icon": "celestialskilltree:textures/skill_icons/exploration.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.safe_fall_distance",
+          "operation": "add_value",
+          "amount": 2.0
+        },
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.fall_damage_multiplier",
+          "operation": "add_multiplied_base",
+          "amount": -0.1
+        }
+      ]
+    },
+    {
+      "id": "tool_care",
+      "name": "skill.celestialskilltree.artificer.tool_care.name",
+      "icon": "celestialskilltree:textures/skill_icons/tools.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:tool_preservation",
+          "operation": "add_value",
+          "amount": 0.08
+        }
+      ],
+      "max_rank": 3
+    }
+  ]
+}

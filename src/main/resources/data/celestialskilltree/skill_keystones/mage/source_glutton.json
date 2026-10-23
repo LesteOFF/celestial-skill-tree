@@ -1,0 +1,21 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "ars_nouveau",
+  "name": "skill.celestialskilltree.mage.source_glutton.name",
+  "text": "skill.celestialskilltree.mage.source_glutton.text",
+  "icon": "celestialskilltree:textures/skill_icons/mana_flow.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "ars_nouveau:ars_nouveau.perk.max_mana",
+      "operation": "add_value",
+      "amount": 100
+    },
+    {
+      "type": "attribute",
+      "attribute": "ars_nouveau:ars_nouveau.perk.mana_regen",
+      "operation": "add_value",
+      "amount": -2
+    }
+  ]
+}

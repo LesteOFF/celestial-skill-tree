@@ -1,0 +1,28 @@
+{
+  "class": "celestialskilltree:artificer",
+  "requires_mod": "iceandfire",
+  "hidden_until": "iceandfire:iceandfire/kill_sea_serpent",
+  "name": "skill.celestialskilltree.artificer.serpent_depths.name",
+  "text": "skill.celestialskilltree.artificer.serpent_depths.text",
+  "icon": "celestialskilltree:textures/skill_icons/depth.png",
+  "effects": [
+    {
+      "type": "conditional_attribute",
+      "attribute": "minecraft:generic.attack_damage",
+      "operation": "add_multiplied_total",
+      "amount": 0.2,
+      "condition": {
+        "type": "wet"
+      }
+    },
+    {
+      "type": "conditional_attribute",
+      "attribute": "neoforge:swim_speed",
+      "operation": "add_multiplied_base",
+      "amount": 0.5,
+      "condition": {
+        "type": "wet"
+      }
+    }
+  ]
+}

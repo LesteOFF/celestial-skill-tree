@@ -1,0 +1,33 @@
+{
+  "class": "celestialskilltree:guardian",
+  "name": "theme.celestialskilltree.guardian.rooted",
+  "icon": "celestialskilltree:textures/skill_icons/knockback.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.knockback_resistance",
+        "operation": "add_value",
+        "amount": 0.02
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "watchtower",
+      "name": "skill.celestialskilltree.guardian.watchtower.name",
+      "icon": "celestialskilltree:textures/skill_icons/shield.png",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "on_block",
+          "action": {
+            "type": "heal",
+            "amount": 2.0
+          },
+          "cooldown_ticks": 60
+        }
+      ]
+    }
+  ]
+}

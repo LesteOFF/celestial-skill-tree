@@ -1,0 +1,31 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "irons_spellbooks",
+  "name": "theme.celestialskilltree.mage.mana_reservoir",
+  "icon": "celestialskilltree:textures/skill_icons/crystal.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "irons_spellbooks:max_mana",
+        "operation": "add_value",
+        "amount": 10
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "arcane_reservoir",
+      "name": "skill.celestialskilltree.mage.arcane_reservoir.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "irons_spellbooks:max_mana",
+          "operation": "add_value",
+          "amount": 50
+        }
+      ],
+      "max_rank": 2
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+package dev.lesteoff.celestialskilltree.client.render;
+
+import com.mojang.blaze3d.systems.RenderSystem;
+import dev.lesteoff.celestialskilltree.CelestialSkillTree;
+import dev.lesteoff.celestialskilltree.config.ClientConfig;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+
+public final class BackgroundRenderer {
+    private static final String DIR = "textures/gui/skill_tree/background/";
+    public static final ResourceLocation SPACE = tex("space_base");
+    public static final ResourceLocation STARS = tex("stars_far");
+    public static final ResourceLocation NEBULA = tex("nebula_far");
+    public static final ResourceLocation MOON = tex("moon_crescent");
+    public static final ResourceLocation ASTROLABE = tex("astrolabe_ghost");
+    public static final ResourceLocation MOTES = tex("astral_motes");
+
+    static final int BASE_W = 2048;
+    static final int BASE_H = 1152;
+    private static final double OVERSCAN = 0.06;
+    private static final double VEIL_OPACITY = 0.86;
+    private static final double BOTTOM_FADE_START = 0.72;
+    private static final int BOTTOM_FADE_ALPHA = 0xD8;
+
+    private BackgroundRenderer() {
+    }
+
+    private static ResourceLocation tex(String n) {
+        return ResourceLocation.fromNamespaceAndPath(CelestialSkillTree.MODID, DIR + n + ".png");
+    }
+
+    public static void render(GuiGraphics graphics, int w, int h, double panX, double panY, double timeSeconds) {
+        graphics.fill(0, 0, w, h, Palette.DEEP_SPACE);
+        if (!ClientConfig.BACKGROUND_DECORATIONS.get()) {
+            return;
+        }
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        boolean still = ClientConfig.REDUCED_MOTION.get();
+        double px = still ? 0 : panX;
+        double py = still ? 0 : panY;
+        cover(graphics, SPACE, w, h, 0, 0);
+        cover(graphics, STARS, w, h, px * 0.02, py * 0.02);
+        cover(graphics, NEBULA, w, h, px * 0.04, py * 0.04);
+        double s = h / (double) BASE_H;
+        sprite(graphics, ASTROLABE, w * 0.50 - offset(px, 0.06, w), h * 0.52 - offset(py, 0.06, h), 760 * s, 760 * s, 0, 0, 1024, 1024, 1024, 1024);
+        double moon = 440 * s;
+        sprite(graphics, MOON, w * 0.10 - offset(px, 0.06, w), h * 0.91 - offset(py, 0.06, h), moon, moon, 0, 0, 512, 512, 512, 512);
+        motes(graphics, w, h, still ? 0 : timeSeconds);
+        bottomFade(graphics, w, h);
+        RenderSystem.disableBlend();
+    }
+
+    public static void veil(GuiGraphics graphics, int w, int h, double presence) {
+        int alpha = (int) Math.round(255 * VEIL_OPACITY * Mth.clamp(presence, 0, 1));
+        if (alpha > 0) {
+            graphics.fill(0, 0, w, h, alpha << 24 | Palette.HIDDEN_VEIL);
+        }
+    }
+
+    private static void bottomFade(GuiGraphics graphics, int w, int h) {
+        int spaceColor = Palette.DEEP_SPACE & 0xFFFFFF;
+        graphics.fillGradient(0, (int) (h * BOTTOM_FADE_START), w, h, spaceColor, BOTTOM_FADE_ALPHA << 24 | spaceColor);
+    }
+
+    private static double offset(double pan, double factor, int size) {
+        double max = size * OVERSCAN * 0.5;
+        return Mth.clamp(pan * factor * 0.5, -max, max);
+    }
+
+    private static void cover(GuiGraphics graphics, ResourceLocation tex, int w, int h, double ox, double oy) {
+        double scale = Math.max(w / (double) BASE_W, h / (double) BASE_H) * (1 + OVERSCAN);
+        double dw = BASE_W * scale;
+        double dh = BASE_H * scale;
+        double maxX = (dw - w) / 2;
+        double maxY = (dh - h) / 2;
+        double x = (w - dw) / 2 - Mth.clamp(ox, -maxX, maxX);
+        double y = (h - dh) / 2 - Mth.clamp(oy, -maxY, maxY);
+        graphics.pose().pushPose();
+        graphics.pose().translate(x, y, 0);
+        graphics.pose().scale((float) scale, (float) scale, 1f);
+        graphics.blit(tex, 0, 0, 0, 0, BASE_W, BASE_H, BASE_W, BASE_H);
+        graphics.pose().popPose();
+    }
+
+    static void sprite(GuiGraphics graphics, ResourceLocation tex, double cx, double cy, double dw, double dh,
+                       int u, int v, int uw, int vh, int tw, int th) {
+        graphics.pose().pushPose();
+        graphics.pose().translate(cx - dw / 2, cy - dh / 2, 0);
+        graphics.pose().scale((float) (dw / uw), (float) (dh / vh), 1f);
+        graphics.blit(tex, 0, 0, u, v, uw, vh, tw, th);
+        graphics.pose().popPose();
+    }
+
+    private static void motes(GuiGraphics graphics, int w, int h, double t) {
+        long seed = 0x5EEDA57L;
+        for (int i = 0; i < 14; i++) {
+            seed = seed * 6364136223846793005L + 1442695040888963407L;
+            double r1 = ((seed >>> 11) & 0xFFFF) / 65535.0;
+            double r2 = ((seed >>> 27) & 0xFFFF) / 65535.0;
+            double edge = r1 < 0.5 ? r1 * 0.24 : 0.76 + (r1 - 0.5) * 0.48;
+            double x = (edge + Math.sin(t * 0.05 + i) * 0.01) * w;
+            double y = ((r2 + t * 0.004 * (0.5 + r1)) % 1.0) * h;
+            int cell = i % 4;
+            double size = (6 + 4 * r2) * h / 540.0;
+            sprite(graphics, MOTES, x, y, size, size, cell * 16, 0, 16, 16, 64, 16);
+        }
+    }
+}

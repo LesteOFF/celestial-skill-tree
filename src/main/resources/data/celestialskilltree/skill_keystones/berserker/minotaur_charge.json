@@ -1,0 +1,20 @@
+{
+  "class": "celestialskilltree:berserker",
+  "requires_mod": "twilightforest",
+  "hidden_until": "celestialskilltree:kill/twilightforest/minoshroom",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.berserker.minotaur_charge.name",
+  "text": "skill.celestialskilltree.berserker.minotaur_charge.text",
+  "icon": "celestialskilltree:textures/skill_icons/lunge.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "celestialskilltree:on_boon_key",
+      "cooldown_ticks": 200,
+      "action": {
+        "type": "lunge",
+        "amount": 1.8
+      }
+    }
+  ]
+}

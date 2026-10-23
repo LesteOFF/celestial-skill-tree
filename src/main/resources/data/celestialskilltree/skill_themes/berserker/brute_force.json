@@ -1,0 +1,99 @@
+{
+  "class": "celestialskilltree:berserker",
+  "name": "theme.celestialskilltree.berserker.brute_force",
+  "icon": "celestialskilltree:textures/skill_icons/damage.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.attack_damage",
+        "operation": "add_multiplied_total",
+        "amount": 0.02
+      },
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.attack_damage",
+        "operation": "add_value",
+        "amount": 0.08
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "battle_cry",
+      "name": "skill.celestialskilltree.berserker.battle_cry.name",
+      "icon": "celestialskilltree:textures/skill_icons/melee.png",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "on_kill",
+          "action": {
+            "type": "self_effect",
+            "effect": "minecraft:strength",
+            "duration_ticks": 100,
+            "amplifier": 0
+          },
+          "cooldown_ticks": 300
+        }
+      ]
+    },
+    {
+      "id": "berserk",
+      "name": "skill.celestialskilltree.berserker.berserk.name",
+      "icon": "celestialskilltree:textures/skill_icons/risk.png",
+      "effects": [
+        {
+          "type": "damage_modifier",
+          "direction": "dealt",
+          "scope": "melee",
+          "amount": 0.15,
+          "condition": {
+            "type": "health_below",
+            "fraction": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "skull_splitter",
+      "name": "skill.celestialskilltree.berserker.skull_splitter.name",
+      "icon": "celestialskilltree:textures/skill_icons/heavy_weapon.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:heavy_weapon_damage",
+          "operation": "add_value",
+          "amount": 0.1
+        },
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.attack_damage",
+          "operation": "add_value",
+          "amount": 0.4,
+          "condition": {
+            "type": "holding",
+            "tag": "celestialskilltree:heavy_weapons"
+          }
+        }
+      ]
+    },
+    {
+      "id": "terrible_wrath",
+      "name": "skill.celestialskilltree.berserker.terrible_wrath.name",
+      "icon": "celestialskilltree:textures/skill_icons/heavy_weapon.png",
+      "requires_mod": "aquamirae",
+      "effects": [
+        {
+          "type": "damage_modifier",
+          "direction": "dealt",
+          "scope": "melee",
+          "amount": 0.06,
+          "condition": {
+            "type": "wearing",
+            "tag": "celestialskilltree:armor/terrible"
+          }
+        }
+      ]
+    }
+  ]
+}

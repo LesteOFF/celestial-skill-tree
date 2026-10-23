@@ -1,0 +1,16 @@
+{
+  "class": "celestialskilltree:artificer",
+  "name": "theme.celestialskilltree.artificer.strong_legs",
+  "icon": "celestialskilltree:textures/skill_icons/jump.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.jump_strength",
+        "operation": "add_multiplied_base",
+        "amount": 0.02
+      }
+    ]
+  },
+  "notables": []
+}

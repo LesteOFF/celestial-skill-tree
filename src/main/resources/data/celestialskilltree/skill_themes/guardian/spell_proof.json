@@ -1,0 +1,16 @@
+{
+  "class": "celestialskilltree:guardian",
+  "name": "theme.celestialskilltree.guardian.spell_proof",
+  "icon": "celestialskilltree:textures/skill_icons/rune_shield.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "celestialskilltree:magic_resistance",
+        "operation": "add_value",
+        "amount": 0.01
+      }
+    ]
+  },
+  "notables": []
+}

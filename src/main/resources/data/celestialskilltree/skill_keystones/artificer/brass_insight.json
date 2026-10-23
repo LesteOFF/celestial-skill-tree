@@ -1,0 +1,20 @@
+{
+  "class": "celestialskilltree:artificer",
+  "requires_mod": "deep_aether",
+  "hidden_until": "deep_aether:brass_dungeon",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.artificer.brass_insight.name",
+  "text": "skill.celestialskilltree.artificer.brass_insight.text",
+  "icon": "celestialskilltree:textures/skill_icons/tools.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_hurt",
+      "cooldown_ticks": 160,
+      "action": {
+        "type": "gust",
+        "amount": 6
+      }
+    }
+  ]
+}

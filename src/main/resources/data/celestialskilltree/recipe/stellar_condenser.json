@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GAG",
+    "AFA",
+    "ICI"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "A": {
+      "item": "minecraft:amethyst_block"
+    },
+    "F": {
+      "item": "celestialskilltree:star_fragment"
+    },
+    "I": {
+      "item": "minecraft:iron_block"
+    },
+    "C": {
+      "item": "minecraft:cauldron"
+    }
+  },
+  "result": {
+    "id": "celestialskilltree:stellar_condenser",
+    "count": 1
+  }
+}

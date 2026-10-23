@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:mining_speed",
+      "operation": "add_value",
+      "amount": 0.08
+    }
+  ],
+  "partner_effects": [
+    {
+      "requires_mod": "ftbultimine",
+      "description": "sign.celestialskilltree.lantern.description.ftbultimine",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "ftbultimine:max_blocks_modifier",
+          "operation": "add_value",
+          "amount": 2.0
+        }
+      ]
+    }
+  ]
+}

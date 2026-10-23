@@ -1,0 +1,58 @@
+{
+  "class": "celestialskilltree:guardian",
+  "requires_any_mod": [
+    "biomeswevegone",
+    "ohthetreesyoullgrow",
+    "terrablender"
+  ],
+  "name": "theme.celestialskilltree.guardian.frostborn",
+  "icon": "celestialskilltree:textures/skill_icons/school_ice.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.armor",
+        "operation": "add_value",
+        "amount": 0.4,
+        "condition": {
+          "type": "in_biome_tag",
+          "tag": "c:is_cold"
+        }
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "winters_embrace",
+      "name": "skill.celestialskilltree.guardian.winters_embrace.name",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "celestialskilltree:damage_reduction",
+          "operation": "add_value",
+          "amount": 0.05,
+          "condition": {
+            "type": "in_biome_tag",
+            "tag": "c:is_cold"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ice_strider",
+      "name": "skill.celestialskilltree.guardian.ice_strider.name",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.movement_speed",
+          "operation": "add_multiplied_base",
+          "amount": 0.06,
+          "condition": {
+            "type": "in_biome_tag",
+            "tag": "c:is_cold"
+          }
+        }
+      ]
+    }
+  ]
+}

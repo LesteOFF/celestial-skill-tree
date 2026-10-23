@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.movement_speed",
+      "operation": "add_multiplied_base",
+      "amount": 0.03
+    }
+  ],
+  "partner_effects": [
+    {
+      "requires_mod": "parcool",
+      "description": "sign.celestialskilltree.comet.description.parcool",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "parcool:parcool.max_stamina",
+          "operation": "add_value",
+          "amount": 80.0
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.attack_damage",
+      "operation": "add_multiplied_total",
+      "amount": 0.04
+    }
+  ],
+  "partner_effects": [
+    {
+      "requires_mod": "apothic_attributes",
+      "description": "sign.celestialskilltree.ember.description.apothic_attributes",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "apothic_attributes:fire_damage",
+          "operation": "add_value",
+          "amount": 0.5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "class": "celestialskilltree:berserker",
+  "requires_mod": [
+    "curseofpandora",
+    "curios"
+  ],
+  "hidden_until": "celestialskilltree:worn/curseofpandora/curse_of_inertia",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.berserker.stigma_of_inertia.name",
+  "text": "skill.celestialskilltree.berserker.stigma_of_inertia.text",
+  "icon": "celestialskilltree:textures/skill_icons/heavy_weapon.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 200,
+      "action": {
+        "type": "target_effect",
+        "effect": "l2complements:incarceration",
+        "duration_ticks": 40,
+        "amplifier": 0
+      },
+      "condition": {
+        "type": "has_curio",
+        "tag": "celestialskilltree:curse/inertia"
+      }
+    }
+  ]
+}

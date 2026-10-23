@@ -1,6 +1,6 @@
-# Architecture — Nostalgia Skills
+# Architecture — Celestial Skill Tree
 
-NeoForge 21.1.256 for Minecraft 1.21.1, Java 21, ModDevGradle 2.0.148. Package root `dev.nostalgiacraft.skills`.
+NeoForge 21.1.256 for Minecraft 1.21.1, Java 21, ModDevGradle 2.0.148. Package root `dev.lesteoff.celestialskilltree`.
 
 ```text
 generation/   pure Java: catalog model and CatalogParser, TreeShapeGenerator (the web layout), TreeDrawer
@@ -24,10 +24,10 @@ entity/       FallingStar
 api/          SkillEvents: NeoForge events other mods and scripts may listen to (cancellable "pre" events and "post" events)
 compat/       one package per optional mod (apotheosis, arsnouveau, bettercombat, curios, ironsspellbooks, jade,
               occultism, …), registered by Integrations and guarded by OptionalEvents; most reach the other mod by
-              reflection (Reflection). kubejs/ is the KubeJS plugin (script events + NostalgiaSkills binding), loaded
+              reflection (Reflection). kubejs/ is the KubeJS plugin (script events + CelestialSkillTree binding), loaded
               by KubeJS itself through kubejs.plugins.txt
 mixin/        LevelMixin (eclipse darkness on the server) and ClientLevelMixin (sky tint on the client)
-command/      /nostalgiaskills
+command/      /celestialskilltree
 config/       ServerConfig (gameplay, synced), ClientConfig (presentation only)
 client/       ClientSkillState, ClientSetup (key mapping), screen/, render/
 ```
@@ -54,15 +54,15 @@ server config is reloaded (`ServerConfigReload`, so new cost overrides apply at 
 most `max_copies_per_skill` of each, keeping every previous choice that is still valid; the class budget shrinks
 until its themes can fill it;
 `HiddenSection` places every keystone with `hidden_until` in fixed rows below the shape, outside the draw and the
-class budget (`ClassPool.hidden`), unlinked and in the rootless `nostalgiaskills:hidden` sector
+class budget (`ClassPool.hidden`), unlinked and in the rootless `celestialskilltree:hidden` sector
 (`NodeTraits.standsAlone` waives the connection rule);
 `TreeAssembler` turns slots into `SkillNodeDefinition`s and connections; `GraphValidator` has the last word. Skill
 ids come from the catalog entry (`<theme>_<n>`, not from the position), so `Reconciler` refunds exactly what
 disappeared.
 
 Only a fully valid graph replaces the active one (`SkillTreeManager`). Invalid data during a session keeps the
-previous graph; on the first load skill features stay disabled with `error.nostalgiaskills.tree_unavailable`. Every
-problem is logged with file, field and reason and shown by `/nostalgiaskills validate`.
+previous graph; on the first load skill features stay disabled with `error.celestialskilltree.tree_unavailable`. Every
+problem is logged with file, field and reason and shown by `/celestialskilltree validate`.
 
 `GraphJsonParser`, `NodeParser` and `ConnectionParser` (one JSON file per node) now live in the test sources only:
 the unit tests of `progression` still build their small graphs with them.
@@ -182,7 +182,7 @@ Offline players go through the same path on their next login, before effects are
   cannot loop.
 - **Potions:** on `LivingEntityUseItemEvent.Finish` for potion items, beneficial non-instant effects are extended to
   `potionDuration × (1 + bonus)` computed from the potion — refreshing never compounds.
-- **Mining:** `PlayerEvent.BreakSpeed` (both sides, synced attribute) for tools in `#nostalgiaskills:mining_tools`
+- **Mining:** `PlayerEvent.BreakSpeed` (both sides, synced attribute) for tools in `#celestialskilltree:mining_tools`
   that are correct for the block. Tool wear is settled once per broken block at the end of the tick.
 - **Respec and refunds:** removing allocations and calling `refresh` removes every effect of the removed nodes
   (a single-skill refund rebuilds the whole modifier set, so nothing of the removed branch can linger); cooldowns
@@ -199,7 +199,7 @@ window pixels converted through the GUI scale. Draw order: backdrop layers → m
 node frames/icons → state marks and focus → controls and progress bar → panels → tooltips; the graph is scissored to
 its viewport and rendering state (blend, shader colour) is restored. Every HUD texture is a GUI sprite under `textures/gui/sprites/hud/` (nine-slice glass panels and buttons, the XP track, 9×9 icons,
 the animated point star), named in `HudSprites` and drawn by `SkillButton`, `TreeHud` and `PanelRenderer`.
-`TreeBonusTooltip` adds the tree's weapon, ranged and tool bonuses to item tooltips. `NostalgiaSkillsClient`
+`TreeBonusTooltip` adds the tree's weapon, ranged and tool bonuses to item tooltips. `CelestialSkillTreeClient`
 registers NeoForge's configuration screen. Client-only classes are referenced from common
 code only through `ClientHandlers` (invoked solely for client-bound payloads) and `@EventBusSubscriber(value =
 Dist.CLIENT)` classes, which is why the dedicated server starts without loading graphical classes (verified).
@@ -254,7 +254,7 @@ Dist.CLIENT)` classes, which is why the dedicated server starts without loading 
 - `server/Discoveries.reveal`: discovery keys that are not advancements (`spell/`, `worn/`, `kill/`).
 - `effects/EliteMobs.registerRival` and `registerNodeBonus`: other elite systems claim a monster or enlarge its
   constellation; a Constellated monster remembers its own UUID, so a copy is demoted.
-- `effects/PetInheritance`: owned creatures of `#nostalgiaskills:inherits_tree` copy a share of the owner's summed
+- `effects/PetInheritance`: owned creatures of `#celestialskilltree:inherits_tree` copy a share of the owner's summed
   attribute modifiers.
 - `block/XpBasinBlockEntity`: one block entity for the Stellar Condenser and the Community Basin, exposing a fluid
   tank and an extract-only item slot as capabilities.
@@ -264,13 +264,15 @@ Dist.CLIENT)` classes, which is why the dedicated server starts without loading 
 The harness drives the tree screen through `TreeScreenQa`, which lives in `src/devHarness` in the screen's own package and
 reaches its package-private state, so the screen itself carries no test hooks.
 
-`-Pvisualqa` adds `-Dnostalgiaskills.visualqa=true` to `runClient`. The run is one `QaScript`: a list of steps that
+`-Pvisualqa` adds `-Dcelestialskilltree.visualqa=true` to `runClient`. The run is one `QaScript`: a list of steps that
 each wait for a condition or time out, with `expect` checks that are counted as PASS or FAIL. `InWorldQa` deletes and
 recreates a flat singleplayer world (the tree only exists once a world has generated it), `VisualQa` then renders the
 real screen with fixture builds (fresh, focused, hybrid, pending, conflict, insufficient points; nothing is purchased)
 at 1000×563, 1280×720, 1920×1080 and 2560×1080 with GUI scales 2 and 3, and `InWorldQa` goes back to the live state
 and drives the real network path (XP → points, pending + cancel, confirm, death and respawn, dimension change, request
 burst, world restart, catalog change + `/reload`, orb reset, single and chained refunds, bulk purchase, eclipse,
-donation). The report is `run/nostalgiaskills_qa_ingame.txt`; its first line is `RESULT: PASSED` or `RESULT: FAILED`
+donation). The report is `run/celestialskilltree_qa_ingame.txt`; its first line is `RESULT: PASSED` or `RESULT: FAILED`
 with the number of checks, and every screenshot taken is checked to exist. `MultiplayerQa` uses the same script for
 two clients on a dedicated server.
+
+`-Pgallery` runs a shorter script for the mod page: the same fixture builds and in-world scenes at 1920×1080 with GUI scale 3, the HUD hidden outside the tree, saved as `run/screenshots/gallery_*.png`.

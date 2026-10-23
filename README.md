@@ -1,6 +1,6 @@
-# Nostalgia Skills
+# Celestial Skill Tree
 
-A NeoForge mod for **Minecraft Java 1.21.1** that adds a passive skill tree generated for each world, presented as a constellation
+A NeoForge mod for **Minecraft Java 1.21.1** that turns your progression into a skill tree generated for each world, presented as a constellation
 chart inside **The Astral Observatory**. Buy skill points with vanilla experience, plan a route across the
 classes of your world, confirm it in one batch, and reshape your build with the Orb of Reconfiguration.
 
@@ -28,7 +28,7 @@ optional: KubeJS (2101.x) and the mods listed under [Integration hooks](#integra
 ## Building
 
 ```bash
-./gradlew build            # Windows: gradlew.bat build  → build/libs/nostalgiaskills-2.1.0.jar
+./gradlew build            # Windows: gradlew.bat build  → build/libs/celestialskilltree-2.1.0.jar
 ./gradlew test             # 57 unit tests in test/, including trees generated from the shipped catalog
 ./gradlew validateTree     # validates the catalog and generates one tree outside the game
 ./gradlew previewTree      # draws the tree shape to build/preview/tree.png
@@ -42,8 +42,8 @@ them, the release jar does not. `runPackGameTestServer` reads the pack's mods fo
 `~/.gradle/gradle.properties` or from the `PACK_MODS_DIR` environment variable; nothing else needs it. The pack's jars
 are found by name prefix (the `packTestMods` list in `build.gradle`), so updating a mod in the pack needs no change.
 
-Releasing: `.github/workflows/nostalgia-skills-ci.yml` runs `build validateTree` on every push and pull request that
-touches the mod. Pushing a `nostalgia-skills-v<version>` tag runs the release workflow: it attaches the jar to a GitHub
+Releasing: `.github/workflows/celestial-skill-tree-ci.yml` runs `build validateTree` on every push and pull request that
+touches the mod. Pushing a `celestial-skill-tree-v<version>` tag runs the release workflow: it attaches the jar to a GitHub
 release and, when the repository variables `MODRINTH_PROJECT_ID` and `CURSEFORGE_PROJECT_ID` are set (with the
 secrets `MODRINTH_TOKEN` and `CURSEFORGE_TOKEN`), publishes it to Modrinth and CurseForge with the `CHANGELOG.md`
 section of `mod_version` as the release notes.
@@ -52,15 +52,15 @@ Performance checks, each printing a median per call or per frame:
 
 ```bash
 ./gradlew benchProgression            # reconcile, refund, fallen star, batch confirm and bulk purchase on the shipped tree
-./gradlew runGameTestServer -Pbench   # server hot paths with a full build (report: run/nostalgiaskills_bench_server.txt)
-./gradlew runClient -Prenderbench     # tree screen frame times at 1920x1080 (report: run/nostalgiaskills_bench_client.txt)
+./gradlew runGameTestServer -Pbench   # server hot paths with a full build (report: run/celestialskilltree_bench_server.txt)
+./gradlew runClient -Prenderbench     # tree screen frame times at 1920x1080 (report: run/celestialskilltree_bench_client.txt)
 ```
 
 Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256, Parchment 1.21.1-2024.11.17.
 
 ## Playing
 
-1. Press **O** (rebindable under Controls → Nostalgia Skills) or run `/nostalgiaskills open`.
+1. Press **O** (rebindable under Controls → Celestial Skill Tree) or run `/celestialskilltree open`.
 2. Click a **root hub** to choose your free starting point.
 3. Earn XP normally, then press the gold **Buy points** button at the bottom of the screen. The first point costs 100 raw XP; each further point costs
    `100 + 20p + 2p²` (p = points already bought). The tooltip shows the cost, your XP and what remains.
@@ -134,7 +134,7 @@ The tree fills the whole screen and the controls float over it in small glass pa
 at the top left, a dock below it with stats, the shared constellation (greyed out when the server has none), your birth
 sign, the hidden sky (greyed out until a boss mod adds hidden constellations), home, fit and help, and a capsule at the bottom with your unspent points (a twinkling star), **Buy points** and the XP progress to
 the next point. **Confirm** and **Cancel** appear above it only while something is pending. Every keyboard shortcut below can be rebound
-under Controls → Nostalgia Skills; **H** or the **?** button lists them in game.
+under Controls → Celestial Skill Tree; **H** or the **?** button lists them in game.
 
 | Input | Action |
 |---|---|
@@ -163,28 +163,30 @@ neighbours it boosts or seals, "boosted ×1.5 by", exclusive pair, portal, requi
 
 | Command | Permission |
 |---|---|
-| `/nostalgiaskills open` | everyone |
-| `/nostalgiaskills inspect <player>` | level 2 — ledger, sign, discoveries, switched-off skills, lifetime totals and the next point's price |
-| `/nostalgiaskills audit <player> [lines]` | level 2 — the last entries of the player's audit log (10 by default, up to 100) |
-| `/nostalgiaskills points add <targets> <amount> [override_limit]` | level 3 |
-| `/nostalgiaskills points set <targets> <available_amount> [override_limit]` | level 3 |
-| `/nostalgiaskills unlock <player> <node_id> [grant_cost]` | level 3 — prerequisites and connectivity always apply; `grant_cost` first grants exactly the node's price |
-| `/nostalgiaskills refund <player> <node_id>` | level 3 — unlearns the skill and everything that depends on it, refunding what was paid, even when player refunds are off and without an orb |
-| `/nostalgiaskills toggle <player> <node_id>` | level 3 — switches a toggleable skill on or off |
-| `/nostalgiaskills reset <targets>` | level 3 (no orb needed) |
-| `/nostalgiaskills cooldowns clear <targets>` | level 3 — every skill cooldown is ready again |
-| `/nostalgiaskills discoveries reveal <targets> <key>` | level 3 — reveals the hidden skills waiting for that key (an advancement id or a `nostalgiaskills:kill/…`, `spell/…`, `worn/…` key) |
-| `/nostalgiaskills discoveries clear <targets>` | level 3 — forgets every discovery |
-| `/nostalgiaskills sign set <targets> <sign>` | level 3 — sets the birth sign |
-| `/nostalgiaskills sign reroll <targets>` | level 3 — draws another birth sign at random |
-| `/nostalgiaskills extrasign <targets> <true\|false>` | level 3 — grants or takes the second birth sign |
-| `/nostalgiaskills validate` | level 2 — load result, revision, and the first errors with file/field/reason |
-| `/nostalgiaskills integrations` | level 2 — installed integrations and whether each one is active or switched off |
-| `/nostalgiaskills regenerate confirm` | level 3 — draws the whole tree again from the current catalog, as a new world with this seed would get it; skills that leave the tree are refunded (offline players at their next login). Without `confirm` it only explains what will happen |
-| `/nostalgiaskills star <player>` | level 2 — a falling star lands near the player |
-| `/nostalgiaskills eclipse start\|stop` | level 2 — force an eclipse, or end the current sky event |
-| `/nostalgiaskills shower start\|stop` | level 2 — force a star shower, or end the current sky event |
-| `/nostalgiaskills community set\|add <xp>` | level 3 — set the shared constellation's donated XP, or add to it |
+| `/celestialskilltree open` | everyone |
+| `/celestialskilltree inspect <player>` | level 2 — ledger, sign, discoveries, switched-off skills, lifetime totals and the next point's price |
+| `/celestialskilltree audit <player> [lines]` | level 2 — the last entries of the player's audit log (10 by default, up to 100) |
+| `/celestialskilltree points add <targets> <amount> [override_limit]` | level 3 |
+| `/celestialskilltree points set <targets> <available_amount> [override_limit]` | level 3 |
+| `/celestialskilltree unlock <player> <node_id> [grant_cost]` | level 3 — prerequisites and connectivity always apply; `grant_cost` first grants exactly the node's price |
+| `/celestialskilltree refund <player> <node_id>` | level 3 — unlearns the skill and everything that depends on it, refunding what was paid, even when player refunds are off and without an orb |
+| `/celestialskilltree toggle <player> <node_id>` | level 3 — switches a toggleable skill on or off |
+| `/celestialskilltree reset <targets>` | level 3 (no orb needed) |
+| `/celestialskilltree cooldowns clear <targets>` | level 3 — every skill cooldown is ready again |
+| `/celestialskilltree discoveries reveal <targets> <key>` | level 3 — reveals the hidden skills waiting for that key (an advancement id or a `celestialskilltree:kill/…`, `spell/…`, `worn/…` key) |
+| `/celestialskilltree discoveries clear <targets>` | level 3 — forgets every discovery |
+| `/celestialskilltree sign set <targets> <sign>` | level 3 — sets the birth sign |
+| `/celestialskilltree sign reroll <targets>` | level 3 — draws another birth sign at random |
+| `/celestialskilltree extrasign <targets> <true\|false>` | level 3 — grants or takes the second birth sign |
+| `/celestialskilltree validate` | level 2 — load result, revision, and the first errors with file/field/reason |
+| `/celestialskilltree integrations` | level 2 — installed integrations and whether each one is active or switched off |
+| `/celestialskilltree regenerate confirm` | level 3 — draws the whole tree again from the current catalog, as a new world with this seed would get it; skills that leave the tree are refunded (offline players at their next login). Without `confirm` it only explains what will happen |
+| `/celestialskilltree star <player>` | level 2 — a falling star lands near the player |
+| `/celestialskilltree eclipse start\|stop` | level 2 — force an eclipse, or end the current sky event |
+| `/celestialskilltree shower start\|stop` | level 2 — force a star shower, or end the current sky event |
+| `/celestialskilltree community set\|add <xp>` | level 3 — set the shared constellation's donated XP, or add to it |
+
+Every command also works with the shorter `/celestial` (for example `/celestial open`).
 
 `points set` changes the available balance and books the difference as a net administrative grant; purchased points
 and recorded prices are untouched (`available + spent = purchased + granted` always holds). Going above the point
@@ -194,7 +196,7 @@ re-applies caps and tuning to every online player and resyncs them; no regenerat
 
 ## Configuration
 
-- **Server** (`world/serverconfig/nostalgiaskills-server.toml`, synced to clients): XP purchase on/off, point limit
+- **Server** (`world/serverconfig/celestialskilltree-server.toml`, synced to clients): XP purchase on/off, point limit
   (10,000, effectively none), curve coefficients and discount, per-type cost overrides, keep progression on death, orb requirement,
   caps on what the tree grants (crit 50%, dodge 30%, lifesteal 10%, damage reduction 40%, magic resistance 60%,
   movement +50%; equipment is never clamped), `[tuning]` multipliers for every attribute the tree grants and for the caps, lifesteal
@@ -202,7 +204,7 @@ re-applies caps and tuning to every online player and resyncs them; no regenerat
   (on, one per ~30 minutes of night per player), Constellated monster chance (2%) and size (8 skills), `eliteSpawnerMobs` (off: spawner monsters are never Constellated), eclipses (on,
   every ~20 days, `eclipseMonstersSpawn` on), star showers (on, every ~12 days, 4 stars per minute per player),
   `dropStarOnDeath` (`OFF`, `PVP_ONLY`, `ALWAYS`) and the shared constellation (on).
-- **Client** (`config/nostalgiaskills-client.toml`, also editable in game from the Mods list): `[tree]` frame scale,
+- **Client** (`config/celestialskilltree-client.toml`, also editable in game from the Mods list): `[tree]` frame scale,
   zoom limits, zoom step, WASD pan speed, always-detailed tooltips (otherwise hold Shift); `[look]` glow intensity (0
   turns every glow off), background decoration, reduced motion, high contrast (brighter locked nodes, connections and
   secondary text); `[feedback]` interface sound volume. Client settings never affect
@@ -217,7 +219,7 @@ The tree is generated from a **catalog** of ordinary data files, then saved with
 | `data/<ns>/skill_classes/<id>.json` | a class: `name`, `icon`, `hub` (its effects), `trunk` (`name` and effects of the skill repeated along the trunk); optional `priority`, `fallback_class`, `nodes` |
 | `data/<ns>/skill_themes/<path>.json` | a branch theme: `class`, `name`, `icon`, `minor` (effects of the numbered skills), optional `weight` and `notables` (`id`, `name`, effects, optional `max_rank` 1–5: every rank costs the skill's price and adds its effects once more, optional `neighbour_multiplier` above 1 to make it a black hole, which the generator only places on a dead-end tip) |
 | `data/<ns>/skill_keystones/<path>.json` | a keystone: `class`, `name`, `text` (required plain-language sentence), effects; optional `icon`, `weight`, `neighbour_multiplier`, `hidden_until`, `toggleable` (the owner switches it off and on for free), `exclusive_with` (another keystone id of the same class: when both are drawn they form a pair and only one may be learned; paired keystones do not take room from the branches) |
-| `data/nostalgiaskills/skill_rules/main.json` | `nodes_per_class` (12 to 130, default 100; a class file's `nodes` overrides it for that class), `max_classes` (default 10), `min_themes_for_own_class` (default 4), `max_copies_per_skill` (default 5), `vary_by_seed`, `portals`. The mod ships this file with the defaults |
+| `data/celestialskilltree/skill_rules/main.json` | `nodes_per_class` (12 to 130, default 100; a class file's `nodes` overrides it for that class), `max_classes` (default 10), `min_themes_for_own_class` (default 4), `max_copies_per_skill` (default 5), `vary_by_seed`, `portals`. The mod ships this file with the defaults |
 
 - **Format version.** Any data file may carry `"schema_version": 1`; without it version 1 is assumed, and any other
   number is rejected with a clear error.
@@ -232,7 +234,7 @@ The tree is generated from a **catalog** of ordinary data files, then saved with
   the skill next to a notable is of that notable's theme. No skill appears more than `max_copies_per_skill` times in
   a class. An existing world keeps its draw: a notable added to the catalog later only fills a notable spot that the
   world never had (a new world, or a branch that did not exist before), so no learned skill disappears. To give an existing world the new catalog entries, run
-  `/nostalgiaskills regenerate confirm`. Notables or keystones that still do not fit are reported as a warning. A class whose themes cannot fill
+  `/celestialskilltree regenerate confirm`. Notables or keystones that still do not fit are reported as a warning. A class whose themes cannot fill
   its size under that limit becomes smaller. With `vary_by_seed` off every world of the pack gets the same tree.
 - **Changes.** After `/reload` or a changed mod list, branches whose theme still exists stay as they are and only the
   emptied ones are drawn again. Skills that no longer exist are refunded at their paid price on the next login. A
@@ -241,7 +243,7 @@ The tree is generated from a **catalog** of ordinary data files, then saved with
   weapon in each hand"). `text` replaces that with a written sentence and the tooltip still shows the exact numbers (with detailed tooltips on)
   under it. Names and texts are translation keys; a missing key is shown as written.
 - **Validation.** Invalid data is rejected with file, field and reason and the last valid tree stays active;
-  `/nostalgiaskills validate` shows the result. A skill that combines a trigger with other effects, or has three or
+  `/celestialskilltree validate` shows the result. A skill that combines a trigger with other effects, or has three or
   more effects, only warns when it has no `text`.
 
 Skill ids are `<class>/hub`, `<class>/trunk_<n>`, `<theme>_<n>`, `<theme folder>/<notable id>`, the keystone file id and
@@ -253,7 +255,7 @@ description text) and shared-constellation tiers in `skill_community` (`xp_requi
 plus `effects`); both use the same effect vocabulary and take their texts from `sign.<ns>.<id>.name` /
 `.description` and `community.<ns>.<id>.name` / `.description`. `skill_migrations` renames skill ids.
 
-Example: `examples/datapacks/nostalgiaskills_catalog_example/` — smaller classes, one new Guardian theme and a
+Example: `examples/datapacks/celestialskilltree_catalog_example/` — smaller classes, one new Guardian theme and a
 keystone that stays hidden until an advancement.
 
 ### Integration hooks
@@ -268,18 +270,18 @@ An optional KubeJS integration ships (see below); packs and addons can build any
   (`attribute`, `value`), `dual_wielding` (both hands hold an item of the light or heavy weapon tag) and `has_curio`
   (`tag`; always false without Curios).
 - **Triggers from other mods.** A `trigger` may be any namespaced id, e.g. `"mypack:on_spell_cast"`. It fires when
-  code calls `Triggers.fire(player, "mypack:on_spell_cast", target)` (`dev.nostalgiacraft.skills.effects.Triggers`);
+  code calls `Triggers.fire(player, "mypack:on_spell_cast", target)` (`dev.lesteoff.celestialskilltree.effects.Triggers`);
   an id nobody fires simply never runs.
-- **Spell triggers and actions.** Iron's Spells 'n Spellbooks fires `nostalgiaskills:on_spell_cast` and
-  `nostalgiaskills:on_mana_empty`; Ars Nouveau fires `nostalgiaskills:on_glyph_cast` and
-  `nostalgiaskills:on_spell_resolve`. `nostalgiaskills:on_spell_crit` fires when the tree's critical chance lands on
+- **Spell triggers and actions.** Iron's Spells 'n Spellbooks fires `celestialskilltree:on_spell_cast` and
+  `celestialskilltree:on_mana_empty`; Ars Nouveau fires `celestialskilltree:on_glyph_cast` and
+  `celestialskilltree:on_spell_resolve`. `celestialskilltree:on_spell_crit` fires when the tree's critical chance lands on
   spell damage. The action `restore_mana` (`amount` 0 to 10,000) refills Iron's mana and does nothing without that mod.
   Both integrations talk to the other mod by reflection, so they need no extra dependency, and switch themselves off
   with one warning if the installed version changes its API.
-- **Spell damage.** Damage types in `#nostalgiaskills:spell_damage` (Iron's schools and Ars Nouveau spells by default)
+- **Spell damage.** Damage types in `#celestialskilltree:spell_damage` (Iron's schools and Ars Nouveau spells by default)
   roll the tree's critical chance and critical damage and feed lifesteal like melee does. Other mods add their types
   to that tag. Malum scythes (`#malum:scythe`) count as heavy weapons.
-- **Events** on the NeoForge bus, all nested in `dev.nostalgiacraft.skills.api.SkillEvents`, server side.
+- **Events** on the NeoForge bus, all nested in `dev.lesteoff.celestialskilltree.api.SkillEvents`, server side.
   - Cancellable, posted before the change: `PointsBuying` (the purchase is refused with "blocked"), `NodesLearning`,
     `RefundRequested` (with the skills and points the refund would move), `EliteSpawning` (`setNodeCount` changes the
     size of the monster's constellation), `StarFalling`, `FallenStarDropping` (the skill is kept) and `TriggerFiring`
@@ -300,16 +302,16 @@ An optional KubeJS integration ships (see below); packs and addons can build any
 - **Pufferfish's Attributes.** Lifesteal, mining speed, healing received and projectile damage are redirected the same
   way (`redirectToPuffishAttributes`); a flat bonus becomes a multiplier there, because those attributes scale another
   value. Apothic Attributes wins where both mods overlap. Resistances are not redirected: their formulas differ.
-- **Combat mods.** Better Combat fires `nostalgiaskills:on_combo_finisher` on the last hit of a combo, and its weapon
+- **Combat mods.** Better Combat fires `celestialskilltree:on_combo_finisher` on the last hit of a combo, and its weapon
   category classifies any weapon that is in neither the light nor the heavy weapon tag (the tag always wins): `sword`,
   `cutlass`, `dagger`, `rapier`, `sickle`, `claw`, `fist`, `katana`, `twin_blade`, `soul_knife` and `coral_blade` are
   light; `claymore`, `hammer`, `mace`, `axe`, `double_axe`, `heavy_axe`, `halberd`, `glaive`, `scythe`, `spear`, `lance`,
   `trident`, `anchor` and `battlestaff` are heavy. Scorched Guns
-  fires `nostalgiaskills:on_headshot` and `nostalgiaskills:on_reload`, and its bullets count as the player's projectiles
-  through `#nostalgiaskills:counts_as_projectile` (add other guns' damage types there; a type in that tag counts even
+  fires `celestialskilltree:on_headshot` and `celestialskilltree:on_reload`, and its bullets count as the player's projectiles
+  through `#celestialskilltree:counts_as_projectile` (add other guns' damage types there; a type in that tag counts even
   when the player is the direct attacker, which is how L2Complements' Sonic Shooter and its `minecraft:sonic_boom`
   get in). ParCool fires
-  `nostalgiaskills:on_wall_jump`, `nostalgiaskills:on_roll` (breakfall) and the built-in `on_dodge`. Dummmmmmy shows a
+  `celestialskilltree:on_wall_jump`, `celestialskilltree:on_roll` (breakfall) and the built-in `on_dodge`. Dummmmmmy shows a
   critical hit rolled by the tree as a critical number.
 - **Curios.** An attribute effect on `curios:<slot>` (for example `curios:ring`) adds or removes slots of that type.
 - **Other elite systems.** With `eliteStacking = EXCLUSIVE` (default) a monster that Champions or L2Hostility already
@@ -347,7 +349,7 @@ An optional KubeJS integration ships (see below); packs and addons can build any
   `c:is_desert` and `minecraft:is_nether`. `hearty_table` (Guardian, Farmer's Delight) fires Farmer's Delight's
   Comfort and Nourishment from triggers.
 - **Loot.** Two global loot modifiers add Star Fragments and, rarely, Orbs: 6% and 1% on loot generated inside the
-  structures of `#nostalgiaskills:loot_structures` (vanilla, Moog's, Formations, Luki's and Aether Villages; Lootr uses
+  structures of `#celestialskilltree:loot_structures` (vanilla, Moog's, Formations, Luki's and Aether Villages; Lootr uses
   the same loot tables), and 1% of a fragment per night catch with a fishing rod. Starcatcher gets a night-only epic
   catch (`starcatcher/fish/star_fragment`). Selling Bin is told the three items are worth 0, so they cannot be sold.
 - **Other pack mods.** FTB Ultimine's `ftbultimine:max_blocks_modifier` is a skill effect (`veinbreaker`).
@@ -363,39 +365,39 @@ An optional KubeJS integration ships (see below); packs and addons can build any
 - **Sky events** (eclipse, star showers) and the `sky_event` condition only exist in the Overworld, so the Twilight
   Forest, the Aether and the other dimensions keep their own skies.
 - **Tooltips.** Obscure Tooltips draws every item of this mod with a violet and gold frame (`tooltips/` in the assets).
-  Simply Tooltips gives them its own `cosmic` theme (`assets/simplytooltips/item_themes/nostalgiaskills.json`).
-- **Item tags.** `#nostalgiaskills:firearms` (Scorched Guns tiers and the Meka-Gun by default) is meant for `holding`.
+  Simply Tooltips gives them its own `cosmic` theme (`assets/simplytooltips/item_themes/celestialskilltree.json`).
+- **Item tags.** `#celestialskilltree:firearms` (Scorched Guns tiers and the Meka-Gun by default) is meant for `holding`.
   Truly Modular weapons and tools are listed in the weapon, bow, crossbow and mining tool tags; its modular armour
   matches `wearing` through miapi's own tags (`#miapi:armor`, `#miapi:helmets`, `#miapi:chestplates`,
   `#miapi:leggings`, `#miapi:boots`). Simply Swords follows its own tiers (light and medium weapons and the uniques
   are light, heavy weapons are heavy), Simply Cataclysm's claymores, greataxes, greathammers, glaives, halberds and
   scythes are heavy as well as light, and Mekanism Weapons' Meka-Tana and Meka-Bow are a light weapon and a bow. The
   Meka-Gun's laser names no attacker, so its shots get no projectile bonus. Farmer's Delight knives are light
-  weapons. Three armour set tags ship for `wearing`, used by no bundled skill yet: `#nostalgiaskills:armor/aredrite`
+  weapons. Three armour set tags ship for `wearing`, used by no bundled skill yet: `#celestialskilltree:armor/aredrite`
   (Oathbound Relics), `armor/terrible` and `armor/abyssal` (Aquamirae) and `armor/infinity` (Re-Avaritia).
-- **Machines and farms.** A Constellated monster killed by a damage type of `#nostalgiaskills:machine_damage` (LTX
+- **Machines and farms.** A Constellated monster killed by a damage type of `#celestialskilltree:machine_damage` (LTX
   Industries turrets, which hurt in their owner's name) drops no fragment. A monster that spawns on a block of
-  `#nostalgiaskills:counts_as_spawner` (Excessive Utilities' Cursed Earth) follows `eliteSpawnerMobs` like a spawner
+  `#celestialskilltree:counts_as_spawner` (Excessive Utilities' Cursed Earth) follows `eliteSpawnerMobs` like a spawner
   mob. Fake players never fire `on_block_break`. Does Potato Tick stops block entities in the chunks it freezes, so a
   Stellar Condenser or Community Basin there stops absorbing until the chunk ticks again.
 - **AttributeFix.** No conflict: it leaves the range of this mod's attributes untouched unless its own config says
   otherwise, and the caps in this mod's config only limit what the tree contributes.
-- **Entity type tags.** `#nostalgiaskills:never_constellated` keeps a monster from ever being Constellated; it ships
+- **Entity type tags.** `#celestialskilltree:never_constellated` keeps a monster from ever being Constellated; it ships
   with `#c:bosses`, the Wither, the Ender Dragon, the Warden and the Elder Guardian.
-  `#nostalgiaskills:first_kill_fragment` (same list plus Ice and Fire dragons and Aquamirae bosses) gives
+  `#celestialskilltree:first_kill_fragment` (same list plus Ice and Fire dragons and Aquamirae bosses) gives
   `bossFragments` Star Fragments (2 by default) the first time each player kills each of those monsters, straight to
-  their inventory; the kill is remembered per player and survives death. `#nostalgiaskills:always_drops_fragment`
+  their inventory; the kill is remembered per player and survives death. `#celestialskilltree:always_drops_fragment`
   makes every kill by a player drop a Star Fragment; if that mob can be farmed, so can skill points. Mobs from spawners
-  (or standing on `#nostalgiaskills:counts_as_spawner`) drop nothing extra unless `eliteSpawnerMobs` is on. It ships empty.
+  (or standing on `#celestialskilltree:counts_as_spawner`) drop nothing extra unless `eliteSpawnerMobs` is on. It ships empty.
 
-- **Hidden keys beyond advancements.** `hidden_until` also takes `nostalgiaskills:spell/<namespace>/<spell>` (the
-  player casts that Iron's spell), `nostalgiaskills:worn/<namespace>/<item>` (the player wears that item, as armour,
-  as a curio or as a charm inside a worn Pandora necklace or bracelet; `has_curio` sees those charms too) and `nostalgiaskills:kill/<namespace>/<entity>` (the player kills that creature; with L2Hostility,
-  `nostalgiaskills:kill/l2hostility/<trait>` is also revealed for every trait of the slain mob). Shipped: `void_whisper`
+- **Hidden keys beyond advancements.** `hidden_until` also takes `celestialskilltree:spell/<namespace>/<spell>` (the
+  player casts that Iron's spell), `celestialskilltree:worn/<namespace>/<item>` (the player wears that item, as armour,
+  as a curio or as a charm inside a worn Pandora necklace or bracelet; `has_curio` sees those charms too) and `celestialskilltree:kill/<namespace>/<entity>` (the player kills that creature; with L2Hostility,
+  `celestialskilltree:kill/l2hostility/<trait>` is also revealed for every trait of the slain mob). Shipped: `void_whisper`
   (Eldritch Blast), seven `stigma_of_*` keystones (one per Curse of Pandora curse, active only while the curse is
   worn), `chaos_heart` (Draconic Evolution's Chaos Guardian), `undying_spite` (a mob with L2Hostility's Undying
   trait) and over forty more gated on spells, bosses, artifacts, etchings, vestiges and runes of the pack's mods;
-  each keystone's key is its `hidden_until` field in `data/nostalgiaskills/skill_keystones/`.
+  each keystone's key is its `hidden_until` field in `data/celestialskilltree/skill_keystones/`.
 - **Boss boons.** Trigger actions beside `heal`, `self_effect` and `target_effect`: `raise_ally` (`entity`,
   `duration_ticks`: a tamable creature rises where the trigger's target stood, tamed to the player, with Strength for
   that long; each player keeps at most 3 raised allies nearby and the oldest leaves when a fourth rises), `ignite_target` (`duration_ticks`), `gust` and `pull` (`amount` is the radius; enemies around are thrown back or
@@ -405,15 +407,15 @@ An optional KubeJS integration ships (see below); packs and addons can build any
   lightning, a launch, fire or a blast around the target), `area_effect` (a `target_effect` on every enemy within `amount` blocks), `web_target` (a
   cobweb at the target's feet, only where the player may build: claims and spawn protection apply), `cheat_death`
   (`amount` is the health left; like a totem it also puts out fire and gives 2 seconds of invulnerability) and, with Mowzie's Mobs, `sunstrike` (`amount` is the reach).
-  `on_kill` passes the victim as target; `nostalgiaskills:on_boon_key` fires when the player presses the Hidden Power
-  key (G by default) and `nostalgiaskills:on_fatal_blow` when damage would kill them. The condition `wet` holds in
+  `on_kill` passes the victim as target; `celestialskilltree:on_boon_key` fires when the player presses the Hidden Power
+  key (G by default) and `celestialskilltree:on_fatal_blow` when damage would kill them. The condition `wet` holds in
   water or rain, and a trigger may carry a `condition` of its own. `cheat_death`, `burst`, `smite_target`,
   `chaos_target` and `raise_ally` need a `cooldown_ticks` of at least 20. Actions that hit "enemies around" spare
   villagers and other NPCs, armour stands, every owned creature, and other players unless PvP lets the player hurt them.
 - **Iron's keystones.** `blood_for_mana` (action `blood_for_mana`: when mana runs out, health becomes mana) and
-  `stellar_echo` (attribute `nostalgiaskills:spell_echo_chance`, the chance a spell skips its cooldown).
-- **Occultism.** The ritual `recipe/occultism/summon_constellated.json` runs `/nostalgiaskills constellate`, which
-  summons a monster of `#nostalgiaskills:ritual_constellated` already Constellated. Sneak-using an Orb of
+  `stellar_echo` (attribute `celestialskilltree:spell_echo_chance`, the chance a spell skips its cooldown).
+- **Occultism.** The ritual `recipe/occultism/summon_constellated.json` runs `/celestialskilltree constellate`, which
+  summons a monster of `#celestialskilltree:ritual_constellated` already Constellated. Sneak-using an Orb of
   Reconfiguration on your own familiar swaps your build with the one it keeps (`familiarSwapCooldownSeconds`).
 - **Borrowed keystones.** Apotheosis affixes named `<namespace>:keystone/<path>` lend the keystone
   `<namespace>:<path>` while the item is equipped; 22 mythic affixes ship, four of them only with Curios or Iron's Spellbooks installed
@@ -422,7 +424,7 @@ An optional KubeJS integration ships (see below); packs and addons can build any
   affix still lend a single rank.
 - **Other elite systems, continued.** A Constellated monster learns one more skill per `l2hostilityLevelsPerNode`
   L2Hostility levels, attacks faster in Better Mob Combat Reimagined, and shows a boss bar (`eliteBossBar`) that
-  Enhanced Boss Bars draws with this mod's frame. Champions (Unofficial) gets a real affix, `nostalgiaskills:astral`:
+  Enhanced Boss Bars draws with this mod's frame. Champions (Unofficial) gets a real affix, `celestialskilltree:astral`:
   each hit silences the newest skill of the player for a while. A copy of a Constellated monster (Industrial
   Foregoing's Mob Duplicator) loses the status.
 - **Experience.** Relics share `relicXpShare` of their experience with the bearer. Enigmatic Legacy+'s XP Scroll and
@@ -435,12 +437,12 @@ An optional KubeJS integration ships (see below); packs and addons can build any
   automates points, `condenserXpPerFragment = 0` disables it), Community Basin (liquid experience to the shared
   constellation) and Telescope (at night under open sky it opens the tree over the real sky). With Create, the orb
   and Stellar Ammo also have Sequenced Assembly recipes (`recipe/create/`).
-- **Bosses and pets.** Every player who damaged a `#nostalgiaskills:first_kill_fragment` monster gets its first-kill
-  fragments. Tamed creatures of `#nostalgiaskills:inherits_tree` (Ice and Fire dragons, Companions) receive
+- **Bosses and pets.** Every player who damaged a `#celestialskilltree:first_kill_fragment` monster gets its first-kill
+  fragments. Tamed creatures of `#celestialskilltree:inherits_tree` (Ice and Fire dragons, Companions) receive
   `petTreeShare` of their owner's tree bonuses. The condition `target_type` (`tag`, an entity type tag) and the theme
-  `dragon_slayer` add damage against `#nostalgiaskills:dragons`; dragon scales craft the orb.
-- **Small ones.** `essence_tender` (Mystical Agriculture, attribute `nostalgiaskills:harvest_bonus`); a second birth
-  sign while `lastLifeObjective` says the player is on their last life (or `/nostalgiaskills extrasign`); gestures
+  `dragon_slayer` add damage against `#celestialskilltree:dragons`; dragon scales craft the orb.
+- **Small ones.** `essence_tender` (Mystical Agriculture, attribute `celestialskilltree:harvest_bonus`); a second birth
+  sign while `lastLifeObjective` says the player is on their last life (or `/celestialskilltree extrasign`); gestures
   with playerAnimator when a keystone is learned, the orb is used or a falling star appears over a player under open
   sky; a Supplementaries globe named "Celestial" shows
   the sky events.
@@ -448,8 +450,8 @@ An optional KubeJS integration ships (see below); packs and addons can build any
 Each integration was written against the classes, ids and data formats of the partner's jar. At start-up it checks
 that the classes it uses exist and switches itself off with one warning if the installed version differs; an
 unexpected error while running is logged once and only switches it off after 20 repeats. The log lists the active and
-switched-off integrations when the server starts, and `/nostalgiaskills integrations` (level 2) shows the same. `./gradlew runPackGameTestServer` starts a game test server with
-the NostalgiaCraft pack's jars (path in `pack_mods_dir`, see Building) and checks that none of the installed integrations switched
+switched-off integrations when the server starts, and `/celestialskilltree integrations` (level 2) shows the same. `./gradlew runPackGameTestServer` starts a game test server with
+a modpack's jars (path in `pack_mods_dir`, see Building) and checks that none of the installed integrations switched
 itself off, that Relics experience reaches its bearer, that every KubeJS event reaches a script and that the KubeJS
 catalog event can add a theme; the regular game tests also run there, with Apothic Attributes redirecting the tree's
 attributes. Integrations whose mod is not in the pack (for example Pufferfish's Attributes) are not exercised.
@@ -462,27 +464,27 @@ checked against the pack's (`2101.7.2-build.377`, Rhino `2101.2.7-build.85`); it
 binding registration API, which is identical in both. If a KubeJS build ever breaks that API the integration logs one
 warning and switches itself off, the rest of the mod keeps working.
 
-- **Events** (`NostalgiaSkillsEvents`, server scripts): `pointsBought` (`player`, `points`, `xpSpent`),
+- **Events** (`CelestialSkillTreeEvents`, server scripts): `pointsBought` (`player`, `points`, `xpSpent`),
   `nodesLearned` (`player`, `nodes`), `nodesRefunded`, `buildReset` and `nodesLost` (`player`, `nodes`,
   `pointsReturned`), `skyEventChanged` (`server`, `before`, `now` as `none`, `eclipse` or `star_shower`),
   `starLanded` (`level`, `fragment`) and `eliteSpawned` (`monster`). `pointsGranted`, `discoveriesRevealed` and
   `communityTierUnlocked` hand the NeoForge event over as `event.event` (e.g. `event.event.player`,
   `event.event.points`). `pointsBuying`, `nodesLearning`, `refundRequested`, `eliteSpawning`, `starFalling`,
   `fallenStarDropping` and `triggerFiring` do the same and can be stopped with `event.cancel()`.
-- **Binding** (`NostalgiaSkills`, server scripts): `hasNode(player, nodeId)`, `learnedNodes(player)`,
+- **Binding** (`CelestialSkillTree`, server scripts): `hasNode(player, nodeId)`, `learnedNodes(player)`,
   `availablePoints(player)`, `sign(player)` (`null` before a sign is assigned), `hasExtraSign(player)`,
   `setExtraSign(player, granted)`, `skyEvent()`, `isConstellated(entity)` (for LootJS entity predicates) and
   `fireTrigger(player, trigger[, target])`, which runs every owned skill listening to that namespaced trigger.
 - **Changing a build** from a script goes through the admin commands, e.g.
-  `server.runCommandSilent('nostalgiaskills unlock ' + player.username + ' nostalgiaskills:some_node')`, so the
+  `server.runCommandSilent('celestialskilltree unlock ' + player.username + ' celestialskilltree:some_node')`, so the
   ledger, effects and client sync stay consistent.
-- **Catalog** (`NostalgiaSkillsEvents.catalog`, server scripts): `addClass(id, {...})`, `addTheme(id, {...})`,
+- **Catalog** (`CelestialSkillTreeEvents.catalog`, server scripts): `addClass(id, {...})`, `addTheme(id, {...})`,
   `addKeystone(id, {...})`, `removeClass(id)`, `removeTheme(id)`, `removeKeystone(id)` and `rules({...})`. The objects
   use the same fields as the data files above and go through the same validation. Adding an existing id replaces it,
   removing a class also drops its themes and keystones, and `rules` replaces the whole rules file. Other mods can do
   the same through the NeoForge event `SkillEvents.CatalogLoading`.
 
-Example: `examples/kubejs/server_scripts/nostalgiaskills_example.js`.
+Example: `examples/kubejs/server_scripts/celestialskilltree_example.js`.
 
 ## Known limitations
 
@@ -503,6 +505,6 @@ Example: `examples/kubejs/server_scripts/nostalgiaskills_example.js`.
 ## License
 
 All Rights Reserved (see [LICENSE](LICENSE)). All art, data, sounds and code were created for this
-project; every sound in `assets/nostalgiaskills/sounds/` is synthesized. The eclipse, falling star and star shower
+project; every sound in `assets/celestialskilltree/sounds/` is synthesized. The eclipse, falling star and star shower
 events and their sounds are inspired by Nyx by Ellpeck (MIT) and its port Hyxcate; no code or sound is copied from
-them.
+them. The skill tree itself is inspired by Passive Skill Tree by Daripher.

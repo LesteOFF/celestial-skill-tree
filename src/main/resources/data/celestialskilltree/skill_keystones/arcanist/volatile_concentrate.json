@@ -1,0 +1,20 @@
+{
+  "class": "celestialskilltree:arcanist",
+  "name": "skill.celestialskilltree.arcanist.volatile_concentrate.name",
+  "icon": "celestialskilltree:textures/skill_icons/keystone_volatile_concentrate.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:potion_duration",
+      "operation": "add_value",
+      "amount": 0.25
+    },
+    {
+      "type": "damage_modifier",
+      "direction": "taken",
+      "scope": "magic",
+      "amount": 0.15
+    }
+  ],
+  "text": "skill.celestialskilltree.arcanist.volatile_concentrate.text"
+}

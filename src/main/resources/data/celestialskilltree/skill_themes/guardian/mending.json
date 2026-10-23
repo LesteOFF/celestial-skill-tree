@@ -1,0 +1,16 @@
+{
+  "class": "celestialskilltree:guardian",
+  "name": "theme.celestialskilltree.guardian.mending",
+  "icon": "celestialskilltree:textures/skill_icons/heart_plus.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "celestialskilltree:healing_received",
+        "operation": "add_value",
+        "amount": 0.02
+      }
+    ]
+  },
+  "notables": []
+}

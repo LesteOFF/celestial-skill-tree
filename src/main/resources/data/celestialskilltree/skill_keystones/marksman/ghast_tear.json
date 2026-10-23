@@ -1,0 +1,21 @@
+{
+  "class": "celestialskilltree:marksman",
+  "requires_mod": "twilightforest",
+  "hidden_until": "twilightforest:progress_ur_ghast",
+  "name": "skill.celestialskilltree.marksman.ghast_tear.name",
+  "text": "skill.celestialskilltree.marksman.ghast_tear.text",
+  "icon": "celestialskilltree:textures/skill_icons/bomb.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_projectile_kill",
+      "cooldown_ticks": 0,
+      "action": {
+        "type": "self_effect",
+        "effect": "minecraft:regeneration",
+        "duration_ticks": 100,
+        "amplifier": 1
+      }
+    }
+  ]
+}

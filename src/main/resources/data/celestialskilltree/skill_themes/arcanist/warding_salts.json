@@ -1,0 +1,112 @@
+{
+  "class": "celestialskilltree:arcanist",
+  "name": "theme.celestialskilltree.arcanist.warding_salts",
+  "icon": "celestialskilltree:textures/skill_icons/magic.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "celestialskilltree:magic_resistance",
+        "operation": "add_value",
+        "amount": 0.02
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "catalyst",
+      "name": "skill.celestialskilltree.arcanist.catalyst.name",
+      "icon": "celestialskilltree:textures/skill_icons/potion.png",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "on_potion",
+          "action": {
+            "type": "self_effect",
+            "effect": "minecraft:regeneration",
+            "duration_ticks": 60,
+            "amplifier": 0
+          },
+          "cooldown_ticks": 200
+        }
+      ]
+    },
+    {
+      "id": "philosophers_eye",
+      "name": "skill.celestialskilltree.arcanist.philosophers_eye.name",
+      "icon": "celestialskilltree:textures/skill_icons/luck.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:generic.luck",
+          "operation": "add_value",
+          "amount": 1.0
+        },
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:healing_received",
+          "operation": "add_value",
+          "amount": 0.05
+        }
+      ]
+    },
+    {
+      "id": "quintessence",
+      "name": "skill.celestialskilltree.arcanist.quintessence.name",
+      "icon": "celestialskilltree:textures/skill_icons/potion.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:potion_duration",
+          "operation": "add_value",
+          "amount": 0.15
+        }
+      ]
+    },
+    {
+      "id": "steady_hand",
+      "name": "skill.celestialskilltree.arcanist.steady_hand.name",
+      "icon": "celestialskilltree:textures/skill_icons/potion.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:potion_duration",
+          "operation": "add_value",
+          "amount": 0.1
+        }
+      ]
+    },
+    {
+      "id": "transmutation",
+      "name": "skill.celestialskilltree.arcanist.transmutation.name",
+      "icon": "celestialskilltree:textures/skill_icons/magic.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:magic_resistance",
+          "operation": "add_value",
+          "amount": 0.06
+        },
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:healing_received",
+          "operation": "add_value",
+          "amount": 0.05
+        }
+      ]
+    },
+    {
+      "id": "warded_path",
+      "name": "skill.celestialskilltree.arcanist.warded_path.name",
+      "icon": "celestialskilltree:textures/skill_icons/magic.png",
+      "effects": [
+        {
+          "type": "damage_modifier",
+          "direction": "taken",
+          "scope": "magic",
+          "amount": -0.1
+        }
+      ]
+    }
+  ]
+}

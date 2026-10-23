@@ -1,0 +1,15 @@
+{
+  "bonusParameters": {
+    "irons_jewelry:attribute": {
+      "amount": 0.03,
+      "attribute": "celestialskilltree:crit_chance",
+      "operation": "add_value"
+    }
+  },
+  "descriptionId": "skill.celestialskilltree.compat.irons_jewelry.stellar_crit",
+  "ingredient": {
+    "item": "celestialskilltree:star_fragment"
+  },
+  "paletteLocation": "irons_jewelry:palettes/topaz",
+  "quality": 2.0
+}

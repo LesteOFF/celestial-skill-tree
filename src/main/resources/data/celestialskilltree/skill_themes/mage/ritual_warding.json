@@ -1,0 +1,44 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "ars_nouveau",
+  "name": "theme.celestialskilltree.mage.ritual_warding",
+  "icon": "celestialskilltree:textures/skill_icons/ward_circle.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "ars_nouveau:ars_nouveau.perk.warding",
+        "operation": "add_value",
+        "amount": 0.2
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "ritual_circle",
+      "name": "skill.celestialskilltree.mage.ritual_circle.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "ars_nouveau:ars_nouveau.perk.warding",
+          "operation": "add_value",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "id": "warding_rites",
+      "name": "skill.celestialskilltree.mage.warding_rites.name",
+      "icon": "celestialskilltree:textures/skill_icons/magic.png",
+      "max_rank": 3,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "ars_nouveau:ars_nouveau.perk.warding",
+          "operation": "add_value",
+          "amount": 0.5
+        }
+      ]
+    }
+  ]
+}

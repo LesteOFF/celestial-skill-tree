@@ -1,0 +1,76 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "create"
+    },
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "scguns"
+    }
+  ],
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "celestialskilltree:star_fragment"
+  },
+  "loops": 1,
+  "results": [
+    {
+      "id": "celestialskilltree:stellar_ammo",
+      "count": 6
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "celestialskilltree:star_fragment"
+        },
+        {
+          "item": "minecraft:gunpowder"
+        }
+      ],
+      "results": [
+        {
+          "id": "celestialskilltree:star_fragment"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "celestialskilltree:star_fragment"
+        },
+        {
+          "item": "minecraft:amethyst_shard"
+        }
+      ],
+      "results": [
+        {
+          "id": "celestialskilltree:star_fragment"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "celestialskilltree:star_fragment"
+        },
+        {
+          "tag": "c:nuggets/iron"
+        }
+      ],
+      "results": [
+        {
+          "id": "celestialskilltree:star_fragment"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "celestialskilltree:star_fragment"
+  }
+}

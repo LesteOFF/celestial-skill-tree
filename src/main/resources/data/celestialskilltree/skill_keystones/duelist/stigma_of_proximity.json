@@ -1,0 +1,27 @@
+{
+  "class": "celestialskilltree:duelist",
+  "requires_mod": [
+    "curseofpandora",
+    "curios"
+  ],
+  "hidden_until": "celestialskilltree:worn/curseofpandora/curse_of_proximity",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.duelist.stigma_of_proximity.name",
+  "text": "skill.celestialskilltree.duelist.stigma_of_proximity.text",
+  "icon": "celestialskilltree:textures/skill_icons/dodge.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "celestialskilltree:on_boon_key",
+      "cooldown_ticks": 100,
+      "action": {
+        "type": "lunge",
+        "amount": 1.6
+      },
+      "condition": {
+        "type": "has_curio",
+        "tag": "celestialskilltree:curse/proximity"
+      }
+    }
+  ]
+}

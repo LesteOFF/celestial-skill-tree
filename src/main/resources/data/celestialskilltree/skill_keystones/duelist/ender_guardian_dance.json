@@ -1,0 +1,19 @@
+{
+  "class": "celestialskilltree:duelist",
+  "requires_mod": "cataclysm",
+  "hidden_until": "cataclysm:kill_ender_guardian",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.duelist.ender_guardian_dance.name",
+  "text": "skill.celestialskilltree.duelist.ender_guardian_dance.text",
+  "icon": "celestialskilltree:textures/skill_icons/dodge.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_hurt",
+      "cooldown_ticks": 240,
+      "action": {
+        "type": "blink_behind_target"
+      }
+    }
+  ]
+}

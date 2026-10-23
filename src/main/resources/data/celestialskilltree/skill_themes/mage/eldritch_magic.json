@@ -1,0 +1,36 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "irons_spellbooks",
+  "name": "theme.celestialskilltree.mage.eldritch_magic",
+  "icon": "celestialskilltree:textures/skill_icons/school_eldritch.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "irons_spellbooks:eldritch_spell_power",
+        "operation": "add_multiplied_base",
+        "amount": 0.01
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "school_eldritch",
+      "name": "skill.celestialskilltree.mage.school_eldritch.name",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "irons_spellbooks:eldritch_spell_power",
+          "operation": "add_multiplied_base",
+          "amount": 0.1
+        },
+        {
+          "type": "attribute",
+          "attribute": "irons_spellbooks:eldritch_magic_resist",
+          "operation": "add_multiplied_base",
+          "amount": 0.1
+        }
+      ]
+    }
+  ]
+}

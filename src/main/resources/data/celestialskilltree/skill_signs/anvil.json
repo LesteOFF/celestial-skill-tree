@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.armor",
+      "operation": "add_value",
+      "amount": 1.0
+    }
+  ],
+  "partner_effects": [
+    {
+      "requires_mod": "malum",
+      "description": "sign.celestialskilltree.anvil.description.malum",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "malum:soul_ward_capacity",
+          "operation": "add_value",
+          "amount": 1.0
+        }
+      ]
+    }
+  ]
+}

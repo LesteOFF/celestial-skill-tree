@@ -1,0 +1,20 @@
+{
+  "class": "celestialskilltree:berserker",
+  "name": "skill.celestialskilltree.berserker.reckless_fury.name",
+  "icon": "celestialskilltree:textures/skill_icons/keystone_reckless_fury.png",
+  "effects": [
+    {
+      "type": "damage_modifier",
+      "direction": "dealt",
+      "scope": "melee",
+      "amount": 0.2
+    },
+    {
+      "type": "damage_modifier",
+      "direction": "taken",
+      "scope": "all",
+      "amount": 0.1
+    }
+  ],
+  "text": "skill.celestialskilltree.berserker.reckless_fury.text"
+}

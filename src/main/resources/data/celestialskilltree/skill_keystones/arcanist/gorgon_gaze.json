@@ -1,0 +1,22 @@
+{
+  "class": "celestialskilltree:arcanist",
+  "requires_mod": "iceandfire",
+  "hidden_until": "celestialskilltree:kill/iceandfire/gorgon",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.arcanist.gorgon_gaze.name",
+  "text": "skill.celestialskilltree.arcanist.gorgon_gaze.text",
+  "icon": "celestialskilltree:textures/skill_icons/insight.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 240,
+      "action": {
+        "type": "target_effect",
+        "effect": "minecraft:slowness",
+        "duration_ticks": 40,
+        "amplifier": 4
+      }
+    }
+  ]
+}

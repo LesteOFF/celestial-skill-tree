@@ -1,0 +1,28 @@
+{
+  "type": "neoforge:add_table",
+  "table": "celestialskilltree:gameplay/night_fishing",
+  "conditions": [
+    {
+      "condition": "minecraft:match_tool",
+      "predicate": {
+        "items": "#c:tools/fishing_rod"
+      }
+    },
+    {
+      "condition": "minecraft:location_check",
+      "predicate": {
+        "fluid": {
+          "fluids": "minecraft:water"
+        }
+      }
+    },
+    {
+      "condition": "minecraft:time_check",
+      "period": 24000,
+      "value": {
+        "min": 13000,
+        "max": 23000
+      }
+    }
+  ]
+}

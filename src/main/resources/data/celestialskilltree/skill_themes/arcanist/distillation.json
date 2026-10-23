@@ -1,0 +1,86 @@
+{
+  "class": "celestialskilltree:arcanist",
+  "name": "theme.celestialskilltree.arcanist.distillation",
+  "icon": "celestialskilltree:textures/skill_icons/potion.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "celestialskilltree:potion_duration",
+        "operation": "add_value",
+        "amount": 0.03
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "distillers_patience",
+      "name": "skill.celestialskilltree.arcanist.distillers_patience.name",
+      "icon": "celestialskilltree:textures/skill_icons/potion.png",
+      "effects": [
+        {
+          "type": "trigger",
+          "trigger": "on_potion",
+          "action": {
+            "type": "self_effect",
+            "effect": "minecraft:absorption",
+            "duration_ticks": 200,
+            "amplifier": 0
+          },
+          "cooldown_ticks": 600
+        }
+      ]
+    },
+    {
+      "id": "tincture_mastery",
+      "name": "skill.celestialskilltree.arcanist.tincture_mastery.name",
+      "icon": "celestialskilltree:textures/skill_icons/potion.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:potion_duration",
+          "operation": "add_value",
+          "amount": 0.12
+        },
+        {
+          "type": "trigger",
+          "trigger": "on_potion",
+          "action": {
+            "type": "heal",
+            "amount": 1.0
+          },
+          "cooldown_ticks": 100
+        }
+      ],
+      "text": "skill.celestialskilltree.arcanist.tincture_mastery.text"
+    },
+    {
+      "id": "slow_steeping",
+      "name": "skill.celestialskilltree.arcanist.slow_steeping.name",
+      "icon": "celestialskilltree:textures/skill_icons/hourglass.png",
+      "max_rank": 3,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:potion_duration",
+          "operation": "add_value",
+          "amount": 0.05
+        }
+      ]
+    },
+    {
+      "id": "dense_essence",
+      "name": "skill.celestialskilltree.arcanist.dense_essence.name",
+      "icon": "celestialskilltree:textures/skill_icons/black_hole.png",
+      "neighbour_multiplier": 1.75,
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:potion_duration",
+          "operation": "add_value",
+          "amount": 0.05
+        }
+      ]
+    }
+  ]
+}

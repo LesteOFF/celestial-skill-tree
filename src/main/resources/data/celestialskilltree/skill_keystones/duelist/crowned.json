@@ -1,0 +1,22 @@
+{
+  "class": "celestialskilltree:duelist",
+  "requires_mod": "vp",
+  "hidden_until": "celestialskilltree:worn/vp/crown",
+  "name": "skill.celestialskilltree.duelist.crowned.name",
+  "text": "skill.celestialskilltree.duelist.crowned.text",
+  "icon": "celestialskilltree:textures/skill_icons/halo.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.attack_damage",
+      "operation": "add_value",
+      "amount": 1
+    },
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:crit_chance",
+      "operation": "add_value",
+      "amount": 0.04
+    }
+  ]
+}

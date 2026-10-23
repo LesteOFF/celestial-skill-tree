@@ -1,0 +1,22 @@
+{
+  "class": "celestialskilltree:artificer",
+  "requires_mod": "allthemodium",
+  "hidden_until": "celestialskilltree:kill/allthemodium/piglich",
+  "name": "skill.celestialskilltree.artificer.piglich_heart.name",
+  "text": "skill.celestialskilltree.artificer.piglich_heart.text",
+  "icon": "celestialskilltree:textures/skill_icons/crystal.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "minecraft:generic.max_health",
+      "operation": "add_value",
+      "amount": 6
+    },
+    {
+      "type": "damage_modifier",
+      "direction": "taken",
+      "scope": "magic",
+      "amount": -0.15
+    }
+  ]
+}

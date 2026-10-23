@@ -1,0 +1,22 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "irons_spellbooks",
+  "hidden_until": "celestialskilltree:spell/irons_spellbooks/raise_hell",
+  "name": "skill.celestialskilltree.mage.hellgate.name",
+  "text": "skill.celestialskilltree.mage.hellgate.text",
+  "icon": "celestialskilltree:textures/skill_icons/school_fire.png",
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "irons_spellbooks:fire_spell_power",
+      "operation": "add_multiplied_base",
+      "amount": 0.2
+    },
+    {
+      "type": "damage_modifier",
+      "direction": "taken",
+      "scope": "fire",
+      "amount": -0.3
+    }
+  ]
+}

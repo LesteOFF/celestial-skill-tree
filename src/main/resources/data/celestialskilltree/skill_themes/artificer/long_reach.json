@@ -1,0 +1,30 @@
+{
+  "class": "celestialskilltree:artificer",
+  "name": "theme.celestialskilltree.artificer.long_reach",
+  "icon": "celestialskilltree:textures/skill_icons/tools.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:player.block_interaction_range",
+        "operation": "add_value",
+        "amount": 0.1
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "tinkerer",
+      "name": "skill.celestialskilltree.artificer.tinkerer.name",
+      "icon": "celestialskilltree:textures/skill_icons/tools.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "minecraft:player.block_interaction_range",
+          "operation": "add_value",
+          "amount": 0.5
+        }
+      ]
+    }
+  ]
+}

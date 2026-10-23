@@ -1,0 +1,33 @@
+{
+  "class": "celestialskilltree:guardian",
+  "name": "theme.celestialskilltree.guardian.bulwark_drill",
+  "icon": "celestialskilltree:textures/skill_icons/defense.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "celestialskilltree:damage_reduction",
+        "operation": "add_value",
+        "amount": 0.005
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "shield_drill",
+      "name": "skill.celestialskilltree.guardian.shield_drill.name",
+      "icon": "celestialskilltree:textures/skill_icons/shield.png",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.knockback_resistance",
+          "operation": "add_value",
+          "amount": 0.3,
+          "condition": {
+            "type": "blocking"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "class": "celestialskilltree:artificer",
+  "name": "theme.celestialskilltree.artificer.swimmer",
+  "icon": "celestialskilltree:textures/skill_icons/wave.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "minecraft:generic.water_movement_efficiency",
+        "operation": "add_value",
+        "amount": 0.03
+      }
+    ]
+  },
+  "notables": []
+}

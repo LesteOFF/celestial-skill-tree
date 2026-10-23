@@ -1,0 +1,22 @@
+{
+  "class": "celestialskilltree:arcanist",
+  "requires_mod": "cataclysm",
+  "hidden_until": "cataclysm:kill_maledictus",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.arcanist.maledictus_hex.name",
+  "text": "skill.celestialskilltree.arcanist.maledictus_hex.text",
+  "icon": "celestialskilltree:textures/skill_icons/soul.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_low_health",
+      "cooldown_ticks": 3600,
+      "action": {
+        "type": "self_effect",
+        "effect": "cataclysm:ghost_form",
+        "duration_ticks": 80,
+        "amplifier": 0
+      }
+    }
+  ]
+}

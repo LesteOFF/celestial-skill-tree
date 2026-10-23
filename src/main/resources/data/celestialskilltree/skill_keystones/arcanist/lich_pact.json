@@ -1,0 +1,21 @@
+{
+  "class": "celestialskilltree:arcanist",
+  "requires_mod": "twilightforest",
+  "hidden_until": "twilightforest:progress_lich",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.arcanist.lich_pact.name",
+  "text": "skill.celestialskilltree.arcanist.lich_pact.text",
+  "icon": "celestialskilltree:textures/skill_icons/rune_shield.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "celestialskilltree:on_boon_key",
+      "cooldown_ticks": 400,
+      "action": {
+        "type": "raise_ally",
+        "entity": "twilightforest:loyal_zombie",
+        "duration_ticks": 600
+      }
+    }
+  ]
+}

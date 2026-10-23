@@ -1,0 +1,23 @@
+{
+  "class": "celestialskilltree:arcanist",
+  "requires_mod": "occultism",
+  "hidden_until": "celestialskilltree:kill/occultism/possessed_warden",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.arcanist.possessed_echo.name",
+  "text": "skill.celestialskilltree.arcanist.possessed_echo.text",
+  "icon": "celestialskilltree:textures/skill_icons/ghost.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_hurt",
+      "cooldown_ticks": 300,
+      "action": {
+        "type": "area_effect",
+        "effect": "minecraft:slowness",
+        "duration_ticks": 80,
+        "amplifier": 2,
+        "amount": 6
+      }
+    }
+  ]
+}

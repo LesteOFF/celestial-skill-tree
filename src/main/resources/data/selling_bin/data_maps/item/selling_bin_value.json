@@ -6,23 +6,23 @@
     }
   ],
   "values": {
-    "nostalgiaskills:star_fragment": {
+    "celestialskilltree:star_fragment": {
       "base_value": 0,
       "processors": []
     },
-    "nostalgiaskills:orb_of_reconfiguration": {
+    "celestialskilltree:orb_of_reconfiguration": {
       "base_value": 0,
       "processors": []
     },
-    "nostalgiaskills:fallen_star": {
+    "celestialskilltree:fallen_star": {
       "base_value": 0,
       "processors": []
     },
-    "nostalgiaskills:living_fragment": {
+    "celestialskilltree:living_fragment": {
       "base_value": 0,
       "processors": []
     },
-    "nostalgiaskills:stellar_ammo": {
+    "celestialskilltree:stellar_ammo": {
       "base_value": 0,
       "processors": []
     }

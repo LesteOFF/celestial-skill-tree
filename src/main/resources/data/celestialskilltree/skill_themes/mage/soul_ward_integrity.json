@@ -1,0 +1,17 @@
+{
+  "class": "celestialskilltree:mage",
+  "requires_mod": "malum",
+  "name": "theme.celestialskilltree.mage.soul_ward_integrity",
+  "icon": "celestialskilltree:textures/skill_icons/soul.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "malum:soul_ward_integrity",
+        "operation": "add_value",
+        "amount": 0.02
+      }
+    ]
+  },
+  "notables": []
+}

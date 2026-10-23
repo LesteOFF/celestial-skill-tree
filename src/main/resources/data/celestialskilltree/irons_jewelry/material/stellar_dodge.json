@@ -1,0 +1,15 @@
+{
+  "bonusParameters": {
+    "irons_jewelry:attribute": {
+      "amount": 0.03,
+      "attribute": "celestialskilltree:dodge_chance",
+      "operation": "add_value"
+    }
+  },
+  "descriptionId": "skill.celestialskilltree.compat.irons_jewelry.stellar_dodge",
+  "ingredient": {
+    "item": "minecraft:phantom_membrane"
+  },
+  "paletteLocation": "irons_jewelry:palettes/moonstone",
+  "quality": 2.0
+}

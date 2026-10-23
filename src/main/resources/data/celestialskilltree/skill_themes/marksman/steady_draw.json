@@ -1,0 +1,60 @@
+{
+  "class": "celestialskilltree:marksman",
+  "name": "theme.celestialskilltree.marksman.steady_draw",
+  "icon": "celestialskilltree:textures/skill_icons/projectile.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "attribute",
+        "attribute": "celestialskilltree:long_range_damage",
+        "operation": "add_value",
+        "amount": 0.03
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "lower_limb",
+      "name": "skill.celestialskilltree.marksman.lower_limb.name",
+      "icon": "celestialskilltree:textures/skill_icons/crossbow.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:crossbow_damage",
+          "operation": "add_value",
+          "amount": 0.08
+        }
+      ]
+    },
+    {
+      "id": "upper_limb",
+      "name": "skill.celestialskilltree.marksman.upper_limb.name",
+      "icon": "celestialskilltree:textures/skill_icons/bow.png",
+      "effects": [
+        {
+          "type": "attribute",
+          "attribute": "celestialskilltree:charged_shot_damage",
+          "operation": "add_value",
+          "amount": 0.08
+        }
+      ]
+    },
+    {
+      "id": "windreader",
+      "name": "skill.celestialskilltree.marksman.windreader.name",
+      "icon": "celestialskilltree:textures/skill_icons/bow.png",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.movement_speed",
+          "operation": "add_multiplied_base",
+          "amount": 0.05,
+          "condition": {
+            "type": "holding",
+            "tag": "celestialskilltree:bows"
+          }
+        }
+      ]
+    }
+  ]
+}

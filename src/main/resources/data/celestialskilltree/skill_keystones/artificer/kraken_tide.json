@@ -1,0 +1,20 @@
+{
+  "class": "celestialskilltree:artificer",
+  "requires_mod": "block_factorys_bosses",
+  "hidden_until": "block_factorys_bosses:kill_kraken",
+  "toggleable": true,
+  "name": "skill.celestialskilltree.artificer.kraken_tide.name",
+  "text": "skill.celestialskilltree.artificer.kraken_tide.text",
+  "icon": "celestialskilltree:textures/skill_icons/wave.png",
+  "effects": [
+    {
+      "type": "trigger",
+      "trigger": "on_crit",
+      "cooldown_ticks": 200,
+      "action": {
+        "type": "pull",
+        "amount": 8
+      }
+    }
+  ]
+}
