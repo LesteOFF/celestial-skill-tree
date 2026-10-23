@@ -40,7 +40,8 @@ public final class ModBlocks {
     }
 
     private static BlockBehaviour.Properties basinProperties(MapColor color) {
-        return BlockBehaviour.Properties.of().mapColor(color).strength(3.5f, 6f).requiresCorrectToolForDrops().sound(SoundType.AMETHYST);
+        return BlockBehaviour.Properties.of().mapColor(color).strength(3.5f, 6f).requiresCorrectToolForDrops().sound(SoundType.AMETHYST)
+                .noOcclusion();
     }
 
     public static void register(IEventBus modBus) {

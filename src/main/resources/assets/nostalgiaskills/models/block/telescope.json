@@ -1,21 +1,176 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "wood": "minecraft:block/spruce_planks",
-    "tube": "minecraft:block/copper_block",
-    "lens": "minecraft:block/tinted_glass",
-    "particle": "minecraft:block/copper_block"
+    "brass": "nostalgiaskills:block/telescope_brass",
+    "wood": "nostalgiaskills:block/telescope_wood",
+    "lens": "nostalgiaskills:block/telescope_lens",
+    "particle": "nostalgiaskills:block/telescope_brass"
   },
   "elements": [
     {
       "from": [
-        7,
+        7.5,
         0,
+        7.5
+      ],
+      "to": [
+        8.5,
+        10,
+        8.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#wood"
+        },
+        "south": {
+          "texture": "#wood"
+        },
+        "east": {
+          "texture": "#wood"
+        },
+        "west": {
+          "texture": "#wood"
+        },
+        "up": {
+          "texture": "#wood"
+        },
+        "down": {
+          "texture": "#wood"
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          10,
+          8
+        ],
+        "axis": "x",
+        "angle": 22.5
+      }
+    },
+    {
+      "from": [
+        7.5,
+        0,
+        7.5
+      ],
+      "to": [
+        8.5,
+        10,
+        8.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#wood"
+        },
+        "south": {
+          "texture": "#wood"
+        },
+        "east": {
+          "texture": "#wood"
+        },
+        "west": {
+          "texture": "#wood"
+        },
+        "up": {
+          "texture": "#wood"
+        },
+        "down": {
+          "texture": "#wood"
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          10,
+          8
+        ],
+        "axis": "z",
+        "angle": 22.5
+      }
+    },
+    {
+      "from": [
+        7.5,
+        0,
+        7.5
+      ],
+      "to": [
+        8.5,
+        10,
+        8.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#wood"
+        },
+        "south": {
+          "texture": "#wood"
+        },
+        "east": {
+          "texture": "#wood"
+        },
+        "west": {
+          "texture": "#wood"
+        },
+        "up": {
+          "texture": "#wood"
+        },
+        "down": {
+          "texture": "#wood"
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          10,
+          8
+        ],
+        "axis": "z",
+        "angle": -22.5
+      }
+    },
+    {
+      "from": [
+        6.5,
+        9.5,
+        6.5
+      ],
+      "to": [
+        9.5,
+        11,
+        9.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#brass"
+        },
+        "south": {
+          "texture": "#brass"
+        },
+        "east": {
+          "texture": "#brass"
+        },
+        "west": {
+          "texture": "#brass"
+        },
+        "up": {
+          "texture": "#brass"
+        },
+        "down": {
+          "texture": "#brass"
+        }
+      }
+    },
+    {
+      "from": [
+        7,
+        11,
         7
       ],
       "to": [
         9,
-        10,
+        12,
         9
       ],
       "faces": {
@@ -41,18 +196,59 @@
     },
     {
       "from": [
-        5,
-        0,
-        5
+        6.5,
+        11,
+        1
       ],
       "to": [
-        11,
-        1,
-        11
+        9.5,
+        14,
+        13
       ],
       "faces": {
         "north": {
-          "texture": "#wood"
+          "texture": "#lens"
+        },
+        "south": {
+          "texture": "#brass"
+        },
+        "east": {
+          "texture": "#brass"
+        },
+        "west": {
+          "texture": "#brass"
+        },
+        "up": {
+          "texture": "#brass"
+        },
+        "down": {
+          "texture": "#brass"
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          12.5,
+          8
+        ],
+        "axis": "x",
+        "angle": 22.5
+      }
+    },
+    {
+      "from": [
+        6,
+        10.5,
+        2
+      ],
+      "to": [
+        10,
+        14.5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "texture": "#lens"
         },
         "south": {
           "texture": "#wood"
@@ -69,75 +265,52 @@
         "down": {
           "texture": "#wood"
         }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          12.5,
+          8
+        ],
+        "axis": "x",
+        "angle": 22.5
       }
     },
     {
       "from": [
-        6,
-        9,
-        6
+        6.25,
+        10.75,
+        9
       ],
       "to": [
-        10,
-        11,
+        9.75,
+        14.25,
         10
       ],
       "faces": {
         "north": {
-          "texture": "#tube"
+          "texture": "#wood"
         },
         "south": {
-          "texture": "#tube"
+          "texture": "#wood"
         },
         "east": {
-          "texture": "#tube"
+          "texture": "#wood"
         },
         "west": {
-          "texture": "#tube"
+          "texture": "#wood"
         },
         "up": {
-          "texture": "#tube"
+          "texture": "#wood"
         },
         "down": {
-          "texture": "#tube"
-        }
-      }
-    },
-    {
-      "from": [
-        6,
-        10,
-        2
-      ],
-      "to": [
-        10,
-        14,
-        14
-      ],
-      "faces": {
-        "north": {
-          "texture": "#tube"
-        },
-        "south": {
-          "texture": "#tube"
-        },
-        "east": {
-          "texture": "#tube"
-        },
-        "west": {
-          "texture": "#tube"
-        },
-        "up": {
-          "texture": "#tube"
-        },
-        "down": {
-          "texture": "#tube"
+          "texture": "#wood"
         }
       },
       "rotation": {
         "origin": [
           8,
-          12,
+          12.5,
           8
         ],
         "axis": "x",
@@ -146,96 +319,14 @@
     },
     {
       "from": [
-        5.5,
-        9.5,
-        0.5
+        7.25,
+        11.75,
+        13
       ],
       "to": [
-        10.5,
-        14.5,
-        2
-      ],
-      "faces": {
-        "north": {
-          "texture": "#tube"
-        },
-        "south": {
-          "texture": "#tube"
-        },
-        "east": {
-          "texture": "#tube"
-        },
-        "west": {
-          "texture": "#tube"
-        },
-        "up": {
-          "texture": "#tube"
-        },
-        "down": {
-          "texture": "#tube"
-        }
-      },
-      "rotation": {
-        "origin": [
-          8,
-          12,
-          8
-        ],
-        "axis": "x",
-        "angle": 22.5
-      }
-    },
-    {
-      "from": [
-        6.5,
-        10.5,
-        0
-      ],
-      "to": [
-        9.5,
-        13.5,
-        0.5
-      ],
-      "faces": {
-        "north": {
-          "texture": "#lens"
-        },
-        "south": {
-          "texture": "#lens"
-        },
-        "east": {
-          "texture": "#lens"
-        },
-        "west": {
-          "texture": "#lens"
-        },
-        "up": {
-          "texture": "#lens"
-        },
-        "down": {
-          "texture": "#lens"
-        }
-      },
-      "rotation": {
-        "origin": [
-          8,
-          12,
-          8
-        ],
-        "axis": "x",
-        "angle": 22.5
-      }
-    },
-    {
-      "from": [
-        7,
-        11,
-        14
-      ],
-      "to": [
-        9,
-        13,
-        16
+        8.75,
+        13.25,
+        15.5
       ],
       "faces": {
         "north": {
@@ -260,7 +351,7 @@
       "rotation": {
         "origin": [
           8,
-          12,
+          12.5,
           8
         ],
         "axis": "x",
