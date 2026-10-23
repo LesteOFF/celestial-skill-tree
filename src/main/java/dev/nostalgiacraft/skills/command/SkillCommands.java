@@ -56,6 +56,7 @@ import java.util.Optional;
 @EventBusSubscriber(modid = NostalgiaSkills.MODID)
 public final class SkillCommands {
     private static final int ADMIN_PERMISSION = 2;
+    private static final int OWNER_PERMISSION = 3;
     private static final int MAX_GRANT = 10_000;
     private static final int MAX_AVAILABLE = 100_000;
     private static final int MAX_LISTED_ERRORS = 10;
@@ -71,21 +72,21 @@ public final class SkillCommands {
         event.getDispatcher().register(Commands.literal("nostalgiaskills")
                 .then(Commands.literal("open").executes(SkillCommands::open))
                 .then(admin("inspect").then(playerArgument().executes(SkillCommands::inspect)))
-                .then(admin("points")
+                .then(owner("points")
                         .then(Commands.literal("add").then(playerArgument()
                                 .then(pointsArgument("amount", -MAX_GRANT, MAX_GRANT, true))))
                         .then(Commands.literal("set").then(playerArgument()
                                 .then(pointsArgument("available_amount", 0, MAX_AVAILABLE, false)))))
-                .then(admin("unlock").then(playerArgument()
+                .then(owner("unlock").then(playerArgument()
                         .then(Commands.argument("node_id", ResourceLocationArgument.id()).suggests(NODES)
                                 .executes(context -> unlock(context, false))
                                 .then(Commands.literal("grant_cost").executes(context -> unlock(context, true))))))
-                .then(admin("reset").then(playerArgument().executes(SkillCommands::reset)))
+                .then(owner("reset").then(playerArgument().executes(SkillCommands::reset)))
                 .then(admin("star").then(playerArgument().executes(SkillCommands::star)))
                 .then(admin("constellate").executes(SkillCommands::constellate))
-                .then(admin("extrasign").then(playerArgument()
+                .then(owner("extrasign").then(playerArgument()
                         .then(Commands.argument("granted", BoolArgumentType.bool()).executes(SkillCommands::extraSign))))
-                .then(admin("community").then(Commands.literal("set")
+                .then(owner("community").then(Commands.literal("set")
                         .then(Commands.argument("xp", IntegerArgumentType.integer(0)).executes(SkillCommands::community))))
                 .then(admin("eclipse")
                         .then(Commands.literal("start").executes(context -> skyEvent(context, SkyEvent.ECLIPSE, true)))
@@ -94,12 +95,16 @@ public final class SkillCommands {
                         .then(Commands.literal("start").executes(context -> skyEvent(context, SkyEvent.STAR_SHOWER, true)))
                         .then(Commands.literal("stop").executes(context -> skyEvent(context, SkyEvent.STAR_SHOWER, false))))
                 .then(admin("validate").executes(SkillCommands::validate))
-                .then(admin("regenerate").executes(SkillCommands::regenerateWarning)
+                .then(owner("regenerate").executes(SkillCommands::regenerateWarning)
                         .then(Commands.literal("confirm").executes(SkillCommands::regenerate))));
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> admin(String name) {
         return Commands.literal(name).requires(source -> source.hasPermission(ADMIN_PERMISSION));
+    }
+
+    private static LiteralArgumentBuilder<CommandSourceStack> owner(String name) {
+        return Commands.literal(name).requires(source -> source.hasPermission(OWNER_PERMISSION));
     }
 
     private static RequiredArgumentBuilder<CommandSourceStack, EntitySelector> playerArgument() {
