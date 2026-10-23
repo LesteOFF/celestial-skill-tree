@@ -19,9 +19,17 @@ import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.entity.npc.Npc;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.util.BlockSnapshot;
+import net.neoforged.neoforge.event.level.BlockEvent;
 
+import java.util.Comparator;
 import java.util.List;
 
 final class BoonActions {
@@ -32,6 +40,9 @@ final class BoonActions {
     private static final int CHAOS_BURN_TICKS = 100;
     private static final int CHAOS_OUTCOMES = 4;
     private static final int CHEAT_DEATH_INVULNERABLE_TICKS = 40;
+    private static final String RAISED_TAG = "nostalgiaskills.raised";
+    private static final int MAX_RAISED_ALLIES = 3;
+    private static final double RAISED_SEARCH_RADIUS = 64;
 
     private BoonActions() {
     }
@@ -95,23 +106,32 @@ final class BoonActions {
         }
     }
 
-    static void web(LivingEntity target) {
+    static void web(ServerPlayer player, LivingEntity target) {
+        Level level = target.level();
         BlockPos feet = target.blockPosition();
-        if (target.level().getBlockState(feet).isAir()) {
-            target.level().setBlockAndUpdate(feet, Blocks.COBWEB.defaultBlockState());
+        if (level.getBlockState(feet).isAir() && mayPlace(player, level, feet)) {
+            level.setBlockAndUpdate(feet, Blocks.COBWEB.defaultBlockState());
         }
+    }
+
+    private static boolean mayPlace(ServerPlayer player, Level level, BlockPos pos) {
+        if (!player.mayBuild() || !player.mayInteract(level, pos)) {
+            return false;
+        }
+        BlockSnapshot snapshot = BlockSnapshot.create(level.dimension(), level, pos);
+        return !NeoForge.EVENT_BUS.post(new BlockEvent.EntityPlaceEvent(snapshot, level.getBlockState(pos.below()), player)).isCanceled();
     }
 
     private static List<LivingEntity> enemiesAround(ServerPlayer player, double radius) {
         return player.level().getEntitiesOfClass(LivingEntity.class, player.getBoundingBox().inflate(radius),
-                other -> other != player && !servesPlayer(other, player));
+                other -> isFoe(other, player));
     }
 
     static void burst(ServerPlayer player, LivingEntity fallen, double damage) {
         Entity center = fallen != null ? fallen : player;
         DamageSource blast = player.damageSources().explosion(player, player);
         for (LivingEntity near : player.level().getEntitiesOfClass(LivingEntity.class, center.getBoundingBox().inflate(BURST_RADIUS),
-                other -> other != player && other != fallen && other.isAlive() && !servesPlayer(other, player))) {
+                other -> other != fallen && isFoe(other, player))) {
             near.hurt(blast, (float) damage);
         }
         player.serverLevel().sendParticles(ParticleTypes.EXPLOSION, center.getX(), center.getY(0.5), center.getZ(), 1, 0, 0, 0, 0);
@@ -143,13 +163,24 @@ final class BoonActions {
         if (!(raised instanceof TamableAnimal ally)) {
             return;
         }
+        dismissOldestRaised(player);
         ally.moveTo(origin.position());
         ally.tame(player);
+        ally.addTag(RAISED_TAG);
         ally.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, action.durationTicks(), 0));
         player.serverLevel().addFreshEntity(ally);
     }
 
-    private static boolean servesPlayer(LivingEntity other, ServerPlayer player) {
-        return other instanceof OwnableEntity owned && player.getUUID().equals(owned.getOwnerUUID());
+    private static void dismissOldestRaised(ServerPlayer player) {
+        List<TamableAnimal> raised = player.serverLevel().getEntitiesOfClass(TamableAnimal.class,
+                        player.getBoundingBox().inflate(RAISED_SEARCH_RADIUS), ally -> ally.getTags().contains(RAISED_TAG) && ally.isOwnedBy(player))
+                .stream().sorted(Comparator.comparingInt((TamableAnimal ally) -> ally.tickCount).reversed()).toList();
+        raised.stream().limit(Math.max(0, raised.size() - MAX_RAISED_ALLIES + 1)).forEach(Entity::discard);
+    }
+
+    private static boolean isFoe(LivingEntity other, ServerPlayer player) {
+        boolean bystander = other == player || !other.isAlive() || other instanceof ArmorStand || other instanceof Npc
+                || other instanceof OwnableEntity owned && owned.getOwnerUUID() != null;
+        return !bystander && (!(other instanceof Player victim) || player.canHarmPlayer(victim));
     }
 }

@@ -72,7 +72,7 @@ public final class Triggers {
             case "blink_behind_target" -> BoonActions.blinkBehind(player, target);
             case "stacking_self_effect" -> BoonActions.stackEffect(player, action);
             case "area_effect" -> BoonActions.areaEffect(player, action);
-            case "web_target" -> BoonActions.web(target);
+            case "web_target" -> BoonActions.web(player, target);
             case "lunge" -> BoonActions.lunge(player, action.amount());
             case "chaos_target" -> BoonActions.chaos(player, target, action.amount());
             case "launch_target" -> BoonActions.launch(target, action.amount());
