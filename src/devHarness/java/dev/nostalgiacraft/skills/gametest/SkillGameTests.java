@@ -20,6 +20,7 @@ import dev.nostalgiacraft.skills.registry.ModAttachments;
 import dev.nostalgiacraft.skills.registry.ModAttributes;
 import dev.nostalgiacraft.skills.registry.StateCodecs;
 import dev.nostalgiacraft.skills.server.ExtraSign;
+import dev.nostalgiacraft.skills.server.PlayerExperience;
 import dev.nostalgiacraft.skills.server.SkillService;
 import net.minecraft.core.Holder;
 import net.minecraft.gametest.framework.GameTest;
@@ -73,7 +74,7 @@ public final class SkillGameTests {
         ProgressionService.PurchaseResult result = ProgressionService.purchasePoint(state, Scenario.experience(player),
                 ProgressionService.Settings.DEFAULT);
         if (result.ok()) {
-            SkillService.setExperience(player, result.newXpTotal());
+            PlayerExperience.set(player, result.newXpTotal());
         }
         return result;
     }
@@ -97,7 +98,7 @@ public final class SkillGameTests {
         Scenario.run(helper, scenario -> {
             ServerPlayer buyer = scenario.blankPlayer();
             ServerPlayer bystander = scenario.blankPlayer();
-            SkillService.setExperience(buyer, 1395);
+            PlayerExperience.set(buyer, 1395);
             scenario.check(buyPoint(buyer, ModAttachments.state(buyer)).ok(), "the buyer affords a point");
             scenario.learn(buyer, GUARDIAN_HUB, GATEKEEPER);
             scenario.atLeast(26.0, buyer.getMaxHealth(), "buyer max health with the hub and Gatekeeper");
@@ -113,13 +114,13 @@ public final class SkillGameTests {
         Scenario.run(helper, scenario -> {
             ServerPlayer player = scenario.blankPlayer();
             for (long start : new long[]{100, 352, 1507, 5000}) {
-                SkillService.setExperience(player, start);
+                PlayerExperience.set(player, start);
                 scenario.same(start, Scenario.experience(player), "balance after setting " + start);
                 scenario.check(buyPoint(player, new PlayerSkillState()).ok(), "purchase from " + start);
                 scenario.same(start - FIRST_POINT_COST, Scenario.experience(player), "balance after buying from " + start);
                 scenario.same(start - FIRST_POINT_COST, player.totalExperience, "total experience after buying from " + start);
             }
-            SkillService.setExperience(player, FIRST_POINT_COST - 1);
+            PlayerExperience.set(player, FIRST_POINT_COST - 1);
             scenario.check(!buyPoint(player, new PlayerSkillState()).ok(), "one XP short must not buy a point");
             scenario.same(FIRST_POINT_COST - 1, Scenario.experience(player), "a refused purchase takes nothing");
         });
@@ -176,18 +177,18 @@ public final class SkillGameTests {
             List<String> way = PathFinder.route(graph, state, List.of(), blackHole).orElseThrow().newNodes().stream()
                     .filter(id -> !id.equals(blackHole)).toList();
             scenario.confirm(state, way, "the way to the black hole");
-            Map<String, Double> expected = new HashMap<>(CompiledBuild.compile(graph, state).attributeSums());
+            Map<CompiledBuild.AttributeKey, Double> expected = new HashMap<>(CompiledBuild.compile(graph, state).attributeSums());
             scenario.confirm(state, List.of(blackHole), EYE_OF_THE_STORM);
             addAttributes(expected, graph.nodes().get(blackHole), 1, 1);
             double extraShare = graph.nodes().get(blackHole).traits().neighbourMultiplier() - 1;
             graph.neighbours(blackHole).stream().filter(state::isAllocated)
                     .forEach(neighbour -> addAttributes(expected, graph.nodes().get(neighbour), extraShare, state.rank(neighbour)));
-            Map<String, Double> after = CompiledBuild.compile(graph, state).attributeSums();
-            expected.forEach((key, value) -> scenario.near(value, after.getOrDefault(key, 0.0), key + " with the black hole"));
+            Map<CompiledBuild.AttributeKey, Double> after = CompiledBuild.compile(graph, state).attributeSums();
+            expected.forEach((key, value) -> scenario.near(value, after.getOrDefault(key, 0.0), key.id() + " with the black hole"));
         });
     }
 
-    private static void addAttributes(Map<String, Double> sums, SkillNodeDefinition node, double share, int ranks) {
+    private static void addAttributes(Map<CompiledBuild.AttributeKey, Double> sums, SkillNodeDefinition node, double share, int ranks) {
         node.effects().stream().filter(SkillEffect.Attribute.class::isInstance).map(SkillEffect.Attribute.class::cast)
                 .forEach(effect -> sums.merge(CompiledBuild.sumKey(effect.attribute(), effect.operation()), effect.amount() * share * ranks,
                         Double::sum));

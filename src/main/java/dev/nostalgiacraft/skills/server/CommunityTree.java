@@ -33,7 +33,7 @@ public final class CommunityTree {
         long balance = XpMath.balance(player.experienceLevel, player.experienceProgress);
         CommunityProgress.Donation donation = CommunityProgress.donate(thresholds(), data.communityXp(), balance, requested);
         if (donation.ok()) {
-            SkillService.setExperience(player, balance - donation.accepted());
+            PlayerExperience.set(player, balance - donation.accepted());
             setProgress(player.server, data.communityXp() + donation.accepted());
         }
         return donation;

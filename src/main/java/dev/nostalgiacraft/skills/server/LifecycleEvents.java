@@ -1,18 +1,22 @@
 package dev.nostalgiacraft.skills.server;
 
 import dev.nostalgiacraft.skills.NostalgiaSkills;
+import dev.nostalgiacraft.skills.compat.Integrations;
 import dev.nostalgiacraft.skills.config.ServerConfig;
 import dev.nostalgiacraft.skills.data.GeneratedTree;
 import dev.nostalgiacraft.skills.data.SkillTreeManager;
 import dev.nostalgiacraft.skills.data.SkillTreeReloadListener;
+import dev.nostalgiacraft.skills.effects.CombatEvents;
+import dev.nostalgiacraft.skills.effects.ConsumptionEvents;
 import dev.nostalgiacraft.skills.effects.EffectEngine;
-import dev.nostalgiacraft.skills.effects.GameplayEvents;
+import dev.nostalgiacraft.skills.effects.MiningEvents;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -38,6 +42,11 @@ public final class LifecycleEvents {
     }
 
     @SubscribeEvent
+    public static void onServerStarted(ServerStartedEvent event) {
+        Integrations.logSummary();
+    }
+
+    @SubscribeEvent
     public static void onServerStopped(ServerStoppedEvent event) {
         SkillTreeManager.reset();
     }
@@ -59,10 +68,12 @@ public final class LifecycleEvents {
     @SubscribeEvent
     public static void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            SkillService.forget(player);
+            SkillRequests.forget(player);
             TreeViewers.forget(player);
             EffectEngine.forget(player);
-            GameplayEvents.forget(player.getUUID());
+            CombatEvents.forget(player.getUUID());
+            ConsumptionEvents.forget(player.getUUID());
+            MiningEvents.forget(player.getUUID());
         }
     }
 

@@ -16,7 +16,7 @@ public final class TreeViewers {
     }
 
     public static void onViewing(Payloads.TreeViewing message, IPayloadContext context) {
-        if (context.player() instanceof ServerPlayer player && (!message.open() || SkillService.withinRateLimit(player))) {
+        if (context.player() instanceof ServerPlayer player && (!message.open() || SkillRequests.withinRateLimit(player))) {
             set(player, message.open(), knownSector(message.sectorKey()) ? message.sectorKey() : "");
         }
     }

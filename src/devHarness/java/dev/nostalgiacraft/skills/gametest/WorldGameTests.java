@@ -21,6 +21,7 @@ import dev.nostalgiacraft.skills.registry.ModTags;
 import dev.nostalgiacraft.skills.registry.StarFragmentItem;
 import dev.nostalgiacraft.skills.server.CommunityTree;
 import dev.nostalgiacraft.skills.server.FallenStars;
+import dev.nostalgiacraft.skills.server.PlayerExperience;
 import dev.nostalgiacraft.skills.server.SkillService;
 import dev.nostalgiacraft.skills.server.SkyEvents;
 import net.minecraft.core.BlockPos;
@@ -246,7 +247,7 @@ public final class WorldGameTests {
             scenario.communityProgress(0);
             double healthBefore = bystander.getMaxHealth();
             scenario.communityProgress(firstTier - 50);
-            SkillService.setExperience(donor, 300);
+            PlayerExperience.set(donor, 300);
             CommunityProgress.Donation donation = CommunityTree.donate(donor, 120);
             scenario.check(donation.ok(), "the donation is accepted");
             scenario.same(120, donation.accepted(), "XP accepted");
@@ -267,7 +268,7 @@ public final class WorldGameTests {
             scenario.same(30, CommunityTree.contribute(scenario.server(), 500), "XP accepted from a machine");
             scenario.same(goal, WorldSkillData.of(scenario.server()).communityXp(), "shared progress");
             scenario.same(0, CommunityTree.remaining(scenario.server()), "XP still missing");
-            SkillService.setExperience(donor, 300);
+            PlayerExperience.set(donor, 300);
             scenario.same(RejectReason.COMMUNITY_COMPLETE, CommunityTree.donate(donor, 10).reason().orElseThrow(), "why the donation is refused");
             scenario.same(300, Scenario.experience(donor), "XP left with the donor");
         });
