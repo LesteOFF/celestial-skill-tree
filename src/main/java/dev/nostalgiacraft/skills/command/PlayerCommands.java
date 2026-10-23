@@ -1,6 +1,5 @@
 package dev.nostalgiacraft.skills.command;
 
-import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -12,11 +11,13 @@ import dev.nostalgiacraft.skills.graph.SkillGraphSnapshot;
 import dev.nostalgiacraft.skills.progression.AllocationService;
 import dev.nostalgiacraft.skills.progression.LedgerService;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
+import dev.nostalgiacraft.skills.progression.RefundService;
 import dev.nostalgiacraft.skills.progression.RejectReason;
 import dev.nostalgiacraft.skills.progression.RespecService;
+import dev.nostalgiacraft.skills.progression.ToggleService;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
-import dev.nostalgiacraft.skills.server.ExtraSign;
 import dev.nostalgiacraft.skills.server.SkillService;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
@@ -27,6 +28,8 @@ import java.util.List;
 import java.util.Optional;
 
 final class PlayerCommands {
+    static final int DEFAULT_AUDIT_LINES = 10;
+
     private PlayerCommands() {
     }
 
@@ -39,45 +42,78 @@ final class PlayerCommands {
         context.getSource().sendFailure(Component.translatable(reason.translationKey()));
     }
 
+    static void failFor(CommandContext<CommandSourceStack> context, ServerPlayer player, RejectReason reason) {
+        context.getSource().sendFailure(Component.translatable(reason.translationKey()).append(" (").append(player.getDisplayName()).append(")"));
+    }
+
+    private static Optional<SkillGraphSnapshot> graph(CommandContext<CommandSourceStack> context) {
+        Optional<SkillGraphSnapshot> graph = SkillTreeManager.graph();
+        if (graph.isEmpty()) {
+            fail(context, RejectReason.TREE_UNAVAILABLE);
+        }
+        return graph;
+    }
+
+    private static String node(CommandContext<CommandSourceStack> context) {
+        return ResourceLocationArgument.getId(context, SkillCommands.NODE).toString();
+    }
+
     static int inspect(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        ServerPlayer player = EntityArgument.getPlayer(context, "player");
+        ServerPlayer player = EntityArgument.getPlayer(context, SkillCommands.PLAYER);
         PlayerSkillState state = ModAttachments.state(player);
+        int nextPointCost = ServerConfig.progression().curve().cost(state.purchasedPoints());
         context.getSource().sendSuccess(() -> Component.translatable("command.nostalgiaskills.inspect", player.getDisplayName(),
                 state.purchasedPoints(), state.netGrantedPoints(), state.activeSpentPoints(), state.availablePoints(),
                 state.allocations().size(), state.startingRoot().orElse("-"), state.stateRevision(),
                 state.ledgerHolds() ? "ok" : "BROKEN"), false);
+        context.getSource().sendSuccess(() -> Component.translatable("command.nostalgiaskills.inspect.details",
+                state.sign().orElse("-"), state.discoveries().size(), state.disabled().size(), state.lifetimeSpent(),
+                state.lifetimeRefunded(), nextPointCost, state.audit().size()).withStyle(ChatFormatting.GRAY), false);
         return state.allocations().size();
     }
 
+    static int audit(CommandContext<CommandSourceStack> context, int lines) throws CommandSyntaxException {
+        ServerPlayer player = EntityArgument.getPlayer(context, SkillCommands.PLAYER);
+        List<String> audit = ModAttachments.state(player).audit();
+        List<String> shown = audit.subList(Math.max(0, audit.size() - lines), audit.size());
+        context.getSource().sendSuccess(() -> Component.translatable("command.nostalgiaskills.audit", player.getDisplayName(),
+                shown.size(), audit.size()), false);
+        shown.forEach(line -> context.getSource().sendSuccess(() -> Component.literal("  " + line).withStyle(ChatFormatting.GRAY), false));
+        return shown.size();
+    }
+
     static int points(CommandContext<CommandSourceStack> context, String amountArgument, boolean add,
-                              boolean override) throws CommandSyntaxException {
-        ServerPlayer player = EntityArgument.getPlayer(context, "player");
-        PlayerSkillState state = ModAttachments.state(player);
+                      boolean override) throws CommandSyntaxException {
         int limit = ServerConfig.POINT_LIMIT.get();
         int amount = IntegerArgumentType.getInteger(context, amountArgument);
-        LedgerService.Result result = add ? LedgerService.grant(state, amount, limit, override)
-                : LedgerService.setAvailable(state, amount, limit, override);
-        if (!result.ok()) {
-            fail(context, result.reason().orElseThrow());
-            return 0;
-        }
-        changed(player);
         String messageKey = override ? "command.nostalgiaskills.points.override" : "command.nostalgiaskills.points";
-        context.getSource().sendSuccess(
-                () -> Component.translatable(messageKey, player.getDisplayName(), result.available(), limit), true);
-        return result.available();
+        int done = 0;
+        for (ServerPlayer player : EntityArgument.getPlayers(context, SkillCommands.TARGETS)) {
+            PlayerSkillState state = ModAttachments.state(player);
+            int before = state.availablePoints();
+            LedgerService.Result result = add ? LedgerService.grant(state, amount, limit, override)
+                    : LedgerService.setAvailable(state, amount, limit, override);
+            if (!result.ok()) {
+                failFor(context, player, result.reason().orElseThrow());
+                continue;
+            }
+            changed(player);
+            SkillEvents.post(new SkillEvents.PointsGranted(player, result.available() - before, SkillEvents.GrantSource.COMMAND));
+            context.getSource().sendSuccess(() -> Component.translatable(messageKey, player.getDisplayName(), result.available(), limit), true);
+            done++;
+        }
+        return done;
     }
 
     static int unlock(CommandContext<CommandSourceStack> context, boolean grantCost) throws CommandSyntaxException {
-        ServerPlayer player = EntityArgument.getPlayer(context, "player");
-        String id = ResourceLocationArgument.getId(context, "node_id").toString();
-        Optional<SkillGraphSnapshot> graph = SkillTreeManager.graph();
+        ServerPlayer player = EntityArgument.getPlayer(context, SkillCommands.PLAYER);
+        String id = node(context);
+        Optional<SkillGraphSnapshot> graph = graph(context);
         if (graph.isEmpty()) {
-            fail(context, RejectReason.TREE_UNAVAILABLE);
             return 0;
         }
         PlayerSkillState state = ModAttachments.state(player);
-        if (grantCost && graph.get().contains(id) && !grantCostOf(context, graph.get(), state, id)) {
+        if (grantCost && graph.get().contains(id) && !grantCostOf(context, player, graph.get(), state, id)) {
             return 0;
         }
         AllocationService.BatchResult result = AllocationService.confirm(graph.get(), state, List.of(id));
@@ -93,7 +129,7 @@ final class PlayerCommands {
         return 1;
     }
 
-    static boolean grantCostOf(CommandContext<CommandSourceStack> context, SkillGraphSnapshot graph,
+    private static boolean grantCostOf(CommandContext<CommandSourceStack> context, ServerPlayer player, SkillGraphSnapshot graph,
                                        PlayerSkillState state, String id) {
         int cost = graph.nodes().get(id).cost();
         PlayerSkillState trial = state.copy();
@@ -104,25 +140,58 @@ final class PlayerCommands {
             return false;
         }
         LedgerService.grant(state, cost, Integer.MAX_VALUE, true);
+        SkillEvents.post(new SkillEvents.PointsGranted(player, cost, SkillEvents.GrantSource.COMMAND));
         return true;
     }
 
-    static int reset(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        ServerPlayer player = EntityArgument.getPlayer(context, "player");
-        RespecService.Preview done = RespecService.resetAll(ModAttachments.state(player));
+    static int refund(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = EntityArgument.getPlayer(context, SkillCommands.PLAYER);
+        String id = node(context);
+        Optional<SkillGraphSnapshot> graph = graph(context);
+        if (graph.isEmpty()) {
+            return 0;
+        }
+        RefundService.Plan done = RefundService.apply(graph.get(), ModAttachments.state(player), id, true);
+        if (!done.ok()) {
+            context.getSource().sendFailure(Component.translatable(done.reason().orElseThrow().translationKey()).append(" (" + id + ")"));
+            return 0;
+        }
         changed(player);
-        SkillEvents.post(new SkillEvents.BuildReset(player, done.removed(), done.refund()));
-        context.getSource().sendSuccess(() -> Component.translatable("command.nostalgiaskills.reset", player.getDisplayName(),
+        SkillEvents.post(new SkillEvents.NodesRefunded(player, done.removed(), done.refund()));
+        context.getSource().sendSuccess(() -> Component.translatable("command.nostalgiaskills.refund", id, player.getDisplayName(),
                 done.refund(), done.removed().size()), true);
         return done.refund();
     }
 
-    static int extraSign(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        ServerPlayer player = EntityArgument.getPlayer(context, "player");
-        boolean granted = BoolArgumentType.getBool(context, "granted");
-        ExtraSign.setGranted(player, granted);
-        context.getSource().sendSuccess(() -> Component.translatable(granted ? "command.nostalgiaskills.extrasign.granted"
-                : "command.nostalgiaskills.extrasign.revoked", player.getDisplayName()), true);
+    static int toggle(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = EntityArgument.getPlayer(context, SkillCommands.PLAYER);
+        String id = node(context);
+        Optional<SkillGraphSnapshot> graph = graph(context);
+        if (graph.isEmpty()) {
+            return 0;
+        }
+        PlayerSkillState state = ModAttachments.state(player);
+        Optional<RejectReason> rejected = ToggleService.toggle(graph.get(), state, id);
+        if (rejected.isPresent()) {
+            context.getSource().sendFailure(Component.translatable(rejected.get().translationKey()).append(" (" + id + ")"));
+            return 0;
+        }
+        changed(player);
+        String messageKey = state.isDisabled(id) ? "command.nostalgiaskills.toggle.off" : "command.nostalgiaskills.toggle.on";
+        context.getSource().sendSuccess(() -> Component.translatable(messageKey, id, player.getDisplayName()), true);
         return 1;
+    }
+
+    static int reset(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        int refunded = 0;
+        for (ServerPlayer player : EntityArgument.getPlayers(context, SkillCommands.TARGETS)) {
+            RespecService.Preview done = RespecService.resetAll(ModAttachments.state(player));
+            changed(player);
+            SkillEvents.post(new SkillEvents.BuildReset(player, done.removed(), done.refund()));
+            context.getSource().sendSuccess(() -> Component.translatable("command.nostalgiaskills.reset", player.getDisplayName(),
+                    done.refund(), done.removed().size()), true);
+            refunded += done.refund();
+        }
+        return refunded;
     }
 }

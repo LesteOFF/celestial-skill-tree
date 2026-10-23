@@ -1,8 +1,9 @@
 package dev.nostalgiacraft.skills.command;
 
-import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import dev.nostalgiacraft.skills.data.WorldSkillData;
 import dev.nostalgiacraft.skills.effects.EliteMobs;
 import dev.nostalgiacraft.skills.entity.FallingStar;
 import dev.nostalgiacraft.skills.progression.SkyEvent;
@@ -15,6 +16,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -60,10 +62,12 @@ final class WorldCommands {
         return 1;
     }
 
-    static int community(CommandContext<CommandSourceStack> context) {
-        int xp = IntegerArgumentType.getInteger(context, "xp");
-        CommunityTree.setProgress(context.getSource().getServer(), xp);
-        context.getSource().sendSuccess(() -> Component.translatable("command.nostalgiaskills.community", xp), true);
+    static int community(CommandContext<CommandSourceStack> context, boolean add) {
+        MinecraftServer server = context.getSource().getServer();
+        long xp = LongArgumentType.getLong(context, "xp");
+        long total = add ? WorldSkillData.of(server).communityXp() + xp : xp;
+        CommunityTree.setProgress(server, total);
+        context.getSource().sendSuccess(() -> Component.translatable("command.nostalgiaskills.community", total), true);
         return 1;
     }
 }

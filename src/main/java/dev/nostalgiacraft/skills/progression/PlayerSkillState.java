@@ -273,6 +273,10 @@ public final class PlayerSkillState {
         return discoveries.add(key);
     }
 
+    void forgetDiscoveries() {
+        discoveries.clear();
+    }
+
     void setDisabled(String id, boolean off) {
         if (off) {
             disabled.add(id);

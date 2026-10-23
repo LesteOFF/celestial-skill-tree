@@ -30,6 +30,16 @@ public final class DiscoveryService {
         return true;
     }
 
+    public static boolean forgetAll(PlayerSkillState state) {
+        if (state.discoveries().isEmpty()) {
+            return false;
+        }
+        state.forgetDiscoveries();
+        state.bumpRevision();
+        state.log("forgot every discovery");
+        return true;
+    }
+
     public static boolean discoverAll(PlayerSkillState state, SkillGraphSnapshot graph, Predicate<String> alreadyEarned) {
         boolean changed = false;
         for (String key : keys(graph)) {

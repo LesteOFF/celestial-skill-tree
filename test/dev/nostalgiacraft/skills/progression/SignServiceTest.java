@@ -16,6 +16,8 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -47,6 +49,28 @@ class SignServiceTest {
                     Path.of("src/main/resources/assets/nostalgiaskills/lang/" + language + ".json"))).getAsJsonObject();
             signs.forEach(sign -> assertTrue(translations.has(sign.descriptionKey()), () -> language + " lacks " + sign.descriptionKey()));
         }
+    }
+
+    @Test
+    void rerollAlwaysLandsOnAnotherSignAndLogsIt() {
+        PlayerSkillState state = new PlayerSkillState();
+        SignService.set(state, "a");
+        Random random = new Random(7);
+        for (int roll = 0; roll < 20; roll++) {
+            String before = state.sign().orElseThrow();
+            String after = SignService.reroll(state, List.of("a", "b", "c"), random).orElseThrow();
+            assertFalse(after.equals(before));
+        }
+        assertTrue(state.audit().getLast().startsWith("sign set to "));
+    }
+
+    @Test
+    void rerollWithNoOtherSignKeepsTheCurrentOne() {
+        PlayerSkillState state = new PlayerSkillState();
+        SignService.set(state, "a");
+
+        assertEquals(Optional.empty(), SignService.reroll(state, List.of("a"), new Random(1)));
+        assertEquals(Optional.of("a"), state.sign());
     }
 
     private static List<SkillSign> shippedSigns(Predicate<String> isModLoaded) throws IOException {

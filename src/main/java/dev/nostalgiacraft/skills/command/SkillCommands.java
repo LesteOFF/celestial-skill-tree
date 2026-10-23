@@ -2,6 +2,7 @@ package dev.nostalgiacraft.skills.command;
 
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -10,6 +11,7 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.data.SkillTreeManager;
 import dev.nostalgiacraft.skills.network.Payloads;
+import dev.nostalgiacraft.skills.progression.DiscoveryService;
 import dev.nostalgiacraft.skills.progression.SkyEvent;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -17,6 +19,7 @@ import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.selector.EntitySelector;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -26,12 +29,20 @@ import java.util.List;
 
 @EventBusSubscriber(modid = NostalgiaSkills.MODID)
 public final class SkillCommands {
+    static final String PLAYER = "player";
+    static final String TARGETS = "targets";
+    static final String NODE = "node_id";
     private static final int ADMIN_PERMISSION = 2;
     private static final int OWNER_PERMISSION = 3;
     private static final int MAX_GRANT = 10_000;
     private static final int MAX_AVAILABLE = 100_000;
+    private static final int MAX_AUDIT_LINES = 100;
     private static final SuggestionProvider<CommandSourceStack> NODES = (context, builder) -> SharedSuggestionProvider.suggest(
             SkillTreeManager.graph().map(graph -> graph.ids().stream().toList()).orElse(List.of()), builder);
+    private static final SuggestionProvider<CommandSourceStack> DISCOVERY_KEYS = (context, builder) -> SharedSuggestionProvider.suggest(
+            SkillTreeManager.graph().map(graph -> DiscoveryService.keys(graph).stream().sorted().toList()).orElse(List.of()), builder);
+    private static final SuggestionProvider<CommandSourceStack> SIGNS = (context, builder) -> SharedSuggestionProvider.suggestResource(
+            SkillTreeManager.sortedSignIds().stream().map(ResourceLocation::parse), builder);
 
     private SkillCommands() {
     }
@@ -40,23 +51,39 @@ public final class SkillCommands {
     public static void register(RegisterCommandsEvent event) {
         event.getDispatcher().register(Commands.literal("nostalgiaskills")
                 .then(Commands.literal("open").executes(SkillCommands::open))
-                .then(admin("inspect").then(playerArgument().executes(PlayerCommands::inspect)))
+                .then(admin("inspect").then(player().executes(PlayerCommands::inspect)))
+                .then(admin("audit").then(player().executes(context -> PlayerCommands.audit(context, PlayerCommands.DEFAULT_AUDIT_LINES))
+                        .then(Commands.argument("lines", IntegerArgumentType.integer(1, MAX_AUDIT_LINES))
+                                .executes(context -> PlayerCommands.audit(context, IntegerArgumentType.getInteger(context, "lines"))))))
                 .then(owner("points")
-                        .then(Commands.literal("add").then(playerArgument()
+                        .then(Commands.literal("add").then(targets()
                                 .then(pointsArgument("amount", -MAX_GRANT, MAX_GRANT, true))))
-                        .then(Commands.literal("set").then(playerArgument()
+                        .then(Commands.literal("set").then(targets()
                                 .then(pointsArgument("available_amount", 0, MAX_AVAILABLE, false)))))
-                .then(owner("unlock").then(playerArgument()
-                        .then(Commands.argument("node_id", ResourceLocationArgument.id()).suggests(NODES)
-                                .executes(context -> PlayerCommands.unlock(context, false))
-                                .then(Commands.literal("grant_cost").executes(context -> PlayerCommands.unlock(context, true))))))
-                .then(owner("reset").then(playerArgument().executes(PlayerCommands::reset)))
-                .then(admin("star").then(playerArgument().executes(WorldCommands::star)))
+                .then(owner("unlock").then(player().then(node()
+                        .executes(context -> PlayerCommands.unlock(context, false))
+                        .then(Commands.literal("grant_cost").executes(context -> PlayerCommands.unlock(context, true))))))
+                .then(owner("refund").then(player().then(node().executes(PlayerCommands::refund))))
+                .then(owner("toggle").then(player().then(node().executes(PlayerCommands::toggle))))
+                .then(owner("reset").then(targets().executes(PlayerCommands::reset)))
+                .then(owner("cooldowns").then(Commands.literal("clear").then(targets().executes(CharacterCommands::clearCooldowns))))
+                .then(owner("discoveries")
+                        .then(Commands.literal("reveal").then(targets().then(Commands.argument("key", ResourceLocationArgument.id())
+                                .suggests(DISCOVERY_KEYS).executes(CharacterCommands::reveal))))
+                        .then(Commands.literal("clear").then(targets().executes(CharacterCommands::forget))))
+                .then(owner("sign")
+                        .then(Commands.literal("set").then(targets().then(Commands.argument("sign", ResourceLocationArgument.id())
+                                .suggests(SIGNS).executes(CharacterCommands::setSign))))
+                        .then(Commands.literal("reroll").then(targets().executes(CharacterCommands::rerollSign))))
+                .then(owner("extrasign").then(targets()
+                        .then(Commands.argument("granted", BoolArgumentType.bool()).executes(CharacterCommands::extraSign))))
+                .then(admin("star").then(player().executes(WorldCommands::star)))
                 .then(admin("constellate").executes(WorldCommands::constellate))
-                .then(owner("extrasign").then(playerArgument()
-                        .then(Commands.argument("granted", BoolArgumentType.bool()).executes(PlayerCommands::extraSign))))
-                .then(owner("community").then(Commands.literal("set")
-                        .then(Commands.argument("xp", IntegerArgumentType.integer(0)).executes(WorldCommands::community))))
+                .then(owner("community")
+                        .then(Commands.literal("set").then(Commands.argument("xp", LongArgumentType.longArg(0))
+                                .executes(context -> WorldCommands.community(context, false))))
+                        .then(Commands.literal("add").then(Commands.argument("xp", LongArgumentType.longArg(0))
+                                .executes(context -> WorldCommands.community(context, true)))))
                 .then(admin("eclipse")
                         .then(Commands.literal("start").executes(context -> WorldCommands.skyEvent(context, SkyEvent.ECLIPSE, true)))
                         .then(Commands.literal("stop").executes(context -> WorldCommands.skyEvent(context, SkyEvent.ECLIPSE, false))))
@@ -77,8 +104,16 @@ public final class SkillCommands {
         return Commands.literal(name).requires(source -> source.hasPermission(OWNER_PERMISSION));
     }
 
-    private static RequiredArgumentBuilder<CommandSourceStack, EntitySelector> playerArgument() {
-        return Commands.argument("player", EntityArgument.player());
+    private static RequiredArgumentBuilder<CommandSourceStack, EntitySelector> player() {
+        return Commands.argument(PLAYER, EntityArgument.player());
+    }
+
+    private static RequiredArgumentBuilder<CommandSourceStack, EntitySelector> targets() {
+        return Commands.argument(TARGETS, EntityArgument.players());
+    }
+
+    private static RequiredArgumentBuilder<CommandSourceStack, ResourceLocation> node() {
+        return Commands.argument(NODE, ResourceLocationArgument.id()).suggests(NODES);
     }
 
     private static RequiredArgumentBuilder<CommandSourceStack, Integer> pointsArgument(String name, int min, int max,
