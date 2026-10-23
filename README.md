@@ -20,20 +20,24 @@ classes of your world, confirm it in one batch, and reshape your build with the 
 | NeoForge | 21.1.256 or newer 21.1.x (`[21.1.256,21.2)`) |
 | Java | 21 (64-bit) |
 
-Install the jar in `mods/` on **both** the client and the server. No other mods are required; KubeJS (2101.x) is
-the only optional integration.
+Install the jar in `mods/` on **both** the client and the server. No other mods are required. Every integration is
+optional: KubeJS (2101.x) and the mods listed under [Integration hooks](#integration-hooks) are used only when installed.
 
 ## Building
 
 ```bash
-./gradlew build            # Windows: gradlew.bat build  → build/libs/nostalgiaskills-1.5.0.jar
-./gradlew test             # 48 unit tests in test/, including trees generated from the shipped catalog
+./gradlew build            # Windows: gradlew.bat build  → build/libs/nostalgiaskills-2.0.0.jar
+./gradlew test             # 49 unit tests in test/, including trees generated from the shipped catalog
 ./gradlew validateTree     # validates the catalog and generates one tree outside the game
 ./gradlew previewTree      # draws the tree shape to build/preview/tree.png
 ./gradlew runGameTestServer  # 39 in-game tests on a real server with mock players
 ./gradlew runPackGameTestServer  # the same tests plus 3 integration tests, with the pack's mods (pack_mods_dir)
 ./gradlew runClient / runServer
 ```
+
+The game tests and the in-game QA harness live in the `devHarness` source set (`src/devHarness`): every dev run loads
+them, the release jar does not. `runPackGameTestServer` reads the pack's mods folder from `pack_mods_dir` in
+`~/.gradle/gradle.properties` or from the `PACK_MODS_DIR` environment variable; nothing else needs it.
 
 Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256, Parchment 1.21.1-2024.11.17.
 
@@ -270,12 +274,13 @@ An optional KubeJS integration ships (see below); packs and addons can build any
   model lives in `assets/apotheosis/models/item/gems`, the only place Apotheosis looks. The others grant this mod's own
   attributes directly, so they are not covered by the Apothic or Pufferfish redirection above. Apothic's attribute
   screen shows every attribute of this mod with a description.
-- **Boss constellations.** With the matching mod installed, 27 keystones stay hidden until the player earns the
+- **Boss constellations.** With the matching mod installed, 28 keystones stay hidden until the player earns the
   boss advancement (`hidden_until`): the Aether dungeons and Deep Aether's Brass Dungeon, Twilight Forest (Naga, Lich,
   Hydra, Ur-Ghast, Snow Queen), Cataclysm (six bosses), Ice and Fire (dragon, hydra, sea serpent), Mowzie's Mobs
   (Frostmaw, Ferrous Wroughtnaut, Umvuthi), Block Factory's Bosses (Kraken, Sandworm, Underworld Knight), Born in Chaos
   (Spider Warlord, Pumpkin Lord) and Aquamirae (Shipbreaker). A class holds up to 100 keystones; beyond the
-  first nine they sit in wider rows of the crown, and every keystone takes one of the class's node slots.
+  first nine they sit in wider rows of the crown, and every drawn keystone takes one of the class's node slots
+  (hidden keystones take none, see below).
 - **Hidden Sky.** A keystone with `hidden_until` is never drawn by the procedural generator and takes no node slot of
   its class. All of them sit in a fixed section far below the tree, one row per class in id order, so they are in the
   same place in every world. They belong to a sector of their own, **Hidden Sky**, and hang from nothing: a hidden
@@ -390,7 +395,7 @@ An optional KubeJS integration ships (see below); packs and addons can build any
 
 Each integration was written against the classes, ids and data formats of the partner's jar and switches itself off
 with one warning if the installed version differs. `./gradlew runPackGameTestServer` starts a game test server with
-the NostalgiaCraft pack's jars (path in `pack_mods_dir`) and checks that none of the installed integrations switched
+the NostalgiaCraft pack's jars (path in `pack_mods_dir`, see Building) and checks that none of the installed integrations switched
 itself off, that Relics experience reaches its bearer, that every KubeJS event reaches a script and that the KubeJS
 catalog event can add a theme; the regular game tests also run there, with Apothic Attributes redirecting the tree's
 attributes. Integrations whose mod is not in the pack (for example Pufferfish's Attributes) are not exercised.

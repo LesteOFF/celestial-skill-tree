@@ -6,8 +6,8 @@ NeoForge 21.1.256 for Minecraft 1.21.1, Java 21, ModDevGradle 2.0.148. Package r
 generation/   pure Java: catalog model and CatalogParser, TreeShapeGenerator (the web layout), TreeDrawer
               (seeded draw), TreeAssembler and TreeGenerator (catalog + seed -> validated graph), DrawJson
 text/         pure Java: EffectPhrases and PhraseRenderer turn effects into sentences
-graph/        pure Java: node/edge/effect model, EffectParser (JSON effects; the old node-file parser,
-              ConnectionParser over JsonFields), GraphValidator, SkillGraphSnapshot, GraphCodec
+graph/        pure Java: node/edge/effect model, EffectParser and JsonFields (JSON effects), GraphValidator,
+              SkillGraphSnapshot, GraphCodec
 progression/  pure Java: PlayerSkillState (ledger), AllocationService, Holdings, PathFinder, XpMath, XpCurve,
               ProgressionService, LedgerService, RespecService, RefundService, Reconciler, RequestGuard,
               RejectReason
@@ -15,17 +15,27 @@ data/         server resource loading: SkillTreeReloadListener (reads the catalo
               per world), SkillTreeManager, WorldSkillData (saves the draw), McKnownIds
 registry/     attributes, item tags, attachments + codecs, persisted cooldowns, Orb of Reconfiguration
 network/      payload records + registration (client-bound handlers reach client code only through ClientHandlers)
-server/       SkillService (authoritative intents), LifecycleEvents, RateLimiter
-effects/      CompiledBuild, EffectEngine (attribute modifiers), GameplayEvents (combat/potions/mining), Triggers
+server/       SkillService (authoritative intents), LifecycleEvents, RateLimiter, SkyEvents, ShootingStars,
+              CommunityTree, XpWallets, TreeViewers
+effects/      CompiledBuild, EffectEngine (attribute modifiers), GameplayEvents (combat/potions/mining), Triggers,
+              BoonActions, EliteMobs, PetInheritance, BorrowedNodes, StolenNodes
+block/        Telescope, Stellar Condenser and Community Basin (XpBasinBlockEntity)
+entity/       FallingStar
 api/          SkillEvents: NeoForge events other mods and scripts may listen to
-compat/       kubejs/: optional KubeJS plugin (script events + NostalgiaSkills binding); the only package that
-              references KubeJS classes, loaded by KubeJS itself through kubejs.plugins.txt
+compat/       one package per optional mod (apotheosis, arsnouveau, bettercombat, curios, ironsspellbooks, jade,
+              occultism, …), registered by Integrations and guarded by OptionalEvents; most reach the other mod by
+              reflection (Reflection). kubejs/ is the KubeJS plugin (script events + NostalgiaSkills binding), loaded
+              by KubeJS itself through kubejs.plugins.txt
+mixin/        LevelMixin (eclipse darkness on the server) and ClientLevelMixin (sky tint on the client)
 command/      /nostalgiaskills
 config/       ServerConfig (gameplay, synced), ClientConfig (presentation only)
-client/       ClientSkillState, ClientSetup (key mapping), screen/, render/, VisualQa + InWorldQa (dev harness)
+client/       ClientSkillState, ClientSetup (key mapping), screen/, render/
 ```
 
-`graph` and `progression` contain no Minecraft classes; they are unit-tested directly (`./gradlew test`, 30 tests in `test/`,
+`src/devHarness` (not in the release jar) holds `gametest/` and the client QA harness (`VisualQa`, `InWorldQa`,
+`MultiplayerQa`, `QaScript`) in the same packages; every dev run uses that source set.
+
+`graph` and `progression` contain no Minecraft classes; they are unit-tested directly (`./gradlew test`, 49 tests in `test/`,
 including trees generated from the shipped catalog for many seeds). The same classes run on the server (authoritative) and
 on the client (previews only), so the client shows exactly the rules the server enforces.
 
@@ -162,7 +172,12 @@ Offline players go through the same path on their next login, before effects are
   spawn for range conditions (piercing hits measure from the same origin). Crossbow bonus uses the arrow's weapon item.
 - **Triggers** (`Triggers.fire`): crit, dodge, shield block (`LivingShieldBlockEvent`), kill, projectile kill, hurt,
   crossing below 30% health, drinking a beneficial potion, fully charged arrow hit, mining a block with an eligible
-  tool. Actions heal or apply mob effects only (no recursion).
+  tool, eating, the Hidden Power key, a fatal blow and any namespaced id another mod fires. Actions: `heal`,
+  `self_effect`, `target_effect`, `stacking_self_effect`, `area_effect`, `ignite_target`, `gust`, `pull`, `burst`,
+  `blink_behind_target`, `launch_target`, `smite_target`, `chaos_target`, `lunge`, `web_target`, `cheat_death`,
+  `raise_ally`, plus actions integrations register (`restore_mana`, `blood_for_mana`, `sunstrike`). An action never
+  fires a trigger directly; actions that can kill or spawn need a cooldown of at least 20 ticks, so a kill chain
+  cannot loop.
 - **Potions:** on `LivingEntityUseItemEvent.Finish` for potion items, beneficial non-instant effects are extended to
   `potionDuration × (1 + bonus)` computed from the potion — refreshing never compounds.
 - **Mining:** `PlayerEvent.BreakSpeed` (both sides, synced attribute) for tools in `#nostalgiaskills:mining_tools`
