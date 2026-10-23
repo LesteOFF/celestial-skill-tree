@@ -21,6 +21,7 @@ public final class ForbiddenArcanusCompat {
     }
 
     public static void register() {
+        Reflection.requireTypes(ESSENCE_HELPER, ESSENCE_TYPE);
         XpWallets.register(new OrbWallet());
     }
 

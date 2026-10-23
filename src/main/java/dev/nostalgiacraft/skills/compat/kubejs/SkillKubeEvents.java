@@ -6,6 +6,7 @@ import dev.latvian.mods.kubejs.event.EventHandler;
 import dev.latvian.mods.kubejs.event.KubeEvent;
 import dev.latvian.mods.kubejs.script.ScriptType;
 import dev.nostalgiacraft.skills.api.SkillEvents;
+import dev.nostalgiacraft.skills.compat.OptionalEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -43,7 +44,7 @@ public final class SkillKubeEvents {
     }
 
     private static <E extends Event> void forward(Class<E> type, EventHandler handler, Function<E, KubeEvent> wrap) {
-        NeoForge.EVENT_BUS.addListener(type, event -> KubeJSGuard.run("posting " + type.getSimpleName(), () -> {
+        NeoForge.EVENT_BUS.addListener(type, event -> OptionalEvents.guard(NostalgiaSkillsPlugin.MOD_ID, "posting " + type.getSimpleName(), () -> {
             if (handler.hasListeners()) {
                 handler.post(ScriptType.SERVER, wrap.apply(event));
             }

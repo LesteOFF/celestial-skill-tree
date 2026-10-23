@@ -17,6 +17,7 @@ public final class ChampionsCompat {
     }
 
     public static void register() {
+        Reflection.requireTypes(API);
         boolean hasApi = Reflection.exists(API);
         if (hasApi) {
             AstralAffix.register(ModLoadingContext.get().getActiveContainer().getEventBus());

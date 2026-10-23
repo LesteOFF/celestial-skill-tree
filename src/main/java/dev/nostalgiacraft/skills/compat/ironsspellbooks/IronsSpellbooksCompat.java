@@ -22,6 +22,7 @@ public final class IronsSpellbooksCompat {
     }
 
     public static void register() {
+        Reflection.requireTypes(MAGIC_DATA);
         OptionalEvents.listen(MOD_ID, EVENTS + "SpellOnCastEvent", IronsSpellbooksCompat::onSpellCast);
         OptionalEvents.listen(MOD_ID, EVENTS + "ChangeManaEvent", IronsSpellbooksCompat::onManaChange);
         OptionalEvents.listen(MOD_ID, EVENTS + "SpellCooldownAddedEvent$Pre", IronsSpellbooksCompat::onCooldownAdded);

@@ -2,7 +2,7 @@ package dev.nostalgiacraft.skills.compat.scguns;
 
 import dev.nostalgiacraft.skills.compat.OptionalEvents;
 import dev.nostalgiacraft.skills.compat.Reflection;
-import dev.nostalgiacraft.skills.effects.GameplayEvents;
+import dev.nostalgiacraft.skills.effects.CombatEvents;
 import dev.nostalgiacraft.skills.effects.Triggers;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -24,6 +24,7 @@ public final class ScorchedGunsCompat {
     }
 
     public static void register() {
+        Reflection.requireTypes(RELOADED, PROJECTILE_HIT, BULLET, DETAILED_HIT);
         OptionalEvents.listen(MOD_ID, RELOADED, ScorchedGunsCompat::onReloaded);
         OptionalEvents.listen(MOD_ID, PROJECTILE_HIT, ScorchedGunsCompat::onProjectileHit);
         NeoForge.EVENT_BUS.addListener(EntityJoinLevelEvent.class,
@@ -48,7 +49,7 @@ public final class ScorchedGunsCompat {
         boolean playerBullet = !entity.level().isClientSide() && Reflection.isInstance(BULLET, entity)
                 && shooter(entity) instanceof ServerPlayer;
         if (playerBullet) {
-            GameplayEvents.rememberOrigin(entity);
+            CombatEvents.rememberOrigin(entity);
         }
     }
 

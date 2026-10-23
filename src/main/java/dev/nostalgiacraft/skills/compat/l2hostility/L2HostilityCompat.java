@@ -27,6 +27,7 @@ public final class L2HostilityCompat {
     }
 
     public static void register() {
+        Reflection.requireTypes(CAPABILITIES);
         EliteMobs.registerRival(monster -> OptionalEvents.guarded(MOD_ID, false, () -> hasTraits(monster)));
         EliteMobs.registerNodeBonus(monster -> OptionalEvents.guarded(MOD_ID, 0, () -> nodesForLevel(monster)));
         NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, LivingDeathEvent.class,

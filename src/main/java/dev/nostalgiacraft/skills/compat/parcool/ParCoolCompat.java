@@ -20,6 +20,7 @@ public final class ParCoolCompat {
     }
 
     public static void register() {
+        Reflection.requireTypes(ACTION_STARTED);
         OptionalEvents.listen(MOD_ID, ACTION_STARTED, ParCoolCompat::onActionStarted);
     }
 

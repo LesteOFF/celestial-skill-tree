@@ -13,6 +13,7 @@ public final class DummmmmmyCompat {
     }
 
     public static void register() {
+        Reflection.requireTypes(CRIT_TRACKER);
         NeoForge.EVENT_BUS.addListener(SkillEvents.TreeCriticalHit.class,
                 event -> OptionalEvents.guard(MOD_ID, () -> showAsCritical(event)));
     }

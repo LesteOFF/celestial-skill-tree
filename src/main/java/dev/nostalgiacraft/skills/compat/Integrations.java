@@ -1,5 +1,6 @@
 package dev.nostalgiacraft.skills.compat;
 
+import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.compat.apotheosis.ApotheosisCompat;
 import dev.nostalgiacraft.skills.compat.arsnouveau.ArsNouveauCompat;
 import dev.nostalgiacraft.skills.compat.bettercombat.BetterCombatCompat;
@@ -10,6 +11,7 @@ import dev.nostalgiacraft.skills.compat.dummmmmmy.DummmmmmyCompat;
 import dev.nostalgiacraft.skills.compat.enigmaticlegacy.EnigmaticLegacyCompat;
 import dev.nostalgiacraft.skills.compat.forbiddenarcanus.ForbiddenArcanusCompat;
 import dev.nostalgiacraft.skills.compat.ironsspellbooks.IronsSpellbooksCompat;
+import dev.nostalgiacraft.skills.compat.kubejs.NostalgiaSkillsPlugin;
 import dev.nostalgiacraft.skills.compat.l2hostility.L2HostilityCompat;
 import dev.nostalgiacraft.skills.compat.mowziesmobs.MowziesMobsCompat;
 import dev.nostalgiacraft.skills.compat.occultism.OccultismCompat;
@@ -20,8 +22,11 @@ import dev.nostalgiacraft.skills.compat.reliquary.ReliquaryCompat;
 import dev.nostalgiacraft.skills.compat.scguns.ScorchedGunsCompat;
 import net.neoforged.fml.ModList;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Stream;
 
 public final class Integrations {
     private static final Map<String, Runnable> REGISTRATION_BY_MOD = Map.ofEntries(
@@ -49,6 +54,21 @@ public final class Integrations {
 
     public static Set<String> modIds() {
         return REGISTRATION_BY_MOD.keySet();
+    }
+
+    public static Map<String, Boolean> installed() {
+        Map<String, Boolean> active = new TreeMap<>();
+        Stream.concat(REGISTRATION_BY_MOD.keySet().stream(), Stream.of(NostalgiaSkillsPlugin.MOD_ID))
+                .filter(ModList.get()::isLoaded)
+                .forEach(mod -> active.put(mod, !OptionalEvents.isDisabled(mod)));
+        return active;
+    }
+
+    public static void logSummary() {
+        Map<String, Boolean> installed = installed();
+        List<String> off = installed.entrySet().stream().filter(entry -> !entry.getValue()).map(Map.Entry::getKey).toList();
+        NostalgiaSkills.LOGGER.info("Integrations active: {}; switched off: {}",
+                installed.entrySet().stream().filter(Map.Entry::getValue).map(Map.Entry::getKey).toList(), off.isEmpty() ? "none" : off);
     }
 
     public static void register() {

@@ -13,6 +13,7 @@ import dev.nostalgiacraft.skills.progression.BuildSwapService.Build;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
 import dev.nostalgiacraft.skills.registry.ModItems;
 import dev.nostalgiacraft.skills.server.SkillService;
+import net.minecraft.SharedConstants;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -37,12 +38,12 @@ public final class OccultismCompat {
     private static final String NODES_KEY = "nodes";
     private static final String DISABLED_KEY = "disabled";
     private static final String SWAPPED_AT_KEY = "nostalgiaskills_build_swapped_at";
-    private static final int TICKS_PER_SECOND = 20;
 
     private OccultismCompat() {
     }
 
     public static void register() {
+        Reflection.requireTypes(FAMILIAR);
         NeoForge.EVENT_BUS.addListener(PlayerInteractEvent.EntityInteract.class,
                 event -> OptionalEvents.guard(MOD_ID, () -> onInteract(event)));
     }
@@ -64,12 +65,12 @@ public final class OccultismCompat {
     private static void swap(ServerPlayer player, Entity familiar) {
         long now = player.serverLevel().getGameTime();
         long readyAt = familiar.getPersistentData().getLong(SWAPPED_AT_KEY)
-                + (long) ServerConfig.FAMILIAR_SWAP_COOLDOWN_SECONDS.get() * TICKS_PER_SECOND;
+                + (long) ServerConfig.FAMILIAR_SWAP_COOLDOWN_SECONDS.get() * SharedConstants.TICKS_PER_SECOND;
         Optional<SkillGraphSnapshot> graph = SkillTreeManager.graph();
         boolean resting = familiar.getPersistentData().contains(SWAPPED_AT_KEY) && now < readyAt;
         if (graph.isEmpty() || resting) {
             player.sendSystemMessage(Component.translatable("message.nostalgiaskills.familiar_swap.cooldown",
-                    Math.max(1, (readyAt - now) / TICKS_PER_SECOND)));
+                    Math.max(1, (readyAt - now) / SharedConstants.TICKS_PER_SECOND)));
             return;
         }
         BuildSwapService.Result result = BuildSwapService.swap(graph.get(), ModAttachments.state(player), stored(familiar));

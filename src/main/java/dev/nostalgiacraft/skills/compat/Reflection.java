@@ -6,11 +6,28 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class Reflection {
     private static final Map<String, Class<?>> TYPES = new ConcurrentHashMap<>();
     private static final Map<MethodKey, Method> METHODS = new ConcurrentHashMap<>();
+
+    private static final Map<Class<?>, Set<Class<?>>> WIDENS_FROM = Map.of(
+            boolean.class, Set.of(Boolean.class),
+            char.class, Set.of(Character.class),
+            byte.class, Set.of(Byte.class),
+            short.class, Set.of(Short.class, Byte.class),
+            int.class, Set.of(Integer.class, Short.class, Byte.class, Character.class),
+            long.class, Set.of(Long.class, Integer.class, Short.class, Byte.class, Character.class),
+            float.class, Set.of(Float.class, Long.class, Integer.class, Short.class, Byte.class, Character.class),
+            double.class, Set.of(Double.class, Float.class, Long.class, Integer.class, Short.class, Byte.class, Character.class));
+
+    public static final class Failure extends IllegalStateException {
+        Failure(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
 
     private record MethodKey(Class<?> owner, String name, List<Class<?>> argumentTypes) {
     }
@@ -40,7 +57,7 @@ public final class Reflection {
             field.setAccessible(true);
             return field.get(null);
         } catch (ReflectiveOperationException | RuntimeException failure) {
-            throw new IllegalStateException("cannot read " + className + "." + name, failure);
+            throw new Failure("cannot read " + className + "." + name, failure);
         }
     }
 
@@ -50,7 +67,17 @@ public final class Reflection {
             return Arrays.stream(owner.getConstructors()).filter(candidate -> accepts(candidate.getParameterTypes(), arguments))
                     .findFirst().orElseThrow(() -> new NoSuchMethodException(className)).newInstance(arguments);
         } catch (ReflectiveOperationException failure) {
-            throw new IllegalStateException("cannot construct " + className, failure);
+            throw new Failure("cannot construct " + className, failure);
+        }
+    }
+
+    public static void requireTypes(String... classNames) {
+        for (String className : classNames) {
+            try {
+                Class.forName(className, false, Reflection.class.getClassLoader());
+            } catch (ClassNotFoundException | LinkageError missing) {
+                throw new Failure("missing class " + className, missing);
+            }
         }
     }
 
@@ -77,7 +104,7 @@ public final class Reflection {
             TYPES.put(className, found);
             return found;
         } catch (ClassNotFoundException failure) {
-            throw new IllegalStateException("missing class " + className, failure);
+            throw new Failure("missing class " + className, failure);
         }
     }
 
@@ -85,7 +112,7 @@ public final class Reflection {
         try {
             return cachedMethod(owner, method, arguments).invoke(target, arguments);
         } catch (ReflectiveOperationException failure) {
-            throw new IllegalStateException("cannot call " + owner.getName() + "." + method, failure);
+            throw new Failure("cannot call " + owner.getName() + "." + method, failure);
         }
     }
 
@@ -126,18 +153,25 @@ public final class Reflection {
             return false;
         }
         for (int i = 0; i < parameters.length; i++) {
-            if (!parameters[i].isPrimitive() && arguments[i] != null && !parameters[i].isInstance(arguments[i])) {
+            if (!accepts(parameters[i], arguments[i])) {
                 return false;
             }
         }
         return true;
     }
 
+    private static boolean accepts(Class<?> parameter, Object argument) {
+        if (parameter.isPrimitive()) {
+            return argument != null && WIDENS_FROM.get(parameter).contains(argument.getClass());
+        }
+        return argument == null || parameter.isInstance(argument);
+    }
+
     private static Object readField(Class<?> owner, Object target, String name) {
         try {
             return owner.getField(name).get(target);
         } catch (ReflectiveOperationException failure) {
-            throw new IllegalStateException("cannot read " + owner.getName() + "." + name, failure);
+            throw new Failure("cannot read " + owner.getName() + "." + name, failure);
         }
     }
 }

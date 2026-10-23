@@ -24,6 +24,7 @@ public final class ApotheosisCompat {
     }
 
     public static void register() {
+        Reflection.requireTypes(AFFIX_HELPER);
         EliteMobs.registerRival(monster -> monster.getPersistentData().contains(BOSS_KEY));
         BorrowedNodes.registerLender(player -> OptionalEvents.guarded(MOD_ID, List.of(), () -> keystonesOnEquipment(player)));
     }

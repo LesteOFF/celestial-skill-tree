@@ -34,6 +34,7 @@ public final class CuriosCompat {
     }
 
     public static void register() {
+        Reflection.requireTypes(API, CHANGE_EVENT);
         EffectEngine.registerCondition("has_curio", (player, condition) ->
                 OptionalEvents.guarded(MOD_ID, false, () -> wears(player, condition)));
         EffectEngine.registerAttributeTarget(MOD_ID, new SlotTarget());

@@ -17,6 +17,7 @@ public final class PandoraCompat {
     }
 
     public static void register() {
+        Reflection.requireTypes(HOLDER);
         WornItems.registerSource(player -> OptionalEvents.guarded(MOD_ID, List.of(), () -> charmsInside(player)));
     }
 

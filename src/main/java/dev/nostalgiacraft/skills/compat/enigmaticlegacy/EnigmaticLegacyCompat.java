@@ -7,17 +7,16 @@ import dev.nostalgiacraft.skills.progression.LedgerService;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import dev.nostalgiacraft.skills.progression.RespecService;
 import dev.nostalgiacraft.skills.registry.ModAttachments;
+import dev.nostalgiacraft.skills.registry.PersistedPlayerData;
 import dev.nostalgiacraft.skills.registry.WornItems;
 import dev.nostalgiacraft.skills.server.ComponentXpWallet;
 import dev.nostalgiacraft.skills.server.SkillService;
 import dev.nostalgiacraft.skills.server.XpWallets;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
@@ -48,8 +47,7 @@ public final class EnigmaticLegacyCompat {
     }
 
     private static void settleRingPoints(ServerPlayer player) {
-        CompoundTag persisted = player.getPersistentData().getCompound(Player.PERSISTED_NBT_TAG);
-        int lent = persisted.getInt(RING_POINTS_KEY);
+        int lent = PersistedPlayerData.read(player).getInt(RING_POINTS_KEY);
         boolean wearsRing = WornItems.inExtraSlots(player).stream().anyMatch(stack -> isItem(stack, CURSED_RING));
         if (wearsRing == (lent > 0)) {
             return;
@@ -58,8 +56,7 @@ public final class EnigmaticLegacyCompat {
         if (nowLent == lent) {
             return;
         }
-        persisted.putInt(RING_POINTS_KEY, nowLent);
-        player.getPersistentData().put(Player.PERSISTED_NBT_TAG, persisted);
+        PersistedPlayerData.update(player, persisted -> persisted.putInt(RING_POINTS_KEY, nowLent));
         SkillService.sendState(player);
     }
 

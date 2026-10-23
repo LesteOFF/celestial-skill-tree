@@ -27,6 +27,7 @@ public final class BetterCombatCompat {
     }
 
     public static void register() {
+        Reflection.requireTypes(WEAPON_REGISTRY);
         WeaponClasses.registerClassifier(stack -> OptionalEvents.guarded(MOD_ID, Optional.empty(), () -> classOf(stack)));
         NeoForge.EVENT_BUS.addListener(LivingDamageEvent.Post.class,
                 event -> OptionalEvents.guard(MOD_ID, () -> onDamageDealt(event)));

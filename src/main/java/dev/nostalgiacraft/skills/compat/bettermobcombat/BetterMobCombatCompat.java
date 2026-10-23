@@ -17,6 +17,7 @@ public final class BetterMobCombatCompat {
     }
 
     public static void register() {
+        Reflection.requireTypes(COMBAT_STATE);
         NeoForge.EVENT_BUS.addListener(EntityTickEvent.Post.class,
                 event -> OptionalEvents.guard(MOD_ID, () -> onTick(event)));
     }

@@ -20,6 +20,7 @@ public final class MowziesMobsCompat {
     }
 
     public static void register() {
+        Reflection.requireTypes(SUNSTRIKE);
         Triggers.registerAction("sunstrike", (player, action) ->
                 OptionalEvents.guard(MOD_ID, () -> callSunstrike(player, action.amount())));
     }

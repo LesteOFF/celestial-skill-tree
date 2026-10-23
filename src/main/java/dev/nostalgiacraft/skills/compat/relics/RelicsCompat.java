@@ -20,6 +20,7 @@ public final class RelicsCompat {
     }
 
     public static void register() {
+        Reflection.requireTypes(EXPERIENCE_EVENT);
         OptionalEvents.listen(MOD_ID, EXPERIENCE_EVENT, RelicsCompat::onRelicExperience);
     }
 
