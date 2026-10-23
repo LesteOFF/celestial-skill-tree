@@ -101,7 +101,7 @@ Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256
   Star Fragment. Using a fragment grants 1 skill point, never beyond the server's point limit.
 - **Star shower.** Some nights are announced as a star shower: the sky and clouds are tinted, the stars shine
   brighter and falling stars come several times a minute until dawn.
-- **Constellated monsters.** Rarely a monster spawns Constellated: +50% health, +25% damage and the attribute bonuses of
+- **Constellated monsters.** Rarely a monster spawns Constellated: +50% health, +25% damage (`eliteHealthBonus`, `eliteDamageBonus`) and the attribute bonuses of
   a small random constellation. It drops a Star Fragment, but only when a real player kills it: lava, falls and
   fake players (machines) get nothing. With `eliteRadarTeam` it joins a light purple scoreboard team, which radar mods
   such as Xaero's Minimap list as another team. Only monsters the world spawns on its own qualify (natural,
@@ -149,6 +149,7 @@ neighbours it boosts or seals, "boosted ×1.5 by", exclusive pair, portal, requi
 | `/nostalgiaskills unlock <player> <node_id> [grant_cost]` | level 3 — prerequisites and connectivity always apply; `grant_cost` first grants exactly the node's price |
 | `/nostalgiaskills reset <player>` | level 3 (no orb needed) |
 | `/nostalgiaskills validate` | level 2 — load result, revision, and the first errors with file/field/reason |
+| `/nostalgiaskills integrations` | level 2 — installed integrations and whether each one is active or switched off |
 | `/nostalgiaskills regenerate confirm` | level 3 — draws the whole tree again from the current catalog, as a new world with this seed would get it; skills that leave the tree are refunded (offline players at their next login). Without `confirm` it only explains what will happen |
 | `/nostalgiaskills star <player>` | level 2 — a falling star lands near the player |
 | `/nostalgiaskills eclipse start\|stop` | level 2 — force an eclipse, or end the current sky event |
@@ -401,8 +402,10 @@ An optional KubeJS integration ships (see below); packs and addons can build any
   sky; a Supplementaries globe named "Celestial" shows
   the sky events.
 
-Each integration was written against the classes, ids and data formats of the partner's jar and switches itself off
-with one warning if the installed version differs. `./gradlew runPackGameTestServer` starts a game test server with
+Each integration was written against the classes, ids and data formats of the partner's jar. At start-up it checks
+that the classes it uses exist and switches itself off with one warning if the installed version differs; an
+unexpected error while running is logged once and only switches it off after 20 repeats. The log lists the active and
+switched-off integrations when the server starts, and `/nostalgiaskills integrations` (level 2) shows the same. `./gradlew runPackGameTestServer` starts a game test server with
 the NostalgiaCraft pack's jars (path in `pack_mods_dir`, see Building) and checks that none of the installed integrations switched
 itself off, that Relics experience reaches its bearer, that every KubeJS event reaches a script and that the KubeJS
 catalog event can add a theme; the regular game tests also run there, with Apothic Attributes redirecting the tree's

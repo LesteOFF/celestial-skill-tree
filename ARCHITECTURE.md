@@ -15,9 +15,9 @@ data/         server resource loading: SkillTreeReloadListener (reads the catalo
               per world), SkillTreeManager, WorldSkillData (saves the draw), McKnownIds
 registry/     attributes, item tags, attachments + codecs, persisted cooldowns, Orb of Reconfiguration
 network/      payload records + registration (client-bound handlers reach client code only through ClientHandlers)
-server/       SkillService (authoritative intents), LifecycleEvents, RateLimiter, SkyEvents, ShootingStars,
+server/       SkillRequests (authoritative intents), SkillService (state and graph sync), PlayerExperience, LifecycleEvents, RateLimiter, SkyEvents, ShootingStars,
               CommunityTree, XpWallets, TreeViewers
-effects/      CompiledBuild, EffectEngine (attribute modifiers), GameplayEvents (combat/potions/mining), Triggers,
+effects/      CompiledBuild, EffectEngine (attribute modifiers), CombatEvents, ConsumptionEvents, MiningEvents, EquipmentEvents, Triggers,
               BoonActions, EliteMobs, PetInheritance, BorrowedNodes, StolenNodes
 block/        Telescope, Stellar Condenser and Community Basin (XpBasinBlockEntity)
 entity/       FallingStar
@@ -166,7 +166,7 @@ Offline players go through the same path on their next login, before effects are
   potion_duration, magic_resistance, healing_received, lifesteal, damage_reduction, low_health_damage.
 - **Conditional attributes:** evaluated every 10 ticks and on equipment change, only for players whose compiled
   build has any (`CompiledBuild` is rebuilt only when the build or graph changes; nothing scans the whole tree per tick).
-- **Damage** (`GameplayEvents.onIncomingDamage`, `LivingIncomingDamageEvent`, low priority): defender side —
+- **Damage** (`CombatEvents.onIncomingDamage`, `LivingIncomingDamageEvent`, low priority): defender side —
   dodge roll, taken modifiers, magic resistance, damage reduction; attacker side — only player melee
   (`minecraft:player_attack` with the player as direct entity) or player projectiles (`#minecraft:is_projectile`,
   owner = player) are weapon damage; environmental damage never is. Projectiles get their firing origin recorded on
@@ -189,7 +189,8 @@ Offline players go through the same path on their next login, before effects are
 
 ## Client
 
-`SkillTreeScreen` (no pause, no container; node states in `NodeStates`, panels in `PanelContents` and
+`SkillTreeScreen` (no pause, no container; node states in `NodeStates`, the pending selection in `PendingSelection`, buttons and
+search in `TreeHud`, panels in `PanelContents` and
 `PanelRenderer`, the XP bar in `ProgressBar`) keeps a local pending set, previews it with `AllocationService`, and
 recomputes node states only when the state or pending set changes. Hit testing applies the inverse camera transform
 with a 2 GUI-pixel margin and picks the nearest node; controls and panels take precedence. Drag threshold is 4
@@ -203,7 +204,7 @@ Dist.CLIENT)` classes, which is why the dedicated server starts without loading 
 
 - **Extra effect sources** (`effects/ExtraEffects`): `CompiledBuild.compile` takes extra named effect lists beside the
   allocated nodes. The player's birth sign and every reached shared-constellation tier are such sources, so
-  `EffectEngine`, `GameplayEvents` and `Triggers` need no special cases.
+  `EffectEngine`, the gameplay event classes and `Triggers` need no special cases.
 - **Birth sign**: `SignParser` reads `skill_signs`, swapping in the first `partner_effects` entry whose mod is loaded
   (its description key reaches the client in `WorldRules.signs`); `SignService.assignIfMissing` picks by world day plus player UUID on login; the id is
   stored in `PlayerSkillState.sign` (optional codec field, old saves load unchanged).
@@ -213,7 +214,7 @@ Dist.CLIENT)` classes, which is why the dedicated server starts without loading 
   a thunderstorm or the eclipse itself would flip); `SkyEventSchedule` says which `SkyEvent` (`ECLIPSE` during the
   daylight of its day, `STAR_SHOWER` during the night of its day) is due. `server/SkyEvents` re-evaluates once a
   second, announces changes with a chat line and a stinger, blocks beds during an eclipse and syncs the event in
-  `WorldRules`; during an eclipse `SkillService` asks for no orb. `mixin/LevelMixin` raises the Overworld's
+  `WorldRules`; during an eclipse `SkillRequests` asks for no orb. `mixin/LevelMixin` raises the Overworld's
   `skyDarken` to night level while an eclipse is active, which is what lets monsters spawn and stops undead burning.
   On the client `client/render/SkyTint` holds one eased 0..1 strength; `mixin/ClientLevelMixin` feeds it into sky
   colour, cloud colour, sky light and star brightness, and `SkyEventRenderer` tints the fog and draws the moon disc
@@ -255,6 +256,9 @@ Dist.CLIENT)` classes, which is why the dedicated server starts without loading 
   tank and an extract-only item slot as capabilities.
 
 ## Development harness (not part of gameplay)
+
+The harness drives the tree screen through `TreeScreenQa`, which lives in `src/devHarness` in the screen's own package and
+reaches its package-private state, so the screen itself carries no test hooks.
 
 `-Pvisualqa` adds `-Dnostalgiaskills.visualqa=true` to `runClient`. The run is one `QaScript`: a list of steps that
 each wait for a condition or time out, with `expect` checks that are counted as PASS or FAIL. `InWorldQa` deletes and
