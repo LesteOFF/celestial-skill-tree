@@ -64,7 +64,7 @@ public final class LivingFragmentItem extends Item {
     }
 
     private static int growth(ItemStack stack) {
-        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getInt(GROWTH_KEY);
+        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).getUnsafe().getInt(GROWTH_KEY);
     }
 
     private static int fullGrowth() {

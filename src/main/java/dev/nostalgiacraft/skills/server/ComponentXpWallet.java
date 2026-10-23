@@ -36,10 +36,12 @@ public final class ComponentXpWallet implements XpWallets.Wallet {
     }
 
     private long takeFrom(List<ItemStack> holders, long amount) {
+        DataComponentType<Number> component = component();
         long missing = amount;
         for (ItemStack holder : holders) {
-            long paid = Math.min(missing, storedIn(holder));
-            holder.set(component(), boxing.apply(storedIn(holder) - paid));
+            long stored = storedIn(holder, component);
+            long paid = Math.min(missing, stored);
+            holder.set(component, boxing.apply(stored - paid));
             missing -= paid;
         }
         return amount - missing;
@@ -51,7 +53,11 @@ public final class ComponentXpWallet implements XpWallets.Wallet {
     }
 
     private long storedIn(ItemStack holder) {
-        Number stored = holder.get(component());
+        return storedIn(holder, component());
+    }
+
+    private static long storedIn(ItemStack holder, DataComponentType<Number> component) {
+        Number stored = holder.get(component);
         return stored == null ? 0 : Math.max(0, stored.longValue());
     }
 
