@@ -11,6 +11,7 @@ import dev.nostalgiacraft.skills.progression.LedgerService;
 import dev.nostalgiacraft.skills.progression.PathFinder;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.tutorial.TutorialSteps;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -149,7 +150,14 @@ public final class VisualQa {
         ClientConfig.REDUCED_MOTION.set(shot.look() == Look.REDUCED_MOTION);
         ClientConfig.HIGH_CONTRAST.set(shot.look() == Look.HIGH_CONTRAST);
         ClientSkillState.loadFixture(graph, shot.fixture().build(), FIXTURE_ECONOMY, shot.fixture().level, FIXTURE_XP_PROGRESS);
+        hideTutorial();
         Minecraft.getInstance().setScreen(new SkillTreeScreen());
+    }
+
+    private static void hideTutorial() {
+        Minecraft minecraft = Minecraft.getInstance();
+        minecraft.getTutorial().setStep(TutorialSteps.NONE);
+        minecraft.getToasts().clear();
     }
 
     private static void resize(Resolution resolution) {
@@ -210,6 +218,7 @@ public final class VisualQa {
         OVERVIEWS.forEach(resolution -> shots.add(new Shot("overview_" + resolution.size() + "_gui" + resolution.guiScale(), resolution,
                 Fixture.HYBRID, Look.NORMAL, TreeScreenQa::fit)));
         shots.add(new Shot("fresh_character", Fixture.FRESH, TreeScreenQa::fit));
+        shots.add(new Shot("help_panel", Fixture.HYBRID, TreeScreenQa::showHelp));
         shots.add(new Shot("focused_guardian", Fixture.FOCUSED, screen -> TreeScreenQa.zoom(screen, 1.1, "guardian/hub")));
         shots.add(new Shot("hybrid_closeup", Fixture.HYBRID, screen -> TreeScreenQa.zoom(screen, 1.0, "duelist/hub")));
         shots.add(new Shot("pending_changes", Fixture.HYBRID, screen -> {

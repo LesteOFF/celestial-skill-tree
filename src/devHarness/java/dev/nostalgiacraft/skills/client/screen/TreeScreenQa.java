@@ -57,6 +57,10 @@ public final class TreeScreenQa {
         Minecraft.getInstance().setScreen(new BirthSignScreen(screen));
     }
 
+    public static void showHelp(SkillTreeScreen screen) {
+        screen.panel = SkillTreeScreen.Panel.HELP;
+    }
+
     public static void showStats(SkillTreeScreen screen) {
         screen.panel = SkillTreeScreen.Panel.STATS;
     }
