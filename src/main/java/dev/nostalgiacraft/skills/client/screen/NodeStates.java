@@ -9,7 +9,9 @@ import dev.nostalgiacraft.skills.progression.RejectReason;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 final class NodeStates {
     static final NodeStates EMPTY = new NodeStates(Map.of(), 0);
@@ -27,8 +29,9 @@ final class NodeStates {
         Holdings holdings = AllocationService.holdingsAfter(graph, state, expansion);
         boolean startChosen = state.startingRoot().isPresent() || expansion.choosesStartingRoot();
         Map<String, NodeState> states = new HashMap<>();
+        Set<String> marked = new HashSet<>(pending);
         for (SkillNodeDefinition node : graph.nodes().values()) {
-            states.put(node.id(), stateOf(graph, state, pending, holdings, startChosen, node));
+            states.put(node.id(), stateOf(graph, state, marked, holdings, startChosen, node));
         }
         return new NodeStates(states, expansion.totalCost() + AllocationService.rankUpCost(graph, state, pending));
     }

@@ -14,8 +14,15 @@ public record TreeRegion(double minX, double minY, double maxX, double maxY) {
         return node.traits().hiddenUntil().isPresent();
     }
 
+    private static SkillGraphSnapshot hiddenOf;
+    private static Optional<TreeRegion> hidden = Optional.empty();
+
     public static Optional<TreeRegion> hidden(SkillGraphSnapshot graph) {
-        return around(graph.nodes().values().stream().filter(TreeRegion::isHidden).toList());
+        if (graph != hiddenOf) {
+            hidden = around(graph.nodes().values().stream().filter(TreeRegion::isHidden).toList());
+            hiddenOf = graph;
+        }
+        return hidden;
     }
 
     public static Optional<TreeRegion> main(SkillGraphSnapshot graph) {
