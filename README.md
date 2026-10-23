@@ -132,16 +132,16 @@ neighbours it boosts or seals, "boosted ×1.5 by", exclusive pair, portal, requi
 |---|---|
 | `/nostalgiaskills open` | everyone |
 | `/nostalgiaskills inspect <player>` | level 2 |
-| `/nostalgiaskills points add <player> <amount> [override_limit]` | level 2 |
-| `/nostalgiaskills points set <player> <available_amount> [override_limit]` | level 2 |
-| `/nostalgiaskills unlock <player> <node_id> [grant_cost]` | level 2 — prerequisites and connectivity always apply; `grant_cost` first grants exactly the node's price |
-| `/nostalgiaskills reset <player>` | level 2 (no orb needed) |
+| `/nostalgiaskills points add <player> <amount> [override_limit]` | level 3 |
+| `/nostalgiaskills points set <player> <available_amount> [override_limit]` | level 3 |
+| `/nostalgiaskills unlock <player> <node_id> [grant_cost]` | level 3 — prerequisites and connectivity always apply; `grant_cost` first grants exactly the node's price |
+| `/nostalgiaskills reset <player>` | level 3 (no orb needed) |
 | `/nostalgiaskills validate` | level 2 — load result, revision, and the first errors with file/field/reason |
-| `/nostalgiaskills regenerate confirm` | level 2 — draws the whole tree again from the current catalog, as a new world with this seed would get it; skills that leave the tree are refunded (offline players at their next login). Without `confirm` it only explains what will happen |
+| `/nostalgiaskills regenerate confirm` | level 3 — draws the whole tree again from the current catalog, as a new world with this seed would get it; skills that leave the tree are refunded (offline players at their next login). Without `confirm` it only explains what will happen |
 | `/nostalgiaskills star <player>` | level 2 — a falling star lands near the player |
 | `/nostalgiaskills eclipse start\|stop` | level 2 — force an eclipse, or end the current sky event |
 | `/nostalgiaskills shower start\|stop` | level 2 — force a star shower, or end the current sky event |
-| `/nostalgiaskills community set <xp>` | level 2 — set the shared constellation's donated XP |
+| `/nostalgiaskills community set <xp>` | level 3 — set the shared constellation's donated XP |
 
 `points set` changes the available balance and books the difference as a net administrative grant; purchased points
 and recorded prices are untouched (`available + spent = purchased + granted` always holds). Going above the point
@@ -328,7 +328,8 @@ An optional KubeJS integration ships (see below); packs and addons can build any
   `#nostalgiaskills:first_kill_fragment` (same list plus Ice and Fire dragons and Aquamirae bosses) gives
   `bossFragments` Star Fragments (2 by default) the first time each player kills each of those monsters, straight to
   their inventory; the kill is remembered per player and survives death. `#nostalgiaskills:always_drops_fragment`
-  makes every kill by a player drop a Star Fragment; if that mob can be farmed, so can skill points. It ships empty.
+  makes every kill by a player drop a Star Fragment; if that mob can be farmed, so can skill points. Mobs from spawners
+  (or standing on `#nostalgiaskills:counts_as_spawner`) drop nothing extra unless `eliteSpawnerMobs` is on. It ships empty.
 
 - **Hidden keys beyond advancements.** `hidden_until` also takes `nostalgiaskills:spell/<namespace>/<spell>` (the
   player casts that Iron's spell), `nostalgiaskills:worn/<namespace>/<item>` (the player wears that item, as armour,
@@ -340,15 +341,18 @@ An optional KubeJS integration ships (see below); packs and addons can build any
   each keystone's key is its `hidden_until` field in `data/nostalgiaskills/skill_keystones/`.
 - **Boss boons.** Trigger actions beside `heal`, `self_effect` and `target_effect`: `raise_ally` (`entity`,
   `duration_ticks`: a tamable creature rises where the trigger's target stood, tamed to the player, with Strength for
-  that long), `ignite_target` (`duration_ticks`), `gust` and `pull` (`amount` is the radius; enemies around are thrown back or
+  that long; each player keeps at most 3 raised allies nearby and the oldest leaves when a fourth rises), `ignite_target` (`duration_ticks`), `gust` and `pull` (`amount` is the radius; enemies around are thrown back or
   dragged in), `burst` (`amount` of blast damage around the target), `stacking_self_effect` (as `self_effect`, one level higher
   each time up to `amplifier`), `blink_behind_target`, `launch_target` (`amount` is the upward speed), `smite_target` (a lightning bolt for
   `amount` damage), `lunge` (the player is thrown where they look at `amount` speed), `chaos_target` (at random:
   lightning, a launch, fire or a blast around the target), `area_effect` (a `target_effect` on every enemy within `amount` blocks), `web_target` (a
-  cobweb at the target's feet), `cheat_death` (`amount` is the health left) and, with Mowzie's Mobs, `sunstrike` (`amount` is the reach).
+  cobweb at the target's feet, only where the player may build: claims and spawn protection apply), `cheat_death`
+  (`amount` is the health left; like a totem it also puts out fire and gives 2 seconds of invulnerability) and, with Mowzie's Mobs, `sunstrike` (`amount` is the reach).
   `on_kill` passes the victim as target; `nostalgiaskills:on_boon_key` fires when the player presses the Hidden Power
   key (G by default) and `nostalgiaskills:on_fatal_blow` when damage would kill them. The condition `wet` holds in
-  water or rain, and a trigger may carry a `condition` of its own.
+  water or rain, and a trigger may carry a `condition` of its own. `cheat_death`, `burst`, `smite_target`,
+  `chaos_target` and `raise_ally` need a `cooldown_ticks` of at least 20. Actions that hit "enemies around" spare
+  villagers and other NPCs, armour stands, every owned creature, and other players unless PvP lets the player hurt them.
 - **Iron's keystones.** `blood_for_mana` (action `blood_for_mana`: when mana runs out, health becomes mana) and
   `stellar_echo` (attribute `nostalgiaskills:spell_echo_chance`, the chance a spell skips its cooldown).
 - **Occultism.** The ritual `recipe/occultism/summon_constellated.json` runs `/nostalgiaskills constellate`, which
