@@ -39,6 +39,7 @@ import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -277,8 +278,11 @@ public final class EliteMobs {
 
     private static List<String> reachableNodes(SkillGraphSnapshot graph, PlayerSkillState constellation) {
         Holdings holdings = Holdings.of(graph, constellation);
+        Set<String> nextToHeld = new HashSet<>();
+        holdings.nodeIds().forEach(held -> nextToHeld.addAll(graph.neighbours(held)));
         return graph.nodes().values().stream()
-                .filter(node -> !holdings.contains(node.id()) && AllocationService.rejectionOf(graph, node, holdings).isEmpty())
+                .filter(node -> nextToHeld.contains(node.id()) && !holdings.contains(node.id())
+                        && AllocationService.rejectionOf(graph, node, holdings).isEmpty())
                 .map(SkillNodeDefinition::id).toList();
     }
 }
