@@ -51,6 +51,7 @@
   "gui.nostalgiaskills.state.allocated": "alocada",
   "gui.nostalgiaskills.state.pending": "pendente",
   "gui.nostalgiaskills.state.conflicting": "em conflito",
+  "gui.nostalgiaskills.state.sealed": "selada",
   "gui.nostalgiaskills.type.root": "Hub inicial",
   "gui.nostalgiaskills.type.minor": "Menor",
   "gui.nostalgiaskills.type.notable": "Notável",
