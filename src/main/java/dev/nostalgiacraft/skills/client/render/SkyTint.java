@@ -65,6 +65,12 @@ public final class SkyTint {
         };
     }
 
+    public static void clear() {
+        shown = SkyEvent.NONE;
+        strength = 0f;
+        previousStrength = 0f;
+    }
+
     private static float strength(float partialTick) {
         return Mth.lerp(partialTick, previousStrength, strength);
     }
