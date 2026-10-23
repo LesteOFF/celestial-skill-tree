@@ -55,6 +55,9 @@ public final class EnigmaticLegacyCompat {
             return;
         }
         int nowLent = wearsRing ? lend(player) : takeBack(player, lent);
+        if (nowLent == lent) {
+            return;
+        }
         persisted.putInt(RING_POINTS_KEY, nowLent);
         player.getPersistentData().put(Player.PERSISTED_NBT_TAG, persisted);
         SkillService.sendState(player);

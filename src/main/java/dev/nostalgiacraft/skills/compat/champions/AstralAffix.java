@@ -2,6 +2,7 @@ package dev.nostalgiacraft.skills.compat.champions;
 
 import dev.nostalgiacraft.skills.NostalgiaSkills;
 import dev.nostalgiacraft.skills.effects.StolenNodes;
+import dev.nostalgiacraft.skills.registry.ModAttachments;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -14,6 +15,8 @@ import top.theillusivec4.champions.neoforge.registry.NeoForgeAffixTypeRegistry;
 public final class AstralAffix extends AffixType<EmptyAffixData> {
     private static final String NAME = "astral";
     private static final int SECONDS_PER_STRENGTH = 15;
+    private static final String COOLDOWN_KEY = NostalgiaSkills.MODID + ":astral_affix";
+    private static final int STEAL_COOLDOWN_TICKS = 100;
 
     static void register(IEventBus modBus) {
         DeferredRegister<AffixType<?>> affixes = DeferredRegister.create(NeoForgeAffixTypeRegistry.REGISTRY_KEY, NostalgiaSkills.MODID);
@@ -24,9 +27,13 @@ public final class AstralAffix extends AffixType<EmptyAffixData> {
     @Override
     public void registerHandlers(HandlerRegistry<EmptyAffixData> registry) {
         registry.on(AttackEvent.class, (champion, data, strength, attack) -> {
-            if (attack.target() instanceof ServerPlayer player) {
+            if (attack.target() instanceof ServerPlayer player && offCooldown(player)) {
                 StolenNodes.stealNewest(player, Math.max(1, strength) * SECONDS_PER_STRENGTH);
             }
         });
+    }
+
+    private static boolean offCooldown(ServerPlayer player) {
+        return ModAttachments.cooldowns(player).tryUse(COOLDOWN_KEY, player.serverLevel().getGameTime(), STEAL_COOLDOWN_TICKS);
     }
 }
