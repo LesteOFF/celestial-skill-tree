@@ -43,9 +43,7 @@ public final class ForbiddenArcanusCompat {
                     orb.shrink(1);
                 }
             }
-            long change = Math.max(0, released - amount);
-            player.giveExperiencePoints((int) change);
-            return released - change;
+            return released;
         }
 
         private List<ItemStack> orbs(ServerPlayer player) {

@@ -50,9 +50,9 @@ public final class FluidXpWallet implements XpWallets.Wallet {
         for (int tank = 0; tank < tanks.getTanks() && paid < wanted; tank++) {
             FluidStack held = tanks.getFluidInTank(tank);
             int exact = (int) Math.min(Integer.MAX_VALUE, (wanted - paid) * perPoint);
-            int partial = drainable(tanks, held, exact);
-            boolean givesChange = partial >= perPoint && partial % perPoint == 0;
-            int available = givesChange ? partial : drainable(tanks, held, Integer.MAX_VALUE);
+            int whole = drainable(tanks, held, exact) / perPoint * perPoint;
+            boolean drainsWhole = whole >= perPoint && drainable(tanks, held, whole) == whole;
+            int available = drainsWhole ? whole : drainable(tanks, held, Integer.MAX_VALUE);
             if (available >= perPoint) {
                 paid += tanks.drain(held.copyWithAmount(available), FluidAction.EXECUTE).getAmount() / perPoint;
             }

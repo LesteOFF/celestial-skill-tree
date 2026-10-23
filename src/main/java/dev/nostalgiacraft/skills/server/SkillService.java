@@ -212,13 +212,20 @@ public final class SkillService {
         long balance = carried + XpWallets.stored(player);
         ProgressionService.Settings settings = ServerConfig.progression();
         int count = Math.clamp(requestedCount, 1, settings.pointLimit());
-        ProgressionService.BulkPurchaseResult result = ProgressionService.purchasePoints(state, balance, settings, count);
-        if (!result.ok()) {
-            request.reject(result.reason().orElseThrow(), settings.curve().cost(state.purchasedPoints()) + "/" + balance);
+        ProgressionService.BulkPurchaseResult preview = ProgressionService.purchasePoints(state.copy(), balance, settings, count);
+        if (!preview.ok()) {
+            request.reject(preview.reason().orElseThrow(), settings.curve().cost(state.purchasedPoints()) + "/" + balance);
             return;
         }
-        long shortfall = Math.max(0, result.totalCost() - carried);
-        setExperience(player, carried + XpWallets.take(player, shortfall) - result.totalCost());
+        long shortfall = Math.max(0, preview.totalCost() - carried);
+        long paid = XpWallets.take(player, shortfall);
+        if (paid < shortfall) {
+            setExperience(player, carried + paid);
+            request.reject(RejectReason.INSUFFICIENT_XP, settings.curve().cost(state.purchasedPoints()) + "/" + (carried + paid));
+            return;
+        }
+        ProgressionService.BulkPurchaseResult result = ProgressionService.purchasePoints(state, balance, settings, count);
+        setExperience(player, carried + paid - result.totalCost());
         SkillEvents.post(new SkillEvents.PointsBought(player, result.bought(), result.totalCost()));
         if (result.bought() == 1) {
             request.accept("message.nostalgiaskills.point_bought", result.totalCost() + "/" + result.newXpTotal());
