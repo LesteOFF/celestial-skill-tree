@@ -14,14 +14,19 @@ base {
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 sourceSets {
-    packTest {
+    devHarness {
         compileClasspath += sourceSets.main.output
         runtimeClasspath += sourceSets.main.output
+    }
+    packTest {
+        compileClasspath += sourceSets.main.output + sourceSets.devHarness.output
+        runtimeClasspath += sourceSets.main.output + sourceSets.devHarness.output
     }
 }
 
 neoForge {
     version = project.neo_version
+    addModdingDependenciesTo(sourceSets.devHarness)
     addModdingDependenciesTo(sourceSets.packTest)
 
     parchment {
@@ -31,6 +36,7 @@ neoForge {
 
     runs {
         client {
+            sourceSet = sourceSets.devHarness
             client()
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
             if (project.hasProperty('visualqa')) {
@@ -38,16 +44,19 @@ neoForge {
             }
         }
         server {
+            sourceSet = sourceSets.devHarness
             server()
             programArgument '--nogui'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
         mpqaServer {
+            sourceSet = sourceSets.devHarness
             server()
             gameDirectory = file('run_mpqa/server')
             programArgument '--nogui'
         }
         mpqaAlpha {
+            sourceSet = sourceSets.devHarness
             client()
             gameDirectory = file('run_mpqa/alpha')
             programArguments.addAll('--username', 'Alpha')
@@ -55,6 +64,7 @@ neoForge {
             systemProperty 'nostalgiaskills.mpqa.address', '127.0.0.1:25565'
         }
         mpqaBeta {
+            sourceSet = sourceSets.devHarness
             client()
             gameDirectory = file('run_mpqa/beta')
             programArguments.addAll('--username', 'Beta')
@@ -62,6 +72,7 @@ neoForge {
             systemProperty 'nostalgiaskills.mpqa.address', '127.0.0.1:25566'
         }
         gameTestServer {
+            sourceSet = sourceSets.devHarness
             type = "gameTestServer"
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
@@ -80,6 +91,7 @@ neoForge {
     mods {
         "${mod_id}" {
             sourceSet(sourceSets.main)
+            sourceSet(sourceSets.devHarness)
         }
     }
 }
@@ -118,6 +130,8 @@ def packTestJars = [
         'FarmersDelight-1.21.1-1.3.4.jar'
 ]
 
+def packModsDir = findProperty('pack_mods_dir') ?: System.getenv('PACK_MODS_DIR')
+
 def copyKubeJsProbe = tasks.register('copyKubeJsProbe', Copy) {
     from 'src/packTest/kubejs'
     into 'run-pack/kubejs'
@@ -129,15 +143,20 @@ tasks.matching { it.name == 'runPackGameTestServer' }.configureEach {
 
 gradle.taskGraph.whenReady { graph ->
     if (graph.allTasks.any { it.name == 'runPackGameTestServer' }) {
-        def missing = packTestJars.findAll { !file("${pack_mods_dir}/${it}").exists() }
+        if (!packModsDir) {
+            throw new GradleException("Set pack_mods_dir in ~/.gradle/gradle.properties (or the PACK_MODS_DIR environment variable) to the pack's mods folder")
+        }
+        def missing = packTestJars.findAll { !file("${packModsDir}/${it}").exists() }
         if (missing) {
-            throw new GradleException("Pack jars missing from ${pack_mods_dir} (set pack_mods_dir in gradle.properties): ${missing.join(', ')}")
+            throw new GradleException("Pack jars missing from ${packModsDir}: ${missing.join(', ')}")
         }
     }
 }
 
 dependencies {
-    packTestRuntimeOnly files(packTestJars.collect { "${pack_mods_dir}/${it}" })
+    if (packModsDir) {
+        packTestRuntimeOnly files(packTestJars.collect { "${packModsDir}/${it}" })
+    }
     compileOnly("dev.latvian.mods:kubejs-neoforge:${kubejs_version}") {
         transitive = false
     }

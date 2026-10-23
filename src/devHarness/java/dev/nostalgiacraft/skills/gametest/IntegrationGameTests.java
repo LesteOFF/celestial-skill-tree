@@ -22,6 +22,8 @@ import net.minecraft.world.scores.ScoreHolder;
 import net.minecraft.world.scores.Scoreboard;
 import net.minecraft.world.scores.criteria.ObjectiveCriteria;
 import net.neoforged.bus.api.Event;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
@@ -31,6 +33,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@EventBusSubscriber(modid = NostalgiaSkills.MODID, bus = EventBusSubscriber.Bus.MOD)
 @PrefixGameTestTemplate(false)
 public final class IntegrationGameTests {
     private static final List<String> PACK_MODS = List.of("apotheosis", "irons_spellbooks", "curios", "kubejs");
@@ -44,6 +47,7 @@ public final class IntegrationGameTests {
     private IntegrationGameTests() {
     }
 
+    @SubscribeEvent
     public static void register(RegisterGameTestsEvent event) {
         if (PACK_MODS.stream().allMatch(ModList.get()::isLoaded)) {
             event.register(IntegrationGameTests.class);
