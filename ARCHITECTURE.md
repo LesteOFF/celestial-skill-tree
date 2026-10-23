@@ -155,8 +155,9 @@ Offline players go through the same path on their next login, before effects are
 
 ## Effects
 
-- **Attributes** (`EffectEngine.refresh`): remove every modifier this mod owns (namespace `nostalgiaskills`, path
-  `tree/…` or `cond/…`), then add one transient modifier per (attribute, operation) with the summed amount. Transient
+- **Attributes** (`EffectEngine.refresh`): remove every modifier the engine applied to this player (it remembers each
+  attribute and id it added, paths `tree/…` and `cond/…`, so nothing scans the attribute registry), then add one
+  transient modifier per (attribute, operation) with the summed amount. Transient
   modifiers are never saved, the attachment is the source of truth, and refresh is idempotent, so bonuses cannot
   duplicate after death, login or reload. Base values and equipment/other-mod modifiers are untouched. After a max
   health decrease, health is clamped without healing. Caps clamp only the tree's summed modifier.

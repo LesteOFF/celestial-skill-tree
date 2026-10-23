@@ -43,6 +43,10 @@ public final class EffectEngine {
     private static final String CONDITIONAL_KIND = "cond";
     private static final Map<UUID, CompiledBuild> BUILDS = new HashMap<>();
     private static final Map<UUID, Set<String>> ACTIVE_CONDITIONALS = new HashMap<>();
+    private static final Map<UUID, Set<OwnedModifier>> OWNED = new HashMap<>();
+
+    private record OwnedModifier(Holder<Attribute> attribute, ResourceLocation id) {
+    }
     private static final Map<String, Supplier<Double>> ADDITIVE_CAPS = Map.of(
             "nostalgiaskills:crit_chance", ServerConfig.CAP_CRIT_CHANCE,
             "nostalgiaskills:dodge_chance", ServerConfig.CAP_DODGE_CHANCE,
@@ -89,6 +93,7 @@ public final class EffectEngine {
     public static void forget(Player player) {
         BUILDS.remove(player.getUUID());
         ACTIVE_CONDITIONALS.remove(player.getUUID());
+        OWNED.remove(player.getUUID());
         BorrowedNodes.forget(player.getUUID());
         ATTRIBUTE_TARGETS.values().forEach(target -> target.forget(player.getUUID()));
     }
@@ -131,7 +136,13 @@ public final class EffectEngine {
             target.apply(player, attributeAndOperation[0], modifier);
             return;
         }
-        instance(player, attributeAndOperation[0]).ifPresent(instance -> instance.addTransientModifier(modifier));
+        holder(attributeAndOperation[0]).ifPresent(attribute -> {
+            AttributeInstance instance = player.getAttribute(attribute);
+            if (instance != null) {
+                instance.addTransientModifier(modifier);
+                owned(player).add(new OwnedModifier(attribute, modifier.id()));
+            }
+        });
     }
 
     public static double scaled(double amount) {
@@ -159,23 +170,28 @@ public final class EffectEngine {
         for (CompiledBuild.Keyed<SkillEffect.ConditionalAttribute> keyed : build.conditional()) {
             boolean holds = holds(player, keyed.effect().condition(), null);
             if (holds != active.contains(keyed.key())) {
-                instance(player, keyed.effect().attribute())
-                        .ifPresent(instance -> toggleConditional(instance, keyed, holds, active));
+                holder(keyed.effect().attribute()).ifPresent(attribute -> toggleConditional(player, attribute, keyed, holds, active));
             }
         }
         clampHealth(player);
     }
 
-    private static void toggleConditional(AttributeInstance instance, CompiledBuild.Keyed<SkillEffect.ConditionalAttribute> keyed,
-                                          boolean enable, Set<String> active) {
+    private static void toggleConditional(ServerPlayer player, Holder<Attribute> attribute,
+                                          CompiledBuild.Keyed<SkillEffect.ConditionalAttribute> keyed, boolean enable, Set<String> active) {
+        AttributeInstance instance = player.getAttribute(attribute);
+        if (instance == null) {
+            return;
+        }
         ResourceLocation id = modifierId(CONDITIONAL_KIND, keyed.key());
         if (enable) {
             SkillEffect.ConditionalAttribute effect = keyed.effect();
             instance.addOrUpdateTransientModifier(new AttributeModifier(id, scaled(effect.amount()),
                     operationFor(effect.attribute(), effect.operation())));
+            owned(player).add(new OwnedModifier(attribute, id));
             active.add(keyed.key());
         } else {
             instance.removeModifier(id);
+            owned(player).remove(new OwnedModifier(attribute, id));
             active.remove(keyed.key());
         }
     }
@@ -188,27 +204,24 @@ public final class EffectEngine {
 
     private static void removeOwnedModifiers(ServerPlayer player) {
         ATTRIBUTE_TARGETS.values().forEach(target -> target.clear(player));
-        for (Holder<Attribute> attribute : BuiltInRegistries.ATTRIBUTE.holders().toList()) {
-            AttributeInstance instance = player.getAttribute(attribute);
-            if (instance == null) {
-                continue;
-            }
-            for (AttributeModifier modifier : List.copyOf(instance.getModifiers())) {
-                if (isOwned(modifier.id())) {
-                    instance.removeModifier(modifier.id());
-                }
+        Set<OwnedModifier> owned = OWNED.remove(player.getUUID());
+        if (owned == null) {
+            return;
+        }
+        for (OwnedModifier modifier : owned) {
+            AttributeInstance instance = player.getAttribute(modifier.attribute());
+            if (instance != null) {
+                instance.removeModifier(modifier.id());
             }
         }
     }
 
-    private static boolean isOwned(ResourceLocation modifierId) {
-        return modifierId.getNamespace().equals(NostalgiaSkills.MODID)
-                && (modifierId.getPath().startsWith(TREE_KIND + "/") || modifierId.getPath().startsWith(CONDITIONAL_KIND + "/"));
+    private static Set<OwnedModifier> owned(ServerPlayer player) {
+        return OWNED.computeIfAbsent(player.getUUID(), id -> new HashSet<>());
     }
 
-    private static Optional<AttributeInstance> instance(ServerPlayer player, String attributeId) {
-        return BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.parse(AttributeAliases.resolve(attributeId)))
-                .map(player::getAttribute);
+    private static Optional<Holder.Reference<Attribute>> holder(String attributeId) {
+        return BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.parse(AttributeAliases.resolve(attributeId)));
     }
 
     public static AttributeModifier.Operation operationFor(String attribute, String operation) {

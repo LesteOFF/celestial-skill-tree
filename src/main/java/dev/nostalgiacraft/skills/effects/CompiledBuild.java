@@ -7,10 +7,10 @@ import dev.nostalgiacraft.skills.graph.SkillNodeDefinition;
 import dev.nostalgiacraft.skills.progression.PlayerSkillState;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 public record CompiledBuild(Map<String, Double> attributeSums, List<Keyed<SkillEffect.ConditionalAttribute>> conditional,
                             List<Keyed<SkillEffect.DamageModifier>> damage, List<Keyed<SkillEffect.Trigger>> triggers) {
@@ -39,21 +39,28 @@ public record CompiledBuild(Map<String, Double> attributeSums, List<Keyed<SkillE
             if (silenced.contains(id) || state.isDisabled(id)) {
                 continue;
             }
-            double factor = amplification(graph, state, id) * ranks(graph, state, id);
-            graph.node(id).ifPresent(node -> collector.addAll(id, node.effects().stream().map(effect -> scaled(effect, factor)).toList()));
+            SkillNodeDefinition node = graph.nodes().get(id);
+            if (node != null) {
+                collector.addAll(id, node.effects(), amplification(graph, state, id) * ranks(node, state));
+            }
         }
-        extraSources.forEach(collector::addAll);
+        extraSources.forEach((sourceId, effects) -> collector.addAll(sourceId, effects, 1.0));
         return collector.build();
     }
 
-    private static int ranks(SkillGraphSnapshot graph, PlayerSkillState state, String nodeId) {
-        int maxRank = graph.node(nodeId).map(SkillNodeDefinition::maxRank).orElse(SkillNodeDefinition.SINGLE_RANK);
-        return Math.clamp(state.rank(nodeId), SkillNodeDefinition.SINGLE_RANK, Math.max(SkillNodeDefinition.SINGLE_RANK, maxRank));
+    private static int ranks(SkillNodeDefinition node, PlayerSkillState state) {
+        return Math.clamp(state.rank(node.id()), SkillNodeDefinition.SINGLE_RANK, Math.max(SkillNodeDefinition.SINGLE_RANK, node.maxRank()));
     }
 
     private static double amplification(SkillGraphSnapshot graph, PlayerSkillState state, String nodeId) {
-        return graph.neighbours(nodeId).stream().filter(state::isAllocated).flatMap(neighbour -> graph.node(neighbour).stream())
-                .mapToDouble(neighbour -> neighbour.traits().neighbourMultiplier()).max().orElse(NodeTraits.NO_MULTIPLIER);
+        double strongest = NodeTraits.NO_MULTIPLIER;
+        for (String neighbour : graph.neighbours(nodeId)) {
+            SkillNodeDefinition next = graph.nodes().get(neighbour);
+            if (next != null && state.isAllocated(neighbour)) {
+                strongest = Math.max(strongest, next.traits().neighbourMultiplier());
+            }
+        }
+        return strongest;
     }
 
     private static SkillEffect scaled(SkillEffect effect, double factor) {
@@ -69,25 +76,30 @@ public record CompiledBuild(Map<String, Double> attributeSums, List<Keyed<SkillE
     }
 
     private static final class Collector {
-        private final Map<String, Double> attributeSums = new TreeMap<>();
+        private final Map<String, Double> attributeSums = new HashMap<>();
         private final List<Keyed<SkillEffect.ConditionalAttribute>> conditional = new ArrayList<>();
         private final List<Keyed<SkillEffect.DamageModifier>> damage = new ArrayList<>();
         private final List<Keyed<SkillEffect.Trigger>> triggers = new ArrayList<>();
 
-        void addAll(String sourceId, List<SkillEffect> effects) {
+        void addAll(String sourceId, List<SkillEffect> effects, double factor) {
             for (int i = 0; i < effects.size(); i++) {
-                add(sourceId + "#" + i, effects.get(i));
+                SkillEffect effect = effects.get(i);
+                add(sourceId, i, factor == 1.0 ? effect : scaled(effect, factor));
             }
         }
 
-        private void add(String key, SkillEffect effect) {
+        private void add(String sourceId, int index, SkillEffect effect) {
             switch (effect) {
                 case SkillEffect.Attribute attribute ->
                         attributeSums.merge(sumKey(attribute.attribute(), attribute.operation()), attribute.amount(), Double::sum);
-                case SkillEffect.ConditionalAttribute conditionalAttribute -> conditional.add(new Keyed<>(key, conditionalAttribute));
-                case SkillEffect.DamageModifier damageModifier -> damage.add(new Keyed<>(key, damageModifier));
-                case SkillEffect.Trigger trigger -> triggers.add(new Keyed<>(key, trigger));
+                case SkillEffect.ConditionalAttribute conditionalAttribute -> conditional.add(new Keyed<>(key(sourceId, index), conditionalAttribute));
+                case SkillEffect.DamageModifier damageModifier -> damage.add(new Keyed<>(key(sourceId, index), damageModifier));
+                case SkillEffect.Trigger trigger -> triggers.add(new Keyed<>(key(sourceId, index), trigger));
             }
+        }
+
+        private static String key(String sourceId, int index) {
+            return sourceId + "#" + index;
         }
 
         CompiledBuild build() {
