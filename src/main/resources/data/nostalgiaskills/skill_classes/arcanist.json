@@ -8,6 +8,12 @@
         "attribute": "nostalgiaskills:potion_duration",
         "operation": "add_value",
         "amount": 0.05
+      },
+      {
+        "type": "attribute",
+        "attribute": "nostalgiaskills:healing_received",
+        "operation": "add_value",
+        "amount": 0.03
       }
     ]
   },
@@ -19,6 +25,12 @@
         "attribute": "nostalgiaskills:potion_duration",
         "operation": "add_value",
         "amount": 0.01
+      },
+      {
+        "type": "attribute",
+        "attribute": "nostalgiaskills:healing_received",
+        "operation": "add_value",
+        "amount": 0.005
       }
     ]
   }

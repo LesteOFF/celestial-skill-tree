@@ -87,7 +87,7 @@
       "id": "gravity_well",
       "name": "skill.nostalgiaskills.guardian.gravity_well.name",
       "icon": "nostalgiaskills:textures/skill_icons/black_hole.png",
-      "neighbour_multiplier": 1.5,
+      "neighbour_multiplier": 1.25,
       "effects": [
         {
           "type": "attribute",

@@ -78,7 +78,8 @@
           "operation": "add_value",
           "amount": 0.08
         }
-      ]
+      ],
+      "max_rank": 3
     }
   ]
 }

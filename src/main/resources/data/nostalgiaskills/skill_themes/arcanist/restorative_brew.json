@@ -24,7 +24,8 @@
           "operation": "add_value",
           "amount": 0.1
         }
-      ]
+      ],
+      "max_rank": 2
     },
     {
       "id": "panacea",

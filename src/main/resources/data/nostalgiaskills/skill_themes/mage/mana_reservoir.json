@@ -24,7 +24,8 @@
           "operation": "add_value",
           "amount": 50
         }
-      ]
+      ],
+      "max_rank": 2
     }
   ]
 }

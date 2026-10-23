@@ -9,7 +9,7 @@
         "type": "attribute",
         "attribute": "nostalgiaskills:healing_received",
         "operation": "add_value",
-        "amount": 0.01
+        "amount": 0.02
       }
     ]
   },

@@ -18,7 +18,7 @@
       "id": "warded_mind",
       "name": "skill.nostalgiaskills.mage.warded_mind.name",
       "icon": "nostalgiaskills:textures/skill_icons/black_hole.png",
-      "neighbour_multiplier": 1.5,
+      "neighbour_multiplier": 1.75,
       "effects": [
         {
           "type": "attribute",

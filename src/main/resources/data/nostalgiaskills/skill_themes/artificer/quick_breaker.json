@@ -17,7 +17,7 @@
       "id": "seasoned_hands",
       "name": "skill.nostalgiaskills.artificer.seasoned_hands.name",
       "icon": "nostalgiaskills:textures/skill_icons/mining.png",
-      "max_rank": 3,
+      "max_rank": 4,
       "effects": [
         {
           "type": "attribute",
@@ -31,7 +31,7 @@
       "id": "core_sample",
       "name": "skill.nostalgiaskills.artificer.core_sample.name",
       "icon": "nostalgiaskills:textures/skill_icons/black_hole.png",
-      "neighbour_multiplier": 1.5,
+      "neighbour_multiplier": 1.25,
       "effects": [
         {
           "type": "attribute",

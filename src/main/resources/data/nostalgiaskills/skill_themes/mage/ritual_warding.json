@@ -34,9 +34,9 @@
       "effects": [
         {
           "type": "attribute",
-          "attribute": "nostalgiaskills:magic_resistance",
+          "attribute": "ars_nouveau:ars_nouveau.perk.warding",
           "operation": "add_value",
-          "amount": 0.02
+          "amount": 0.5
         }
       ]
     }

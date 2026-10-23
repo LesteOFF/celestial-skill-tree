@@ -58,7 +58,7 @@
       "id": "blade_discipline",
       "name": "skill.nostalgiaskills.duelist.blade_discipline.name",
       "icon": "nostalgiaskills:textures/skill_icons/light_weapon.png",
-      "max_rank": 3,
+      "max_rank": 2,
       "effects": [
         {
           "type": "attribute",
@@ -72,7 +72,7 @@
       "id": "still_point",
       "name": "skill.nostalgiaskills.duelist.still_point.name",
       "icon": "nostalgiaskills:textures/skill_icons/black_hole.png",
-      "neighbour_multiplier": 1.5,
+      "neighbour_multiplier": 2.0,
       "effects": [
         {
           "type": "attribute",

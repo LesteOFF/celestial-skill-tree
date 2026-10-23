@@ -46,7 +46,7 @@
       "id": "practiced_draw",
       "name": "skill.nostalgiaskills.marksman.practiced_draw.name",
       "icon": "nostalgiaskills:textures/skill_icons/bow.png",
-      "max_rank": 3,
+      "max_rank": 5,
       "effects": [
         {
           "type": "attribute",
@@ -60,7 +60,7 @@
       "id": "focal_point",
       "name": "skill.nostalgiaskills.marksman.focal_point.name",
       "icon": "nostalgiaskills:textures/skill_icons/black_hole.png",
-      "neighbour_multiplier": 1.5,
+      "neighbour_multiplier": 2.0,
       "effects": [
         {
           "type": "attribute",

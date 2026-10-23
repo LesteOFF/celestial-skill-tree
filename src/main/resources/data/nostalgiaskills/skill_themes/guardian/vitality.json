@@ -54,7 +54,8 @@
           "operation": "add_value",
           "amount": 0.5
         }
-      ]
+      ],
+      "max_rank": 2
     },
     {
       "id": "sentinel",

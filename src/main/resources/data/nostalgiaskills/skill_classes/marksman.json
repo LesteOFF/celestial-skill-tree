@@ -8,6 +8,12 @@
         "attribute": "nostalgiaskills:projectile_damage",
         "operation": "add_value",
         "amount": 0.03
+      },
+      {
+        "type": "attribute",
+        "attribute": "nostalgiaskills:long_range_damage",
+        "operation": "add_value",
+        "amount": 0.03
       }
     ]
   },
@@ -19,6 +25,12 @@
         "attribute": "nostalgiaskills:projectile_damage",
         "operation": "add_value",
         "amount": 0.01
+      },
+      {
+        "type": "attribute",
+        "attribute": "nostalgiaskills:long_range_damage",
+        "operation": "add_value",
+        "amount": 0.005
       }
     ]
   }

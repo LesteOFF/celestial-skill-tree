@@ -8,7 +8,7 @@
         "type": "conditional_attribute",
         "attribute": "nostalgiaskills:healing_received",
         "operation": "add_value",
-        "amount": 0.04,
+        "amount": 0.03,
         "condition": {
           "type": "sky_event",
           "event": "star_shower"

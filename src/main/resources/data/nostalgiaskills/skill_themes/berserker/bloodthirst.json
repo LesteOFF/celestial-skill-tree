@@ -30,7 +30,8 @@
           "operation": "add_value",
           "amount": 0.05
         }
-      ]
+      ],
+      "max_rank": 2
     },
     {
       "id": "bloodletting",
