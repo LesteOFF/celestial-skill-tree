@@ -15,9 +15,7 @@ import dev.nostalgiacraft.skills.graph.Vec2;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,6 +25,7 @@ public final class GraphRenderer {
     private static final int ROUTE_PREVIEW_COLOR = 0x99F3D15C;
     private static final double CULLING_REACH = 1.6;
     private static final double MIN_LOCK_MARK_RADIUS = 5;
+    private static final double MIN_DETAIL_RADIUS = 5;
     private static final int PORTAL_LINK_TILE_WIDTH = 16;
     private static final int PORTAL_LINK_LANE_HEIGHT = 8;
     private static final int PORTAL_LINK_LANE_GAP = 1;
@@ -48,7 +47,9 @@ public final class GraphRenderer {
     private static final float[] NO_TINT = {1f, 1f, 1f};
     private static final float[] HIDDEN_TINT = {0.72f, 0.5f, 1f};
     private static final float[] SILHOUETTE_TINT = {0.2f, 0.1f, 0.34f};
-    private static final Map<String, ResourceLocation> CACHE = new HashMap<>();
+    private static final float[] PORTAL_TINT = {0.5f, 0.84f, 0.91f};
+    private static final Map<String, ResourceLocation> FRAME_CACHE = new HashMap<>();
+    private static final Map<String, ResourceLocation> ICON_CACHE = new HashMap<>();
 
     public interface StateLookup {
         NodeState state(String id);
@@ -72,12 +73,12 @@ public final class GraphRenderer {
     }
 
     public static ResourceLocation frameTex(String name) {
-        return CACHE.computeIfAbsent(FRAMES + name,
-                path -> ResourceLocation.fromNamespaceAndPath(NostalgiaSkills.MODID, path + ".png"));
+        return FRAME_CACHE.computeIfAbsent(name,
+                frame -> ResourceLocation.fromNamespaceAndPath(NostalgiaSkills.MODID, FRAMES + frame + ".png"));
     }
 
     public static ResourceLocation iconTex(String id) {
-        return CACHE.computeIfAbsent(id, ResourceLocation::parse);
+        return ICON_CACHE.computeIfAbsent(id, ResourceLocation::parse);
     }
 
     public static double diameter(NodeType nodeType) {
@@ -136,18 +137,21 @@ public final class GraphRenderer {
 
     private static void polyline(LineBatch batch, SkillGraphSnapshot graph, SkillConnection connection, Camera camera,
                                  float width, int argb) {
-        List<Vec2> path = new ArrayList<>();
-        path.add(graph.nodes().get(connection.a()).position());
-        path.addAll(connection.points());
-        path.add(graph.nodes().get(connection.b()).position());
-        for (int i = 1; i < path.size(); i++) {
-            double fromX = camera.toScreenX(path.get(i - 1).x());
-            double fromY = camera.toScreenY(path.get(i - 1).y());
-            double toX = camera.toScreenX(path.get(i).x());
-            double toY = camera.toScreenY(path.get(i).y());
-            if (segmentVisible(camera, fromX, fromY, toX, toY)) {
-                batch.segment(fromX, fromY, toX, toY, width, argb);
-            }
+        Vec2 from = graph.nodes().get(connection.a()).position();
+        for (Vec2 bend : connection.points()) {
+            segment(batch, camera, from, bend, width, argb);
+            from = bend;
+        }
+        segment(batch, camera, from, graph.nodes().get(connection.b()).position(), width, argb);
+    }
+
+    private static void segment(LineBatch batch, Camera camera, Vec2 from, Vec2 to, float width, int argb) {
+        double fromX = camera.toScreenX(from.x());
+        double fromY = camera.toScreenY(from.y());
+        double toX = camera.toScreenX(to.x());
+        double toY = camera.toScreenY(to.y());
+        if (segmentVisible(camera, fromX, fromY, toX, toY)) {
+            batch.segment(fromX, fromY, toX, toY, width, argb);
         }
     }
 
@@ -202,7 +206,7 @@ public final class GraphRenderer {
         return Math.max(scaled, minimum);
     }
 
-    public static void node(GuiGraphics graphics, SkillNodeDefinition node, Camera camera, NodeState state,
+    public static void node(SpriteBatch batch, SkillNodeDefinition node, Camera camera, NodeState state,
                             boolean affordable, boolean focused, boolean searchHit, boolean portalActive, boolean disabled,
                             Ranks ranks, Fade fade, double time) {
         double x = camera.toScreenX(node.position().x());
@@ -220,47 +224,53 @@ public final class GraphRenderer {
         boolean inHiddenRegion = TreeRegion.isHidden(node);
         if (state == NodeState.HIDDEN) {
             if (inHiddenRegion) {
-                drawSilhouette(graphics, node, x, y, radius);
+                batch.add(SpriteBatch.Layer.FRAME, frameTex(node.frame()), x, y, radius, 0,
+                        SILHOUETTE_TINT[0], SILHOUETTE_TINT[1], SILHOUETTE_TINT[2], 1f);
             }
             return;
         }
-        if (node.traits().amplifiesNeighbours()) {
-            drawGravityWell(graphics, x, y, radius, held(state), time);
+        boolean detailed = radius >= MIN_DETAIL_RADIUS;
+        if (detailed && node.traits().amplifiesNeighbours()) {
+            drawGravityWell(batch, x, y, radius, held(state), time);
         }
-        if (node.type() == NodeType.PORTAL && (portalActive || held(state))) {
-            drawPortalSwirl(graphics, x, y, radius, portalActive, time);
+        if (detailed && node.type() == NodeType.PORTAL && (portalActive || held(state))) {
+            drawPortalSwirl(batch, x, y, radius, portalActive, time);
         }
         if (!disabled) {
-            drawGlow(graphics, state, affordable, x, y, radius, time);
+            drawGlow(batch, state, affordable, x, y, radius, time);
         }
         float shade = disabled ? DISABLED_SHADE : shade(state, affordable);
         float[] tint = inHiddenRegion ? HIDDEN_TINT : NO_TINT;
-        graphics.setColor(shade * tint[0], shade * tint[1], shade * tint[2], 1f);
-        draw(graphics, frameTex(node.frame()), x, y, radius);
-        draw(graphics, iconTex(node.icon()), x, y, radius * (node.type() == NodeType.MINOR ? 0.62 : 0.58));
-        graphics.setColor(1f, 1f, 1f, 1f);
-        if (node.traits().amplifiesNeighbours()) {
-            drawLens(graphics, x, y, radius, held(state), time);
+        float red = shade * tint[0];
+        float green = shade * tint[1];
+        float blue = shade * tint[2];
+        batch.add(SpriteBatch.Layer.FRAME, frameTex(node.frame()), x, y, radius, 0, red, green, blue, 1f);
+        if (detailed) {
+            batch.add(SpriteBatch.Layer.ICON, iconTex(node.icon()), x, y, radius * (node.type() == NodeType.MINOR ? 0.62 : 0.58), 0,
+                    red, green, blue, 1f);
         }
-        drawStateMark(graphics, state, x, y, radius, time);
-        if (ranks.shown()) {
-            drawRankPips(graphics, ranks, x, y, radius);
+        if (detailed && node.traits().amplifiesNeighbours()) {
+            drawLens(batch, x, y, radius, held(state), time);
+        }
+        drawStateMark(batch, state, x, y, radius, time);
+        if (detailed && ranks.shown()) {
+            drawRankPips(batch, ranks, x, y, radius);
         }
         if (searchHit) {
-            draw(graphics, frameTex("ring_search"), x, y, radius * 1.75);
+            batch.add(SpriteBatch.Layer.FRONT, frameTex("ring_search"), x, y, radius * 1.75);
         }
         if (focused) {
-            draw(graphics, frameTex("focus"), x, y, radius * 1.5 + 2);
+            batch.add(SpriteBatch.Layer.FRONT, frameTex("focus"), x, y, radius * 1.5 + 2);
         }
     }
 
-    private static void drawRankPips(GuiGraphics graphics, Ranks ranks, double x, double y, double radius) {
+    private static void drawRankPips(SpriteBatch batch, Ranks ranks, double x, double y, double radius) {
         double pipRadius = Math.max(MIN_PIP_RADIUS, radius * PIP_RADIUS_PER_NODE_RADIUS);
         double step = pipRadius * PIP_STEP_PER_PIP_RADIUS;
         double first = x - step * (ranks.max() - 1) / 2;
         double row = y + radius * PIP_DROP_PER_RADIUS;
         for (int index = 0; index < ranks.max(); index++) {
-            draw(graphics, frameTex(pipTexture(ranks, index)), first + index * step, row, pipRadius);
+            batch.add(SpriteBatch.Layer.FRONT, frameTex(pipTexture(ranks, index)), first + index * step, row, pipRadius);
         }
     }
 
@@ -271,63 +281,45 @@ public final class GraphRenderer {
         return index < ranks.owned() + ranks.pending() ? "rank_pip_pending" : "rank_pip_empty";
     }
 
-    private static void drawSilhouette(GuiGraphics graphics, SkillNodeDefinition node, double x, double y, double radius) {
-        graphics.setColor(SILHOUETTE_TINT[0], SILHOUETTE_TINT[1], SILHOUETTE_TINT[2], 1f);
-        draw(graphics, frameTex(node.frame()), x, y, radius);
-        graphics.setColor(1f, 1f, 1f, 1f);
-    }
-
-    private static void drawGlow(GuiGraphics graphics, NodeState state, boolean affordable, double x, double y,
+    private static void drawGlow(SpriteBatch batch, NodeState state, boolean affordable, double x, double y,
                                  double radius, double time) {
         float glow = ClientConfig.GLOW_INTENSITY.get().floatValue();
         if (state == NodeState.ALLOCATED && glow > 0) {
-            graphics.setColor(1f, 1f, 1f, Math.min(1f, 0.85f * glow));
-            draw(graphics, frameTex("ring_allocated"), x, y, radius * 1.55);
+            batch.add(SpriteBatch.Layer.GLOW, frameTex("ring_allocated"), x, y, radius * 1.55, 0, 1f, 1f, 1f, Math.min(1f, 0.85f * glow));
         } else if (state == NodeState.AVAILABLE && affordable) {
             float pulse = ClientConfig.REDUCED_MOTION.get() ? 0.8f : (float) (0.65 + 0.25 * Math.sin(time * 2.4));
-            graphics.setColor(1f, 1f, 1f, pulse * Math.max(0.4f, glow));
-            draw(graphics, frameTex("ring_available"), x, y, radius * 1.4);
+            batch.add(SpriteBatch.Layer.GLOW, frameTex("ring_available"), x, y, radius * 1.4, 0, 1f, 1f, 1f, pulse * Math.max(0.4f, glow));
         }
     }
 
-    private static void drawPortalSwirl(GuiGraphics graphics, double x, double y, double radius, boolean active, double time) {
+    private static void drawPortalSwirl(SpriteBatch batch, double x, double y, double radius, boolean active, double time) {
         boolean still = ClientConfig.REDUCED_MOTION.get();
         double speed = active ? 2.4 : 0.6;
         float pulse = still ? 0.8f : (float) (0.7 + 0.3 * Math.sin(time * 3));
-        graphics.setColor(0.5f, 0.84f, 0.91f, active ? pulse : 0.45f);
-        drawRotated(graphics, frameTex("ring_pending"), x, y, radius * 1.3, still ? 0 : time * speed);
-        drawRotated(graphics, frameTex("ring_pending"), x, y, radius * (active ? 1.6 + 0.08 * pulse : 1.5), still ? 0 : -time * speed * 0.6);
-        graphics.setColor(1f, 1f, 1f, 1f);
+        float alpha = active ? pulse : 0.45f;
+        batch.add(SpriteBatch.Layer.BACK, frameTex("ring_pending"), x, y, radius * 1.3, still ? 0 : time * speed,
+                PORTAL_TINT[0], PORTAL_TINT[1], PORTAL_TINT[2], alpha);
+        batch.add(SpriteBatch.Layer.BACK, frameTex("ring_pending"), x, y, radius * (active ? 1.6 + 0.08 * pulse : 1.5),
+                still ? 0 : -time * speed * 0.6, PORTAL_TINT[0], PORTAL_TINT[1], PORTAL_TINT[2], alpha);
     }
 
-    private static void drawGravityWell(GuiGraphics graphics, double x, double y, double radius, boolean held, double time) {
+    private static void drawGravityWell(SpriteBatch batch, double x, double y, double radius, boolean held, double time) {
         boolean still = ClientConfig.REDUCED_MOTION.get();
         float strength = held ? 1f : DORMANT_DISK_ALPHA;
         for (int layer = 0; layer < INFALL_LAYERS; layer++) {
             double fall = still ? 0.5 : (time / INFALL_SECONDS + layer / (double) INFALL_LAYERS) % 1.0;
-            graphics.setColor(1f, 1f, 1f, strength * (float) Math.sin(Math.PI * fall));
-            drawRotated(graphics, frameTex("black_hole_infall"), x, y, radius * (INFALL_START - (INFALL_START - INFALL_END) * fall),
-                    -fall * INFALL_TWIST - layer * 2.1);
+            batch.add(SpriteBatch.Layer.BACK, frameTex("black_hole_infall"), x, y, radius * (INFALL_START - (INFALL_START - INFALL_END) * fall),
+                    -fall * INFALL_TWIST - layer * 2.1, 1f, 1f, 1f, strength * (float) Math.sin(Math.PI * fall));
         }
-        graphics.setColor(1f, 1f, 1f, strength);
-        drawRotated(graphics, frameTex("black_hole_disk"), x, y, radius * DISK_PER_RADIUS, still ? 0 : -time * (held ? 0.9 : 0.3));
-        graphics.setColor(1f, 1f, 1f, 1f);
+        batch.add(SpriteBatch.Layer.BACK, frameTex("black_hole_disk"), x, y, radius * DISK_PER_RADIUS, still ? 0 : -time * (held ? 0.9 : 0.3),
+                1f, 1f, 1f, strength);
     }
 
-    private static void drawLens(GuiGraphics graphics, double x, double y, double radius, boolean held, double time) {
+    private static void drawLens(SpriteBatch batch, double x, double y, double radius, boolean held, double time) {
         boolean still = ClientConfig.REDUCED_MOTION.get();
         double breath = still ? 0 : Math.sin(time * 1.7);
-        graphics.setColor(1f, 1f, 1f, (held ? 0.75f : 0.4f) + 0.2f * (float) breath);
-        drawRotated(graphics, frameTex("black_hole_lens"), x, y, radius * (LENS_PER_RADIUS + LENS_BREATH * breath), still ? 0 : time * 0.2);
-        graphics.setColor(1f, 1f, 1f, 1f);
-    }
-
-    private static void drawRotated(GuiGraphics graphics, ResourceLocation texture, double x, double y, double radius, double angle) {
-        graphics.pose().pushPose();
-        graphics.pose().translate(x, y, 0);
-        graphics.pose().mulPose(Axis.ZP.rotation((float) angle));
-        draw(graphics, texture, 0, 0, radius);
-        graphics.pose().popPose();
+        batch.add(SpriteBatch.Layer.FRONT, frameTex("black_hole_lens"), x, y, radius * (LENS_PER_RADIUS + LENS_BREATH * breath),
+                still ? 0 : time * 0.2, 1f, 1f, 1f, (held ? 0.75f : 0.4f) + 0.2f * (float) breath);
     }
 
     private static float shade(NodeState state, boolean affordable) {
@@ -339,23 +331,20 @@ public final class GraphRenderer {
         };
     }
 
-    private static void drawStateMark(GuiGraphics graphics, NodeState state, double x, double y, double radius, double time) {
+    private static void drawStateMark(SpriteBatch batch, NodeState state, double x, double y, double radius, double time) {
         switch (state) {
-            case PENDING -> drawPendingRing(graphics, x, y, radius, time);
-            case CONFLICTING -> draw(graphics, frameTex("mark_conflict"), x, y, radius * 0.9);
-            case SEALED -> draw(graphics, frameTex("mark_sealed"), x, y, radius * 0.9);
+            case PENDING -> batch.add(SpriteBatch.Layer.FRONT, frameTex("ring_pending"), x, y, radius * 1.35,
+                    ClientConfig.REDUCED_MOTION.get() ? 0 : time * 0.8, 1f, 1f, 1f, 1f);
+            case CONFLICTING -> batch.add(SpriteBatch.Layer.FRONT, frameTex("mark_conflict"), x, y, radius * 0.9);
+            case SEALED -> batch.add(SpriteBatch.Layer.FRONT, frameTex("mark_sealed"), x, y, radius * 0.9);
             case LOCKED -> {
                 if (radius > MIN_LOCK_MARK_RADIUS) {
-                    draw(graphics, frameTex("mark_locked"), x + radius * 0.62, y + radius * 0.62, Math.max(3, radius * 0.42));
+                    batch.add(SpriteBatch.Layer.FRONT, frameTex("mark_locked"), x + radius * 0.62, y + radius * 0.62, Math.max(3, radius * 0.42));
                 }
             }
             default -> {
             }
         }
-    }
-
-    private static void drawPendingRing(GuiGraphics graphics, double x, double y, double radius, double time) {
-        drawRotated(graphics, frameTex("ring_pending"), x, y, radius * 1.35, ClientConfig.REDUCED_MOTION.get() ? 0 : time * 0.8);
     }
 
     public static void draw(GuiGraphics graphics, ResourceLocation texture, double centerX, double centerY, double radius) {

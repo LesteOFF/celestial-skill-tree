@@ -7,6 +7,7 @@ import dev.nostalgiacraft.skills.client.ClientSkillState;
 import dev.nostalgiacraft.skills.client.render.BackgroundRenderer;
 import dev.nostalgiacraft.skills.client.render.GraphRenderer;
 import dev.nostalgiacraft.skills.client.render.Palette;
+import dev.nostalgiacraft.skills.client.render.SpriteBatch;
 import dev.nostalgiacraft.skills.client.sound.TreeSounds;
 import dev.nostalgiacraft.skills.config.ClientConfig;
 import dev.nostalgiacraft.skills.graph.NodeType;
@@ -92,10 +93,16 @@ public final class SkillTreeScreen extends Screen {
     private static final int POINTS_LABEL_SAMPLE = 888;
     private static final int MIN_TOOLTIP_WIDTH = 120;
     private static final int MAX_TOOLTIP_WIDTH = 260;
+    private static final long STATS_REFRESH_MILLIS = 500;
     private static final Set<String> POINT_BOUGHT_MESSAGES = Set.of("message.nostalgiaskills.point_bought",
             "message.nostalgiaskills.points_bought");
 
     private final Camera camera = new Camera();
+    private final SpriteBatch sprites = new SpriteBatch();
+    private List<Object> shownControls = List.of();
+    private List<Component> statsCache = List.of();
+    private List<Object> statsKey = List.of();
+    private long statsAt;
     private final Set<String> pending = new LinkedHashSet<>();
     private final Map<String, Integer> pendingRanks = new LinkedHashMap<>();
     private final Set<String> searchHits = new LinkedHashSet<>();
@@ -476,16 +483,20 @@ public final class SkillTreeScreen extends Screen {
     }
 
     private boolean affordable(SkillNodeDefinition node, PlayerSkillState state) {
-        boolean freeStart = node.isRoot() && state.startingRoot().isEmpty()
-                && pending.stream().noneMatch(id -> graph().nodes().get(id).isRoot());
+        boolean freeStart = node.isRoot() && freeStartOpen(state);
         int cost = freeStart ? 0 : AllocationService.priceOf(graph(), node, state::isAllocated);
         return state.availablePoints() - nodeStates.pendingCost() >= cost;
+    }
+
+    private boolean freeStartOpen(PlayerSkillState state) {
+        return state.startingRoot().isEmpty() && pending.stream().noneMatch(id -> graph().nodes().get(id).isRoot());
     }
 
     private void updateControls() {
         if (confirmButton == null) {
             return;
         }
+        shownControls = controlsKey();
         boolean ready = ClientSkillState.ready();
         boolean busy = ClientSkillState.requestInFlight();
         PlayerSkillState state = ClientSkillState.state().orElse(null);
@@ -1059,14 +1070,18 @@ public final class SkillTreeScreen extends Screen {
         GraphRenderer.edges(graphics, graph, camera, nodeStates::of, routePreview(graph, state), fade);
         GraphRenderer.portalLinks(graphics, graph, camera, nodeStates::of, fade, time);
         Set<String> activePortals = activePortals(graph);
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
+        int budget = state.availablePoints() - nodeStates.pendingCost();
+        boolean freeStart = freeStartOpen(state);
         for (SkillNodeDefinition node : graph.nodes().values()) {
             boolean highlighted = node.id().equals(focusId) || node.id().equals(hoverId);
-            GraphRenderer.node(graphics, node, camera, nodeStates.of(node.id()), affordable(node, state), highlighted,
+            boolean affordable = budget >= (freeStart && node.isRoot() ? 0 : AllocationService.priceOf(graph, node, state::isAllocated));
+            GraphRenderer.node(sprites, node, camera, nodeStates.of(node.id()), affordable, highlighted,
                     searchHits.contains(node.id()), activePortals.contains(node.id()), state.isDisabled(node.id()), ranksOf(node, state),
                     fade, time);
         }
+        sprites.draw(graphics);
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
         sparks.render(graphics, camera);
         graphics.setColor(1f, 1f, 1f, 1f);
         RenderSystem.disableBlend();
@@ -1159,7 +1174,14 @@ public final class SkillTreeScreen extends Screen {
     }
 
     private List<Component> statsLines() {
-        return StatsPanel.lines(Minecraft.getInstance().player, playerState(), graph(), request(), nodeStates.pendingCost());
+        List<Object> key = List.of(playerState().stateRevision(), request(), nodeStates);
+        long now = Util.getMillis();
+        if (!key.equals(statsKey) || now - statsAt > STATS_REFRESH_MILLIS) {
+            statsCache = StatsPanel.lines(Minecraft.getInstance().player, playerState(), graph(), request(), nodeStates.pendingCost());
+            statsKey = key;
+            statsAt = now;
+        }
+        return statsCache;
     }
 
     private PanelRenderer.View panelView() {
@@ -1211,6 +1233,14 @@ public final class SkillTreeScreen extends Screen {
     @Override
     public void tick() {
         super.tick();
-        updateControls();
+        if (!controlsKey().equals(shownControls)) {
+            updateControls();
+        }
+    }
+
+    private List<Object> controlsKey() {
+        long stateRevision = ClientSkillState.state().map(PlayerSkillState::stateRevision).orElse(-1L);
+        return List.of(ClientSkillState.ready(), ClientSkillState.requestInFlight(), stateRevision, nodeStates, ClientSkillState.xpBalance(),
+                ClientSkillState.economy(), ClientSkillState.curve(), ClientSkillState.worldRules(), request().size());
     }
 }
