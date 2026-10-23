@@ -39,6 +39,14 @@ The game tests and the in-game QA harness live in the `devHarness` source set (`
 them, the release jar does not. `runPackGameTestServer` reads the pack's mods folder from `pack_mods_dir` in
 `~/.gradle/gradle.properties` or from the `PACK_MODS_DIR` environment variable; nothing else needs it.
 
+Performance checks, each printing a median per call or per frame:
+
+```bash
+./gradlew benchProgression            # reconcile, refund, fallen star, batch confirm and bulk purchase on the shipped tree
+./gradlew runGameTestServer -Pbench   # server hot paths with a full build (report: run/nostalgiaskills_bench_server.txt)
+./gradlew runClient -Prenderbench     # tree screen frame times at 1920x1080 (report: run/nostalgiaskills_bench_client.txt)
+```
+
 Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256, Parchment 1.21.1-2024.11.17.
 
 ## Playing

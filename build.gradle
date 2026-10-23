@@ -42,6 +42,9 @@ neoForge {
             if (project.hasProperty('visualqa')) {
                 systemProperty 'nostalgiaskills.visualqa', 'true'
             }
+            if (project.hasProperty('renderbench')) {
+                systemProperty 'nostalgiaskills.renderbench', 'true'
+            }
         }
         server {
             sourceSet = sourceSets.devHarness
@@ -75,6 +78,9 @@ neoForge {
             sourceSet = sourceSets.devHarness
             type = "gameTestServer"
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            if (project.hasProperty('bench')) {
+                systemProperty 'nostalgiaskills.bench', 'true'
+            }
         }
         packGameTestServer {
             type = "gameTestServer"
@@ -217,6 +223,14 @@ tasks.register('validateTree', JavaExec) {
     classpath = sourceSets.test.runtimeClasspath
     mainClass = 'dev.nostalgiacraft.skills.generation.CatalogValidatorCli'
     args = [project.findProperty('treeDir') ?: 'src/main/resources/data', project.findProperty('seed') ?: '0']
+}
+
+tasks.register('benchProgression', JavaExec) {
+    group = 'verification'
+    description = 'Times the progression rules (reconcile, refund, batch confirm, bulk purchase) on the shipped tree'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.nostalgiacraft.skills.generation.ProgressionBenchCli'
+    args = [project.findProperty('treeDir') ?: 'src/main/resources/data']
 }
 
 tasks.register('previewTree', JavaExec) {

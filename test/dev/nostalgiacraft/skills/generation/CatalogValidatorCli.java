@@ -59,7 +59,7 @@ public final class CatalogValidatorCli {
         report.issues().forEach(System.out::println);
     }
 
-    private static Map<String, JsonElement> read(Path data, String directory) throws IOException {
+    static Map<String, JsonElement> read(Path data, String directory) throws IOException {
         Map<String, JsonElement> files = new TreeMap<>();
         try (Stream<Path> namespaces = Files.list(data)) {
             for (Path namespace : namespaces.filter(Files::isDirectory).toList()) {
