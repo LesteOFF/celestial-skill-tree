@@ -63,10 +63,14 @@ public final class Reconciler {
         List<Allocation> candidates = state.orderedAllocations().stream()
                 .filter(allocation -> !excluded.contains(allocation.nodeId()) && graph.contains(allocation.nodeId()))
                 .toList();
-        boolean keptAnother;
-        do {
-            keptAnother = keepOldestValid(graph, candidates, kept);
-        } while (keptAnother);
+        int firstUnkept = 0;
+        boolean keptAnother = true;
+        while (keptAnother) {
+            while (firstUnkept < candidates.size() && kept.contains(candidates.get(firstUnkept).nodeId())) {
+                firstUnkept++;
+            }
+            keptAnother = keepOldestValid(graph, candidates, firstUnkept, kept);
+        }
         return kept.nodeIds();
     }
 
@@ -76,8 +80,9 @@ public final class Reconciler {
                 .filter(root -> graph.node(root).filter(node -> node.isRoot()).isPresent());
     }
 
-    private static boolean keepOldestValid(SkillGraphSnapshot graph, List<Allocation> candidates, Holdings kept) {
-        for (Allocation allocation : candidates) {
+    private static boolean keepOldestValid(SkillGraphSnapshot graph, List<Allocation> candidates, int from, Holdings kept) {
+        for (int index = from; index < candidates.size(); index++) {
+            Allocation allocation = candidates.get(index);
             String id = allocation.nodeId();
             if (!kept.contains(id) && AllocationService.rejectionOf(graph, graph.nodes().get(id), kept).isEmpty()) {
                 kept.add(id, allocation.paidCost());
