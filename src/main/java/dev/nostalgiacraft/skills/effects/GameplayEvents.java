@@ -186,7 +186,8 @@ public final class GameplayEvents {
             Triggers.fire(defender, "on_dodge", livingAttacker(source));
             return false;
         }
-        double multiplier = 1.0 + modifierSum(defender, source, false, null);
+        EffectEngine.DamageContext context = new EffectEngine.DamageContext(livingAttacker(source), shotDistance(source, defender));
+        double multiplier = 1.0 + modifierSum(defender, source, false, context);
         if (source.is(ModTags.MAGIC)) {
             multiplier -= attributeValue(defender, ModAttributes.MAGIC_RESISTANCE);
         }
@@ -320,7 +321,7 @@ public final class GameplayEvents {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onFatalBlow(LivingDeathEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             Triggers.fire(player, Triggers.ON_FATAL_BLOW, null);
@@ -361,6 +362,7 @@ public final class GameplayEvents {
 
     @SubscribeEvent
     public static void onUseStart(LivingEntityUseItemEvent.Start event) {
+        EFFECTS_BEFORE_MEAL.remove(event.getEntity().getUUID());
         if (event.getEntity() instanceof ServerPlayer player && isMeal(event.getItem())) {
             Map<Holder<MobEffect>, Integer> active = new HashMap<>();
             player.getActiveEffects().forEach(effect -> active.put(effect.getEffect(), effect.getDuration()));
@@ -389,8 +391,9 @@ public final class GameplayEvents {
 
     @SubscribeEvent
     public static void onUseFinish(LivingEntityUseItemEvent.Finish event) {
-        if (event.getEntity() instanceof ServerPlayer eater && EFFECTS_BEFORE_MEAL.containsKey(eater.getUUID())) {
-            finishMeal(eater, EFFECTS_BEFORE_MEAL.remove(eater.getUUID()));
+        Map<Holder<MobEffect>, Integer> beforeMeal = EFFECTS_BEFORE_MEAL.remove(event.getEntity().getUUID());
+        if (event.getEntity() instanceof ServerPlayer eater && beforeMeal != null && isMeal(event.getItem())) {
+            finishMeal(eater, beforeMeal);
             return;
         }
         if (!(event.getEntity() instanceof ServerPlayer player) || !(event.getItem().getItem() instanceof PotionItem)) {
