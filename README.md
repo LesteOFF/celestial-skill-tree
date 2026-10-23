@@ -4,9 +4,11 @@ A NeoForge mod for **Minecraft Java 1.21.1** that adds a passive skill tree gene
 chart inside **The Astral Observatory**. Buy skill points with vanilla experience, plan a route across the
 classes of your world, confirm it in one batch, and reshape your build with the Orb of Reconfiguration.
 
-- 6 classes without other mods — Duelist, Guardian, Arcanist, Marksman, Artificer, Berserker — and a Mage class when a
-  supported magic mod is installed. Every class has the same shape: a hub, a straight trunk, themed branches that end
-  in a notable, and up to 3 keystones at the tip. Together they form a web of up to 100 skills per class.
+- 6 classes without other mods — Duelist, Guardian, Arcanist, Marksman, Artificer, Berserker — and a Mage class when
+  Iron's Spells 'n Spellbooks, Ars Nouveau or Malum is installed (any one of them alone brings at least six themes and
+  keystones of its own). Every class has the same shape: a hub, a straight trunk, themed branches that end in a
+  notable, and up to 3 keystones at the tip. Together they form a web of up to 100 skills per class (120 for the Mage,
+  which has the most content when every magic mod is present).
 - The tree is drawn from a catalog using the world seed, so another world, or another set of mods, gets another tree.
 - Every node has a real gameplay effect; keystones trade a strong advantage for a drawback.
 - Server-authoritative: the client only previews; the server validates every purchase, allocation and reset.
@@ -26,18 +28,25 @@ optional: KubeJS (2101.x) and the mods listed under [Integration hooks](#integra
 ## Building
 
 ```bash
-./gradlew build            # Windows: gradlew.bat build  → build/libs/nostalgiaskills-2.0.0.jar
-./gradlew test             # 49 unit tests in test/, including trees generated from the shipped catalog
+./gradlew build            # Windows: gradlew.bat build  → build/libs/nostalgiaskills-2.1.0.jar
+./gradlew test             # 57 unit tests in test/, including trees generated from the shipped catalog
 ./gradlew validateTree     # validates the catalog and generates one tree outside the game
 ./gradlew previewTree      # draws the tree shape to build/preview/tree.png
-./gradlew runGameTestServer  # 39 in-game tests on a real server with mock players
+./gradlew runGameTestServer  # 44 in-game tests on a real server with mock players
 ./gradlew runPackGameTestServer  # the same tests plus 3 integration tests, with the pack's mods (pack_mods_dir)
 ./gradlew runClient / runServer
 ```
 
 The game tests and the in-game QA harness live in the `devHarness` source set (`src/devHarness`): every dev run loads
 them, the release jar does not. `runPackGameTestServer` reads the pack's mods folder from `pack_mods_dir` in
-`~/.gradle/gradle.properties` or from the `PACK_MODS_DIR` environment variable; nothing else needs it.
+`~/.gradle/gradle.properties` or from the `PACK_MODS_DIR` environment variable; nothing else needs it. The pack's jars
+are found by name prefix (the `packTestMods` list in `build.gradle`), so updating a mod in the pack needs no change.
+
+Releasing: `.github/workflows/nostalgia-skills-ci.yml` runs `build validateTree` on every push and pull request that
+touches the mod. Pushing a `nostalgia-skills-v<version>` tag runs the release workflow: it attaches the jar to a GitHub
+release and, when the repository variables `MODRINTH_PROJECT_ID` and `CURSEFORGE_PROJECT_ID` are set (with the
+secrets `MODRINTH_TOKEN` and `CURSEFORGE_TOKEN`), publishes it to Modrinth and CurseForge with the `CHANGELOG.md`
+section of `mod_version` as the release notes.
 
 Performance checks, each printing a median per call or per frame:
 
@@ -64,8 +73,9 @@ Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256
    **Cancel** clears the pending selection.
 6. The **stats** button (first in the left dock) lists your final attributes, the tree's share, conditional effects, active keystones, and points.
    With a pending selection it also shows each affected attribute before → after, caps included.
-7. **Ranked skills.** Some notables have up to 3 ranks (one per class: Blade Discipline, Layered Plates, Slow
-   Steeping, Practiced Draw, Seasoned Hands, Brute Training, and Spell Hardening / Warding Rites for the Mage). Small
+7. **Ranked skills.** Some notables have 2 to 5 ranks: Practiced Draw 5, Seasoned Hands 4, Layered Plates, Slow
+   Steeping, Brute Training, Tool Care, Spell Hardening and Warding Rites 3, Blade Discipline, Iron Will, Blood Pact,
+   Herbalism and Arcane Reservoir 2. Small
    pips under the node show learned ranks in gold and the pending one in cyan. Each click on a ranked skill marks one more rank
    (every rank costs the skill's price again and adds its effect once more), so one Confirm can buy several ranks; once
    every rank left is marked, the next click unmarks the extra ranks.
@@ -86,7 +96,8 @@ Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256
 - **Two real choices per class, no caps.** Each class offers one **exclusive keystone pair** in its crown (for example
   the Berserker's Controlled Rage *or* Blind Rage): learning one shuts the other out until you unlearn it. Each class
   also has one **black hole** notable at the end of a branch, drawn as a gravity well (a small spinning accretion disk, matter spiralling in and a breathing lens ring): while you own it,
-  the neighbouring skills you already have count ×1.5 and the ones you do not have are sealed (purple ⊘). Black holes
+  the neighbouring skills you already have count extra (×1.25 to ×2 depending on the class; the tooltip shows the
+  multiplier) and the ones you do not have are sealed (purple ⊘). Black holes
   only sit on dead-end tips, never on the way to other skills. Everything else can be learned, and the default point limit is 10,000, so one
   character can eventually learn every other skill. Each skill must still connect to one you already own. The XP price of a point keeps rising with every point bought (`100 + 20p + 2p²`); lower
   `curveQuadratic` in the server config if the whole tree should be a realistic goal.
@@ -206,8 +217,10 @@ The tree is generated from a **catalog** of ordinary data files, then saved with
 | `data/<ns>/skill_classes/<id>.json` | a class: `name`, `icon`, `hub` (its effects), `trunk` (`name` and effects of the skill repeated along the trunk); optional `priority`, `fallback_class`, `nodes` |
 | `data/<ns>/skill_themes/<path>.json` | a branch theme: `class`, `name`, `icon`, `minor` (effects of the numbered skills), optional `weight` and `notables` (`id`, `name`, effects, optional `max_rank` 1–5: every rank costs the skill's price and adds its effects once more, optional `neighbour_multiplier` above 1 to make it a black hole, which the generator only places on a dead-end tip) |
 | `data/<ns>/skill_keystones/<path>.json` | a keystone: `class`, `name`, `text` (required plain-language sentence), effects; optional `icon`, `weight`, `neighbour_multiplier`, `hidden_until`, `toggleable` (the owner switches it off and on for free), `exclusive_with` (another keystone id of the same class: when both are drawn they form a pair and only one may be learned; paired keystones do not take room from the branches) |
-| `data/nostalgiaskills/skill_rules/main.json` | `nodes_per_class` (12 to 100, default 100), `max_classes` (default 10), `min_themes_for_own_class` (default 4), `max_copies_per_skill` (default 5), `vary_by_seed`, `portals` |
+| `data/nostalgiaskills/skill_rules/main.json` | `nodes_per_class` (12 to 130, default 100; a class file's `nodes` overrides it for that class), `max_classes` (default 10), `min_themes_for_own_class` (default 4), `max_copies_per_skill` (default 5), `vary_by_seed`, `portals`. The mod ships this file with the defaults |
 
+- **Format version.** Any data file may carry `"schema_version": 1`; without it version 1 is assumed, and any other
+  number is rejected with a clear error.
 - **Mods.** Any file may carry `"requires_mod"` (one id or a list, all needed) or `"requires_any_mod"` (one of the list
   is enough). A file whose mod is missing is skipped before it is read, so it may use that mod's attributes.
 - **Which classes a world gets.** Classes with at least `min_themes_for_own_class` themes enter, highest `priority`
@@ -444,10 +457,10 @@ attributes. Integrations whose mod is not in the pack (for example Pufferfish's 
 ### KubeJS
 
 KubeJS is optional: without it nothing changes, with it server scripts get the events and a binding below. The
-integration is built against the first KubeJS 2101 release (`2101.7.0-build.126`) and checked against the latest
-(`2101.7.2-build.379`); it uses only the plugin, event group and binding registration API, which is identical in
-both. If a KubeJS build ever breaks that API the integration logs one warning and switches itself off, the rest of
-the mod keeps working.
+integration is built against the first KubeJS 2101 release (`2101.7.0-build.126`, Rhino `2100.2.5-build.46`) and
+checked against the pack's (`2101.7.2-build.377`, Rhino `2101.2.7-build.85`); it uses only the plugin, event group and
+binding registration API, which is identical in both. If a KubeJS build ever breaks that API the integration logs one
+warning and switches itself off, the rest of the mod keeps working.
 
 - **Events** (`NostalgiaSkillsEvents`, server scripts): `pointsBought` (`player`, `points`, `xpSpent`),
   `nodesLearned` (`player`, `nodes`), `nodesRefunded`, `buildReset` and `nodesLost` (`player`, `nodes`,
@@ -489,7 +502,7 @@ Example: `examples/kubejs/server_scripts/nostalgiaskills_example.js`.
 
 ## License
 
-All Rights Reserved (see `gradle.properties` → `mod_license`). All art, data, sounds and code were created for this
-project; every sound in `assets/nostalgiaskills/sounds/` is synthesized. The interface sounds are made from scratch;
-the falling star, eclipse and star shower sounds are resynthesized from the spectrum and loudness of the Hyxcate 1.2.4
-sounds (a port of Nyx). The eclipse and falling star behaviour is inspired by Nyx by Ellpeck (MIT).
+All Rights Reserved (see [LICENSE](LICENSE)). All art, data, sounds and code were created for this
+project; every sound in `assets/nostalgiaskills/sounds/` is synthesized. The eclipse, falling star and star shower
+events and their sounds are inspired by Nyx by Ellpeck (MIT) and its port Hyxcate; no code or sound is copied from
+them.
