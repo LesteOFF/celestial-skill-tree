@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -47,7 +46,7 @@ public final class SkillTooltips {
                 return GuiText.of("any_tagged", term.substring(1));
             }
             return graph.node(term).<Component>map(required -> SkillTexts.name(required))
-                    .orElse(Component.literal(term));
+                    .orElse(GuiText.of("unknown_skill", readable(term)));
         }
 
         String sectorKey() {
@@ -109,8 +108,11 @@ public final class SkillTooltips {
         if (written) {
             rows.add(Row.plain(Component.translatable(node.descriptionKey()).withStyle(ChatFormatting.WHITE)));
         }
+        List<SkillTexts.EffectLine> effects = SkillTexts.effectLines(node);
         if (!written || detailed) {
-            SkillTexts.effectLines(node).forEach(line -> rows.add(effectRow(line)));
+            effects.forEach(line -> rows.add(effectRow(line)));
+        } else if (!effects.isEmpty()) {
+            rows.add(Row.plain(GuiText.of("hold_shift").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC)));
         }
         if (node.ranked()) {
             rows.add(Row.of(Marker.RANK, rankLine(subject).withStyle(ChatFormatting.YELLOW)));
@@ -296,11 +298,15 @@ public final class SkillTooltips {
         return Row.of(Marker.LOCK, GuiText.of("route.unresolved", problem).withStyle(ChatFormatting.DARK_RED));
     }
 
+    private static String readable(String nodeId) {
+        return nodeId.substring(nodeId.indexOf(':') + 1).replace('_', ' ');
+    }
+
     static String format(double value, boolean percent) {
         if (percent) {
-            return String.format(Locale.ROOT, "%.1f%%", value * 100);
+            return String.format(GuiText.locale(), "%.1f%%", value * 100);
         }
         boolean whole = Math.abs(value - Math.rint(value)) < WHOLE_NUMBER_TOLERANCE;
-        return String.format(Locale.ROOT, whole ? "%.0f" : "%.2f", value);
+        return String.format(GuiText.locale(), whole ? "%.0f" : "%.2f", value);
     }
 }

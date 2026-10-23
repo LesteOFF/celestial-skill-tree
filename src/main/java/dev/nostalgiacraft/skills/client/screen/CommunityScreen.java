@@ -13,12 +13,12 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public final class CommunityScreen extends Screen {
     private static final int EMBER_TINT = 0xA61C0E04;
@@ -38,7 +38,10 @@ public final class CommunityScreen extends Screen {
     private static final double TOP_FRACTION = 0.22;
     private static final double STAR_SIZE = 7;
     private static final double HOVER_REACH = 14;
-    private static final int BUTTON_WIDTH = 86;
+    private static final int MAX_BUTTON_WIDTH = 86;
+    private static final int SIDE_MARGIN = 8;
+    private static final int BUTTON_COUNT = 4;
+    private static final long CONFIRM_WINDOW_MILLIS = 3000;
     private static final int BUTTON_HEIGHT = 20;
     private static final int BUTTON_GAP = 6;
     private static final int SMALL_DONATION = 100;
@@ -53,6 +56,8 @@ public final class CommunityScreen extends Screen {
     private final Screen parent;
     private final long openedAt = Util.getMillis();
     private final List<Button> donationButtons = new ArrayList<>();
+    private Button donateAllButton;
+    private long donateAllArmedUntil;
     private Component message;
     private long messageUntil;
 
@@ -65,18 +70,34 @@ public final class CommunityScreen extends Screen {
     protected void init() {
         ClientSkillState.setListeners(this::onResult, () -> { });
         donationButtons.clear();
-        int rowWidth = 4 * BUTTON_WIDTH + 3 * BUTTON_GAP;
-        int left = (width - rowWidth) / 2;
+        int buttonWidth = Math.min(MAX_BUTTON_WIDTH, (width - 2 * SIDE_MARGIN - (BUTTON_COUNT - 1) * BUTTON_GAP) / BUTTON_COUNT);
+        int step = buttonWidth + BUTTON_GAP;
+        int left = (width - BUTTON_COUNT * step + BUTTON_GAP) / 2;
         int y = height - BUTTON_HEIGHT - 8;
-        addDonationButton(left, y, GuiText.of("community.donate", SMALL_DONATION), SMALL_DONATION);
-        addDonationButton(left + BUTTON_WIDTH + BUTTON_GAP, y, GuiText.of("community.donate", LARGE_DONATION), LARGE_DONATION);
-        addDonationButton(left + 2 * (BUTTON_WIDTH + BUTTON_GAP), y, GuiText.of("community.donate_all"), Integer.MAX_VALUE);
-        addRenderableWidget(new SkillButton(left + 3 * (BUTTON_WIDTH + BUTTON_GAP), y, BUTTON_WIDTH, BUTTON_HEIGHT,
-                GuiText.of("back"), button -> onClose()));
+        addDonationButton(left, y, buttonWidth, GuiText.of("community.donate", GuiText.number(SMALL_DONATION)), SMALL_DONATION);
+        addDonationButton(left + step, y, buttonWidth, GuiText.of("community.donate", GuiText.number(LARGE_DONATION)), LARGE_DONATION);
+        donateAllButton = addRenderableWidget(new SkillButton(left + 2 * step, y, buttonWidth, BUTTON_HEIGHT,
+                GuiText.of("community.donate_all"), button -> donateAll()));
+        donateAllButton.setTooltip(Tooltip.create(GuiText.of("community.donate_all_tooltip")));
+        donationButtons.add(donateAllButton);
+        Button back = addRenderableWidget(new SkillButton(left + 3 * step, y, buttonWidth, BUTTON_HEIGHT, GuiText.of("back"),
+                button -> onClose()));
+        back.setTooltip(Tooltip.create(GuiText.of("back_tooltip")));
     }
 
-    private void addDonationButton(int x, int y, Component label, int amount) {
-        donationButtons.add(addRenderableWidget(new SkillButton(x, y, BUTTON_WIDTH, BUTTON_HEIGHT, label, button -> donate(amount))));
+    private void addDonationButton(int x, int y, int buttonWidth, Component label, int amount) {
+        Button button = addRenderableWidget(new SkillButton(x, y, buttonWidth, BUTTON_HEIGHT, label, pressed -> donate(amount)));
+        button.setTooltip(Tooltip.create(GuiText.of("community.donate_tooltip", GuiText.number(amount))));
+        donationButtons.add(button);
+    }
+
+    private void donateAll() {
+        if (Util.getMillis() < donateAllArmedUntil) {
+            donateAllArmedUntil = 0;
+            donate(Integer.MAX_VALUE);
+        } else {
+            donateAllArmedUntil = Util.getMillis() + CONFIRM_WINDOW_MILLIS;
+        }
     }
 
     @Override
@@ -115,6 +136,9 @@ public final class CommunityScreen extends Screen {
         boolean canDonate = !ClientSkillState.requestInFlight() && ClientSkillState.xpBalance() > 0
                 && rules.communityXp() < CommunityProgress.goal(rules.thresholds());
         donationButtons.forEach(button -> button.active = canDonate);
+        boolean armed = Util.getMillis() < donateAllArmedUntil;
+        donateAllButton.setMessage(GuiText.of(armed ? "community.donate_all_confirm" : "community.donate_all")
+                .withStyle(armed ? ChatFormatting.YELLOW : ChatFormatting.RESET));
     }
 
     private double seconds() {
@@ -218,7 +242,7 @@ public final class CommunityScreen extends Screen {
             boolean reached = communityXp >= tier.xpRequired();
             graphics.drawCenteredString(font, Component.translatable(CommunityTier.nameKey(tier.id()))
                     .withStyle(reached ? ChatFormatting.GOLD : ChatFormatting.GRAY), (int) point.x(), (int) point.y() + 16, TEXT_COLOR);
-            graphics.drawCenteredString(font, Component.literal(grouped(tier.xpRequired()) + " XP")
+            graphics.drawCenteredString(font, GuiText.of("community.xp_amount", grouped(tier.xpRequired()))
                     .withStyle(reached ? ChatFormatting.GREEN : ChatFormatting.DARK_GRAY), (int) point.x(), (int) point.y() + 27, TEXT_COLOR);
         }
     }
@@ -252,6 +276,6 @@ public final class CommunityScreen extends Screen {
     }
 
     private static String grouped(long amount) {
-        return String.format(Locale.ROOT, "%,d", amount);
+        return GuiText.number(amount);
     }
 }

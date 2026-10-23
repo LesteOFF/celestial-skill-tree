@@ -13,8 +13,10 @@ import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.FormattedCharSequence;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,12 +40,15 @@ public final class BirthSignScreen extends Screen {
     private static final int BUTTON_HEIGHT = 20;
     private static final float TITLE_SCALE = 1.5f;
     private static final int TOOLTIP_WIDTH = 200;
+    private static final double LABEL_DROP_FRACTION = 1.25;
 
     private record Placed(String signId, double x, double y) {
     }
 
     private final Screen parent;
     private final long openedAt = Util.getMillis();
+    private String tooltipFor;
+    private List<FormattedCharSequence> tooltipLines = List.of();
 
     public BirthSignScreen(Screen parent) {
         super(GuiText.of("sign.title"));
@@ -95,7 +100,12 @@ public final class BirthSignScreen extends Screen {
 
     private Optional<Placed> hovered(List<Placed> placed, int mouseX, int mouseY) {
         double reach = wheelRadius() * GLYPH_FRACTION * 1.3;
-        return placed.stream().filter(sign -> Math.hypot(mouseX - sign.x(), mouseY - sign.y()) <= reach).findFirst();
+        return placed.stream().filter(sign -> distance(sign, mouseX, mouseY) <= reach)
+                .min(Comparator.comparingDouble(sign -> distance(sign, mouseX, mouseY)));
+    }
+
+    private static double distance(Placed sign, int mouseX, int mouseY) {
+        return Math.hypot(mouseX - sign.x(), mouseY - sign.y());
     }
 
     @Override
@@ -112,8 +122,27 @@ public final class BirthSignScreen extends Screen {
         graphics.drawCenteredString(font, title.copy().withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD), width / 2, 8, TEXT_COLOR);
         graphics.drawCenteredString(font, GuiText.of("sign.permanent").withStyle(ChatFormatting.GRAY), width / 2, 20, TEXT_COLOR);
         drawWheel(graphics, placed, hovered);
+        drawLabels(graphics, placed);
         drawCenter(graphics);
-        hovered.ifPresent(sign -> TooltipPanel.render(graphics, font, font.split(tooltip(sign.signId()), TOOLTIP_WIDTH), mouseX, mouseY));
+        hovered.ifPresent(sign -> TooltipPanel.render(graphics, font, tooltipLines(sign.signId()), mouseX, mouseY));
+    }
+
+    private void drawLabels(GuiGraphics graphics, List<Placed> placed) {
+        String own = ownSign().orElse("");
+        int drop = (int) (wheelRadius() * GLYPH_FRACTION * LABEL_DROP_FRACTION);
+        for (Placed sign : placed) {
+            ChatFormatting color = sign.signId().equals(own) ? ChatFormatting.GOLD : ChatFormatting.GRAY;
+            graphics.drawCenteredString(font, Component.translatable(SkillSign.nameKey(sign.signId())).withStyle(color),
+                    (int) sign.x(), (int) sign.y() + drop, TEXT_COLOR);
+        }
+    }
+
+    private List<FormattedCharSequence> tooltipLines(String signId) {
+        if (!signId.equals(tooltipFor)) {
+            tooltipFor = signId;
+            tooltipLines = font.split(tooltip(signId), TOOLTIP_WIDTH);
+        }
+        return tooltipLines;
     }
 
     private void drawWheel(GuiGraphics graphics, List<Placed> placed, Optional<Placed> hovered) {
