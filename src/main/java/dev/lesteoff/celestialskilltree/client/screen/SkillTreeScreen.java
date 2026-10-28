@@ -928,7 +928,7 @@ public final class SkillTreeScreen extends Screen {
         GraphRenderer.Fade fade = reveal.fade(origin.x(), origin.y());
         graphics.enableScissor((int) camera.left(), (int) camera.top(), (int) camera.right(), (int) camera.bottom());
         GraphRenderer.edges(graphics, graph, camera, nodeStates::of, routePreview(graph, state), fade);
-        GraphRenderer.portalLinks(graphics, graph, camera, nodeStates::of, fade, time);
+        GraphRenderer.portalLinks(graphics, graph, camera, nodeStates::of, focusId, fade, time);
         Set<String> activePortals = activePortals(graph);
         int budget = state.availablePoints() - nodeStates.pendingCost();
         boolean freeStart = AllocationService.freeStartOpen(graph, state, pending.nodes());

@@ -87,7 +87,7 @@ public final class TooltipPanel {
 
     private static void drawHeader(GuiGraphics graphics, Font font, TooltipCard card, int left, int top, int innerWidth) {
         double center = HEADER_ICON / 2.0;
-        GraphRenderer.draw(graphics, card.frame(), left + center, top + center, center);
+        GraphRenderer.drawNodeFrame(graphics, card.frame(), left + center, top + center, center);
         GraphRenderer.draw(graphics, card.icon(), left + center, top + center, center * 0.6);
         graphics.drawString(font, card.title(), left + HEADER_TEXT_LEFT, top, TEXT_COLOR, true);
         graphics.drawString(font, card.subtitle(), left + HEADER_TEXT_LEFT, top + LINE_HEIGHT, TEXT_COLOR, true);

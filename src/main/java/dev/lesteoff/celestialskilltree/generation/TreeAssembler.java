@@ -31,8 +31,8 @@ final class TreeAssembler {
     private static final String PORTAL_TEXT = "skill.celestialskilltree.portal.description";
     private static final List<String> PORTAL_ICONS = List.of("celestialskilltree:textures/skill_icons/portal_sun.png",
             "celestialskilltree:textures/skill_icons/portal_moon.png");
-    private static final Map<NodeType, String> FRAMES = Map.of(NodeType.ROOT, "stone_medallion", NodeType.MINOR, "bronze_circle",
-            NodeType.NOTABLE, "violet_facet", NodeType.KEYSTONE, "gold_ornate", NodeType.PORTAL, "portal_gate");
+    private static final Map<NodeType, String> FRAMES = Map.of(NodeType.ROOT, "class", NodeType.MINOR, "lesser",
+            NodeType.NOTABLE, "notable", NodeType.KEYSTONE, "keystone", NodeType.PORTAL, "gateway");
     private static final String EXCLUSIVE_PAIR_NAME = "gui.celestialskilltree.exclusive_pair";
     private static final int ONE_ACTIVE = 1;
     private static final Sector HIDDEN_SECTOR = Sector.rootless("celestialskilltree:hidden", "gui.celestialskilltree.hidden");

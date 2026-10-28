@@ -19,7 +19,8 @@ import java.util.Map;
 public final class SpriteBatch {
     public enum Layer { BACK, GLOW, FRAME, ICON, FRONT }
 
-    private static final int FLOATS_PER_SPRITE = 8;
+    private static final int FLOATS_PER_SPRITE = 10;
+    private static final float FRAME_INSET = 1 / 256f;
 
     private final Map<Layer, Map<ResourceLocation, FloatArrayList>> layers = new EnumMap<>(Layer.class);
 
@@ -31,6 +32,11 @@ public final class SpriteBatch {
 
     public void add(Layer layer, ResourceLocation texture, double centerX, double centerY, double radius, double angle,
                     float red, float green, float blue, float alpha) {
+        add(layer, texture, 0, 1, centerX, centerY, radius, angle, red, green, blue, alpha);
+    }
+
+    public void add(Layer layer, ResourceLocation texture, int frame, int frames, double centerX, double centerY, double radius,
+                    double angle, float red, float green, float blue, float alpha) {
         FloatArrayList sprites = layers.get(layer).computeIfAbsent(texture, unused -> new FloatArrayList());
         sprites.add((float) centerX);
         sprites.add((float) centerY);
@@ -40,6 +46,9 @@ public final class SpriteBatch {
         sprites.add(green);
         sprites.add(blue);
         sprites.add(alpha);
+        float inset = frames > 1 ? FRAME_INSET / frames : 0;
+        sprites.add(frame / (float) frames + inset);
+        sprites.add((frame + 1) / (float) frames - inset);
     }
 
     public void add(Layer layer, ResourceLocation texture, double centerX, double centerY, double radius) {
@@ -82,10 +91,12 @@ public final class SpriteBatch {
         float green = data[start + 5];
         float blue = data[start + 6];
         float alpha = data[start + 7];
-        corner(buffer, pose, x - cos + sin, y - sin - cos, 0, 0, red, green, blue, alpha);
-        corner(buffer, pose, x - cos - sin, y - sin + cos, 0, 1, red, green, blue, alpha);
-        corner(buffer, pose, x + cos - sin, y + sin + cos, 1, 1, red, green, blue, alpha);
-        corner(buffer, pose, x + cos + sin, y + sin - cos, 1, 0, red, green, blue, alpha);
+        float left = data[start + 8];
+        float right = data[start + 9];
+        corner(buffer, pose, x - cos + sin, y - sin - cos, left, 0, red, green, blue, alpha);
+        corner(buffer, pose, x - cos - sin, y - sin + cos, left, 1, red, green, blue, alpha);
+        corner(buffer, pose, x + cos - sin, y + sin + cos, right, 1, red, green, blue, alpha);
+        corner(buffer, pose, x + cos + sin, y + sin - cos, right, 0, red, green, blue, alpha);
     }
 
     private static void corner(BufferBuilder buffer, Matrix4f pose, float x, float y, float u, float v,

@@ -62,7 +62,7 @@ final class ConfirmSparks {
             Vec2 point = SparkRoutes.along(route, fraction);
             float fade = (float) (TRAIL_LENGTH - step) / TRAIL_LENGTH;
             graphics.setColor(1f, 1f, 1f, fade);
-            GraphRenderer.draw(graphics, GraphRenderer.frameTex("spark"), camera.toScreenX(point.x()), camera.toScreenY(point.y()),
+            GraphRenderer.draw(graphics, GraphRenderer.frameTex("pip"), camera.toScreenX(point.x()), camera.toScreenY(point.y()),
                     HEAD_RADIUS * fade);
         }
     }
@@ -70,7 +70,7 @@ final class ConfirmSparks {
     private static void drawBurst(GuiGraphics graphics, Camera camera, Vec2 target, double fraction) {
         double radius = BURST_RADIUS * Math.max(1, Math.sqrt(camera.zoomValue())) * (0.5 + fraction);
         graphics.setColor(1f, 0.85f, 0.4f, (float) (1 - fraction));
-        GraphRenderer.draw(graphics, GraphRenderer.frameTex("ring_allocated"), camera.toScreenX(target.x()),
+        GraphRenderer.draw(graphics, GraphRenderer.frameTex("ring"), camera.toScreenX(target.x()),
                 camera.toScreenY(target.y()), radius);
     }
 }

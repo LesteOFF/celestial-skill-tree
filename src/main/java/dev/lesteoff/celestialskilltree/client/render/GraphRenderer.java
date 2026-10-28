@@ -34,15 +34,9 @@ public final class GraphRenderer {
     private static final int PORTAL_LINK_LANE_GAP = 1;
     private static final double PORTAL_LINK_SPEED = 24;
     private static final float DISABLED_SHADE = 0.42f;
-    private static final float DORMANT_DISK_ALPHA = 0.55f;
-    private static final double DISK_PER_RADIUS = 1.45;
-    private static final int INFALL_LAYERS = 3;
-    private static final double INFALL_SECONDS = 2.4;
-    private static final double INFALL_START = 2.0;
-    private static final double INFALL_END = 0.9;
-    private static final double INFALL_TWIST = 2.5;
-    private static final double LENS_PER_RADIUS = 1.3;
-    private static final double LENS_BREATH = 0.05;
+    private static final float DORMANT_DISK_ALPHA = 0.75f;
+    private static final double DISK_PER_RADIUS = 2.4;
+    private static final double DISK_SPIN_SPEED = 0.4;
     private static final double PIP_RADIUS_PER_NODE_RADIUS = 0.24;
     private static final double MIN_PIP_RADIUS = 2.5;
     private static final double PIP_STEP_PER_PIP_RADIUS = 1.45;
@@ -51,6 +45,17 @@ public final class GraphRenderer {
     private static final float[] HIDDEN_TINT = {0.72f, 0.5f, 1f};
     private static final float[] SILHOUETTE_TINT = {0.2f, 0.1f, 0.34f};
     private static final float[] PORTAL_TINT = {0.5f, 0.84f, 0.91f};
+    private static final float[] PENDING_TINT = PORTAL_TINT;
+    private static final float[] AVAILABLE_TINT = {0.95f, 0.82f, 0.36f};
+    private static final float[] EMPTY_PIP_TINT = {0.4f, 0.4f, 0.46f};
+    private static final int STRIP_FRAMES = 3;
+    private static final int DIM_FRAME = 0;
+    private static final int DISC_FRAME = 1;
+    private static final int LIT_FRAME = 2;
+    private static final int LOCK_MARK = 0;
+    private static final int CONFLICT_MARK = 1;
+    private static final int SEALED_MARK = 2;
+    private static final int HOLE_DISK = 0;
     private static final Map<String, ResourceLocation> FRAME_CACHE = new HashMap<>();
     private static final Map<String, ResourceLocation> ICON_CACHE = new HashMap<>();
 
@@ -164,11 +169,12 @@ public final class GraphRenderer {
     }
 
     public static void portalLinks(GuiGraphics graphics, SkillGraphSnapshot graph, Camera camera, StateLookup states,
-                                   Fade fade, double time) {
+                                   String selectedId, Fade fade, double time) {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         for (SkillConnection connection : graph.connections()) {
-            if (connection.isPortal() && held(states.state(connection.a())) && held(states.state(connection.b()))
+            boolean selected = connection.a().equals(selectedId) || connection.b().equals(selectedId);
+            if (connection.isPortal() && selected && held(states.state(connection.a())) && held(states.state(connection.b()))
                     && lit(graph, connection, camera, fade)) {
                 portalLink(graphics, graph, connection, camera, time);
             }
@@ -227,7 +233,7 @@ public final class GraphRenderer {
         boolean inHiddenRegion = TreeRegion.isHidden(node);
         if (state == NodeState.HIDDEN) {
             if (inHiddenRegion) {
-                batch.add(SpriteBatch.Layer.FRAME, frameTex(node.frame()), x, y, radius, 0,
+                batch.add(SpriteBatch.Layer.FRAME, frameTex(node.frame()), DIM_FRAME, STRIP_FRAMES, x, y, radius, 0,
                         SILHOUETTE_TINT[0], SILHOUETTE_TINT[1], SILHOUETTE_TINT[2], 1f);
             }
             return;
@@ -242,28 +248,39 @@ public final class GraphRenderer {
         if (!disabled) {
             drawGlow(batch, state, affordable, x, y, radius, time);
         }
-        float shade = disabled ? DISABLED_SHADE : shade(state, affordable);
         float[] tint = inHiddenRegion ? HIDDEN_TINT : NO_TINT;
-        float red = shade * tint[0];
-        float green = shade * tint[1];
-        float blue = shade * tint[2];
-        batch.add(SpriteBatch.Layer.FRAME, frameTex(node.frame()), x, y, radius, 0, red, green, blue, 1f);
+        float frameShade = disabled ? DISABLED_SHADE : 1f;
+        float iconShade = disabled ? DISABLED_SHADE : shade(state, affordable);
+        drawFrame(batch, node, state, x, y, radius, tint, frameShade);
         if (radius >= MIN_ICON_RADIUS) {
-            batch.add(SpriteBatch.Layer.ICON, iconTex(node.icon()), x, y, radius * iconScale(node, radius), 0, red, green, blue, 1f);
-        }
-        if (detailed && node.traits().amplifiesNeighbours()) {
-            drawLens(batch, x, y, radius, held(state), time);
+            batch.add(SpriteBatch.Layer.ICON, iconTex(node.icon()), x, y, radius * iconScale(node, radius), 0,
+                    iconShade * tint[0], iconShade * tint[1], iconShade * tint[2], 1f);
         }
         drawStateMark(batch, state, x, y, radius, time);
         if (detailed && ranks.shown()) {
             drawRankPips(batch, ranks, x, y, radius);
         }
         if (searchHit) {
-            batch.add(SpriteBatch.Layer.FRONT, frameTex("ring_search"), x, y, radius * 1.75);
+            batch.add(SpriteBatch.Layer.FRONT, frameTex("ring"), x, y, radius * 1.25);
         }
         if (focused) {
-            batch.add(SpriteBatch.Layer.FRONT, frameTex("focus"), x, y, radius * 1.5 + 2);
+            batch.add(SpriteBatch.Layer.FRONT, frameTex("focus"), x, y, radius * 1.2 + 2);
         }
+    }
+
+    private static void drawFrame(SpriteBatch batch, SkillNodeDefinition node, NodeState state, double x, double y, double radius,
+                                  float[] tint, float shade) {
+        ResourceLocation strip = frameTex(node.frame());
+        int frame = state == NodeState.ALLOCATED ? LIT_FRAME : DIM_FRAME;
+        batch.add(SpriteBatch.Layer.FRAME, strip, DISC_FRAME, STRIP_FRAMES, x, y, radius, 0, shade * tint[0], shade * tint[1],
+                shade * tint[2], 1f);
+        batch.add(SpriteBatch.Layer.FRAME, strip, frame, STRIP_FRAMES, x, y, radius, 0, shade * tint[0], shade * tint[1],
+                shade * tint[2], 1f);
+    }
+
+    public static void drawNodeFrame(GuiGraphics graphics, ResourceLocation strip, double centerX, double centerY, double radius) {
+        draw(graphics, strip, DISC_FRAME, STRIP_FRAMES, centerX, centerY, radius);
+        draw(graphics, strip, LIT_FRAME, STRIP_FRAMES, centerX, centerY, radius);
     }
 
     private static void drawRankPips(SpriteBatch batch, Ranks ranks, double x, double y, double radius) {
@@ -272,25 +289,25 @@ public final class GraphRenderer {
         double first = x - step * (ranks.max() - 1) / 2;
         double row = y + radius * PIP_DROP_PER_RADIUS;
         for (int index = 0; index < ranks.max(); index++) {
-            batch.add(SpriteBatch.Layer.FRONT, frameTex(pipTexture(ranks, index)), first + index * step, row, pipRadius);
+            float[] tint = pipTint(ranks, index);
+            batch.add(SpriteBatch.Layer.FRONT, frameTex("pip"), first + index * step, row, pipRadius, 0, tint[0], tint[1], tint[2], 1f);
         }
     }
 
-    private static String pipTexture(Ranks ranks, int index) {
+    private static float[] pipTint(Ranks ranks, int index) {
         if (index < ranks.owned()) {
-            return "rank_pip_owned";
+            return AVAILABLE_TINT;
         }
-        return index < ranks.owned() + ranks.pending() ? "rank_pip_pending" : "rank_pip_empty";
+        return index < ranks.owned() + ranks.pending() ? PENDING_TINT : EMPTY_PIP_TINT;
     }
 
     private static void drawGlow(SpriteBatch batch, NodeState state, boolean affordable, double x, double y,
                                  double radius, double time) {
         float glow = ClientConfig.GLOW_INTENSITY.get().floatValue();
-        if (state == NodeState.ALLOCATED && glow > 0) {
-            batch.add(SpriteBatch.Layer.GLOW, frameTex("ring_allocated"), x, y, radius * 1.55, 0, 1f, 1f, 1f, Math.min(1f, 0.85f * glow));
-        } else if (state == NodeState.AVAILABLE && affordable && glow > 0) {
+        if (state == NodeState.AVAILABLE && affordable && glow > 0) {
             float pulse = ClientConfig.REDUCED_MOTION.get() ? 0.8f : (float) (0.65 + 0.25 * Math.sin(time * 2.4));
-            batch.add(SpriteBatch.Layer.GLOW, frameTex("ring_available"), x, y, radius * 1.4, 0, 1f, 1f, 1f, Math.min(1f, pulse * glow));
+            batch.add(SpriteBatch.Layer.GLOW, frameTex("ring"), x, y, radius * 1.12, 0, AVAILABLE_TINT[0], AVAILABLE_TINT[1],
+                    AVAILABLE_TINT[2], Math.min(1f, pulse * glow));
         }
     }
 
@@ -299,36 +316,29 @@ public final class GraphRenderer {
         double speed = active ? 2.4 : 0.6;
         float pulse = still ? 0.8f : (float) (0.7 + 0.3 * Math.sin(time * 3));
         float alpha = active ? pulse : 0.45f;
-        batch.add(SpriteBatch.Layer.BACK, frameTex("ring_pending"), x, y, radius * 1.3, still ? 0 : time * speed,
+        batch.add(SpriteBatch.Layer.BACK, frameTex("ring"), x, y, radius * 1.1, still ? 0 : time * speed,
                 PORTAL_TINT[0], PORTAL_TINT[1], PORTAL_TINT[2], alpha);
-        batch.add(SpriteBatch.Layer.BACK, frameTex("ring_pending"), x, y, radius * (active ? 1.6 + 0.08 * pulse : 1.5),
+        batch.add(SpriteBatch.Layer.BACK, frameTex("ring"), x, y, radius * (active ? 1.22 + 0.04 * pulse : 1.18),
                 still ? 0 : -time * speed * 0.6, PORTAL_TINT[0], PORTAL_TINT[1], PORTAL_TINT[2], alpha);
     }
 
     private static void drawGravityWell(SpriteBatch batch, double x, double y, double radius, boolean held, double time) {
-        boolean still = ClientConfig.REDUCED_MOTION.get();
-        float strength = held ? 1f : DORMANT_DISK_ALPHA;
-        for (int layer = 0; layer < INFALL_LAYERS; layer++) {
-            double fall = still ? 0.5 : (time / INFALL_SECONDS + layer / (double) INFALL_LAYERS) % 1.0;
-            batch.add(SpriteBatch.Layer.BACK, frameTex("black_hole_infall"), x, y, radius * (INFALL_START - (INFALL_START - INFALL_END) * fall),
-                    -fall * INFALL_TWIST - layer * 2.1, 1f, 1f, 1f, strength * (float) Math.sin(Math.PI * fall));
-        }
-        batch.add(SpriteBatch.Layer.BACK, frameTex("black_hole_disk"), x, y, radius * DISK_PER_RADIUS, still ? 0 : -time * (held ? 0.9 : 0.3),
-                1f, 1f, 1f, strength);
-    }
-
-    private static void drawLens(SpriteBatch batch, double x, double y, double radius, boolean held, double time) {
-        boolean still = ClientConfig.REDUCED_MOTION.get();
-        double breath = still ? 0 : Math.sin(time * 1.7);
-        batch.add(SpriteBatch.Layer.FRONT, frameTex("black_hole_lens"), x, y, radius * (LENS_PER_RADIUS + LENS_BREATH * breath),
-                still ? 0 : time * 0.2, 1f, 1f, 1f, (held ? 0.75f : 0.4f) + 0.2f * (float) breath);
+        double spin = ClientConfig.REDUCED_MOTION.get() ? 0 : -time * DISK_SPIN_SPEED;
+        batch.add(SpriteBatch.Layer.BACK, frameTex("black_hole"), HOLE_DISK, STRIP_FRAMES, x, y, radius * DISK_PER_RADIUS, spin,
+                1f, 1f, 1f, held ? 1f : DORMANT_DISK_ALPHA);
     }
 
     private static double iconScale(SkillNodeDefinition node, double radius) {
         if (radius < SMALL_NODE_RADIUS) {
             return SMALL_NODE_ICON_SCALE;
         }
-        return node.type() == NodeType.MINOR ? 0.62 : 0.58;
+        return switch (node.type()) {
+            case MINOR -> 0.56;
+            case NOTABLE -> 0.53;
+            case KEYSTONE -> 0.41;
+            case ROOT -> 0.47;
+            case PORTAL -> 0.51;
+        };
     }
 
     private static float shade(NodeState state, boolean affordable) {
@@ -343,13 +353,13 @@ public final class GraphRenderer {
 
     private static void drawStateMark(SpriteBatch batch, NodeState state, double x, double y, double radius, double time) {
         switch (state) {
-            case PENDING -> batch.add(SpriteBatch.Layer.FRONT, frameTex("ring_pending"), x, y, radius * 1.35,
-                    ClientConfig.REDUCED_MOTION.get() ? 0 : time * 0.8, 1f, 1f, 1f, 1f);
-            case CONFLICTING -> batch.add(SpriteBatch.Layer.FRONT, frameTex("mark_conflict"), x, y, radius * 0.9);
-            case SEALED -> batch.add(SpriteBatch.Layer.FRONT, frameTex("mark_sealed"), x, y, radius * 0.9);
+            case PENDING -> batch.add(SpriteBatch.Layer.FRONT, frameTex("ring"), x, y, radius * 1.12,
+                    ClientConfig.REDUCED_MOTION.get() ? 0 : time * 0.8, PENDING_TINT[0], PENDING_TINT[1], PENDING_TINT[2], 1f);
+            case CONFLICTING -> mark(batch, CONFLICT_MARK, x, y, radius * 0.9);
+            case SEALED -> mark(batch, SEALED_MARK, x, y, radius * 0.9);
             case LOCKED -> {
                 if (radius > MIN_LOCK_MARK_RADIUS) {
-                    batch.add(SpriteBatch.Layer.FRONT, frameTex("mark_locked"), x + radius * 0.62, y + radius * 0.62, Math.max(3, radius * 0.42));
+                    mark(batch, LOCK_MARK, x + radius * 0.62, y + radius * 0.62, Math.max(3, radius * 0.42));
                 }
             }
             default -> {
@@ -357,12 +367,22 @@ public final class GraphRenderer {
         }
     }
 
+    private static void mark(SpriteBatch batch, int mark, double x, double y, double radius) {
+        batch.add(SpriteBatch.Layer.FRONT, frameTex("marks"), mark, STRIP_FRAMES, x, y, radius, 0, 1f, 1f, 1f, 1f);
+    }
+
     public static void draw(GuiGraphics graphics, ResourceLocation texture, double centerX, double centerY, double radius) {
+        draw(graphics, texture, 0, 1, centerX, centerY, radius);
+    }
+
+    private static void draw(GuiGraphics graphics, ResourceLocation texture, int frame, int frames, double centerX, double centerY,
+                             double radius) {
         graphics.pose().pushPose();
         graphics.pose().translate(centerX - radius, centerY - radius, 0);
         float scale = (float) (2 * radius / TEXTURE_SIZE);
         graphics.pose().scale(scale, scale, 1f);
-        graphics.blit(texture, 0, 0, 0, 0, TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE);
+        graphics.blit(texture, 0, 0, TEXTURE_SIZE, TEXTURE_SIZE, frame * TEXTURE_SIZE, 0, TEXTURE_SIZE, TEXTURE_SIZE,
+                frames * TEXTURE_SIZE, TEXTURE_SIZE);
         graphics.pose().popPose();
     }
 }
