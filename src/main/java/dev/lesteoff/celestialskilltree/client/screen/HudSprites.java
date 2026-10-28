@@ -5,6 +5,7 @@ import net.minecraft.resources.ResourceLocation;
 
 public final class HudSprites {
     public static final int ICON_SIZE = 9;
+    public static final int TOOL_ICON_SIZE = 16;
     public static final ResourceLocation PANEL = hud("glass_panel");
     public static final ResourceLocation PANEL_HIGHLIGHTED = hud("glass_panel_highlighted");
     public static final ResourceLocation BUTTON = hud("glass_button");

@@ -60,18 +60,22 @@ final class TreeHud {
     private static final int PAD = 3;
     private static final int CONTROL = 13;
     private static final int ISLAND_HEIGHT = CONTROL + 2 * PAD;
+    private static final int TOOL = 20;
+    private static final int TOP_HEIGHT = TOOL + 2 * PAD;
+    private static final int TOP_TEXT_TOP = (TOP_HEIGHT - 8) / 2 + 1;
+    private static final int SEARCH_ICON_TOP = (TOP_HEIGHT - HudSprites.TOOL_ICON_SIZE) / 2;
     private static final int GAP = 2;
-    private static final int SECTION_GAP = 8;
+    private static final int SECTION_GAP = 6;
     private static final int ICON_TOP = (ISLAND_HEIGHT - HudSprites.ICON_SIZE) / 2;
     private static final int TEXT_TOP = (ISLAND_HEIGHT - 8) / 2 + 1;
     private static final int CONTENT_LEFT = PAD + 2;
     private static final int TEXT_BUTTON_PADDING = 14;
-    private static final int MIN_SEARCH_WIDTH = 100;
-    private static final int MAX_SEARCH_WIDTH = 170;
-    private static final int SEARCH_TEXT_LEFT = CONTENT_LEFT + HudSprites.ICON_SIZE + 4;
+    private static final int MIN_SEARCH_WIDTH = 130;
+    private static final int MAX_SEARCH_WIDTH = 220;
+    private static final int SEARCH_TEXT_LEFT = CONTENT_LEFT + HudSprites.TOOL_ICON_SIZE + 4;
     private static final int COUNTER_SPACE = 30;
     private static final int ICON_TEXT_GAP = 3;
-    private static final int POINTS_SAMPLE = 8888;
+    private static final int POINTS_SAMPLE = 888;
     private static final int XP_WIDTH = 120;
     private static final int MIN_XP_WIDTH = 50;
     private static final int TOOLTIP_WIDTH = 220;
@@ -123,7 +127,7 @@ final class TreeHud {
     }
 
     int messageY() {
-        return EDGE + TEXT_TOP;
+        return EDGE + TOP_TEXT_TOP;
     }
 
     boolean covers(double mouseX, double mouseY) {
@@ -144,10 +148,10 @@ final class TreeHud {
 
     private void addSearchIsland(Consumer<AbstractWidget> add) {
         int searchWidth = Mth.clamp(width / 4, MIN_SEARCH_WIDTH, MAX_SEARCH_WIDTH);
-        searchIsland = new Island(EDGE, EDGE, searchWidth, ISLAND_HEIGHT);
+        searchIsland = new Island(EDGE, EDGE, searchWidth, TOP_HEIGHT);
         String previous = search == null ? "" : search.getValue();
-        search = new EditBox(font, EDGE + SEARCH_TEXT_LEFT, EDGE + TEXT_TOP,
-                searchWidth - SEARCH_TEXT_LEFT - PAD - CONTROL - COUNTER_SPACE, font.lineHeight, text("search"));
+        search = new EditBox(font, EDGE + SEARCH_TEXT_LEFT, EDGE + TOP_TEXT_TOP,
+                searchWidth - SEARCH_TEXT_LEFT - PAD - TOOL - COUNTER_SPACE, font.lineHeight, text("search"));
         search.setBordered(false);
         search.setTextColor(Palette.TEXT);
         search.setHint(text("search_hint"));
@@ -155,7 +159,7 @@ final class TreeHud {
         search.setResponder(actions::search);
         add.accept(search);
         filterButton = icon(filter.icon(), "filter", this::cycleFilter, add);
-        filterButton.setPosition(EDGE + searchWidth - PAD - CONTROL, EDGE + PAD);
+        filterButton.setPosition(EDGE + searchWidth - PAD - TOOL, EDGE + PAD);
         filterButton.setTooltip(Tooltip.create(filterTooltip()));
     }
 
@@ -170,15 +174,15 @@ final class TreeHud {
     }
 
     private void arrangeDock() {
-        int top = EDGE + ISLAND_HEIGHT + ISLAND_GAP;
+        int top = EDGE + TOP_HEIGHT + ISLAND_GAP;
         int y = top + PAD;
         for (Button button : tools) {
             if (button.visible) {
                 button.setPosition(EDGE + PAD, y);
-                y += CONTROL + GAP;
+                y += TOOL + GAP;
             }
         }
-        dock = new Island(EDGE, top, ISLAND_HEIGHT, y - GAP + PAD - top);
+        dock = new Island(EDGE, top, TOP_HEIGHT, y - GAP + PAD - top);
     }
 
     private void addBottomIsland(Consumer<AbstractWidget> add) {
@@ -215,7 +219,7 @@ final class TreeHud {
     }
 
     private static SkillButton icon(ResourceLocation sprite, String key, Runnable action, Consumer<AbstractWidget> add) {
-        SkillButton button = SkillButton.icon(0, 0, CONTROL, sprite, text(key), pressed -> action.run());
+        SkillButton button = SkillButton.icon(0, 0, TOOL, sprite, text(key), pressed -> action.run());
         button.setTooltip(Tooltip.create(text(key + "_tooltip")));
         add.accept(button);
         return button;
@@ -247,8 +251,8 @@ final class TreeHud {
         if (confirmButton.visible) {
             panel(graphics, pendingIsland, HudSprites.PANEL);
         }
-        graphics.blitSprite(HudSprites.SEARCH, searchIsland.x() + CONTENT_LEFT, searchIsland.y() + ICON_TOP, HudSprites.ICON_SIZE,
-                HudSprites.ICON_SIZE);
+        graphics.blitSprite(HudSprites.SEARCH, searchIsland.x() + CONTENT_LEFT, searchIsland.y() + SEARCH_ICON_TOP,
+                HudSprites.TOOL_ICON_SIZE, HudSprites.TOOL_ICON_SIZE);
         graphics.blitSprite(HudSprites.POINT, bottomIsland.x() + CONTENT_LEFT, bottomIsland.y() + ICON_TOP, HudSprites.ICON_SIZE,
                 HudSprites.ICON_SIZE);
         RenderSystem.disableBlend();
@@ -276,7 +280,7 @@ final class TreeHud {
         }
         Component counter = hitCount == 0 ? text("search_none").withStyle(ChatFormatting.RED)
                 : Component.literal(hitIndex < 0 ? String.valueOf(hitCount) : (hitIndex + 1) + "/" + hitCount);
-        graphics.drawString(font, counter, filterButton.getX() - GAP - font.width(counter), searchIsland.y() + TEXT_TOP,
+        graphics.drawString(font, counter, filterButton.getX() - GAP - font.width(counter), searchIsland.y() + TOP_TEXT_TOP,
                 Palette.textDim(), false);
     }
 

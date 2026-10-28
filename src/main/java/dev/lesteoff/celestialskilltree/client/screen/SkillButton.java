@@ -50,8 +50,8 @@ final class SkillButton extends Button {
         } else {
             float shade = active ? 1f : INACTIVE_ICON_SHADE;
             graphics.setColor(shade, shade, shade, 1f);
-            graphics.blitSprite(icon, getX() + (width - HudSprites.ICON_SIZE) / 2, getY() + (height - HudSprites.ICON_SIZE) / 2,
-                    HudSprites.ICON_SIZE, HudSprites.ICON_SIZE);
+            graphics.blitSprite(icon, getX() + (width - HudSprites.TOOL_ICON_SIZE) / 2,
+                    getY() + (height - HudSprites.TOOL_ICON_SIZE) / 2, HudSprites.TOOL_ICON_SIZE, HudSprites.TOOL_ICON_SIZE);
             graphics.setColor(1f, 1f, 1f, 1f);
         }
         RenderSystem.disableBlend();
