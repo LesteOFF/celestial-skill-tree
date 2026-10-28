@@ -9,10 +9,8 @@ import net.minecraft.util.Mth;
 
 public final class BackgroundRenderer {
     private static final String DIR = "textures/gui/skill_tree/background/";
-    public static final ResourceLocation SPACE = tex("space_base");
-    public static final ResourceLocation STARS = tex("stars_far");
-    public static final ResourceLocation NEBULA = tex("nebula_far");
-    public static final ResourceLocation MOON = tex("moon_crescent");
+    public static final ResourceLocation SPACE = tex("space");
+    public static final ResourceLocation PLANET = tex("planet");
     public static final ResourceLocation ASTROLABE = tex("astrolabe_ghost");
     public static final ResourceLocation MOTES = tex("astral_motes");
 
@@ -22,6 +20,8 @@ public final class BackgroundRenderer {
     private static final double VEIL_OPACITY = 0.86;
     private static final double BOTTOM_FADE_START = 0.72;
     private static final int BOTTOM_FADE_ALPHA = 0xD8;
+    private static final int PLANET_TEXTURE_SIZE = 128;
+    private static final double BACKGROUND_DIM = 0.4;
 
     private BackgroundRenderer() {
     }
@@ -40,13 +40,13 @@ public final class BackgroundRenderer {
         boolean still = ClientConfig.REDUCED_MOTION.get();
         double px = still ? 0 : panX;
         double py = still ? 0 : panY;
-        cover(graphics, SPACE, w, h, 0, 0);
-        cover(graphics, STARS, w, h, px * 0.02, py * 0.02);
-        cover(graphics, NEBULA, w, h, px * 0.04, py * 0.04);
+        cover(graphics, SPACE, w, h, px * 0.02, py * 0.02);
         double s = h / (double) BASE_H;
         sprite(graphics, ASTROLABE, w * 0.50 - offset(px, 0.06, w), h * 0.52 - offset(py, 0.06, h), 760 * s, 760 * s, 0, 0, 1024, 1024, 1024, 1024);
-        double moon = 440 * s;
-        sprite(graphics, MOON, w * 0.10 - offset(px, 0.06, w), h * 0.91 - offset(py, 0.06, h), moon, moon, 0, 0, 512, 512, 512, 512);
+        double planet = 440 * s;
+        sprite(graphics, PLANET, w * 0.10 - offset(px, 0.06, w), h * 0.91 - offset(py, 0.06, h), planet, planet, 0, 0,
+                PLANET_TEXTURE_SIZE, PLANET_TEXTURE_SIZE, PLANET_TEXTURE_SIZE, PLANET_TEXTURE_SIZE);
+        dim(graphics, w, h);
         motes(graphics, w, h, still ? 0 : timeSeconds);
         bottomFade(graphics, w, h);
         RenderSystem.disableBlend();
@@ -57,6 +57,11 @@ public final class BackgroundRenderer {
         if (alpha > 0) {
             graphics.fill(0, 0, w, h, alpha << 24 | Palette.HIDDEN_VEIL);
         }
+    }
+
+    private static void dim(GuiGraphics graphics, int w, int h) {
+        int alpha = (int) Math.round(255 * BACKGROUND_DIM);
+        graphics.fill(0, 0, w, h, alpha << 24 | Palette.DEEP_SPACE & 0xFFFFFF);
     }
 
     private static void bottomFade(GuiGraphics graphics, int w, int h) {

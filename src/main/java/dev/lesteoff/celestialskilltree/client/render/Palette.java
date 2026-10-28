@@ -3,7 +3,7 @@ package dev.lesteoff.celestialskilltree.client.render;
 import dev.lesteoff.celestialskilltree.config.ClientConfig;
 
 public final class Palette {
-    public static final int DEEP_SPACE = 0xFF050C10;
+    public static final int DEEP_SPACE = 0xFF06060A;
     public static final int HIDDEN_VEIL = 0x160828;
     public static final int EDGE_INACTIVE = 0xFF35291D;
     public static final int EDGE_INACTIVE_HC = 0xFF6A5338;
