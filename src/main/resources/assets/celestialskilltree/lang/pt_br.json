@@ -1094,7 +1094,7 @@
   "gui.celestialskilltree.unknown_skill": "%s (fora desta árvore)",
   "gui.celestialskilltree.help.title": "Controles",
   "gui.celestialskilltree.help.click": "Clique esquerdo: marca ou desmarca uma habilidade",
-  "gui.celestialskilltree.help.shift_click": "Shift + clique: marca o caminho até uma habilidade bloqueada, ou devolve uma aprendida",
+  "gui.celestialskilltree.help.shift_click": "Shift + clique: marca o caminho até uma habilidade bloqueada",
   "gui.celestialskilltree.help.right_click": "Clique direito: liga ou desliga uma habilidade alternável",
   "gui.celestialskilltree.help.drag": "Arrastar: move a árvore",
   "gui.celestialskilltree.help.scroll": "Rolar: zoom",

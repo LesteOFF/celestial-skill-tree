@@ -103,7 +103,7 @@ public final class ServerConfig {
         ORB_REQUIRED_FOR_RESET = builder.comment("Players need an Orb of Reconfiguration to reset (operators can always use the command)")
                 .define("orbRequiredForReset", true);
         ALLOW_NODE_REFUNDS = builder.comment("Allow refunding a single skill (together with the allocations that depend on it) without a full reset")
-                .define("allowNodeRefunds", true);
+                .define("allowSingleSkillRefunds", false);
         ORB_REQUIRED_FOR_NODE_REFUND = builder.comment("Also consume an Orb of Reconfiguration for a single-skill refund")
                 .define("orbRequiredForNodeRefund", false);
         builder.pop();

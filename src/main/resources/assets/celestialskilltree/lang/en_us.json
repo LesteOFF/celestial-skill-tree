@@ -1094,7 +1094,7 @@
   "gui.celestialskilltree.unknown_skill": "%s (not in this tree)",
   "gui.celestialskilltree.help.title": "Controls",
   "gui.celestialskilltree.help.click": "Left click: mark or unmark a skill",
-  "gui.celestialskilltree.help.shift_click": "Shift + click: mark the whole path to a locked skill, or refund a learned one",
+  "gui.celestialskilltree.help.shift_click": "Shift + click: mark the whole path to a locked skill",
   "gui.celestialskilltree.help.right_click": "Right click: switch a toggleable skill on or off",
   "gui.celestialskilltree.help.drag": "Drag: move around the tree",
   "gui.celestialskilltree.help.scroll": "Scroll: zoom",

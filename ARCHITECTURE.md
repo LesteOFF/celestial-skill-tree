@@ -133,8 +133,8 @@ applied before validation passes.
   (computed with `Reconciler.survivors`, the same replay used after a datapack change, so removal and reconciliation
   can never disagree). Only the recorded paid costs are returned, and `PlayerSkillState.refund` drops the allocation
   in the same step that credits the points, so a replayed request finds nothing to remove and credits nothing. The
-  starting root is refused (`root_needs_reset`): it is free and the whole build hangs from it. Disabled with
-  `allowNodeRefunds = false`; `orbRequiredForNodeRefund = true` consumes one orb, only if the refund succeeds.
+  starting root is refused (`root_needs_reset`): it is free and the whole build hangs from it. Off by default;
+  enabled with `allowSingleSkillRefunds = true`; `orbRequiredForNodeRefund = true` consumes one orb, only if the refund succeeds.
   The client previews the very same plan (shared code) and recomputes it from every authoritative state sync.
 - **Reset:** requires an Orb of Reconfiguration (unless disabled or creative); refunds the recorded costs, clears
   allocations and the starting root, keeps purchase counters (the XP curve never restarts), then consumes exactly one

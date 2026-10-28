@@ -488,10 +488,10 @@ Example: `examples/kubejs/server_scripts/celestialskilltree_example.js`.
 
 ## Known limitations
 
-- Single-skill refunds remove the chosen skill together with every learned skill that depends on it; picking which
-  dependent to keep, or moving a build sideways without paying again, is not offered. Server operators can switch
-  single-skill refunds off (`allowNodeRefunds = false`) or charge an orb for them (`orbRequiredForNodeRefund = true`),
-  leaving the full reset as the only route.
+- Learned skills can only be unlearned through a full reset with the Orb of Reconfiguration. Server operators can
+  turn on single-skill refunds (`allowSingleSkillRefunds = true`), optionally charging an orb for them
+  (`orbRequiredForNodeRefund = true`); a refund removes the chosen skill together with every learned skill that depends
+  on it.
 - The pack test run checks that each integration loads and stays enabled and exercises Relics, KubeJS and the
   attribute redirect; the gameplay of most other integrations (spell triggers, affixes, curios conditions) is still
   only checked by hand in game.
