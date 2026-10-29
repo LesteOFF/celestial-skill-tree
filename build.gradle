@@ -278,6 +278,7 @@ tasks.register('publishCurseForge', net.darkhax.curseforgegradle.TaskPublishCurs
     mainFile.changelog = releaseNotes.get()
     mainFile.changelogType = 'markdown'
     mainFile.addModLoader('NeoForge')
+    mainFile.addEnvironment('Client', 'Server')
     mainFile.addGameVersion(minecraft_version)
     mainFile.addJavaVersion('Java 21')
 }
