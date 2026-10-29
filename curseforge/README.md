@@ -18,6 +18,11 @@ The repository is private, so the banner has to be hosted by CurseForge: upload 
 button of the description editor and put the link it gives (`https://media.forgecdn.net/...`) in place of
 `BANNER_URL`.
 
+To redraw it after a visual change, run `./gradlew runClient -Pvisualqa -Pgallery` (it writes
+`run/screenshots/gallery_banner_tree.png`, the tree without the HUD) and then
+`python curseforge/make_banner.py run/screenshots/gallery_banner_tree.png`, which dims the shot and lays
+`images/banner_title.png` (logo, title and tagline) over it.
+
 ## Gallery
 
 | Image | Title | Description |
