@@ -104,6 +104,10 @@ public final class TreeScreenQa {
         screen.fit();
     }
 
+    public static void scaleZoom(SkillTreeScreen screen, double factor) {
+        screen.camera.zoom *= factor;
+    }
+
     public static void zoom(SkillTreeScreen screen, double zoom, String centerNode) {
         screen.cameraPlaced = true;
         screen.camera.zoom = zoom;

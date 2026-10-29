@@ -38,10 +38,12 @@ public final class VisualQa {
     private static final int SYNC_TICKS = 400;
     private static final int FIXTURE_POINT_CAP = 10_000;
     private static final float FIXTURE_XP_PROGRESS = 0.4f;
-    private static final Payloads.Economy FIXTURE_ECONOMY = new Payloads.Economy(100, 120, true, true, true, false);
+    private static final Payloads.Economy FIXTURE_ECONOMY = new Payloads.Economy(100, 120, true, true, false, false);
     private static final Resolution HD = new Resolution(1280, 720, 2);
     private static final Resolution ULTRAWIDE = new Resolution(2560, 1080, 3);
     private static final Resolution GALLERY_RESOLUTION = new Resolution(1920, 1080, 3);
+    private static final Resolution BANNER_RESOLUTION = new Resolution(1920, 540, 3);
+    private static final double BANNER_ZOOM_FACTOR = 2.1;
     private static final List<Resolution> OVERVIEWS = List.of(new Resolution(1000, 563, 2), new Resolution(1000, 563, 3),
             HD, new Resolution(1280, 720, 3), new Resolution(1920, 1080, 2), new Resolution(1920, 1080, 3));
     private static final List<Edge> SCREEN_EDGES = List.of(new Edge("left", 0.03, 0.5), new Edge("right", 0.97, 0.5),
@@ -299,7 +301,14 @@ public final class VisualQa {
                     pendingRoute(screen);
                     TreeScreenQa.showStats(screen);
                 }),
-                Shot.gallery("birth_sign", Fixture.HYBRID, VisualQa::birthChart));
+                Shot.gallery("birth_sign", Fixture.HYBRID, VisualQa::birthChart),
+                new Shot("banner_tree", BANNER_RESOLUTION, Fixture.HYBRID, Look.NORMAL, VisualQa::bannerTree));
+    }
+
+    private static void bannerTree(SkillTreeScreen screen) {
+        Minecraft.getInstance().options.hideGui = true;
+        TreeScreenQa.fit(screen);
+        TreeScreenQa.scaleZoom(screen, BANNER_ZOOM_FACTOR);
     }
 
     private static void birthChart(SkillTreeScreen screen) {

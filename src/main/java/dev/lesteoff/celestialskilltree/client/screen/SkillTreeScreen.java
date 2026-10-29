@@ -918,7 +918,7 @@ public final class SkillTreeScreen extends Screen {
         placeCamera();
         if (ClientSkillState.graph().isEmpty() || ClientSkillState.state().isEmpty()) {
             graphics.drawCenteredString(font, text("loading"), width / 2, height / 2, Palette.TEXT);
-            hud.renderIslands(graphics);
+            renderIslandsUnlessHidden(graphics);
             return;
         }
         SkillGraphSnapshot graph = graph();
@@ -946,7 +946,17 @@ public final class SkillTreeScreen extends Screen {
         graphics.setColor(1f, 1f, 1f, 1f);
         RenderSystem.disableBlend();
         graphics.disableScissor();
-        hud.renderIslands(graphics);
+        renderIslandsUnlessHidden(graphics);
+    }
+
+    private void renderIslandsUnlessHidden(GuiGraphics graphics) {
+        if (!interfaceHidden()) {
+            hud.renderIslands(graphics);
+        }
+    }
+
+    private boolean interfaceHidden() {
+        return minecraft != null && minecraft.options.hideGui;
     }
 
     private GraphRenderer.Ranks ranksOf(SkillNodeDefinition node, PlayerSkillState state) {
@@ -991,6 +1001,10 @@ public final class SkillTreeScreen extends Screen {
         int pointerX = effectiveMouseX(mouseX);
         int pointerY = effectiveMouseY(mouseY);
         panWithHeldKeys();
+        if (interfaceHidden()) {
+            renderBackground(graphics, pointerX, pointerY, partialTick);
+            return;
+        }
         super.render(graphics, pointerX, pointerY, partialTick);
         hud.renderOverlay(graphics, pointerX, pointerY, searchIndex, searchHits.size(), searching());
         Component zoom = text("zoom", String.format(GuiText.locale(), "%.2f×", camera.zoomValue()));
