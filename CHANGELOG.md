@@ -1,6 +1,26 @@
 # Changelog
 
-## [2.1.0] - 2026-10-23
+## [2.1.1]
+
+### Changed
+
+- Every skill icon, HUD icon and tooltip marker was redrawn.
+- New node frames: each node type has its own frame, dim until the skill is learned and lit once it is.
+- Rings, rank pips, lock, conflict and sealed marks were redrawn to match the new frames.
+- The search bar and the tool dock are larger, so their icons show at full size.
+- Black holes now show a single purple swirl around the node instead of the stacked layers.
+- The arrows between two linked astral gates only show while one of the gates is selected.
+- New skill tree background and planet, dimmed so the tree stands out.
+- Hiding the game interface also hides the skill tree HUD, for clean screenshots.
+- Learned skills are unlearned only through a full reset with the Orb of Reconfiguration. Server owners can turn
+  single-skill refunds back on with `allowSingleSkillRefunds = true`.
+
+### Fixed
+
+- Skill icons no longer spill out of their frames, including the astral gate.
+- Sealed skills show their mark again instead of a missing texture.
+
+## [2.1.0]
 
 ### Added
 
