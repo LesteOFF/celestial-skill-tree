@@ -1,0 +1,32 @@
+name: Celestial Skill Tree release
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew build validateTree
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: build/libs/*.jar
+      - if: ${{ vars.MODRINTH_PROJECT_ID != '' }}
+        run: ./gradlew modrinth --no-configuration-cache
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          MODRINTH_PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
+      - if: ${{ vars.CURSEFORGE_PROJECT_ID != '' }}
+        run: ./gradlew publishCurseForge --no-configuration-cache
+        env:
+          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+          CURSEFORGE_PROJECT_ID: ${{ vars.CURSEFORGE_PROJECT_ID }}
