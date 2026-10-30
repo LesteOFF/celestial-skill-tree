@@ -55,7 +55,7 @@ public final class StatsPanel {
             addAttributes(lines, player);
         }
         state.sign().ifPresent(signId -> lines.add(text("sign", Component.translatable(SkillSign.nameKey(signId)),
-                Component.translatable(ClientSkillState.worldRules().signDescriptionKey(signId))).withStyle(ChatFormatting.LIGHT_PURPLE)));
+                ClientSkillState.worldRules().signDescription(signId)).withStyle(ChatFormatting.LIGHT_PURPLE)));
         addSection(lines, "conditional", conditionalEffects(state, graph));
         addSection(lines, "keystones", keystones(state, graph));
         lines.add(text("points", state.totalPoints(), state.activeSpentPoints(), state.availablePoints(), pendingCost)

@@ -27,6 +27,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SignServiceTest {
     private static final Predicate<String> EVERY_MOD = mod -> true;
+    private static final Predicate<String> EVERY_MOD_BUT_ASTRAL_SORCERY = mod -> !mod.equals("astralsorcery");
+    private static final Predicate<String> ONLY_ASTRAL_SORCERY = "astralsorcery"::equals;
     private static final KnownIds EVERYTHING_KNOWN = new KnownIds() {
         @Override
         public boolean isAttribute(String id) {
@@ -41,13 +43,45 @@ class SignServiceTest {
 
     @Test
     void everyShippedSignSwapsToAPartnerAttributeThatHasItsOwnText() throws IOException {
-        List<SkillSign> signs = shippedSigns(EVERY_MOD);
+        List<SkillSign> signs = shippedSigns(EVERY_MOD_BUT_ASTRAL_SORCERY);
         assertEquals(12, signs.size());
         assertTrue(signs.stream().map(SignServiceTest::onlyAttribute).noneMatch(SignServiceTest::isBuiltIn));
+        assertEveryDescriptionIsTranslated(signs);
+    }
+
+    @Test
+    void astralSorceryAddsADiscoveryBonusOnTopOfTheActiveSign() throws IOException {
+        for (Predicate<String> mods : List.of(EVERY_MOD, ONLY_ASTRAL_SORCERY)) {
+            List<SkillSign> signs = shippedSigns(mods);
+            assertEquals(12, signs.size());
+            for (SkillSign sign : signs) {
+                assertEquals(1, sign.bonuses().size(), sign.id());
+                assertEquals(2, sign.allEffects().size(), sign.id());
+                SkillEffect.ConditionalAttribute bonus = astralBonus(sign);
+                assertEquals("astral_discovered", bonus.condition().type(), sign.id());
+                assertTrue(bonus.condition().string("constellation").startsWith("astralsorcery:"), sign.id());
+                assertEquals(2, sign.descriptionKeys().size(), sign.id());
+            }
+            assertEquals(12, signs.stream().map(sign -> astralBonus(sign).condition().string("constellation")).distinct().count());
+            assertEveryDescriptionIsTranslated(signs);
+        }
+    }
+
+    @Test
+    void withoutPartnerModsASignKeepsItsOwnEffectAndText() throws IOException {
+        for (SkillSign sign : shippedSigns(mod -> false)) {
+            assertTrue(isBuiltIn(onlyAttribute(sign)), sign.id());
+            assertEquals(List.of(SkillSign.defaultDescriptionKey(sign.id())), sign.descriptionKeys());
+            assertTrue(sign.bonuses().isEmpty(), sign.id());
+        }
+    }
+
+    private static void assertEveryDescriptionIsTranslated(List<SkillSign> signs) throws IOException {
         for (String language : List.of("en_us", "pt_br")) {
             JsonObject translations = JsonParser.parseString(Files.readString(
                     Path.of("src/main/resources/assets/celestialskilltree/lang/" + language + ".json"))).getAsJsonObject();
-            signs.forEach(sign -> assertTrue(translations.has(sign.descriptionKey()), () -> language + " lacks " + sign.descriptionKey()));
+            signs.stream().flatMap(sign -> sign.descriptionKeys().stream())
+                    .forEach(key -> assertTrue(translations.has(key), () -> language + " lacks " + key));
         }
     }
 
@@ -86,6 +120,10 @@ class SignServiceTest {
         List<SkillSign> signs = new SignParser(EVERYTHING_KNOWN, isModLoaded).parse(files, report);
         assertFalse(report.hasErrors(), report.errors().toString());
         return signs;
+    }
+
+    private static SkillEffect.ConditionalAttribute astralBonus(SkillSign sign) {
+        return (SkillEffect.ConditionalAttribute) sign.bonuses().get(0).effects().get(0);
     }
 
     private static String onlyAttribute(SkillSign sign) {

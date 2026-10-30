@@ -3,9 +3,11 @@ package dev.lesteoff.celestialskilltree.compat;
 import dev.lesteoff.celestialskilltree.CelestialSkillTree;
 import dev.lesteoff.celestialskilltree.compat.apotheosis.ApotheosisCompat;
 import dev.lesteoff.celestialskilltree.compat.arsnouveau.ArsNouveauCompat;
+import dev.lesteoff.celestialskilltree.compat.astralsorcery.AstralSorceryCompat;
 import dev.lesteoff.celestialskilltree.compat.bettercombat.BetterCombatCompat;
 import dev.lesteoff.celestialskilltree.compat.bettermobcombat.BetterMobCombatCompat;
 import dev.lesteoff.celestialskilltree.compat.champions.ChampionsCompat;
+import dev.lesteoff.celestialskilltree.compat.cirrus.CirrusSun;
 import dev.lesteoff.celestialskilltree.compat.curios.CuriosCompat;
 import dev.lesteoff.celestialskilltree.compat.dummmmmmy.DummmmmmyCompat;
 import dev.lesteoff.celestialskilltree.compat.enigmaticlegacy.EnigmaticLegacyCompat;
@@ -14,6 +16,7 @@ import dev.lesteoff.celestialskilltree.compat.ironsspellbooks.IronsSpellbooksCom
 import dev.lesteoff.celestialskilltree.compat.kubejs.CelestialSkillTreePlugin;
 import dev.lesteoff.celestialskilltree.compat.l2hostility.L2HostilityCompat;
 import dev.lesteoff.celestialskilltree.compat.mowziesmobs.MowziesMobsCompat;
+import dev.lesteoff.celestialskilltree.compat.nomansland.NoMansLandCompat;
 import dev.lesteoff.celestialskilltree.compat.occultism.OccultismCompat;
 import dev.lesteoff.celestialskilltree.compat.pandora.PandoraCompat;
 import dev.lesteoff.celestialskilltree.compat.parcool.ParCoolCompat;
@@ -47,7 +50,10 @@ public final class Integrations {
             Map.entry(RelicsCompat.MOD_ID, RelicsCompat::register),
             Map.entry(EnigmaticLegacyCompat.MOD_ID, EnigmaticLegacyCompat::register),
             Map.entry(ForbiddenArcanusCompat.MOD_ID, ForbiddenArcanusCompat::register),
-            Map.entry(ReliquaryCompat.MOD_ID, ReliquaryCompat::register));
+            Map.entry(ReliquaryCompat.MOD_ID, ReliquaryCompat::register),
+            Map.entry(AstralSorceryCompat.MOD_ID, AstralSorceryCompat::register),
+            Map.entry(NoMansLandCompat.MOD_ID, NoMansLandCompat::register),
+            Map.entry(CirrusSun.MOD_ID, CirrusSun::register));
 
     private Integrations() {
     }

@@ -5,15 +5,17 @@ import dev.lesteoff.celestialskilltree.client.render.BackgroundRenderer;
 import dev.lesteoff.celestialskilltree.client.render.ConstellationGlyph;
 import dev.lesteoff.celestialskilltree.client.render.LineBatch;
 import dev.lesteoff.celestialskilltree.client.render.Shapes;
+import dev.lesteoff.celestialskilltree.client.screen.TooltipCard.Marker;
+import dev.lesteoff.celestialskilltree.client.screen.TooltipCard.Row;
 import dev.lesteoff.celestialskilltree.config.ClientConfig;
 import dev.lesteoff.celestialskilltree.graph.SkillSign;
+import dev.lesteoff.celestialskilltree.network.Payloads;
 import dev.lesteoff.celestialskilltree.progression.PlayerSkillState;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.FormattedCharSequence;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -47,8 +49,10 @@ public final class BirthSignScreen extends Screen {
 
     private final Screen parent;
     private final long openedAt = Util.getMillis();
+    String simulatedHover;
     private String tooltipFor;
-    private List<FormattedCharSequence> tooltipLines = List.of();
+    private Payloads.WorldRules tooltipRules;
+    private TooltipCard tooltipCard;
 
     public BirthSignScreen(Screen parent) {
         super(GuiText.of("sign.title"));
@@ -118,13 +122,16 @@ public final class BirthSignScreen extends Screen {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
         List<Placed> placed = placedSigns();
-        Optional<Placed> hovered = hovered(placed, mouseX, mouseY);
+        Optional<Placed> simulated = placed.stream().filter(sign -> sign.signId().equals(simulatedHover)).findFirst();
+        int pointerX = simulated.map(sign -> (int) sign.x()).orElse(mouseX);
+        int pointerY = simulated.map(sign -> (int) sign.y()).orElse(mouseY);
+        Optional<Placed> hovered = hovered(placed, pointerX, pointerY);
         graphics.drawCenteredString(font, title.copy().withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD), width / 2, 8, TEXT_COLOR);
         graphics.drawCenteredString(font, GuiText.of("sign.permanent").withStyle(ChatFormatting.GRAY), width / 2, 20, TEXT_COLOR);
         drawWheel(graphics, placed, hovered);
         drawLabels(graphics, placed);
         drawCenter(graphics);
-        hovered.ifPresent(sign -> TooltipPanel.render(graphics, font, tooltipLines(sign.signId()), mouseX, mouseY));
+        hovered.ifPresent(sign -> TooltipPanel.render(graphics, font, tooltipCard(sign.signId()), TOOLTIP_WIDTH, pointerX, pointerY));
     }
 
     private void drawLabels(GuiGraphics graphics, List<Placed> placed) {
@@ -137,12 +144,14 @@ public final class BirthSignScreen extends Screen {
         }
     }
 
-    private List<FormattedCharSequence> tooltipLines(String signId) {
-        if (!signId.equals(tooltipFor)) {
+    private TooltipCard tooltipCard(String signId) {
+        Payloads.WorldRules rules = ClientSkillState.worldRules();
+        if (!signId.equals(tooltipFor) || rules != tooltipRules) {
             tooltipFor = signId;
-            tooltipLines = font.split(tooltip(signId), TOOLTIP_WIDTH);
+            tooltipRules = rules;
+            tooltipCard = signCard(rules, signId);
         }
-        return tooltipLines;
+        return tooltipCard;
     }
 
     private void drawWheel(GuiGraphics graphics, List<Placed> placed, Optional<Placed> hovered) {
@@ -194,15 +203,45 @@ public final class BirthSignScreen extends Screen {
                 centerX, textTop + 16, TEXT_COLOR);
     }
 
-    private static Component tooltip(String signId) {
+    private TooltipCard signCard(Payloads.WorldRules rules, String signId) {
         boolean own = ownSign().filter(signId::equals).isPresent();
-        return Component.empty()
-                .append(Component.translatable(SkillSign.nameKey(signId)).withStyle(own ? ChatFormatting.GOLD : ChatFormatting.AQUA))
-                .append("\n").append(description(signId))
-                .append("\n").append(GuiText.of(own ? "sign.yours" : "sign.other").withStyle(ChatFormatting.GRAY));
+        List<Payloads.SignBonus> bonuses = rules.sign(signId).map(Payloads.SignInfo::bonuses).orElse(List.of());
+        Component name = Component.translatable(SkillSign.nameKey(signId)).withStyle(own ? ChatFormatting.GOLD : ChatFormatting.AQUA, ChatFormatting.BOLD);
+        Component subtitle = GuiText.of(own ? "sign.yours" : "sign.subtitle").withStyle(ChatFormatting.GRAY);
+        List<Row> base = List.of(Row.of(Marker.GAIN, rules.signBaseDescription(signId).withStyle(ChatFormatting.GREEN)));
+        List<Row> bonusRows = bonuses.stream().flatMap(bonus -> bonusRows(bonus).stream()).toList();
+        List<Row> footer = own ? List.of() : List.of(Row.plain(GuiText.of("sign.other").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC)));
+        return new TooltipCard(glyphIcon(signId, own), name, subtitle, bonusBadge(bonuses), List.of(base, bonusRows, footer));
+    }
+
+    private TooltipCard.Icon glyphIcon(String signId, boolean own) {
+        ConstellationGlyph glyph = ConstellationGlyph.of(signId);
+        return (graphics, centerX, centerY, radius) -> {
+            LineBatch batch = new LineBatch(graphics);
+            glyph.draw(batch, centerX, centerY, radius, own ? OWN_LINE : OTHER_LINE, own ? OWN_COLOR : HOVER_COLOR, seconds());
+            batch.draw();
+        };
+    }
+
+    private static Component bonusBadge(List<Payloads.SignBonus> bonuses) {
+        if (bonuses.isEmpty()) {
+            return Component.empty();
+        }
+        long active = bonuses.stream().filter(Payloads.SignBonus::active).count();
+        return GuiText.of("sign.bonus_count", active, bonuses.size())
+                .withStyle(active == bonuses.size() ? ChatFormatting.AQUA : ChatFormatting.DARK_GRAY);
+    }
+
+    private static List<Row> bonusRows(Payloads.SignBonus bonus) {
+        boolean active = bonus.active();
+        return List.of(
+                Row.of(active ? Marker.CHECK : Marker.LOCK,
+                        Component.translatable(bonus.descriptionKey()).withStyle(active ? ChatFormatting.AQUA : ChatFormatting.GRAY)),
+                Row.plain(GuiText.of(active ? "sign.bonus_active" : "sign.bonus_inactive")
+                        .withStyle(active ? ChatFormatting.GREEN : ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC)));
     }
 
     private static Component description(String signId) {
-        return Component.translatable(ClientSkillState.worldRules().signDescriptionKey(signId)).withStyle(ChatFormatting.GREEN);
+        return ClientSkillState.worldRules().signBaseDescription(signId).withStyle(ChatFormatting.GREEN);
     }
 }

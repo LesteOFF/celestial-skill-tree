@@ -2,6 +2,8 @@ package dev.lesteoff.celestialskilltree.server;
 
 import dev.lesteoff.celestialskilltree.CelestialSkillTree;
 import dev.lesteoff.celestialskilltree.api.SkillEvents;
+import dev.lesteoff.celestialskilltree.compat.astralsorcery.AstralSorceryCompat;
+import dev.lesteoff.celestialskilltree.compat.nomansland.NoMansLandCompat;
 import dev.lesteoff.celestialskilltree.config.ServerConfig;
 import dev.lesteoff.celestialskilltree.data.WorldSkillData;
 import dev.lesteoff.celestialskilltree.progression.SkyEvent;
@@ -87,6 +89,9 @@ public final class SkyEvents {
 
     private static void update(MinecraftServer server) {
         setCurrent(server, evaluate(server));
+        if (isEclipse()) {
+            NoMansLandCompat.endSunDogs(server.overworld());
+        }
     }
 
     private static SkyEvent evaluate(MinecraftServer server) {
@@ -101,9 +106,23 @@ public final class SkyEvents {
         if (showers && SkyEventSchedule.needsScheduling(data.showerDay(), today)) {
             data.setShowerDay(nextDay(overworld, today, ServerConfig.STAR_SHOWER_AVERAGE_DAYS.get()));
         }
-        SkyEvent natural = SkyEventSchedule.current(eclipses ? data.eclipseDay() : SkyEventSchedule.UNSCHEDULED,
-                showers ? data.showerDay() : SkyEventSchedule.UNSCHEDULED, today, overworld.getDayTime());
+        SkyEvent natural = SkyEventSchedule.current(eclipses ? eclipseDay(data, overworld, today) : SkyEventSchedule.UNSCHEDULED,
+                showers ? showerDay(data, overworld, today) : SkyEventSchedule.UNSCHEDULED, today, overworld.getDayTime());
         return data.forcedEvent() == SkyEvent.NONE ? natural : data.forcedEvent();
+    }
+
+    private static long eclipseDay(WorldSkillData data, ServerLevel overworld, long today) {
+        if (!ServerConfig.ECLIPSE_FOLLOWS_ASTRAL_SORCERY.get() || !AstralSorceryCompat.isLoaded()) {
+            return data.eclipseDay();
+        }
+        return AstralSorceryCompat.isSolarEclipseDay(overworld) ? today : SkyEventSchedule.UNSCHEDULED;
+    }
+
+    private static long showerDay(WorldSkillData data, ServerLevel overworld, long today) {
+        if (!ServerConfig.STAR_SHOWER_FOLLOWS_ASTRAL_SORCERY.get() || !AstralSorceryCompat.isLoaded()) {
+            return data.showerDay();
+        }
+        return AstralSorceryCompat.isLunarEclipseDay(overworld) ? today : SkyEventSchedule.UNSCHEDULED;
     }
 
     private static long nextDay(ServerLevel overworld, long today, int averageDays) {

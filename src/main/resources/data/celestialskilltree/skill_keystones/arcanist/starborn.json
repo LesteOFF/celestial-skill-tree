@@ -1,0 +1,24 @@
+{
+  "class": "celestialskilltree:arcanist",
+  "requires_mod": "astralsorcery",
+  "name": "skill.celestialskilltree.arcanist.starborn.name",
+  "text": "skill.celestialskilltree.arcanist.starborn.text",
+  "icon": "celestialskilltree:textures/skill_icons/star.png",
+  "effects": [
+    {
+      "type": "damage_modifier",
+      "direction": "dealt",
+      "scope": "magic",
+      "amount": -0.1
+    },
+    {
+      "type": "damage_modifier",
+      "direction": "dealt",
+      "scope": "magic",
+      "amount": 0.3,
+      "condition": {
+        "type": "astral_attuned"
+      }
+    }
+  ]
+}

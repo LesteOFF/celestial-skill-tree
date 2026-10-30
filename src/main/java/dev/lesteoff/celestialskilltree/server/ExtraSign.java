@@ -53,7 +53,7 @@ public final class ExtraSign {
         if (!isActive(player)) {
             return Map.of();
         }
-        return of(state).map(sign -> Map.of(SOURCE_PREFIX + sign.id(), sign.effects())).orElse(Map.of());
+        return of(state).map(sign -> Map.of(SOURCE_PREFIX + sign.id(), sign.allEffects())).orElse(Map.of());
     }
 
     public static Optional<SkillSign> of(PlayerSkillState state) {

@@ -1,0 +1,19 @@
+{
+  "class": "celestialskilltree:marksman",
+  "requires_mod": "astralsorcery",
+  "name": "skill.celestialskilltree.marksman.radiant_sight.name",
+  "text": "skill.celestialskilltree.marksman.radiant_sight.text",
+  "icon": "celestialskilltree:textures/skill_icons/lodestar.png",
+  "effects": [
+    {
+      "type": "damage_modifier",
+      "direction": "dealt",
+      "scope": "projectile",
+      "amount": 0.2,
+      "condition": {
+        "type": "astral_tier",
+        "tier": "luminance"
+      }
+    }
+  ]
+}

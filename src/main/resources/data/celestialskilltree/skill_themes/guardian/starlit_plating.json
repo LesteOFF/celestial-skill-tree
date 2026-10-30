@@ -1,0 +1,39 @@
+{
+  "class": "celestialskilltree:guardian",
+  "requires_mod": "astralsorcery",
+  "name": "theme.celestialskilltree.guardian.starlit_plating",
+  "icon": "celestialskilltree:textures/skill_icons/crystal.png",
+  "minor": {
+    "effects": [
+      {
+        "type": "conditional_attribute",
+        "attribute": "minecraft:generic.armor",
+        "operation": "add_value",
+        "amount": 0.75,
+        "condition": {
+          "type": "astral_discovered",
+          "constellation": "astralsorcery:armara"
+        }
+      }
+    ]
+  },
+  "notables": [
+    {
+      "id": "resonant_aegis",
+      "name": "skill.celestialskilltree.guardian.resonant_aegis.name",
+      "icon": "celestialskilltree:textures/skill_icons/halo.png",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.armor",
+          "operation": "add_value",
+          "amount": 4.5,
+          "condition": {
+            "type": "astral_tier",
+            "tier": "resonance"
+          }
+        }
+      ]
+    }
+  ]
+}
