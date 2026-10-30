@@ -21,5 +21,23 @@
         }
       ]
     }
+  ],
+  "bonus_effects": [
+    {
+      "requires_mod": "astralsorcery",
+      "description": "sign.celestialskilltree.needle.description.astralsorcery",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "celestialskilltree:crit_chance",
+          "operation": "add_value",
+          "amount": 0.03,
+          "condition": {
+            "type": "astral_discovered",
+            "constellation": "astralsorcery:evorsio"
+          }
+        }
+      ]
+    }
   ]
 }

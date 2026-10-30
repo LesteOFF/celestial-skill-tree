@@ -1,5 +1,43 @@
 # Changelog
 
+## [2.1.2]
+
+> **Updating an existing world:** a world keeps the tree it was drawn with, so the new Astral Sorcery skills only
+> appear after an operator runs `/celestialskilltree regenerate confirm`. It draws the whole tree again from the current
+> catalog. Learned skills that are still in the tree and still connected stay learned; every learned skill that leaves
+> the tree or loses its connection is refunded at the price paid (offline players at their next login), so no one
+> loses points. New worlds get the new skills on their own.
+
+### Added
+
+- Astral Sorcery: each new research tier gives Star Fragments (`astralTierFragments`, 2 per tier) and each memorized
+  constellation gives more (`astralConstellationFragments`, 1).
+- Astral Sorcery: the star shower happens on the night of its lunar eclipse (`starShowerFollowsAstralSorcery`).
+- The `astral_tier` condition (`tier`: `shimmer` to `radiance`), and `astral_attuned` without a `constellation` holds
+  for any attunement.
+- Three keystones that only exist with Astral Sorcery: Starborn (arcanist), Armara's Bulwark (guardian) and Radiant Sight
+  (marksman).
+- Three Astral Sorcery themes spread minor skills along the branches and put a notable at a branch tip: Starlit
+  Plating with Resonant Aegis (guardian), Bootes' Hunt with Guiding Star (marksman) and Starlight Lore with Illuminated
+  Draughts (arcanist).
+- With Astral Sorcery installed, the Orb of Reconfiguration is made only in its Starlight Infuser, from an eye of ender;
+  the crafting table, Create and Ice and Fire recipes turn off.
+- Astral Sorcery: the eclipse follows its solar eclipse (`eclipseFollowsAstralSorcery`), each birth sign doubles its
+  bonus once its paired constellation is discovered, and the `astral_attuned` and `astral_discovered` conditions.
+- `bonus_effects` in birth sign files: every entry whose mod is installed adds its effects and text.
+- The birth chart tooltip is now a card like the skill tooltips: the sign's constellation twinkles in its header, a
+  counter shows how many bonuses are active, and each bonus has its own line marked discovered or not yet discovered.
+- Game tests for the Astral Sorcery and No Man's Land integrations, run with the mods placed in `run-pack/mods`.
+
+### Fixed
+
+- No Man's Land's sun dogs no longer shine around an eclipsed sun.
+- With No Man's Land installed, the eclipse darkens the clouds and shows the stars again (its cloud colour and star
+  brightness hooks used to replace the eclipse's).
+- With Cirrus' angled sun orbit the eclipse disc covers the sun again, Cirrus' clouds lose their sunlight and its
+  sky palette no longer brightens the fog during an eclipse.
+- The birth chart gallery shot shows the twelve signs again, and the eclipse shot always clears the weather first.
+
 ## [2.1.1]
 
 ### Changed

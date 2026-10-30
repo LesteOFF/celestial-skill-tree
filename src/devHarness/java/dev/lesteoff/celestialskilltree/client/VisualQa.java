@@ -3,6 +3,7 @@ package dev.lesteoff.celestialskilltree.client;
 import dev.lesteoff.celestialskilltree.CelestialSkillTree;
 import dev.lesteoff.celestialskilltree.client.screen.SkillTreeScreen;
 import dev.lesteoff.celestialskilltree.client.screen.TreeScreenQa;
+import dev.lesteoff.celestialskilltree.compat.astralsorcery.AstralSorceryCompat;
 import dev.lesteoff.celestialskilltree.config.ClientConfig;
 import dev.lesteoff.celestialskilltree.graph.SkillGraphSnapshot;
 import dev.lesteoff.celestialskilltree.network.Payloads;
@@ -59,7 +60,7 @@ public final class VisualQa {
     }
 
     private enum Look {
-        NORMAL, REDUCED_MOTION, HIGH_CONTRAST
+        NORMAL, REDUCED_MOTION, HIGH_CONTRAST, DETAILED
     }
 
     private enum Fixture {
@@ -108,6 +109,10 @@ public final class VisualQa {
         }
     }
 
+    private static final List<String> ASTRAL_NODES = List.of("arcanist/starborn", "guardian/armaras_bulwark", "marksman/radiant_sight",
+            "arcanist/illuminated_draughts", "guardian/resonant_aegis", "marksman/guiding_star");
+    private static final List<String> ASTRAL_THEMES = List.of("arcanist/starlight_lore", "guardian/starlit_plating", "marksman/bootes_hunt");
+    private static final double ASTRAL_KEYSTONE_ZOOM = 1.1;
     private static final String BLACK_HOLE_SKILL = "berserker/eye_of_the_storm";
     private static final double BLACK_HOLE_ZOOM = 1.3;
 
@@ -150,10 +155,17 @@ public final class VisualQa {
         world.enterWorld();
         qa.then("remember the birth sign", () -> liveSign = ClientSkillState.state().flatMap(PlayerSkillState::sign));
         qa.then("check the fixture builds", () -> checkFixtures(qa));
+        if (AstralSorceryCompat.isLoaded()) {
+            qa.then("find the Astral Sorcery minor skills", () -> ASTRAL_THEMES.forEach(theme -> qa.expect("the tree has minor skills of " + theme,
+                    graph.nodes().keySet().stream().anyMatch(nodeId -> nodeId.startsWith(id(theme) + "_")))));
+        }
         galleryShots().forEach(shot -> addShot(qa, GALLERY_PREFIX, shot));
         qa.step("return to the live build without the HUD", VisualQa::enterGalleryWorld, InWorldQa::joined, SYNC_TICKS);
         world.addSkySteps();
         world.addShowcaseSteps();
+        if (AstralSorceryCompat.isLoaded()) {
+            world.addAstralSteps();
+        }
         return qa;
     }
 
@@ -181,6 +193,7 @@ public final class VisualQa {
         resize(shot.resolution());
         ClientConfig.REDUCED_MOTION.set(shot.look() == Look.REDUCED_MOTION);
         ClientConfig.HIGH_CONTRAST.set(shot.look() == Look.HIGH_CONTRAST);
+        ClientConfig.DETAILED_TOOLTIPS.set(shot.look() == Look.DETAILED);
         ClientSkillState.loadFixture(graph, shot.fixture().build(), FIXTURE_ECONOMY, shot.fixture().level, FIXTURE_XP_PROGRESS);
         hideTutorial();
         Minecraft.getInstance().setScreen(new SkillTreeScreen());
@@ -205,6 +218,7 @@ public final class VisualQa {
         Minecraft.getInstance().setScreen(null);
         ClientConfig.REDUCED_MOTION.set(false);
         ClientConfig.HIGH_CONTRAST.set(false);
+        ClientConfig.DETAILED_TOOLTIPS.set(false);
         resize(HD);
         ClientSkillState.reset();
         PacketDistributor.sendToServer(new Payloads.RequestSync(""));
@@ -212,6 +226,12 @@ public final class VisualQa {
 
     private static SkillTreeScreen screen() {
         return (SkillTreeScreen) Minecraft.getInstance().screen;
+    }
+
+    private static String firstMinorOf(String theme) {
+        String prefix = id(theme) + "_";
+        return graph.nodes().keySet().stream().filter(nodeId -> nodeId.startsWith(prefix)).sorted().findFirst()
+                .map(nodeId -> nodeId.substring(CelestialSkillTree.MODID.length() + 1)).orElse(theme);
     }
 
     private static String id(String path) {
@@ -289,7 +309,7 @@ public final class VisualQa {
     }
 
     private static List<Shot> galleryShots() {
-        return List.of(
+        List<Shot> shots = new ArrayList<>(List.of(
                 Shot.gallery("tree_overview", Fixture.HYBRID, TreeScreenQa::fit),
                 Shot.gallery("tree_closeup", Fixture.HYBRID, VisualQa::hybridCloseup),
                 Shot.gallery("tree_route", Fixture.HYBRID, VisualQa::pendingRoute),
@@ -302,7 +322,15 @@ public final class VisualQa {
                     TreeScreenQa.showStats(screen);
                 }),
                 Shot.gallery("birth_sign", Fixture.HYBRID, VisualQa::birthChart),
-                new Shot("banner_tree", BANNER_RESOLUTION, Fixture.HYBRID, Look.NORMAL, VisualQa::bannerTree));
+                Shot.gallery("birth_sign_tooltip", Fixture.HYBRID, VisualQa::birthChartTooltip)));
+        if (AstralSorceryCompat.isLoaded()) {
+            ASTRAL_NODES.forEach(path -> shots.add(new Shot("astral_" + path.replace('/', '_'), GALLERY_RESOLUTION, Fixture.HYBRID,
+                    Look.DETAILED, screen -> hover(screen, ASTRAL_KEYSTONE_ZOOM, path))));
+            ASTRAL_THEMES.forEach(theme -> shots.add(new Shot("astral_minor_" + theme.replace('/', '_'), GALLERY_RESOLUTION, Fixture.HYBRID,
+                    Look.DETAILED, screen -> hover(screen, ASTRAL_KEYSTONE_ZOOM, firstMinorOf(theme)))));
+        }
+        shots.add(new Shot("banner_tree", BANNER_RESOLUTION, Fixture.HYBRID, Look.NORMAL, VisualQa::bannerTree));
+        return shots;
     }
 
     private static void bannerTree(SkillTreeScreen screen) {
@@ -312,9 +340,18 @@ public final class VisualQa {
     }
 
     private static void birthChart(SkillTreeScreen screen) {
+        restoreLiveSign();
+        TreeScreenQa.openSign(screen);
+    }
+
+    private static void birthChartTooltip(SkillTreeScreen screen) {
+        restoreLiveSign();
+        liveSign.ifPresent(signId -> TreeScreenQa.openSignHovering(screen, signId));
+    }
+
+    private static void restoreLiveSign() {
         script.expect("the player has a birth sign", liveSign.isPresent());
         liveSign.ifPresent(signId -> SignService.set(ClientSkillState.state().orElseThrow(), signId));
-        TreeScreenQa.openSign(screen);
     }
 
     private static void hybridCloseup(SkillTreeScreen screen) {

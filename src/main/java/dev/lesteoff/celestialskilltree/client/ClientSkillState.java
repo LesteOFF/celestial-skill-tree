@@ -106,7 +106,6 @@ public final class ClientSkillState {
         stateGraphRevision = 1;
         economy = fixtureEconomy;
         curve = XpCurve.DEFAULT;
-        worldRules = Payloads.WorldRules.NONE;
         inFlight = null;
         fixture = true;
         fixtureLevel = level;

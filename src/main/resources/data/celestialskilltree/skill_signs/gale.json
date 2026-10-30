@@ -21,5 +21,23 @@
         }
       ]
     }
+  ],
+  "bonus_effects": [
+    {
+      "requires_mod": "astralsorcery",
+      "description": "sign.celestialskilltree.gale.description.astralsorcery",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.attack_speed",
+          "operation": "add_multiplied_base",
+          "amount": 0.03,
+          "condition": {
+            "type": "astral_discovered",
+            "constellation": "astralsorcery:horologium"
+          }
+        }
+      ]
+    }
   ]
 }

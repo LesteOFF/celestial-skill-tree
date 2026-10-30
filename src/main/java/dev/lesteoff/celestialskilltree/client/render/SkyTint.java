@@ -61,6 +61,10 @@ public final class SkyTint {
         return Mth.lerp(eclipseStrength(partialTick), vanilla, Math.min(vanilla, ECLIPSE_SKY_LIGHT));
     }
 
+    public static float sunlight(float vanilla) {
+        return shown == SkyEvent.ECLIPSE ? vanilla * (1f - strength) : vanilla;
+    }
+
     public static float starBrightness(float vanilla, float partialTick) {
         return switch (shown) {
             case ECLIPSE -> Math.max(vanilla, ECLIPSE_STARS * strength(partialTick));

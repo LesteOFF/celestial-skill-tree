@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.lesteoff.celestialskilltree.client.screen.SkillTreeScreen;
 import dev.lesteoff.celestialskilltree.client.screen.TreeScreenQa;
+import dev.lesteoff.celestialskilltree.compat.Reflection;
 import dev.lesteoff.celestialskilltree.graph.NodeType;
 import dev.lesteoff.celestialskilltree.graph.SkillGraphSnapshot;
 import dev.lesteoff.celestialskilltree.graph.SkillSign;
@@ -23,6 +24,8 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.GameRules;
@@ -48,6 +51,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 final class InWorldQa {
     private static final String WORLD = "celestialskilltree_qa";
@@ -74,6 +79,13 @@ final class InWorldQa {
     private static final int SKY_FADE_TICKS = 140;
     private static final int STAR_FLIGHT_TICKS = 45;
     private static final int FALLING_STARS = 6;
+    private static final String ASTRAL_RESEARCH = "hellfirepvp.astralsorcery.common.research.ResearchHelper";
+    private static final String ASTRAL_TIER = "hellfirepvp.astralsorcery.common.research.ResearchTier";
+    private static final String ASTRAL_CONSTELLATIONS = "hellfirepvp.astralsorcery.common.lib.ConstellationsAS";
+    private static final long DAY_TICKS = 24_000L;
+    private static final long MIDNIGHT = 18_000L;
+    private static final int LUNAR_ECLIPSE_PERIOD_DAYS = 68;
+    private static final int ACTION_BAR_TICKS = 30;
     private static final int FIRST_PURCHASE = 6;
     private static final int BULK_PURCHASE = 3;
     private static final int GREEDY_PURCHASE = 120;
@@ -621,6 +633,7 @@ final class InWorldQa {
             minecraft().setScreen(null);
             player().setXRot(SKY_PITCH);
             command("time set noon");
+            command("weather clear");
             command("celestialskilltree eclipse start");
         }, () -> skyEvent() == SkyEvent.ECLIPSE && script.ticks() >= SKY_FADE_TICKS, 2 * SKY_FADE_TICKS);
         script.then("capture eclipse_sky", () -> capture("eclipse_sky"));
@@ -636,6 +649,45 @@ final class InWorldQa {
         }, () -> script.ticks() >= STAR_FLIGHT_TICKS, 2 * STAR_FLIGHT_TICKS);
         script.then("capture falling_stars", () -> capture("falling_stars"));
         script.step("stop the star shower", () -> command("celestialskilltree shower stop"), () -> skyEvent() == SkyEvent.NONE, COMMAND_TICKS);
+    }
+
+    void addAstralSteps() {
+        script.step("reach Luminance in Astral Sorcery", () -> {
+            minecraft().setScreen(null);
+            minecraft().options.hideGui = false;
+            command("gamerule sendCommandFeedback false");
+            command("time set noon");
+            command("tp @s ~ ~ ~ 180 0");
+            minecraft().gui.getChat().clearMessages(false);
+            onServerPlayer(player -> {
+                Reflection.callStatic(ASTRAL_RESEARCH, "wipeProgress", player);
+                Reflection.callStatic(ASTRAL_RESEARCH, "setResearchProgress", player, Reflection.staticField(ASTRAL_TIER, "LUMINANCE"));
+            });
+        }, () -> script.ticks() >= ACTION_BAR_TICKS, 2 * ACTION_BAR_TICKS);
+        script.then("capture astral_tier_reward", () -> capture("astral_tier_reward"));
+        script.step("memorize Armara", () -> onServerPlayer(player -> Reflection.callStatic(ASTRAL_RESEARCH, "memorizeConstellation", player,
+                ((Supplier<?>) Reflection.staticField(ASTRAL_CONSTELLATIONS, "ARMARA")).get())),
+                () -> script.ticks() >= ACTION_BAR_TICKS, 2 * ACTION_BAR_TICKS);
+        script.then("capture astral_constellation_reward", () -> capture("astral_constellation_reward"));
+        script.step("midnight of Astral Sorcery's lunar eclipse", () -> {
+            minecraft().options.hideGui = true;
+            player().setXRot(SKY_PITCH);
+            command("weather clear");
+            long lunarEclipseDay = (minecraft().level.getDayTime() / DAY_TICKS / LUNAR_ECLIPSE_PERIOD_DAYS + 1) * LUNAR_ECLIPSE_PERIOD_DAYS;
+            command("time set " + (lunarEclipseDay * DAY_TICKS + MIDNIGHT));
+        }, () -> skyEvent() == SkyEvent.STAR_SHOWER && script.ticks() >= SKY_FADE_TICKS, 2 * SKY_FADE_TICKS);
+        script.step("call falling stars", () -> {
+            for (int star = 0; star < FALLING_STARS; star++) {
+                command("celestialskilltree star @s");
+            }
+        }, () -> script.ticks() >= STAR_FLIGHT_TICKS, 2 * STAR_FLIGHT_TICKS);
+        script.then("capture astral_lunar_shower", () -> capture("astral_lunar_shower"));
+    }
+
+    private static void onServerPlayer(Consumer<ServerPlayer> action) {
+        MinecraftServer server = minecraft().getSingleplayerServer();
+        UUID id = player().getUUID();
+        server.execute(() -> action.accept(server.getPlayerList().getPlayer(id)));
     }
 
     void addShowcaseSteps() {

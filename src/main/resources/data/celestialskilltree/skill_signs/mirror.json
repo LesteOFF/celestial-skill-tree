@@ -21,5 +21,23 @@
         }
       ]
     }
+  ],
+  "bonus_effects": [
+    {
+      "requires_mod": "astralsorcery",
+      "description": "sign.celestialskilltree.mirror.description.astralsorcery",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "celestialskilltree:magic_resistance",
+          "operation": "add_value",
+          "amount": 0.08,
+          "condition": {
+            "type": "astral_discovered",
+            "constellation": "astralsorcery:octans"
+          }
+        }
+      ]
+    }
   ]
 }

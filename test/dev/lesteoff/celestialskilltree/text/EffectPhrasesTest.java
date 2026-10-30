@@ -80,8 +80,11 @@ class EffectPhrasesTest {
                 condition("in_biome_tag", Map.of("tag", "c:is_cold")), condition("sky_event", Map.of("event", "eclipse")),
                 condition("sky_event", Map.of("event", "star_shower")),
                 condition("attribute_at_least", Map.of("attribute", ARMOR, "value", 10.0)),
-                condition("target_type", Map.of("tag", "celestialskilltree:dragons")), condition("wet", Map.of()));
-        assertEquals(Condition.TYPES.size() + 1, conditions.size());
+                condition("target_type", Map.of("tag", "celestialskilltree:dragons")), condition("wet", Map.of()),
+                condition("astral_attuned", Map.of("constellation", "astralsorcery:discidia")),
+                condition("astral_discovered", Map.of("constellation", "astralsorcery:armara")),
+                condition("astral_attuned", Map.of()), condition("astral_tier", Map.of("tier", "luminance")));
+        assertEquals(Condition.TYPES.size() + 2, conditions.size());
         for (Condition condition : conditions) {
             SkillEffect effect = new SkillEffect.ConditionalAttribute(ARMOR, "add_value", 1, condition);
             assertFalse(english(effect).contains("effect."), () -> "en_us lacks " + condition.type());
@@ -90,5 +93,11 @@ class EffectPhrasesTest {
         SkillEffect dragonSlaying = new SkillEffect.DamageModifier(true, "all", 0.15, Optional.of(conditions.get(17)));
         assertEquals("+15% dano causado contra dragões.", portuguese(dragonSlaying));
         assertEquals("+1 Armor while below 50% health.", english(new SkillEffect.ConditionalAttribute(ARMOR, "add_value", 1, conditions.get(8))));
+        assertEquals("+1 Armor with astralsorcery:armara discovered.",
+                english(new SkillEffect.ConditionalAttribute(ARMOR, "add_value", 1, conditions.get(20))));
+        assertEquals("+1 Armor while attuned to a constellation.",
+                english(new SkillEffect.ConditionalAttribute(ARMOR, "add_value", 1, conditions.get(21))));
+        assertEquals("+1 Armadura após alcançar luminance no Astral Sorcery.",
+                portuguese(new SkillEffect.ConditionalAttribute(ARMOR, "add_value", 1, conditions.get(22))));
     }
 }

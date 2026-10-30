@@ -26,7 +26,8 @@ compat/       one package per optional mod (apotheosis, arsnouveau, bettercombat
               occultism, …), registered by Integrations and guarded by OptionalEvents; most reach the other mod by
               reflection (Reflection). kubejs/ is the KubeJS plugin (script events + CelestialSkillTree binding), loaded
               by KubeJS itself through kubejs.plugins.txt
-mixin/        LevelMixin (eclipse darkness on the server) and ClientLevelMixin (sky tint on the client)
+mixin/        LevelMixin (eclipse darkness on the server); ClientLevelMixin, FogRendererMixin and CirrusCloudRendererMixin
+              (sky tint on the client)
 command/      /celestialskilltree
 config/       ServerConfig (gameplay, synced), ClientConfig (presentation only)
 client/       ClientSkillState, ClientSetup (key mapping), screen/, render/
@@ -210,7 +211,8 @@ Dist.CLIENT)` classes, which is why the dedicated server starts without loading 
   allocated nodes. The player's birth sign and every reached shared-constellation tier are such sources, so
   `EffectEngine`, the gameplay event classes and `Triggers` need no special cases.
 - **Birth sign**: `SignParser` reads `skill_signs`, swapping in the first `partner_effects` entry whose mod is loaded
-  (its description key reaches the client in `WorldRules.signs`); `SignService.assignIfMissing` picks by world day plus player UUID on login; the id is
+  and adding every loaded `bonus_effects` entry as a `SkillSign.Bonus`; `WorldRules.signs` carries each bonus's text
+  and whether its conditions hold for that player, refreshed when Astral Sorcery reports a discovery; `SignService.assignIfMissing` picks by world day plus player UUID on login; the id is
   stored in `PlayerSkillState.sign` (optional codec field, old saves load unchanged).
 - **World data** (`data/WorldSkillData`, a `SavedData` on the Overworld): next eclipse day, next star shower day,
   forced sky event and donated XP.
@@ -221,8 +223,15 @@ Dist.CLIENT)` classes, which is why the dedicated server starts without loading 
   `WorldRules`; during an eclipse `SkillRequests` asks for no orb. `mixin/LevelMixin` raises the Overworld's
   `skyDarken` to night level while an eclipse is active, which is what lets monsters spawn and stops undead burning.
   On the client `client/render/SkyTint` holds one eased 0..1 strength; `mixin/ClientLevelMixin` feeds it into sky
-  colour, cloud colour, sky light and star brightness, and `SkyEventRenderer` tints the fog and draws the moon disc
-  and corona over the sun after the sky pass, sliding into place as the strength rises.
+  colour, cloud colour, sky light and star brightness (`@ModifyReturnValue` at priority 500, so a mod that returns
+  early from the same methods, like No Man's Land, receives the tinted value instead of replacing it),
+  `mixin/FogRendererMixin` tints the fog last (after Cirrus' sky palette), and `SkyEventRenderer` draws the moon disc
+  and corona over the sun after the sky pass, sliding into place as the strength rises. Other skies: with Astral
+  Sorcery the eclipse day is its solar eclipse day and the star shower day its lunar eclipse day
+  (`compat/astralsorcery`, which also pays Star Fragments on its research tier and memorize events), No Man's Land's sun dogs are ended while
+  an eclipse lasts (`compat/nomansland`), the disc uses the sun matrix Cirrus captured that frame when it moved the
+  sun (`compat/cirrus`), and `mixin/CirrusCloudRendererMixin` (`@Pseudo`, optional) takes the sunlight off Cirrus'
+  clouds during an eclipse.
 - **Community**: `server/CommunityTree` applies donations (pure rules in `CommunityProgress`) and refreshes everyone
   when a tier is reached.
 - **Star fragments**: `StarFragmentItem.redeem` grants one point through `LedgerService.grant` (limit respected).

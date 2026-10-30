@@ -129,6 +129,11 @@ public final class EffectPhrases {
             case "in_dimension" -> Phrase.of(key, new Literal(condition.string("dimension")));
             case "in_biome_tag" -> Phrase.of(key, new Literal(condition.string("tag")));
             case "sky_event" -> Phrase.of(key + "." + condition.string("event"));
+            case "astral_attuned" -> condition.params().containsKey("constellation")
+                    ? Phrase.of(key, new Named(Named.Kind.CONSTELLATION, condition.string("constellation")))
+                    : Phrase.of(key + ".any");
+            case "astral_discovered" -> Phrase.of(key, new Named(Named.Kind.CONSTELLATION, condition.string("constellation")));
+            case "astral_tier" -> Phrase.of(key, new Named(Named.Kind.ASTRAL_TIER, condition.string("tier")));
             case "attribute_at_least" -> Phrase.of(key, new Named(Named.Kind.ATTRIBUTE, condition.string("attribute")),
                     plain(condition.number("value")));
             default -> Phrase.of(key);

@@ -74,7 +74,7 @@ public final class SkillTooltips {
                                     SkillNodeDefinition node, NodeState nodeState, int pendingCost,
                                     Optional<PathFinder.Route> route, boolean detailed) {
         Subject subject = new Subject(graph, state, pending, node);
-        return new TooltipCard(GraphRenderer.frameTex(node.frame()), GraphRenderer.iconTex(node.icon()),
+        return new TooltipCard(TooltipCard.Icon.node(GraphRenderer.frameTex(node.frame()), GraphRenderer.iconTex(node.icon())),
                 SkillTexts.name(node).withStyle(nameColor(node), ChatFormatting.BOLD), subtitle(subject), badge(subject),
                 List.of(whatItDoes(subject, detailed), specialRules(subject), status(subject, nodeState, pendingCost, route)));
     }

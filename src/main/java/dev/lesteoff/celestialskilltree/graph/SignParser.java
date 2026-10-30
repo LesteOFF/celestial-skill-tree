@@ -12,6 +12,7 @@ import java.util.function.Predicate;
 
 public final class SignParser {
     private static final String PARTNER_EFFECTS = "partner_effects";
+    private static final String BONUS_EFFECTS = "bonus_effects";
 
     private final EffectParser effectParser;
     private final Predicate<String> isModLoaded;
@@ -45,23 +46,26 @@ public final class SignParser {
         if (!Ids.isValid(id)) {
             sign.error("id", "invalid id derived from path: '" + id + "'");
         }
-        JsonFields active = activePartner(sign).orElse(sign);
+        JsonFields active = loadedEntries(sign, PARTNER_EFFECTS).stream().findFirst().orElse(sign);
         String descriptionKey = active.optionalText("description").orElse(SkillSign.defaultDescriptionKey(id));
         List<SkillEffect> effects = effectParser.parseAll(active);
-        return report.errors().size() > errorsBefore ? Optional.empty() : Optional.of(new SkillSign(id, effects, descriptionKey));
+        List<SkillSign.Bonus> bonuses = loadedEntries(sign, BONUS_EFFECTS).stream()
+                .map(bonus -> new SkillSign.Bonus(bonus.text("description"), effectParser.parseAll(bonus))).toList();
+        return report.errors().size() > errorsBefore ? Optional.empty() : Optional.of(new SkillSign(id, effects, descriptionKey, bonuses));
     }
 
-    private Optional<JsonFields> activePartner(JsonFields sign) {
-        if (!sign.has(PARTNER_EFFECTS)) {
-            return Optional.empty();
+    private List<JsonFields> loadedEntries(JsonFields sign, String field) {
+        if (!sign.has(field)) {
+            return List.of();
         }
-        JsonArray partners = sign.array(PARTNER_EFFECTS).orElseGet(JsonArray::new);
-        for (int i = 0; i < partners.size(); i++) {
-            JsonElement partner = partners.get(i);
-            if (partner.isJsonObject() && ModRequirement.isMet(partner, isModLoaded)) {
-                return Optional.of(sign.child(partner.getAsJsonObject(), PARTNER_EFFECTS + "[" + i + "]."));
+        JsonArray entries = sign.array(field).orElseGet(JsonArray::new);
+        List<JsonFields> loaded = new ArrayList<>();
+        for (int i = 0; i < entries.size(); i++) {
+            JsonElement entry = entries.get(i);
+            if (entry.isJsonObject() && ModRequirement.isMet(entry, isModLoaded)) {
+                loaded.add(sign.child(entry.getAsJsonObject(), field + "[" + i + "]."));
             }
         }
-        return Optional.empty();
+        return loaded;
     }
 }

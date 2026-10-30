@@ -21,5 +21,23 @@
         }
       ]
     }
+  ],
+  "bonus_effects": [
+    {
+      "requires_mod": "astralsorcery",
+      "description": "sign.celestialskilltree.ember.description.astralsorcery",
+      "effects": [
+        {
+          "type": "conditional_attribute",
+          "attribute": "minecraft:generic.attack_damage",
+          "operation": "add_multiplied_total",
+          "amount": 0.04,
+          "condition": {
+            "type": "astral_discovered",
+            "constellation": "astralsorcery:fornax"
+          }
+        }
+      ]
+    }
   ]
 }

@@ -11,13 +11,17 @@ import dev.lesteoff.celestialskilltree.registry.StateCodecs;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 public final class Payloads {
     private Payloads() {
@@ -157,9 +161,31 @@ public final class Payloads {
                 NODE_ID, TierInfo::id, ByteBufCodecs.VAR_LONG, TierInfo::xpRequired, TierInfo::new);
     }
 
-    public record SignInfo(String id, String descriptionKey) {
+    public record SignBonus(String descriptionKey, boolean active) {
+        public static final StreamCodec<ByteBuf, SignBonus> CODEC = StreamCodec.composite(
+                ByteBufCodecs.STRING_UTF8, SignBonus::descriptionKey, ByteBufCodecs.BOOL, SignBonus::active, SignBonus::new);
+    }
+
+    public record SignInfo(String id, String descriptionKey, List<SignBonus> bonuses) {
+        public static final int MAX_BONUSES = 8;
         public static final StreamCodec<ByteBuf, SignInfo> CODEC = StreamCodec.composite(
-                NODE_ID, SignInfo::id, ByteBufCodecs.STRING_UTF8, SignInfo::descriptionKey, SignInfo::new);
+                NODE_ID, SignInfo::id, ByteBufCodecs.STRING_UTF8, SignInfo::descriptionKey,
+                SignBonus.CODEC.apply(ByteBufCodecs.list(MAX_BONUSES)), SignInfo::bonuses, SignInfo::new);
+
+        public MutableComponent description() {
+            return describe(Stream.concat(Stream.of(descriptionKey), bonuses.stream().map(SignBonus::descriptionKey)).toList());
+        }
+
+        public static MutableComponent describe(List<String> descriptionKeys) {
+            MutableComponent description = Component.empty();
+            for (int i = 0; i < descriptionKeys.size(); i++) {
+                if (i > 0) {
+                    description.append(" ");
+                }
+                description.append(Component.translatable(descriptionKeys.get(i)));
+            }
+            return description;
+        }
     }
 
     public record WorldRules(SkyEvent skyEvent, long communityXp, List<TierInfo> communityTiers, List<SignInfo> signs) {
@@ -175,9 +201,16 @@ public final class Payloads {
             return signs.stream().map(SignInfo::id).toList();
         }
 
-        public String signDescriptionKey(String signId) {
-            return signs.stream().filter(sign -> sign.id().equals(signId)).map(SignInfo::descriptionKey).findFirst()
-                    .orElse(SkillSign.defaultDescriptionKey(signId));
+        public Optional<SignInfo> sign(String signId) {
+            return signs.stream().filter(sign -> sign.id().equals(signId)).findFirst();
+        }
+
+        public MutableComponent signBaseDescription(String signId) {
+            return Component.translatable(sign(signId).map(SignInfo::descriptionKey).orElse(SkillSign.defaultDescriptionKey(signId)));
+        }
+
+        public MutableComponent signDescription(String signId) {
+            return sign(signId).map(SignInfo::description).orElseGet(() -> Component.translatable(SkillSign.defaultDescriptionKey(signId)));
         }
 
         public List<Long> thresholds() {

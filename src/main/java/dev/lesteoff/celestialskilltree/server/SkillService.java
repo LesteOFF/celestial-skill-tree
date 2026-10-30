@@ -6,6 +6,7 @@ import dev.lesteoff.celestialskilltree.data.SkillTreeManager;
 import dev.lesteoff.celestialskilltree.data.WorldSkillData;
 import dev.lesteoff.celestialskilltree.effects.EffectEngine;
 import dev.lesteoff.celestialskilltree.graph.GraphCodec;
+import dev.lesteoff.celestialskilltree.graph.SkillEffect;
 import dev.lesteoff.celestialskilltree.graph.SkillGraphSnapshot;
 import dev.lesteoff.celestialskilltree.graph.SkillSign;
 import dev.lesteoff.celestialskilltree.network.Payloads;
@@ -46,8 +47,19 @@ public final class SkillService {
                 .map(tier -> new Payloads.TierInfo(tier.id(), tier.xpRequired())).toList();
         List<Payloads.SignInfo> signs = SkillTreeManager.sortedSignIds().stream().limit(Payloads.WorldRules.MAX_SIGNS)
                 .flatMap(signId -> SkillTreeManager.sign(signId).stream())
-                .map(sign -> new Payloads.SignInfo(sign.id(), sign.descriptionKey())).toList();
+                .map(sign -> signInfo(player, sign)).toList();
         return new Payloads.WorldRules(SkyEvents.current(), WorldSkillData.of(player.server).communityXp(), tiers, signs);
+    }
+
+    private static Payloads.SignInfo signInfo(ServerPlayer player, SkillSign sign) {
+        List<Payloads.SignBonus> bonuses = sign.bonuses().stream().limit(Payloads.SignInfo.MAX_BONUSES)
+                .map(bonus -> new Payloads.SignBonus(bonus.descriptionKey(), isActive(player, bonus))).toList();
+        return new Payloads.SignInfo(sign.id(), sign.descriptionKey(), bonuses);
+    }
+
+    private static boolean isActive(ServerPlayer player, SkillSign.Bonus bonus) {
+        return bonus.effects().stream().allMatch(effect -> !(effect instanceof SkillEffect.ConditionalAttribute conditional)
+                || EffectEngine.holds(player, conditional.condition(), null));
     }
 
     static void send(ServerPlayer player, CustomPacketPayload payload) {
@@ -102,6 +114,6 @@ public final class SkillService {
         SignService.assignIfMissing(ModAttachments.state(player), SkillTreeManager.sortedSignIds(), worldDay, player.getUUID())
                 .flatMap(SkillTreeManager::sign)
                 .ifPresent(sign -> player.sendSystemMessage(Component.translatable("message.celestialskilltree.sign_assigned",
-                        Component.translatable(SkillSign.nameKey(sign.id())), Component.translatable(sign.descriptionKey()))));
+                        Component.translatable(SkillSign.nameKey(sign.id())), Payloads.SignInfo.describe(sign.descriptionKeys()))));
     }
 }

@@ -75,9 +75,13 @@ public final class ServerConfig {
     public static final ModConfigSpec.BooleanValue REDIRECT_TO_L2_DAMAGE_TRACKER;
     public static final ModConfigSpec.EnumValue<EliteMobs.Stacking> ELITE_STACKING;
     public static final ModConfigSpec.BooleanValue ECLIPSE_MONSTERS_SPAWN;
+    public static final ModConfigSpec.BooleanValue ECLIPSE_FOLLOWS_ASTRAL_SORCERY;
     public static final ModConfigSpec.BooleanValue STAR_SHOWER_ENABLED;
     public static final ModConfigSpec.IntValue STAR_SHOWER_AVERAGE_DAYS;
     public static final ModConfigSpec.IntValue STAR_SHOWER_STARS_PER_MINUTE;
+    public static final ModConfigSpec.BooleanValue STAR_SHOWER_FOLLOWS_ASTRAL_SORCERY;
+    public static final ModConfigSpec.IntValue ASTRAL_TIER_FRAGMENTS;
+    public static final ModConfigSpec.IntValue ASTRAL_CONSTELLATION_FRAGMENTS;
 
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -188,12 +192,16 @@ public final class ServerConfig {
                 .defineInRange("eclipseAverageDays", 20, 1, 1000);
         ECLIPSE_MONSTERS_SPAWN = builder.comment("During an eclipse the Overworld is as dark as night: monsters spawn on the surface and undead do not burn")
                 .define("eclipseMonstersSpawn", true);
+        ECLIPSE_FOLLOWS_ASTRAL_SORCERY = builder.comment("With Astral Sorcery installed, the eclipse happens on the day of its solar eclipse instead of on its own days")
+                .define("eclipseFollowsAstralSorcery", true);
         STAR_SHOWER_ENABLED = builder.comment("Some nights are a star shower: falling stars are far more frequent")
                 .define("starShowerEnabled", true);
         STAR_SHOWER_AVERAGE_DAYS = builder.comment("Average number of game days between two star showers")
                 .defineInRange("starShowerAverageDays", 12, 1, 1000);
         STAR_SHOWER_STARS_PER_MINUTE = builder.comment("Falling stars per minute, per player, during a star shower")
                 .defineInRange("starShowerStarsPerMinute", 4, 1, 60);
+        STAR_SHOWER_FOLLOWS_ASTRAL_SORCERY = builder.comment("With Astral Sorcery installed, the star shower happens on the night of its lunar eclipse instead of on its own nights")
+                .define("starShowerFollowsAstralSorcery", true);
         DROP_STAR_ON_DEATH = builder.comment("On death the newest stand-alone skill drops as a Fallen Star: its owner can take it back,",
                         "anyone else gains its points. OFF, PVP_ONLY (killed by another player) or ALWAYS")
                 .defineEnum("dropStarOnDeath", FallenStars.Mode.OFF);
@@ -214,6 +222,10 @@ public final class ServerConfig {
         ELITE_STACKING = builder.comment("EXCLUSIVE: a monster that Champions or L2Hostility already made special is never Constellated too.",
                         "STACK: the rolls are independent and one monster may be all of them")
                 .defineEnum("eliteStacking", EliteMobs.Stacking.EXCLUSIVE);
+        ASTRAL_TIER_FRAGMENTS = builder.comment("With Astral Sorcery installed, Star Fragments given for each new research tier reached; 0 turns it off")
+                .defineInRange("astralTierFragments", 2, 0, 64);
+        ASTRAL_CONSTELLATION_FRAGMENTS = builder.comment("With Astral Sorcery installed, Star Fragments given for each constellation memorized; 0 turns it off")
+                .defineInRange("astralConstellationFragments", 1, 0, 64);
         builder.pop();
         SPEC = builder.build();
     }
