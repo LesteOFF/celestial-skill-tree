@@ -120,6 +120,7 @@
   "item.celestialskilltree.orb_of_reconfiguration": "Orb of Reconfiguration",
   "item.celestialskilltree.orb_of_reconfiguration.tooltip": "Use to reset your skill tree. Consumed only when the reset succeeds.",
   "key.celestialskilltree.open": "Open Skill Tree",
+  "tooltip.celestialskilltree.legendarytabs.tab": "Celestial Skill Tree",
   "key.categories.celestialskilltree": "Celestial Skill Tree",
   "attribute.name.celestialskilltree.crit_chance": "Critical Chance",
   "attribute.name.celestialskilltree.crit_damage": "Critical Damage",

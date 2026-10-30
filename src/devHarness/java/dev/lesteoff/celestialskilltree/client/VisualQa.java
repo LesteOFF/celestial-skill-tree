@@ -42,7 +42,7 @@ public final class VisualQa {
     private static final Payloads.Economy FIXTURE_ECONOMY = new Payloads.Economy(100, 120, true, true, false, false);
     private static final Resolution HD = new Resolution(1280, 720, 2);
     private static final Resolution ULTRAWIDE = new Resolution(2560, 1080, 3);
-    private static final Resolution GALLERY_RESOLUTION = new Resolution(1920, 1080, 3);
+    static final Resolution GALLERY_RESOLUTION = new Resolution(1920, 1080, 3);
     private static final Resolution BANNER_RESOLUTION = new Resolution(1920, 540, 3);
     private static final double BANNER_ZOOM_FACTOR = 2.1;
     private static final List<Resolution> OVERVIEWS = List.of(new Resolution(1000, 563, 2), new Resolution(1000, 563, 3),
@@ -50,7 +50,7 @@ public final class VisualQa {
     private static final List<Edge> SCREEN_EDGES = List.of(new Edge("left", 0.03, 0.5), new Edge("right", 0.97, 0.5),
             new Edge("top", 0.5, 0.16), new Edge("bottom", 0.5, 0.9));
 
-    private record Resolution(int width, int height, int guiScale) {
+    record Resolution(int width, int height, int guiScale) {
         String size() {
             return width + "x" + height;
         }
@@ -205,7 +205,7 @@ public final class VisualQa {
         minecraft.getToasts().clear();
     }
 
-    private static void resize(Resolution resolution) {
+    static void resize(Resolution resolution) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.getWindow().getWidth() != resolution.width() || minecraft.getWindow().getHeight() != resolution.height()) {
             minecraft.getWindow().setWindowed(resolution.width(), resolution.height());

@@ -60,6 +60,10 @@ Performance checks, each printing a median per call or per frame:
 ./gradlew runClient -Prenderbench     # tree screen frame times at 1920x1080 (report: run/celestialskilltree_bench_client.txt)
 ```
 
+With the Legendary Tabs jar in `run/mods`, `./gradlew runClient -Plegendarytabs` opens the inventory, checks the
+Celestial Skill Tree tab (icon, tooltip) and clicks it (report: `run/celestialskilltree_legendarytabs.txt`, screenshots
+`run/screenshots/gallery_legendary_tabs.png` and `run/screenshots/celestialskilltree_legendarytabs_tree.png`).
+
 Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256, Parchment 1.21.1-2024.11.17.
 
 ## Playing
@@ -368,6 +372,8 @@ An optional KubeJS integration ships (see below); packs and addons can build any
   bonuses. Everyone with the tree open gets "(looking at the stars: <class>)" beside their name tag, naming the class at the
   centre of their view, with or without WATUT. Looking at a Stellar Condenser or a Community Basin shows the points
   absorbed towards the next fragment or waiting to be donated; the tank and the output slot come from Jade itself.
+- **Legendary Tabs.** A Celestial Skill Tree tab in the inventory opens the star chart. It is a datapack tab
+  (`data/legendarytabs/tabs/celestial_skill_tree.json`), so it appears only with Legendary Tabs installed.
 - **Sky events** (eclipse, star showers) and the `sky_event` condition only exist in the Overworld, so the Twilight
   Forest, the Aether and the other dimensions keep their own skies.
 - **Tooltips.** Obscure Tooltips draws every item of this mod with a violet and gold frame (`tooltips/` in the assets).

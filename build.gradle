@@ -58,6 +58,9 @@ neoForge {
             if (project.hasProperty('gallery')) {
                 systemProperty 'celestialskilltree.gallery', 'true'
             }
+            if (project.hasProperty('legendarytabs')) {
+                systemProperty 'celestialskilltree.legendarytabs', 'true'
+            }
             if (project.hasProperty('renderbench')) {
                 systemProperty 'celestialskilltree.renderbench', 'true'
             }

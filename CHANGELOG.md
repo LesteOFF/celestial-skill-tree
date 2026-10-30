@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Legendary Tabs: a Celestial Skill Tree tab in the inventory opens the star chart.
+
 ## [2.1.2]
 
 > **Updating an existing world:** a world keeps the tree it was drawn with, so the new Astral Sorcery skills only
