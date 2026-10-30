@@ -1,32 +1,31 @@
 package dev.lesteoff.celestialskilltree.mixin;
 
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import dev.lesteoff.celestialskilltree.client.render.SkyTint;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(ClientLevel.class)
+@Mixin(value = ClientLevel.class, priority = 500)
 public abstract class ClientLevelMixin {
-    @Inject(method = "getSkyColor", at = @At("RETURN"), cancellable = true)
-    private void celestialskilltree$tintSky(Vec3 position, float partialTick, CallbackInfoReturnable<Vec3> callback) {
-        callback.setReturnValue(SkyTint.sky(callback.getReturnValue(), partialTick));
+    @ModifyReturnValue(method = "getSkyColor", at = @At("RETURN"))
+    private Vec3 celestialskilltree$tintSky(Vec3 color, Vec3 position, float partialTick) {
+        return SkyTint.sky(color, partialTick);
     }
 
-    @Inject(method = "getCloudColor", at = @At("RETURN"), cancellable = true)
-    private void celestialskilltree$tintClouds(float partialTick, CallbackInfoReturnable<Vec3> callback) {
-        callback.setReturnValue(SkyTint.clouds(callback.getReturnValue(), partialTick));
+    @ModifyReturnValue(method = "getCloudColor", at = @At("RETURN"))
+    private Vec3 celestialskilltree$tintClouds(Vec3 color, float partialTick) {
+        return SkyTint.clouds(color, partialTick);
     }
 
-    @Inject(method = "getSkyDarken", at = @At("RETURN"), cancellable = true)
-    private void celestialskilltree$dimSkyLight(float partialTick, CallbackInfoReturnable<Float> callback) {
-        callback.setReturnValue(SkyTint.skyLight(callback.getReturnValue(), partialTick));
+    @ModifyReturnValue(method = "getSkyDarken", at = @At("RETURN"))
+    private float celestialskilltree$dimSkyLight(float skyLight, float partialTick) {
+        return SkyTint.skyLight(skyLight, partialTick);
     }
 
-    @Inject(method = "getStarBrightness", at = @At("RETURN"), cancellable = true)
-    private void celestialskilltree$showStars(float partialTick, CallbackInfoReturnable<Float> callback) {
-        callback.setReturnValue(SkyTint.starBrightness(callback.getReturnValue(), partialTick));
+    @ModifyReturnValue(method = "getStarBrightness", at = @At("RETURN"))
+    private float celestialskilltree$showStars(float brightness, float partialTick) {
+        return SkyTint.starBrightness(brightness, partialTick);
     }
 }

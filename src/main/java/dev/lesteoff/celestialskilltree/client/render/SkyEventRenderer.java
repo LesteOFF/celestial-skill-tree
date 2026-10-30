@@ -11,6 +11,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
 import dev.lesteoff.celestialskilltree.CelestialSkillTree;
 import dev.lesteoff.celestialskilltree.client.ClientSkillState;
+import dev.lesteoff.celestialskilltree.compat.cirrus.CirrusSun;
 import dev.lesteoff.celestialskilltree.config.ClientConfig;
 import dev.lesteoff.celestialskilltree.progression.SkyEvent;
 import net.minecraft.client.Minecraft;
@@ -19,13 +20,11 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import net.neoforged.neoforge.client.event.ViewportEvent;
 import org.joml.Matrix4f;
 
 @EventBusSubscriber(modid = CelestialSkillTree.MODID, value = Dist.CLIENT)
@@ -62,17 +61,6 @@ public final class SkyEventRenderer {
     }
 
     @SubscribeEvent
-    public static void onFogColor(ViewportEvent.ComputeFogColor event) {
-        if (!SkyTint.active()) {
-            return;
-        }
-        Vec3 tinted = SkyTint.sky(new Vec3(event.getRed(), event.getGreen(), event.getBlue()), (float) event.getPartialTick());
-        event.setRed((float) tinted.x);
-        event.setGreen((float) tinted.y);
-        event.setBlue((float) tinted.z);
-    }
-
-    @SubscribeEvent
     public static void onRenderStage(RenderLevelStageEvent event) {
         ClientLevel level = Minecraft.getInstance().level;
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_SKY || level == null || !SkyTint.active()) {
@@ -83,8 +71,8 @@ public final class SkyEventRenderer {
         if (strength <= 0f) {
             return;
         }
-        float sunAngle = level.getTimeOfDay(partialTick) * FULL_TURN_DEGREES;
-        Matrix4f overSun = overSun(event.getModelViewMatrix(), sunAngle + (1f - strength) * APPROACH_DEGREES);
+        Matrix4f overSun = overSun(event.getModelViewMatrix(), level.getTimeOfDay(partialTick) * FULL_TURN_DEGREES,
+                (1f - strength) * APPROACH_DEGREES);
         float visibility = 1f - level.getRainLevel(partialTick);
         RenderSystem.depthMask(false);
         RenderSystem.enableBlend();
@@ -113,12 +101,17 @@ public final class SkyEventRenderer {
         return 1f - PULSE_DEPTH * (0.5f + 0.5f * Mth.sin(time * PULSE_SPEED));
     }
 
-    private static Matrix4f overSun(Matrix4f modelView, float angleDegrees) {
+    private static Matrix4f overSun(Matrix4f modelView, float sunDegrees, float approachDegrees) {
+        Matrix4f sun = CirrusSun.modelView().map(Matrix4f::new).orElseGet(() -> vanillaSun(modelView, sunDegrees));
+        return sun.rotateX(approachDegrees * Mth.DEG_TO_RAD);
+    }
+
+    private static Matrix4f vanillaSun(Matrix4f modelView, float sunDegrees) {
         PoseStack pose = new PoseStack();
         pose.mulPose(modelView);
         pose.mulPose(Axis.YP.rotationDegrees(-90f));
-        pose.mulPose(Axis.XP.rotationDegrees(angleDegrees));
-        return pose.last().pose();
+        pose.mulPose(Axis.XP.rotationDegrees(sunDegrees));
+        return new Matrix4f(pose.last().pose());
     }
 
     private static Matrix4f spun(Matrix4f overSun, float degrees) {
