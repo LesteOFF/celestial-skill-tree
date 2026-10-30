@@ -200,6 +200,17 @@ public final class EffectParser {
             case "in_biome_tag" -> requireId(condition, parameters, "tag", "a biome tag id");
             case "target_type" -> requireId(condition, parameters, "tag", "an entity type tag id");
             case "in_dimension" -> requireId(condition, parameters, "dimension", "a dimension id");
+            case "astral_discovered" -> requireId(condition, parameters, "constellation", "an Astral Sorcery constellation id");
+            case "astral_attuned" -> {
+                if (parameters.containsKey("constellation")) {
+                    requireId(condition, parameters, "constellation", "an Astral Sorcery constellation id");
+                }
+            }
+            case "astral_tier" -> {
+                if (!(parameters.get("tier") instanceof String tier) || !Condition.ASTRAL_TIERS.contains(tier)) {
+                    condition.error("tier", "must be one of " + Condition.ASTRAL_TIERS);
+                }
+            }
             case "sky_event" -> {
                 if (!(parameters.get("event") instanceof String event) || !Condition.SKY_EVENTS.contains(event)) {
                     condition.error("event", "must be one of " + new TreeSet<>(Condition.SKY_EVENTS));

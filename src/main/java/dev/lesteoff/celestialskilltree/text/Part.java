@@ -9,7 +9,7 @@ public sealed interface Part permits Phrase, Part.Amount, Part.Named, Part.Liter
 
     record Named(Kind kind, String id) implements Part {
         public enum Kind {
-            ATTRIBUTE, MOB_EFFECT, ITEM_TAG, ENTITY_TAG, TRIGGER, DAMAGE_SCOPE
+            ATTRIBUTE, MOB_EFFECT, ITEM_TAG, ENTITY_TAG, TRIGGER, DAMAGE_SCOPE, CONSTELLATION, ASTRAL_TIER
         }
     }
 

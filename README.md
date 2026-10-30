@@ -41,6 +41,10 @@ The game tests and the in-game QA harness live in the `devHarness` source set (`
 them, the release jar does not. `runPackGameTestServer` reads the pack's mods folder from `pack_mods_dir` in
 `~/.gradle/gradle.properties` or from the `PACK_MODS_DIR` environment variable; nothing else needs it. The pack's jars
 are found by name prefix (the `packTestMods` list in `build.gradle`), so updating a mod in the pack needs no change.
+Mods the pack lacks go in `run-pack/mods`, which the game test server loads as its own mods folder: with Astral Sorcery
+(plus ObserverLib) or No Man's Land (plus Mixed Litter) there, `SkyCompatGameTests` checks the sign bonus on discovery,
+the eclipse on Astral Sorcery's solar eclipse day, the star shower on its lunar eclipse, the research tier condition and
+rewards, and the sun dogs ending with an eclipse.
 
 Releasing: `.github/workflows/celestial-skill-tree-ci.yml` runs `build validateTree` on every push and pull request that
 touches the mod. Pushing a `celestial-skill-tree-v<version>` tag runs the release workflow: it attaches the jar to a GitHub
@@ -83,7 +87,7 @@ Pinned toolchain: Gradle 8.14.3 wrapper, ModDevGradle 2.0.148, NeoForge 21.1.256
    price you actually paid, not the current one) and every learned skill that has to go with it, because the rest of
    your build must stay connected to your starting hub. Your starting hub itself can only be changed by a full reset.
 9. To respec everything, use an **Orb of Reconfiguration** (crafted from 4 amethyst shards, an eye of ender and a
-   gold ingot): all spent points are refunded and you may pick a new free starting hub. XP is not refunded and point
+   gold ingot; with Astral Sorcery installed, infused from an eye of ender in its Starlight Infuser instead): all spent points are refunded and you may pick a new free starting hub. XP is not refunded and point
    prices do not restart. The orb is consumed only if the reset succeeds.
 
 ### Gates and freedom of choice
@@ -202,7 +206,8 @@ re-applies caps and tuning to every online player and resyncs them; no regenerat
   movement +50%; equipment is never clamped), `[tuning]` multipliers for every attribute the tree grants and for the caps, lifesteal
   cooldown, weapon/tool classification tags, request rate and batch-size limits. Section `[events]`: falling stars
   (on, one per ~30 minutes of night per player), Constellated monster chance (2%) and size (8 skills), `eliteSpawnerMobs` (off: spawner monsters are never Constellated), eclipses (on,
-  every ~20 days, `eclipseMonstersSpawn` on), star showers (on, every ~12 days, 4 stars per minute per player),
+  every ~20 days, `eclipseMonstersSpawn` on, `eclipseFollowsAstralSorcery` on), star showers (on, every ~12 days, 4 stars per minute per player,
+  `starShowerFollowsAstralSorcery` on),
   `dropStarOnDeath` (`OFF`, `PVP_ONLY`, `ALWAYS`) and the shared constellation (on).
 - **Client** (`config/celestialskilltree-client.toml`, also editable in game from the Mods list): `[tree]` frame scale,
   zoom limits, zoom step, WASD pan speed, always-detailed tooltips (otherwise hold Shift); `[look]` glow intensity (0
@@ -251,7 +256,8 @@ Skill ids are `<class>/hub`, `<class>/trunk_<n>`, `<theme>_<n>`, `<theme folder>
 
 Birth signs live in `skill_signs` (`effects`, plus an optional `partner_effects` list of
 `{ "requires_mod", "description", "effects" }`: the first entry whose mod is installed replaces the sign's effects and
-description text) and shared-constellation tiers in `skill_community` (`xp_required`
+description text, and an optional `bonus_effects` list of the same shape whose every installed entry adds its effects and
+text) and shared-constellation tiers in `skill_community` (`xp_required`
 plus `effects`); both use the same effect vocabulary and take their texts from `sign.<ns>.<id>.name` /
 `.description` and `community.<ns>.<id>.name` / `.description`. `skill_migrations` renames skill ids.
 
@@ -446,6 +452,19 @@ An optional KubeJS integration ships (see below); packs and addons can build any
   with playerAnimator when a keystone is learned, the orb is used or a falling star appears over a player under open
   sky; a Supplementaries globe named "Celestial" shows
   the sky events.
+- **Other skies.** With Astral Sorcery the eclipse happens on the day of its solar eclipse
+  (`eclipseFollowsAstralSorcery`), every birth sign gains a bonus once its paired constellation is discovered (the
+  birth chart tooltip names the constellation and says whether the bonus is active), and the
+  conditions `astral_attuned` and `astral_discovered` (`constellation`, an Astral Sorcery constellation id;
+  `astral_attuned` without one holds for any attunement) and `astral_tier` (`tier`, `shimmer` to `radiance`) are
+  available. The star shower falls on the night of its lunar eclipse (`starShowerFollowsAstralSorcery`), each new
+  research tier gives Star Fragments (`astralTierFragments`, 2) and so does each memorized constellation
+  (`astralConstellationFragments`, 1; both in `[integrations]`, 0 turns them off). Three keystones exist only with it:
+  Starborn (arcanist), Armara's Bulwark (guardian) and Radiant Sight (marksman), and three themes put its minor skills
+  along the branches and a notable at a tip: Starlit Plating (guardian), Bootes' Hunt (marksman) and Starlight Lore
+  (arcanist). The Orb of Reconfiguration is then made
+  only in its Starlight Infuser. No Man's Land's sun dogs end when an eclipse starts. With Cirrus' angled orbits the moon disc still covers
+  the sun.
 
 Each integration was written against the classes, ids and data formats of the partner's jar. At start-up it checks
 that the classes it uses exist and switches itself off with one warning if the installed version differs; an

@@ -53,6 +53,8 @@ public final class PhraseRenderer {
             case ENTITY_TAG -> lookup.translate(KEY_PREFIX + "entity_tag." + dotted(named.id()), "#" + named.id());
             case TRIGGER -> lookup.translate(KEY_PREFIX + "trigger." + dotted(named.id()), named.id());
             case DAMAGE_SCOPE -> lookup.translate(KEY_PREFIX + "damage_scope." + named.id(), named.id());
+            case CONSTELLATION -> lookup.translate("constellation." + dotted(named.id()), named.id());
+            case ASTRAL_TIER -> lookup.translate("tome.research.tier.astralsorcery." + named.id(), named.id());
         };
     }
 

@@ -57,6 +57,12 @@ public final class TreeScreenQa {
         Minecraft.getInstance().setScreen(new BirthSignScreen(screen));
     }
 
+    public static void openSignHovering(SkillTreeScreen screen, String signId) {
+        BirthSignScreen chart = new BirthSignScreen(screen);
+        chart.simulatedHover = signId;
+        Minecraft.getInstance().setScreen(chart);
+    }
+
     public static void showHelp(SkillTreeScreen screen) {
         screen.panel = SkillTreeScreen.Panel.HELP;
     }
