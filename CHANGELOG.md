@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [2.1.3]
 
 ### Added
 
@@ -16,14 +16,22 @@
   that brings you back. The open tab shows its name in its own color and the community screen shows the same bar. The
   left dock keeps stats, birth sign, home, fit and help.
 - The stats panel is now a character sheet in the tooltip style, drawn smaller than the rest of the HUD: your name
-  beside your birth sign's constellation, points at a glance, attributes grouped into Defense, Offense and Utility with
+  beside your birth sign's constellation, points at a glance (total = spent + to spend + free, with free already
+  leaving out the pending selection like the counter under the tree), attributes grouped into Defense, Offense and Utility with
   an icon each, the tree's share in its own column, the pending selection previewed on the attribute it changes, and
-  conditional effects and keystones listed by skill.
-  It scrolls wherever the mouse is over it and no longer covers the Cancel button.
+  conditional effects and keystones listed by skill in name order, with a skill learned more than once shown once with
+  its count (×2). It scrolls wherever the mouse is over it or with a scrollbar you can drag, and no longer covers the
+  Cancel button.
 - Constellated monsters are rolled faster, and tamed creatures that inherit the tree only touch their attributes
   when their owner's tree changes.
+- Confirming skills plays a new animation: a small golden comet runs along each new link and the skill lights up with
+  a thin ring and four sparkles, all sized to the skills on screen instead of a large white blur.
 
 ### Fixed
+
+- Switching between the Star Chart and Hidden Sky tabs fades the sky out and back in instead of jumping.
+- Esc on the community screen or the birth chart closes the star chart like it does on the tree, asking first when a
+  selection is pending. Their Back button and the tabs still return to the tree.
 
 - Joining a new world no longer freezes the server forever. A mob spawned with a chunk was checked for a spawner
   block under its feet before that chunk had finished loading, so the server waited on itself. Constellated mobs are
