@@ -48,6 +48,7 @@ public final class CommunityScreen extends Screen {
     private static final int LARGE_DONATION = 1000;
     private static final long MESSAGE_MILLIS = 4000;
     private static final float TITLE_SCALE = 1.5f;
+    private static final int TITLE_GAP = 8;
     private static final int TOOLTIP_WIDTH = 200;
 
     private record Point(double x, double y) {
@@ -56,6 +57,7 @@ public final class CommunityScreen extends Screen {
     private final Screen parent;
     private final long openedAt = Util.getMillis();
     private final List<Button> donationButtons = new ArrayList<>();
+    private final SkyTabs tabs = new SkyTabs();
     private Button donateAllButton;
     private long donateAllArmedUntil;
     private Component message;
@@ -83,6 +85,24 @@ public final class CommunityScreen extends Screen {
         Button back = addRenderableWidget(new SkillButton(left + 3 * step, y, buttonWidth, BUTTON_HEIGHT, GuiText.of("back"),
                 button -> onClose()));
         back.setTooltip(Tooltip.create(GuiText.of("back_tooltip")));
+        tabs.layout(width, 0, SkyTabs.Tab.COMMUNITY, new SkyTabs.Actions() {
+            @Override
+            public void showChart() {
+                onClose();
+            }
+
+            @Override
+            public void showHiddenRegion() {
+                onClose();
+                if (parent instanceof SkillTreeScreen tree) {
+                    tree.showHiddenRegion();
+                }
+            }
+
+            @Override
+            public void openCommunity() {
+            }
+        }, this::addRenderableWidget);
     }
 
     private void addDonationButton(int x, int y, int buttonWidth, Component label, int amount) {
@@ -159,6 +179,7 @@ public final class CommunityScreen extends Screen {
     public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         BackgroundRenderer.render(graphics, width, height, 0, 0, seconds());
         graphics.fill(0, 0, width, height, EMBER_TINT);
+        tabs.render(graphics);
     }
 
     @Override
@@ -180,7 +201,7 @@ public final class CommunityScreen extends Screen {
 
     private void drawTitle(GuiGraphics graphics) {
         graphics.pose().pushPose();
-        graphics.pose().translate(width / 2f, 10, 0);
+        graphics.pose().translate(width / 2f, SkyTabs.BOTTOM + TITLE_GAP, 0);
         graphics.pose().scale(TITLE_SCALE, TITLE_SCALE, 1f);
         graphics.drawCenteredString(font, title.copy().withStyle(ChatFormatting.GOLD), 0, 0, TEXT_COLOR);
         graphics.pose().popPose();

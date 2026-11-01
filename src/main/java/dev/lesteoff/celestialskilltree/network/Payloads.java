@@ -21,7 +21,6 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 public final class Payloads {
     private Payloads() {
@@ -172,10 +171,6 @@ public final class Payloads {
                 NODE_ID, SignInfo::id, ByteBufCodecs.STRING_UTF8, SignInfo::descriptionKey,
                 SignBonus.CODEC.apply(ByteBufCodecs.list(MAX_BONUSES)), SignInfo::bonuses, SignInfo::new);
 
-        public MutableComponent description() {
-            return describe(Stream.concat(Stream.of(descriptionKey), bonuses.stream().map(SignBonus::descriptionKey)).toList());
-        }
-
         public static MutableComponent describe(List<String> descriptionKeys) {
             MutableComponent description = Component.empty();
             for (int i = 0; i < descriptionKeys.size(); i++) {
@@ -207,10 +202,6 @@ public final class Payloads {
 
         public MutableComponent signBaseDescription(String signId) {
             return Component.translatable(sign(signId).map(SignInfo::descriptionKey).orElse(SkillSign.defaultDescriptionKey(signId)));
-        }
-
-        public MutableComponent signDescription(String signId) {
-            return sign(signId).map(SignInfo::description).orElseGet(() -> Component.translatable(SkillSign.defaultDescriptionKey(signId)));
         }
 
         public List<Long> thresholds() {

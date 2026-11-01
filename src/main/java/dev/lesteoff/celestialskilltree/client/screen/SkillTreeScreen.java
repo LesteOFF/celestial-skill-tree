@@ -61,7 +61,7 @@ public final class SkillTreeScreen extends Screen {
     private static final int MIN_SEARCH_LENGTH = 2;
     private static final double OPENING_ZOOM = 0.6;
     private static final double FIT_PADDING = 40;
-    private static final double STATS_PANEL_LEFT_FRACTION = 0.62;
+    private static final double HIDDEN_TAB_PRESENCE = 0.5;
     private static final double MIN_FOCUS_DIRECTION_COSINE = 0.5;
     private static final double NEIGHBOUR_FOCUS_BONUS = 15;
     private static final double FOCUS_ZOOM = 1.0;
@@ -109,8 +109,13 @@ public final class SkillTreeScreen extends Screen {
         }
 
         @Override
-        public void toggleHiddenRegion() {
-            SkillTreeScreen.this.toggleHiddenRegion();
+        public void showChart() {
+            SkillTreeScreen.this.showChart();
+        }
+
+        @Override
+        public void showHiddenRegion() {
+            SkillTreeScreen.this.showHiddenRegion();
         }
 
         @Override
@@ -133,12 +138,13 @@ public final class SkillTreeScreen extends Screen {
             onSearch(query);
         }
     });
-    private List<Component> statsCache = List.of();
+    private StatsSheet statsCache;
     private List<Object> statsKey = List.of();
     private long statsAt;
     final PendingSelection pending = new PendingSelection();
     private final Set<String> searchHits = new LinkedHashSet<>();
     private final PanelRenderer panelRenderer = new PanelRenderer();
+    private final StatsSheetRenderer statsRenderer = new StatsSheetRenderer();
     private final long openedAt = Util.getMillis();
     private final OpeningReveal reveal = new OpeningReveal();
     private final ConfirmSparks sparks = new ConfirmSparks();
@@ -327,12 +333,14 @@ public final class SkillTreeScreen extends Screen {
         camera.fit(region.minX(), region.minY(), region.maxX(), region.maxY(), FIT_PADDING);
     }
 
-    private void toggleHiddenRegion() {
+    private void showChart() {
         if (hiddenPresence() > 0) {
             fit();
-        } else {
-            ClientSkillState.graph().flatMap(TreeRegion::hidden).ifPresent(this::fit);
         }
+    }
+
+    void showHiddenRegion() {
+        ClientSkillState.graph().flatMap(TreeRegion::hidden).ifPresent(this::fit);
     }
 
     private double hiddenPresence() {
@@ -738,7 +746,7 @@ public final class SkillTreeScreen extends Screen {
             hud.search().setFocused(false);
             setFocused(null);
         }
-        if (hud.covers(mouseX, mouseY)) {
+        if (hud.covers(mouseX, mouseY) || statsRenderer.contains(mouseX, mouseY)) {
             return true;
         }
         if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
@@ -787,7 +795,11 @@ public final class SkillTreeScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (panel == Panel.STATS && mouseX > width * STATS_PANEL_LEFT_FRACTION) {
+        if (statsRenderer.contains(mouseX, mouseY)) {
+            statsRenderer.scroll(scrollY);
+            return true;
+        }
+        if (panelRenderer.contains(mouseX, mouseY)) {
             panelRenderer.scroll(scrollY);
             return true;
         }
@@ -1039,15 +1051,21 @@ public final class SkillTreeScreen extends Screen {
 
     private void renderPanel(GuiGraphics graphics, int mouseX, int mouseY) {
         panelRenderer.clear();
+        statsRenderer.clear();
         if (panel == Panel.NONE || !ClientSkillState.ready()) {
             panelRenderer.resetScroll();
+            statsRenderer.resetScroll();
             return;
         }
         if (panel == Panel.REFUND && !refundStillValid()) {
             panel = Panel.NONE;
             return;
         }
-        panelRenderer.render(graphics, font, panelView(), width, height, hud.panelTop(), mouseX, mouseY);
+        if (panel == Panel.STATS) {
+            statsRenderer.render(graphics, font, statsSheet(), width, height, hud::panelTop);
+            return;
+        }
+        panelRenderer.render(graphics, font, panelView(), width, height, hud::panelTop, mouseX, mouseY);
     }
 
     private boolean refundStillValid() {
@@ -1055,11 +1073,11 @@ public final class SkillTreeScreen extends Screen {
                 && graph().contains(refundOf);
     }
 
-    List<Component> statsLines() {
+    StatsSheet statsSheet() {
         List<Object> key = List.of(playerState().stateRevision(), pending.request(), nodeStates);
         long now = Util.getMillis();
         if (!key.equals(statsKey) || now - statsAt > STATS_REFRESH_MILLIS) {
-            statsCache = StatsPanel.lines(Minecraft.getInstance().player, playerState(), graph(), pending.request(), nodeStates.pendingCost());
+            statsCache = StatsPanel.sheet(Minecraft.getInstance().player, playerState(), graph(), pending.request(), nodeStates.pendingCost());
             statsKey = key;
             statsAt = now;
         }
@@ -1069,24 +1087,23 @@ public final class SkillTreeScreen extends Screen {
     private PanelRenderer.View panelView() {
         Payloads.Economy economy = ClientSkillState.economy();
         return switch (panel) {
-            case STATS -> new PanelRenderer.View(statsLines(), List.of(), true);
             case RESET -> modal(PanelContents.reset(graph(), playerState(), economy),
                     new PanelRenderer.Action(text("reset.confirm"), this::sendResetIfIdle, true));
             case REFUND -> modal(PanelContents.refund(graph(), playerState(), refundPlan, economy),
                     new PanelRenderer.Action(text("refund.confirm"), this::sendRefund, true));
             case DISCARD -> new PanelRenderer.View(PanelContents.discard(pending.request().size(), nodeStates.pendingCost()), List.of(
                     new PanelRenderer.Action(text("discard.discard"), this::discardAndClose, true),
-                    new PanelRenderer.Action(text("discard.keep"), this::closePanel, false)), false);
+                    new PanelRenderer.Action(text("discard.keep"), this::closePanel, false)));
             case DEPENDENTS -> modal(PanelContents.dependents(graph(), dependentsOf, dependents),
                     new PanelRenderer.Action(text("dependents.remove"), this::removeDependentChain, true));
             case HELP -> new PanelRenderer.View(PanelContents.help(),
-                    List.of(new PanelRenderer.Action(text("close"), this::closePanel, false)), false);
-            case NONE -> throw new IllegalStateException("no panel is open");
+                    List.of(new PanelRenderer.Action(text("close"), this::closePanel, false)));
+            case STATS, NONE -> throw new IllegalStateException("no text panel is open");
         };
     }
 
     private PanelRenderer.View modal(List<Component> lines, PanelRenderer.Action primary) {
-        return new PanelRenderer.View(lines, List.of(primary, new PanelRenderer.Action(text("cancel"), this::closePanel, false)), false);
+        return new PanelRenderer.View(lines, List.of(primary, new PanelRenderer.Action(text("cancel"), this::closePanel, false)));
     }
 
     private void closePanel() {
@@ -1117,5 +1134,6 @@ public final class SkillTreeScreen extends Screen {
     public void tick() {
         super.tick();
         hud.updateIfChanged(pending, nodeStates);
+        hud.selectTab(hiddenPresence() > HIDDEN_TAB_PRESENCE ? SkyTabs.Tab.HIDDEN : SkyTabs.Tab.CHART);
     }
 }

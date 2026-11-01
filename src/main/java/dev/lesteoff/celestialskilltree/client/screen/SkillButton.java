@@ -16,7 +16,7 @@ final class SkillButton extends Button {
     static final WidgetSprites BUY = new WidgetSprites(HudSprites.BUTTON_BUY, HudSprites.BUTTON_BUY_DISABLED,
             HudSprites.BUTTON_BUY_HIGHLIGHTED);
     private static final int TEXT_HEIGHT = 8;
-    private static final float INACTIVE_ICON_SHADE = 0.45f;
+    static final float INACTIVE_ICON_SHADE = 0.45f;
 
     private final WidgetSprites sprites;
     private ResourceLocation icon;

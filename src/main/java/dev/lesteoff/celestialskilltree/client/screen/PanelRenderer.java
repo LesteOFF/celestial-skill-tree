@@ -10,6 +10,7 @@ import net.minecraft.util.FormattedCharSequence;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.IntUnaryOperator;
 
 final class PanelRenderer {
     private static final int LINE_HEIGHT = 10;
@@ -20,7 +21,6 @@ final class PanelRenderer {
     private static final int BUTTON_HEIGHT = 18;
     private static final int BUTTON_BOTTOM_GAP = 7;
     private static final int TEXT_HEIGHT = 8;
-    private static final int DOCKED_MAX_WIDTH = 230;
     private static final int MODAL_MAX_WIDTH = 260;
     private static final int SCREEN_MARGIN = 40;
     private static final float ABOVE_WIDGETS = 400;
@@ -31,7 +31,15 @@ final class PanelRenderer {
     record Action(Component label, Runnable handler, boolean primary) {
     }
 
-    record View(List<Component> lines, List<Action> actions, boolean dockedRight) {
+    record View(List<Component> lines, List<Action> actions) {
+    }
+
+    record Area(int left, int top, int right, int bottom) {
+        static final Area NOWHERE = new Area(0, 0, 0, 0);
+
+        boolean contains(double mouseX, double mouseY) {
+            return mouseX >= left && mouseX < right && mouseY >= top && mouseY < bottom;
+        }
     }
 
     private record Button(int x, int y, int width, Action action) {
@@ -41,6 +49,7 @@ final class PanelRenderer {
     }
 
     private final List<Button> buttons = new ArrayList<>();
+    private Area area = Area.NOWHERE;
     private int scrollOffset;
     private List<Component> wrappedLines = List.of();
     private int wrappedWidth;
@@ -48,6 +57,11 @@ final class PanelRenderer {
 
     void clear() {
         buttons.clear();
+        area = Area.NOWHERE;
+    }
+
+    boolean contains(double mouseX, double mouseY) {
+        return area.contains(mouseX, mouseY);
     }
 
     boolean click(double mouseX, double mouseY) {
@@ -73,18 +87,19 @@ final class PanelRenderer {
         scrollOffset = 0;
     }
 
-    void render(GuiGraphics graphics, Font font, View view, int screenWidth, int screenHeight, int controlsBottom,
+    void render(GuiGraphics graphics, Font font, View view, int screenWidth, int screenHeight, IntUnaryOperator controlsBottomAt,
                 int mouseX, int mouseY) {
         buttons.clear();
-        int textWidth = view.dockedRight() ? Math.min(DOCKED_MAX_WIDTH, screenWidth / 2 - 20)
-                : Math.min(MODAL_MAX_WIDTH, screenWidth - SCREEN_MARGIN);
+        int textWidth = Math.min(MODAL_MAX_WIDTH, screenWidth - SCREEN_MARGIN);
         List<FormattedCharSequence> wrapped = wrapped(font, view.lines(), textWidth);
         int actionsHeight = view.actions().isEmpty() ? 0 : ACTIONS_HEIGHT;
+        int width = textWidth + 2 * PADDING;
+        int left = (screenWidth - width) / 2;
+        int controlsBottom = controlsBottomAt.applyAsInt(left);
         int height = Math.min(screenHeight - controlsBottom - SCREEN_MARGIN,
                 wrapped.size() * LINE_HEIGHT + VERTICAL_PADDING + actionsHeight);
-        int width = textWidth + 2 * PADDING;
-        int left = view.dockedRight() ? screenWidth - width - PADDING : (screenWidth - width) / 2;
-        int top = view.dockedRight() ? controlsBottom + 2 : Math.max(controlsBottom + 4, (screenHeight - height) / 2);
+        int top = Math.max(controlsBottom + 4, (screenHeight - height) / 2);
+        area = new Area(left, top, left + width, top + height);
         graphics.pose().pushPose();
         graphics.pose().translate(0, 0, ABOVE_WIDGETS);
         RenderSystem.enableBlend();
