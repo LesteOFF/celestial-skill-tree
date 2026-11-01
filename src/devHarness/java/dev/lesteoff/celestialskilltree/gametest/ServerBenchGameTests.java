@@ -94,6 +94,7 @@ public final class ServerBenchGameTests {
             report.add(measure("WeaponClasses.isWeapon", () -> WeaponClasses.isWeapon(sword)));
             report.add(measure("DiscoveryService.keys", () -> DiscoveryService.keys(graph)));
             report.add(measure("Reflection.call", () -> Reflection.call("bench", "length")));
+            report.add(measure("zombie creation alone", () -> EntityType.ZOMBIE.create(scenario.level())));
             report.add(measure("EliteMobs.empower (incl. zombie creation)", () -> {
                 Zombie zombie = EntityType.ZOMBIE.create(scenario.level());
                 return EliteMobs.empower(zombie, zombie.getRandom(), ELITE_NODES);

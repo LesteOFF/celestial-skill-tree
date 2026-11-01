@@ -14,6 +14,10 @@ public final class Palette {
     public static final int TEXT_DIM = 0xFF9A9288;
     public static final int TEXT_DIM_HC = 0xFFCFC7BB;
     public static final int PENDING = 0xFF7FD6E8;
+    public static final int VIOLET = 0xFFBE96FF;
+    public static final int GAIN = 0xFF7EDC6E;
+    public static final int HEADING = 0xFF6EC8DC;
+    public static final int FAINT = 0xFF57524C;
 
     private Palette() {
     }

@@ -1,5 +1,50 @@
 # Changelog
 
+## [2.1.3]
+
+### Added
+
+- Legendary Tabs: a Celestial Skill Tree tab in the inventory opens the star chart.
+- JEI: every item and block has an information page saying where it comes from and what it does.
+- Advancements in a Celestial Skill Tree tab: learn your first skill, learn a keystone, learn 50 skills, pick up a Star
+  Fragment, slay a Constellated monster, witness an eclipse and donate to the shared constellation. Players of existing
+  worlds earn the skill milestones they already reached at their next login.
+
+### Changed
+
+- Hidden Sky and Community are now tabs in a bar at the top center of the star chart, next to a new Star Chart tab
+  that brings you back. The open tab shows its name in its own color and the community screen shows the same bar. The
+  left dock keeps stats, birth sign, home, fit and help.
+- The stats panel is now a character sheet in the tooltip style, drawn smaller than the rest of the HUD: your name
+  beside your birth sign's constellation, points at a glance (total = spent + to spend + free, with free already
+  leaving out the pending selection like the counter under the tree), attributes grouped into Defense, Offense and Utility with
+  an icon each (new ones for reach, burning time, fall damage, swim speed and attack knockback, and the matching skill
+  icon for luck, oxygen, safe fall, spell schools, mana and the other attributes of supported mods), a hover tooltip
+  with the full name when a name is cut short, the tree's share in its own column, the pending selection previewed on
+  the attribute it changes, and
+  conditional bonuses, triggered effects and keystones in their own lists by skill name. A skill learned more than once
+  is shown once with its count (×2) and its bonus added up the way the game applies it (ranks and black holes
+  included). It scrolls wherever the mouse is over it or with a scrollbar you can drag, and no longer covers the
+  Cancel button.
+- Constellated monsters are rolled faster, and tamed creatures that inherit the tree only touch their attributes
+  when their owner's tree changes.
+- Confirming skills plays a new animation: a small golden comet runs along each new link and the skill lights up with
+  a thin ring and four sparkles, all sized to the skills on screen instead of a large white blur.
+
+### Fixed
+
+- Switching between the Star Chart and Hidden Sky tabs fades the sky out and back in instead of jumping.
+- Esc on the community screen or the birth chart closes the star chart like it does on the tree, asking first when a
+  selection is pending. Their Back button and the tabs still return to the tree.
+
+- Joining a new world no longer freezes the server forever. A mob spawned with a chunk was checked for a spawner
+  block under its feet before that chunk had finished loading, so the server waited on itself. Constellated mobs are
+  now empowered on the next tick, so scripts and addons listening to their spawn never run mid chunk load either.
+- A shooting star no longer makes the server wait for a chunk that is still generating to pick its landing spot.
+- Leaving a world forgets the boss bars of its Constellated monsters, so reopening it no longer reuses stale ones.
+- With Enhanced Boss Bars 1.1 or newer, a Constellated monster's boss bar shows its own frame again: a new
+  constellation design with a golden star, which Enhanced Boss Bars now picks up as a resource like its own bars.
+
 ## [2.1.2]
 
 > **Updating an existing world:** a world keeps the tree it was drawn with, so the new Astral Sorcery skills only

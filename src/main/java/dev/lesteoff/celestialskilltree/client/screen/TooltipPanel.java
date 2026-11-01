@@ -13,8 +13,8 @@ import java.util.List;
 import java.util.Optional;
 
 public final class TooltipPanel {
-    private static final ResourceLocation BACKGROUND = ResourceLocation.fromNamespaceAndPath(CelestialSkillTree.MODID, "tooltip");
-    private static final ResourceLocation DIVIDER = ResourceLocation.fromNamespaceAndPath(CelestialSkillTree.MODID, "tooltip/divider");
+    static final ResourceLocation BACKGROUND = ResourceLocation.fromNamespaceAndPath(CelestialSkillTree.MODID, "tooltip");
+    static final ResourceLocation DIVIDER = ResourceLocation.fromNamespaceAndPath(CelestialSkillTree.MODID, "tooltip/divider");
     private static final int PADDING = 7;
     private static final int LINE_HEIGHT = 10;
     private static final int TITLE_GAP = 3;

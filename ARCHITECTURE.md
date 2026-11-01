@@ -43,7 +43,7 @@ on the client (previews only), so the client shows exactly the rules the server 
 ## Data and loading
 
 The tree is not authored node by node. `SkillTreeReloadListener` reads the catalog (`skill_classes`, `skill_themes`,
-`skill_keystones`, `skill_rules`; formats in the README), drops files whose mod is missing, posts
+`skill_keystones`, `skill_rules`, under `data/celestialskilltree/`), drops files whose mod is missing, posts
 `SkillEvents.CatalogLoading` so scripts and mods can edit the raw entries, and parses the result with
 `CatalogParser`. `GeneratedTree` then calls `TreeGenerator` with the world seed and the draw saved in
 `WorldSkillData`, on `ServerStartingEvent` (the seed and the save are needed), again on every `/reload`, and when the
@@ -283,5 +283,10 @@ burst, world restart, catalog change + `/reload`, orb reset, single and chained 
 donation). The report is `run/celestialskilltree_qa_ingame.txt`; its first line is `RESULT: PASSED` or `RESULT: FAILED`
 with the number of checks, and every screenshot taken is checked to exist. `MultiplayerQa` uses the same script for
 two clients on a dedicated server.
+
+`-Pqa=<categories>` (comma separated, for example `-Pqa=tabs,community`) adds `-Dcelestialskilltree.qa` and keeps only
+those groups of steps: `QaCategory` lists them (`tree`, `economy`, `progression`, `sign`, `eclipse`, `community`, `tabs`,
+`sky`, `showcase`, `astral`), and each group sets up what it needs, so any of them runs alone after the world is
+created. An unknown name is a FAIL check in the report. Without `-Pqa` every group runs.
 
 `-Pgallery` runs a shorter script for the mod page: the same fixture builds and in-world scenes at 1920×1080 with GUI scale 3, the HUD hidden outside the tree, saved as `run/screenshots/gallery_*.png`.

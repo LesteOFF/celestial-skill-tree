@@ -1,0 +1,29 @@
+{
+  "parent": "celestialskilltree:root",
+  "display": {
+    "icon": {
+      "id": "celestialskilltree:star_fragment"
+    },
+    "title": {
+      "translate": "advancements.celestialskilltree.star_fragment.title"
+    },
+    "description": {
+      "translate": "advancements.celestialskilltree.star_fragment.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "star_fragment": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "celestialskilltree:star_fragment"
+          }
+        ]
+      }
+    }
+  }
+}

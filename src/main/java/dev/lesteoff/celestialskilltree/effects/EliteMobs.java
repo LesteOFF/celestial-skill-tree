@@ -13,7 +13,9 @@ import dev.lesteoff.celestialskilltree.progression.PlayerSkillState;
 import dev.lesteoff.celestialskilltree.registry.ModItems;
 import dev.lesteoff.celestialskilltree.registry.ModTags;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -29,6 +31,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.minecraft.world.scores.PlayerTeam;
@@ -39,7 +42,7 @@ import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -99,11 +102,8 @@ public final class EliteMobs {
             return;
         }
         MinecraftServer server = monster.getServer();
-        boolean otherModsActFirst = !RIVAL_CLAIMS.isEmpty() || !NODE_BONUSES.isEmpty();
-        if (otherModsActFirst && server != null) {
+        if (server != null) {
             server.tell(new TickTask(server.getTickCount(), () -> empowerUnlessClaimed(monster)));
-        } else {
-            empower(monster, monster.getRandom(), nodeCount(monster));
         }
     }
 
@@ -120,8 +120,14 @@ public final class EliteMobs {
     }
 
     private static boolean fromSpawner(Mob mob) {
-        return SPAWNER_SPAWNS.contains(mob.getSpawnType())
-                || mob.level().getBlockState(mob.blockPosition().below()).is(ModTags.COUNTS_AS_SPAWNER);
+        return SPAWNER_SPAWNS.contains(mob.getSpawnType()) || standsOnSpawnerBlock(mob);
+    }
+
+    private static boolean standsOnSpawnerBlock(Mob mob) {
+        BlockPos below = mob.blockPosition().below();
+        LevelChunk chunk = mob.level().getChunkSource().getChunkNow(SectionPos.blockToSectionCoord(below.getX()),
+                SectionPos.blockToSectionCoord(below.getZ()));
+        return chunk != null && chunk.getBlockState(below).is(ModTags.COUNTS_AS_SPAWNER);
     }
 
     @SubscribeEvent
@@ -274,11 +280,10 @@ public final class EliteMobs {
 
     private static List<String> reachableNodes(SkillGraphSnapshot graph, PlayerSkillState constellation) {
         Holdings holdings = Holdings.of(graph, constellation);
-        Set<String> nextToHeld = new HashSet<>();
+        Set<String> nextToHeld = new LinkedHashSet<>();
         holdings.nodeIds().forEach(held -> nextToHeld.addAll(graph.neighbours(held)));
-        return graph.nodes().values().stream()
-                .filter(node -> nextToHeld.contains(node.id()) && !holdings.contains(node.id())
-                        && AllocationService.rejectionOf(graph, node, holdings).isEmpty())
+        return nextToHeld.stream().filter(id -> !holdings.contains(id)).flatMap(id -> graph.node(id).stream())
+                .filter(node -> AllocationService.rejectionOf(graph, node, holdings).isEmpty())
                 .map(SkillNodeDefinition::id).toList();
     }
 }

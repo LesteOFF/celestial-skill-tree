@@ -18,15 +18,20 @@ public final class HudSprites {
     public static final ResourceLocation BUTTON_BUY_HIGHLIGHTED = hud("glass_buy_highlighted");
     public static final ResourceLocation XP_TRACK = hud("xp_track");
     public static final ResourceLocation XP_FILL = hud("xp_fill");
+    public static final ResourceLocation TAB_CHART = hud("glass_tab_chart");
+    public static final ResourceLocation TAB_HIDDEN = hud("glass_tab_hidden");
+    public static final ResourceLocation TAB_COMMUNITY = hud("glass_tab_community");
     public static final ResourceLocation HOME = icon("home");
     public static final ResourceLocation FIT = icon("fit");
     public static final ResourceLocation STATS = icon("stats");
     public static final ResourceLocation COMMUNITY = icon("community");
     public static final ResourceLocation SIGN = icon("sign");
     public static final ResourceLocation HIDDEN = icon("hidden");
+    public static final ResourceLocation CHART = icon("chart");
     public static final ResourceLocation HELP = icon("help");
     public static final ResourceLocation SEARCH = icon("search");
     public static final ResourceLocation POINT = icon("point");
+    public static final ResourceLocation TAB_LOCK = icon("tab_lock");
 
     private HudSprites() {
     }

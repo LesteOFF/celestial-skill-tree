@@ -1,7 +1,9 @@
 package dev.lesteoff.celestialskilltree.client.screen;
 
 import dev.lesteoff.celestialskilltree.CelestialSkillTree;
+import dev.lesteoff.celestialskilltree.effects.CompiledBuild;
 import dev.lesteoff.celestialskilltree.graph.Ids;
+import dev.lesteoff.celestialskilltree.graph.SkillEffect;
 import dev.lesteoff.celestialskilltree.graph.SkillNodeDefinition;
 import dev.lesteoff.celestialskilltree.text.EffectPhrases;
 import dev.lesteoff.celestialskilltree.text.PhraseRenderer;
@@ -48,6 +50,14 @@ public final class SkillTexts {
 
     public static MutableComponent description(SkillNodeDefinition node) {
         return node.descriptionKey().isEmpty() ? exactEffects(node) : Component.translatable(node.descriptionKey());
+    }
+
+    public static MutableComponent description(SkillNodeDefinition node, double strength) {
+        if (!node.descriptionKey().isEmpty()) {
+            return Component.translatable(node.descriptionKey());
+        }
+        List<SkillEffect> scaled = node.effects().stream().map(effect -> CompiledBuild.scaled(effect, strength)).toList();
+        return Component.literal(RENDERER.sentence(EffectPhrases.describe(scaled, SkillTexts::isFraction)));
     }
 
     public static Optional<MutableComponent> numbersBehindPlainText(SkillNodeDefinition node) {

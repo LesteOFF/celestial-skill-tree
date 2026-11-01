@@ -1,0 +1,27 @@
+{
+  "parent": "celestialskilltree:star_fragment",
+  "display": {
+    "icon": {
+      "id": "minecraft:iron_sword"
+    },
+    "title": {
+      "translate": "advancements.celestialskilltree.constellated_kill.title"
+    },
+    "description": {
+      "translate": "advancements.celestialskilltree.constellated_kill.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "constellated_kill": {
+      "trigger": "minecraft:player_killed_entity",
+      "conditions": {
+        "entity": {
+          "nbt": "{NeoForgeData:{celestialskilltree_elite:1b}}"
+        }
+      }
+    }
+  }
+}

@@ -16,8 +16,12 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @EventBusSubscriber(modid = CelestialSkillTree.MODID)
 public final class PetInheritance {
@@ -40,16 +44,35 @@ public final class PetInheritance {
         }
     }
 
-    private static void inherit(LivingEntity pet, ServerPlayer owner) {
-        double share = ServerConfig.PET_TREE_SHARE.get();
+    public static void inherit(LivingEntity pet, ServerPlayer owner) {
+        Map<AttributeModifier, AttributeInstance> wanted = wantedModifiers(pet, owner);
+        if (wanted.keySet().equals(inheritedModifiers(pet))) {
+            return;
+        }
         float healthBefore = pet.getHealth() / pet.getMaxHealth();
         INHERITED.forEach(attributeId -> clearInherited(instanceOf(pet, attributeId)));
+        wanted.forEach((modifier, instance) -> instance.addPermanentModifier(modifier));
+        pet.setHealth(Math.min(pet.getMaxHealth(), healthBefore * pet.getMaxHealth()));
+    }
+
+    private static Map<AttributeModifier, AttributeInstance> wantedModifiers(LivingEntity pet, ServerPlayer owner) {
+        double share = ServerConfig.PET_TREE_SHARE.get();
+        Map<AttributeModifier, AttributeInstance> wanted = new HashMap<>();
         EffectEngine.build(owner).attributeSums().forEach((key, sum) -> {
-            if (INHERITED.contains(key.attribute())) {
-                apply(pet, key, EffectEngine.scaled(sum) * share);
+            AttributeInstance instance = INHERITED.contains(key.attribute()) ? instanceOf(pet, key.attribute()) : null;
+            double amount = EffectEngine.scaled(sum) * share;
+            if (instance != null && amount != 0) {
+                ResourceLocation id = EffectEngine.modifierId(MODIFIER_KIND, key.id());
+                wanted.put(new AttributeModifier(id, amount, EffectEngine.op(key.operation())), instance);
             }
         });
-        pet.setHealth(Math.min(pet.getMaxHealth(), healthBefore * pet.getMaxHealth()));
+        return wanted;
+    }
+
+    private static Set<AttributeModifier> inheritedModifiers(LivingEntity pet) {
+        return INHERITED.stream().map(attributeId -> instanceOf(pet, attributeId)).filter(Objects::nonNull)
+                .flatMap(instance -> instance.getModifiers().stream())
+                .filter(modifier -> EffectEngine.isOwnModifier(modifier.id(), MODIFIER_KIND)).collect(Collectors.toSet());
     }
 
     private static void clearInherited(AttributeInstance instance) {
@@ -58,14 +81,6 @@ public final class PetInheritance {
         }
         List.copyOf(instance.getModifiers()).stream().map(AttributeModifier::id)
                 .filter(id -> EffectEngine.isOwnModifier(id, MODIFIER_KIND)).forEach(instance::removeModifier);
-    }
-
-    private static void apply(LivingEntity pet, CompiledBuild.AttributeKey key, double amount) {
-        AttributeInstance instance = instanceOf(pet, key.attribute());
-        if (instance != null && amount != 0) {
-            ResourceLocation id = EffectEngine.modifierId(MODIFIER_KIND, key.id());
-            instance.addPermanentModifier(new AttributeModifier(id, amount, EffectEngine.op(key.operation())));
-        }
     }
 
     private static AttributeInstance instanceOf(LivingEntity pet, String attributeId) {

@@ -2,7 +2,9 @@ package dev.lesteoff.celestialskilltree.client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import dev.lesteoff.celestialskilltree.client.screen.CommunityScreen;
 import dev.lesteoff.celestialskilltree.client.screen.SkillTreeScreen;
+import dev.lesteoff.celestialskilltree.client.screen.TreeRegion;
 import dev.lesteoff.celestialskilltree.client.screen.TreeScreenQa;
 import dev.lesteoff.celestialskilltree.compat.Reflection;
 import dev.lesteoff.celestialskilltree.graph.NodeType;
@@ -74,6 +76,7 @@ final class InWorldQa {
     private static final int COMMAND_TICKS = 200;
     private static final int RELOAD_TICKS = 1200;
     private static final int SETTLE_TICKS = 10;
+    private static final int SPARK_TICKS = 3;
     private static final int PAUSE_SAVE_TICKS = 60;
     private static final int RETRY_TICKS = 40;
     private static final int SKY_FADE_TICKS = 140;
@@ -297,24 +300,33 @@ final class InWorldQa {
     }
 
     void addScenario() {
+        QaCategory.ECONOMY.include(this::addEconomySteps);
+        QaCategory.PROGRESSION.include(this::addProgressionSteps);
+        QaCategory.SIGN.include(this::addBirthSignSteps);
+        QaCategory.ECLIPSE.include(this::addEclipseSteps);
+        QaCategory.COMMUNITY.include(this::addCommunitySteps);
+        QaCategory.TABS.include(this::addTabSteps);
+        QaCategory.SKY.include(this::addSkySteps);
+        QaCategory.SHOWCASE.include(this::addShowcaseSteps);
+        script.pause("let the screenshots reach the disk", 2 * SETTLE_TICKS);
+    }
+
+    private void addEconomySteps() {
         script.step("grant 30 levels", () -> command("xp add @s 30 levels"), () -> player().experienceLevel >= 30, COMMAND_TICKS);
         addPurchaseSteps();
+        addRequestBurstSteps();
+        addBulkPurchaseSteps();
+    }
+
+    private void addProgressionSteps() {
         addAllocationSteps();
         addDeathSteps();
         addDimensionSteps();
-        addRequestBurstSteps();
         addWorldRestartSteps();
         addReconcileSteps();
         addResetSteps();
         addRefundSteps();
-        addBulkPurchaseSteps();
         addPendingStatsSteps();
-        addBirthSignSteps();
-        addEclipseSteps();
-        addCommunitySteps();
-        addSkySteps();
-        addShowcaseSteps();
-        script.pause("let the screenshots reach the disk", 2 * SETTLE_TICKS);
     }
 
     private void addPurchaseSteps() {
@@ -357,6 +369,8 @@ final class InWorldQa {
             confirm(route);
             script.note("confirm sent for " + route);
         }, () -> state().isAllocated(GATEKEEPER) && maxHealth() > before.maxHealth(), SERVER_ANSWER_TICKS);
+        script.pause("let the confirm sparks travel", SPARK_TICKS);
+        script.then("capture confirm_sparks", () -> capture("confirm_sparks"));
         script.then("check the build", () -> {
             script.note("max health " + before.maxHealth() + " -> " + maxHealth());
             script.expect("skills learned", before.allocations() + route.size(), state().allocations().size());
@@ -626,6 +640,34 @@ final class InWorldQa {
                 () -> ClientSkillState.worldRules().communityXp() == LIT_COMMUNITY_XP, COMMAND_TICKS);
         script.pause("let the lit tiers draw", SETTLE_TICKS);
         script.then("capture community_lit", () -> capture("community_lit"));
+    }
+
+    private void addTabSteps() {
+        script.step("open the community by its tab", () -> TreeScreenQa.pressTab(screen(), "COMMUNITY"),
+                () -> minecraft().screen instanceof CommunityScreen, SETTLE_TICKS);
+        script.pause("let the community tab open", SETTLE_TICKS);
+        script.then("check the community tab", () -> {
+            script.expect("the community tab is selected on its screen", TreeScreenQa.tabSelected(minecraft().screen, "COMMUNITY"));
+            capture("tabs_community");
+        });
+        script.step("return to the star chart by its tab", () -> TreeScreenQa.pressTab(minecraft().screen, "CHART"),
+                () -> minecraft().screen instanceof SkillTreeScreen, SETTLE_TICKS);
+        script.pause("let the tabs draw", SETTLE_TICKS);
+        script.then("check the star chart tab", () -> {
+            script.expect("the star chart tab is selected", TreeScreenQa.tabSelected(screen(), "CHART"));
+            script.expect("the hidden sky tab is offered only with hidden constellations",
+                    ClientSkillState.graph().flatMap(TreeRegion::hidden).isPresent(), TreeScreenQa.tabAvailable(screen(), "HIDDEN"));
+            capture("tabs");
+        });
+        script.step("close the community with Esc", () -> TreeScreenQa.pressEscape(TreeScreenQa.openCommunity(screen())),
+                () -> minecraft().screen == null, SETTLE_TICKS);
+        script.step("press Esc on the community with a pending selection", () -> {
+            TreeScreenQa.setup(screen(), routeTo(cheapestGuardianNotable()), false, false);
+            TreeScreenQa.pressEscape(TreeScreenQa.openCommunity(screen()));
+        }, () -> TreeScreenQa.asksToDiscard(minecraft().screen), SETTLE_TICKS);
+        script.pause("let the discard question draw", SETTLE_TICKS);
+        script.then("capture tabs_esc_pending", () -> capture("tabs_esc_pending"));
+        script.then("drop the pending selection", () -> TreeScreenQa.setup(screen(), List.of(), false, false));
     }
 
     void addSkySteps() {

@@ -1,0 +1,25 @@
+{
+  "parent": "celestialskilltree:root",
+  "display": {
+    "icon": {
+      "id": "minecraft:experience_bottle"
+    },
+    "title": {
+      "translate": "advancements.celestialskilltree.first_skill.title"
+    },
+    "description": {
+      "translate": "advancements.celestialskilltree.first_skill.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "first_skill": {
+      "trigger": "celestialskilltree:milestone",
+      "conditions": {
+        "milestone": "first_skill"
+      }
+    }
+  }
+}

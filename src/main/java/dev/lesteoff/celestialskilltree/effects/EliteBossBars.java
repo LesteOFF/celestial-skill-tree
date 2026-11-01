@@ -47,6 +47,10 @@ public final class EliteBossBars {
         near.forEach(bar::addPlayer);
     }
 
+    public static void clear() {
+        BARS.clear();
+    }
+
     @SubscribeEvent
     public static void onLeave(EntityLeaveLevelEvent event) {
         ServerBossEvent bar = event.getLevel().isClientSide() ? null : BARS.remove(event.getEntity().getUUID());

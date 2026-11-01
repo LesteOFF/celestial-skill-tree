@@ -62,12 +62,12 @@ public final class BirthSignScreen extends Screen {
     @Override
     protected void init() {
         addRenderableWidget(new SkillButton((width - BUTTON_WIDTH) / 2, height - BUTTON_HEIGHT - 8, BUTTON_WIDTH, BUTTON_HEIGHT,
-                GuiText.of("back"), button -> onClose()));
+                GuiText.of("back"), button -> minecraft.setScreen(parent)));
     }
 
     @Override
     public void onClose() {
-        minecraft.setScreen(parent);
+        SkillTreeScreen.closeFrom(parent);
     }
 
     @Override

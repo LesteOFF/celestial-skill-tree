@@ -103,9 +103,13 @@ public final class GraphRenderer {
         return state == NodeState.ALLOCATED || state == NodeState.PENDING;
     }
 
+    public static float edgeWidth(Camera camera) {
+        return (float) Math.max(1.0, Math.min(3.0, 1.5 * Math.sqrt(camera.zoomValue())));
+    }
+
     public static void edges(GuiGraphics graphics, SkillGraphSnapshot graph, Camera camera, StateLookup states,
                              Set<String> routePreview, Fade fade) {
-        float baseWidth = (float) Math.max(1.0, Math.min(3.0, 1.5 * Math.sqrt(camera.zoomValue())));
+        float baseWidth = edgeWidth(camera);
         int inactiveColor = ClientConfig.HIGH_CONTRAST.get() ? Palette.EDGE_INACTIVE_HC : Palette.EDGE_INACTIVE;
         LineBatch inactive = new LineBatch(graphics);
         LineBatch active = new LineBatch(graphics);

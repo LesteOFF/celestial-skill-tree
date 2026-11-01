@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 final class TreeHud {
-    interface Actions {
+    interface Actions extends SkyTabs.Actions {
         void buy(int count);
 
         void toggleStats();
@@ -34,11 +34,7 @@ final class TreeHud {
 
         void cancel();
 
-        void openCommunity();
-
         void openSign();
-
-        void toggleHiddenRegion();
 
         void home();
 
@@ -57,14 +53,16 @@ final class TreeHud {
 
     static final int EDGE = 6;
     private static final int ISLAND_GAP = 4;
-    private static final int PAD = 3;
+    static final int PAD = 3;
     private static final int CONTROL = 13;
     private static final int ISLAND_HEIGHT = CONTROL + 2 * PAD;
-    private static final int TOOL = 20;
-    private static final int TOP_HEIGHT = TOOL + 2 * PAD;
+    static final int TOOL = 20;
+    static final int TOP_HEIGHT = TOOL + 2 * PAD;
+    private static final int DOCK_TOP = EDGE + TOP_HEIGHT + ISLAND_GAP;
+    static final int BOTTOM_CONTROLS_HEIGHT = EDGE + 2 * ISLAND_HEIGHT + 2 * ISLAND_GAP;
     private static final int TOP_TEXT_TOP = (TOP_HEIGHT - 8) / 2 + 1;
     private static final int SEARCH_ICON_TOP = (TOP_HEIGHT - HudSprites.TOOL_ICON_SIZE) / 2;
-    private static final int GAP = 2;
+    static final int GAP = 2;
     private static final int SECTION_GAP = 6;
     private static final int ICON_TOP = (ISLAND_HEIGHT - HudSprites.ICON_SIZE) / 2;
     private static final int TEXT_TOP = (ISLAND_HEIGHT - 8) / 2 + 1;
@@ -74,19 +72,18 @@ final class TreeHud {
     private static final int MAX_SEARCH_WIDTH = 220;
     private static final int SEARCH_TEXT_LEFT = CONTENT_LEFT + HudSprites.TOOL_ICON_SIZE + 4;
     private static final int COUNTER_SPACE = 30;
-    private static final int ICON_TEXT_GAP = 3;
-    private static final int POINTS_SAMPLE = 888;
+    private static final int ICON_TEXT_GAP = 5;
+    private static final int POINTS_SAMPLE = 8888;
     private static final int XP_WIDTH = 120;
     private static final int MIN_XP_WIDTH = 50;
     private static final int TOOLTIP_WIDTH = 220;
 
     private final Actions actions;
+    private final SkyTabs tabs = new SkyTabs();
     private Font font;
     private SkillButton buyButton;
     private SkillButton statsButton;
-    private SkillButton communityButton;
     private SkillButton signButton;
-    private SkillButton hiddenButton;
     private SkillButton filterButton;
     private SkillButton confirmButton;
     private SkillButton cancelButton;
@@ -122,16 +119,17 @@ final class TreeHud {
         return filter;
     }
 
-    int panelTop() {
-        return EDGE;
+    int panelTop(int panelLeft) {
+        return panelLeft < tabs.right() ? DOCK_TOP : EDGE;
     }
 
     int messageY() {
-        return EDGE + TOP_TEXT_TOP;
+        return SkyTabs.BOTTOM + ISLAND_GAP;
     }
 
     boolean covers(double mouseX, double mouseY) {
-        return searchIsland.contains(mouseX, mouseY) || dock.contains(mouseX, mouseY) || bottomIsland.contains(mouseX, mouseY)
+        return searchIsland.contains(mouseX, mouseY) || dock.contains(mouseX, mouseY) || tabs.contains(mouseX, mouseY)
+                || bottomIsland.contains(mouseX, mouseY)
                 || confirmButton.visible && pendingIsland.contains(mouseX, mouseY);
     }
 
@@ -141,6 +139,7 @@ final class TreeHud {
         this.height = height;
         addSearchIsland(add);
         addDock(add);
+        tabs.layout(width, searchIsland.x() + searchIsland.width() + ISLAND_GAP, SkyTabs.Tab.CHART, actions, add);
         addBottomIsland(add);
         addPendingIsland(add);
         shown = List.of();
@@ -165,16 +164,14 @@ final class TreeHud {
 
     private void addDock(Consumer<AbstractWidget> add) {
         statsButton = icon(HudSprites.STATS, "show_stats", actions::toggleStats, add);
-        communityButton = icon(HudSprites.COMMUNITY, "community", actions::openCommunity, add);
         signButton = icon(HudSprites.SIGN, "sign", actions::openSign, add);
-        hiddenButton = icon(HudSprites.HIDDEN, "hidden", actions::toggleHiddenRegion, add);
-        tools = List.of(statsButton, communityButton, signButton, hiddenButton, icon(HudSprites.HOME, "home", actions::home, add),
+        tools = List.of(statsButton, signButton, icon(HudSprites.HOME, "home", actions::home, add),
                 icon(HudSprites.FIT, "fit", actions::fit, add), icon(HudSprites.HELP, "help", actions::toggleHelp, add));
         arrangeDock();
     }
 
     private void arrangeDock() {
-        int top = EDGE + TOP_HEIGHT + ISLAND_GAP;
+        int top = DOCK_TOP;
         int y = top + PAD;
         for (Button button : tools) {
             if (button.visible) {
@@ -248,6 +245,7 @@ final class TreeHud {
         panel(graphics, searchIsland, typing ? HudSprites.PANEL_HIGHLIGHTED : HudSprites.PANEL);
         panel(graphics, dock, HudSprites.PANEL);
         panel(graphics, bottomIsland, HudSprites.PANEL);
+        tabs.render(graphics);
         if (confirmButton.visible) {
             panel(graphics, pendingIsland, HudSprites.PANEL);
         }
@@ -312,15 +310,13 @@ final class TreeHud {
         updateBuyButton(ready && !busy, state == null ? 0 : state.purchasedPoints());
         updatePendingIsland(pending, pendingCost, busy, ready, available);
         statsButton.active = ready;
-        offerWhen(communityButton, !ClientSkillState.worldRules().communityTiers().isEmpty(), "community");
-        offerWhen(hiddenButton, ClientSkillState.graph().flatMap(TreeRegion::hidden).isPresent(), "hidden");
+        tabs.refresh();
         signButton.visible = state != null && state.sign().isPresent();
         arrangeDock();
     }
 
-    private static void offerWhen(SkillButton button, boolean available, String key) {
-        button.active = available;
-        button.setTooltip(Tooltip.create(text(available ? key + "_tooltip" : key + "_unavailable_tooltip")));
+    void selectTab(SkyTabs.Tab tab) {
+        tabs.select(tab);
     }
 
     private void updatePendingIsland(PendingSelection pending, int pendingCost, boolean busy, boolean ready, int available) {

@@ -2,6 +2,7 @@ package dev.lesteoff.celestialskilltree.client.screen;
 
 import dev.lesteoff.celestialskilltree.graph.SkillConnection;
 import dev.lesteoff.celestialskilltree.graph.SkillGraphSnapshot;
+import dev.lesteoff.celestialskilltree.graph.SkillNodeDefinition;
 import dev.lesteoff.celestialskilltree.graph.Vec2;
 
 import java.util.ArrayList;
@@ -11,17 +12,21 @@ import java.util.Optional;
 import java.util.Set;
 
 final class SparkRoutes {
+    record Spark(List<Vec2> path, SkillNodeDefinition target) {
+    }
+
     private SparkRoutes() {
     }
 
-    static List<List<Vec2>> of(SkillGraphSnapshot graph, Set<String> litBefore, List<String> confirmed) {
+    static List<Spark> of(SkillGraphSnapshot graph, Set<String> litBefore, List<String> confirmed) {
         Set<String> lit = new HashSet<>(litBefore);
-        List<List<Vec2>> routes = new ArrayList<>();
+        List<Spark> sparks = new ArrayList<>();
         for (String nodeId : confirmed) {
-            litConnection(graph, lit, nodeId).ifPresent(connection -> routes.add(path(graph, connection, nodeId)));
+            litConnection(graph, lit, nodeId)
+                    .ifPresent(connection -> sparks.add(new Spark(path(graph, connection, nodeId), graph.nodes().get(nodeId))));
             lit.add(nodeId);
         }
-        return routes;
+        return sparks;
     }
 
     private static Optional<SkillConnection> litConnection(SkillGraphSnapshot graph, Set<String> lit, String nodeId) {

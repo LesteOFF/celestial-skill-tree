@@ -1,0 +1,17 @@
+{
+  "author": "Celestial Skill Tree",
+  "key": "bossbar.celestialskilltree.constellated",
+  "type": "translation",
+  "mod_id": "celestialskilltree",
+
+  "health_background_texture": "enhanced_boss_bars:health_bars/purple_background.png",
+  "health_color_texture": "enhanced_boss_bars:health_bars/purple_progress.png",
+  "overlay_texture": "celestialskilltree:textures/gui/boss_bars/constellated.png",
+
+  "health_bar_width": 182,
+  "health_bar_height": 5,
+  "health_offset_y": 17,
+
+  "overlay_width": 194,
+  "overlay_height": 32
+}

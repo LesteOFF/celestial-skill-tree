@@ -42,7 +42,7 @@ public final class VisualQa {
     private static final Payloads.Economy FIXTURE_ECONOMY = new Payloads.Economy(100, 120, true, true, false, false);
     private static final Resolution HD = new Resolution(1280, 720, 2);
     private static final Resolution ULTRAWIDE = new Resolution(2560, 1080, 3);
-    private static final Resolution GALLERY_RESOLUTION = new Resolution(1920, 1080, 3);
+    static final Resolution GALLERY_RESOLUTION = new Resolution(1920, 1080, 3);
     private static final Resolution BANNER_RESOLUTION = new Resolution(1920, 540, 3);
     private static final double BANNER_ZOOM_FACTOR = 2.1;
     private static final List<Resolution> OVERVIEWS = List.of(new Resolution(1000, 563, 2), new Resolution(1000, 563, 3),
@@ -50,7 +50,7 @@ public final class VisualQa {
     private static final List<Edge> SCREEN_EDGES = List.of(new Edge("left", 0.03, 0.5), new Edge("right", 0.97, 0.5),
             new Edge("top", 0.5, 0.16), new Edge("bottom", 0.5, 0.9));
 
-    private record Resolution(int width, int height, int guiScale) {
+    record Resolution(int width, int height, int guiScale) {
         String size() {
             return width + "x" + height;
         }
@@ -140,19 +140,36 @@ public final class VisualQa {
 
     private static QaScript plan() {
         QaScript qa = new QaScript("Visual QA", REPORT_FILE, InWorldQa::situation);
+        QaCategory.checkRequested(qa);
         InWorldQa world = new InWorldQa(qa);
         world.enterWorld();
-        qa.then("check the fixture builds", () -> checkFixtures(qa));
-        shots().forEach(shot -> addShot(qa, SHOT_PREFIX, shot));
-        qa.step("return to the live build", VisualQa::leaveFixtures, InWorldQa::joined, SYNC_TICKS);
+        QaCategory.TREE.include(() -> {
+            qa.then("check the fixture builds", () -> checkFixtures(qa));
+            shots().forEach(shot -> addShot(qa, SHOT_PREFIX, shot));
+            addScrolledStatsShot(qa);
+            addPendingStatsShot(qa);
+            qa.step("return to the live build", VisualQa::leaveFixtures, InWorldQa::joined, SYNC_TICKS);
+        });
         world.addScenario();
         return qa;
     }
 
     private static QaScript galleryPlan() {
         QaScript qa = new QaScript("Gallery", GALLERY_REPORT_FILE, InWorldQa::situation);
+        QaCategory.checkRequested(qa);
         InWorldQa world = new InWorldQa(qa, GALLERY_PREFIX, PNG);
         world.enterWorld();
+        QaCategory.TREE.include(() -> addGalleryTreeShots(qa));
+        qa.step("return to the live build without the HUD", VisualQa::enterGalleryWorld, InWorldQa::joined, SYNC_TICKS);
+        QaCategory.SKY.include(world::addSkySteps);
+        QaCategory.SHOWCASE.include(world::addShowcaseSteps);
+        if (AstralSorceryCompat.isLoaded()) {
+            QaCategory.ASTRAL.include(world::addAstralSteps);
+        }
+        return qa;
+    }
+
+    private static void addGalleryTreeShots(QaScript qa) {
         qa.then("remember the birth sign", () -> liveSign = ClientSkillState.state().flatMap(PlayerSkillState::sign));
         qa.then("check the fixture builds", () -> checkFixtures(qa));
         if (AstralSorceryCompat.isLoaded()) {
@@ -160,13 +177,6 @@ public final class VisualQa {
                     graph.nodes().keySet().stream().anyMatch(nodeId -> nodeId.startsWith(id(theme) + "_")))));
         }
         galleryShots().forEach(shot -> addShot(qa, GALLERY_PREFIX, shot));
-        qa.step("return to the live build without the HUD", VisualQa::enterGalleryWorld, InWorldQa::joined, SYNC_TICKS);
-        world.addSkySteps();
-        world.addShowcaseSteps();
-        if (AstralSorceryCompat.isLoaded()) {
-            world.addAstralSteps();
-        }
-        return qa;
     }
 
     private static void enterGalleryWorld() {
@@ -184,9 +194,50 @@ public final class VisualQa {
     }
 
     private static void addShot(QaScript qa, String prefix, Shot shot) {
+        openAndFrame(qa, shot);
+        qa.then("capture " + shot.name(), () -> qa.capture(prefix + shot.name() + PNG));
+    }
+
+    private static void openAndFrame(QaScript qa, Shot shot) {
         qa.step("open " + shot.name(), () -> open(shot), () -> qa.ticks() >= OPEN_TICKS, 2 * OPEN_TICKS);
         qa.step("frame " + shot.name(), () -> shot.frame().accept(screen()), () -> qa.ticks() >= FRAME_TICKS, 2 * FRAME_TICKS);
-        qa.then("capture " + shot.name(), () -> qa.capture(prefix + shot.name() + PNG));
+    }
+
+    private static void addScrolledStatsShot(QaScript qa) {
+        Shot shot = new Shot("stats_scrolled", Fixture.HYBRID, VisualQa::showStats);
+        openAndFrame(qa, shot);
+        qa.then("drag the stats scrollbar", () -> qa.expect("the stats sheet scrolls to its end by its scrollbar",
+                TreeScreenQa.dragStatsScrollbarToEnd(screen())));
+        qa.then("check the active effects", () -> {
+            List<String> names = TreeScreenQa.statsEffectNames(screen());
+            qa.expect("each active effect is listed once", names.stream().distinct().count(), names.size());
+        });
+        qa.pause("let the scrolled sheet draw", OPEN_TICKS);
+        qa.then("capture " + shot.name(), () -> qa.capture(SHOT_PREFIX + shot.name() + PNG));
+    }
+
+    private static void addPendingStatsShot(QaScript qa) {
+        Shot shot = new Shot("stats_pending", Fixture.HYBRID, screen -> {
+            pendingRoute(screen);
+            TreeScreenQa.showStats(screen);
+        });
+        openAndFrame(qa, shot);
+        qa.then("check the points of the stats sheet", () -> {
+            List<Integer> points = TreeScreenQa.statsPoints(screen());
+            int total = points.get(0);
+            int free = points.get(2);
+            qa.expect("total points = spent + to spend + free", total, points.get(1) + free + points.get(3));
+            qa.expect("free points match the points left under the tree", TreeScreenQa.pointsLeftAfterSelection(screen()), free);
+        });
+        qa.then("capture " + shot.name(), () -> qa.capture(SHOT_PREFIX + shot.name() + PNG));
+        qa.then("hover a cut stat name", () -> qa.expect("a cut stat name can be hovered", TreeScreenQa.hoverCutStatName(screen())));
+        qa.pause("let the full name draw", OPEN_TICKS);
+        qa.then("capture stats_full_name", () -> qa.capture(SHOT_PREFIX + "stats_full_name" + PNG));
+    }
+
+    private static void showStats(SkillTreeScreen screen) {
+        TreeScreenQa.fit(screen);
+        TreeScreenQa.setup(screen, List.of(), true, false);
     }
 
     private static void open(Shot shot) {
@@ -205,7 +256,7 @@ public final class VisualQa {
         minecraft.getToasts().clear();
     }
 
-    private static void resize(Resolution resolution) {
+    static void resize(Resolution resolution) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.getWindow().getWidth() != resolution.width() || minecraft.getWindow().getHeight() != resolution.height()) {
             minecraft.getWindow().setWindowed(resolution.width(), resolution.height());
@@ -280,10 +331,7 @@ public final class VisualQa {
             select(screen, "marksman/long_shot");
             hover(screen, 1.2, "marksman/nocking_point");
         }));
-        shots.add(new Shot("stats_panel", Fixture.HYBRID, screen -> {
-            TreeScreenQa.fit(screen);
-            TreeScreenQa.setup(screen, List.of(), true, false);
-        }));
+        shots.add(new Shot("stats_panel", Fixture.HYBRID, VisualQa::showStats));
         shots.add(new Shot("black_hole_tooltip", Fixture.BLACK_HOLE, VisualQa::blackHoleTooltip));
         shots.add(new Shot("boosted_tooltip", Fixture.BLACK_HOLE, VisualQa::hoverBoostedNeighbour));
         shots.add(new Shot("black_hole_available_tooltip", Fixture.HYBRID, screen -> hover(screen, BLACK_HOLE_ZOOM, BLACK_HOLE_SKILL)));
