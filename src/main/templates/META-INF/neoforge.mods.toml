@@ -81,13 +81,6 @@ ordering="NONE"
 side="BOTH"
 
 [[dependencies.${mod_id}]]
-modId="enhancedbossbars"
-type="optional"
-versionRange="[1.0,)"
-ordering="NONE"
-side="CLIENT"
-
-[[dependencies.${mod_id}]]
 modId="enigmaticlegacyplus"
 type="optional"
 versionRange="[1.21.1-1.0,)"
@@ -177,3 +170,10 @@ type="optional"
 versionRange="[1.21.1-4.0,)"
 ordering="NONE"
 side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="jei"
+type="optional"
+versionRange="[19.0,)"
+ordering="NONE"
+side="CLIENT"
