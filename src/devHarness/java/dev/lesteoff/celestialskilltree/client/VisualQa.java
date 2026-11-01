@@ -140,19 +140,34 @@ public final class VisualQa {
 
     private static QaScript plan() {
         QaScript qa = new QaScript("Visual QA", REPORT_FILE, InWorldQa::situation);
+        QaCategory.checkRequested(qa);
         InWorldQa world = new InWorldQa(qa);
         world.enterWorld();
-        qa.then("check the fixture builds", () -> checkFixtures(qa));
-        shots().forEach(shot -> addShot(qa, SHOT_PREFIX, shot));
-        qa.step("return to the live build", VisualQa::leaveFixtures, InWorldQa::joined, SYNC_TICKS);
+        QaCategory.TREE.include(() -> {
+            qa.then("check the fixture builds", () -> checkFixtures(qa));
+            shots().forEach(shot -> addShot(qa, SHOT_PREFIX, shot));
+            qa.step("return to the live build", VisualQa::leaveFixtures, InWorldQa::joined, SYNC_TICKS);
+        });
         world.addScenario();
         return qa;
     }
 
     private static QaScript galleryPlan() {
         QaScript qa = new QaScript("Gallery", GALLERY_REPORT_FILE, InWorldQa::situation);
+        QaCategory.checkRequested(qa);
         InWorldQa world = new InWorldQa(qa, GALLERY_PREFIX, PNG);
         world.enterWorld();
+        QaCategory.TREE.include(() -> addGalleryTreeShots(qa));
+        qa.step("return to the live build without the HUD", VisualQa::enterGalleryWorld, InWorldQa::joined, SYNC_TICKS);
+        QaCategory.SKY.include(world::addSkySteps);
+        QaCategory.SHOWCASE.include(world::addShowcaseSteps);
+        if (AstralSorceryCompat.isLoaded()) {
+            QaCategory.ASTRAL.include(world::addAstralSteps);
+        }
+        return qa;
+    }
+
+    private static void addGalleryTreeShots(QaScript qa) {
         qa.then("remember the birth sign", () -> liveSign = ClientSkillState.state().flatMap(PlayerSkillState::sign));
         qa.then("check the fixture builds", () -> checkFixtures(qa));
         if (AstralSorceryCompat.isLoaded()) {
@@ -160,13 +175,6 @@ public final class VisualQa {
                     graph.nodes().keySet().stream().anyMatch(nodeId -> nodeId.startsWith(id(theme) + "_")))));
         }
         galleryShots().forEach(shot -> addShot(qa, GALLERY_PREFIX, shot));
-        qa.step("return to the live build without the HUD", VisualQa::enterGalleryWorld, InWorldQa::joined, SYNC_TICKS);
-        world.addSkySteps();
-        world.addShowcaseSteps();
-        if (AstralSorceryCompat.isLoaded()) {
-            world.addAstralSteps();
-        }
-        return qa;
     }
 
     private static void enterGalleryWorld() {

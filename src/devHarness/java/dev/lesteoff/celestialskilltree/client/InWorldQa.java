@@ -2,7 +2,9 @@ package dev.lesteoff.celestialskilltree.client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import dev.lesteoff.celestialskilltree.client.screen.CommunityScreen;
 import dev.lesteoff.celestialskilltree.client.screen.SkillTreeScreen;
+import dev.lesteoff.celestialskilltree.client.screen.TreeRegion;
 import dev.lesteoff.celestialskilltree.client.screen.TreeScreenQa;
 import dev.lesteoff.celestialskilltree.compat.Reflection;
 import dev.lesteoff.celestialskilltree.graph.NodeType;
@@ -297,24 +299,33 @@ final class InWorldQa {
     }
 
     void addScenario() {
+        QaCategory.ECONOMY.include(this::addEconomySteps);
+        QaCategory.PROGRESSION.include(this::addProgressionSteps);
+        QaCategory.SIGN.include(this::addBirthSignSteps);
+        QaCategory.ECLIPSE.include(this::addEclipseSteps);
+        QaCategory.COMMUNITY.include(this::addCommunitySteps);
+        QaCategory.TABS.include(this::addTabSteps);
+        QaCategory.SKY.include(this::addSkySteps);
+        QaCategory.SHOWCASE.include(this::addShowcaseSteps);
+        script.pause("let the screenshots reach the disk", 2 * SETTLE_TICKS);
+    }
+
+    private void addEconomySteps() {
         script.step("grant 30 levels", () -> command("xp add @s 30 levels"), () -> player().experienceLevel >= 30, COMMAND_TICKS);
         addPurchaseSteps();
+        addRequestBurstSteps();
+        addBulkPurchaseSteps();
+    }
+
+    private void addProgressionSteps() {
         addAllocationSteps();
         addDeathSteps();
         addDimensionSteps();
-        addRequestBurstSteps();
         addWorldRestartSteps();
         addReconcileSteps();
         addResetSteps();
         addRefundSteps();
-        addBulkPurchaseSteps();
         addPendingStatsSteps();
-        addBirthSignSteps();
-        addEclipseSteps();
-        addCommunitySteps();
-        addSkySteps();
-        addShowcaseSteps();
-        script.pause("let the screenshots reach the disk", 2 * SETTLE_TICKS);
     }
 
     private void addPurchaseSteps() {
@@ -626,6 +637,25 @@ final class InWorldQa {
                 () -> ClientSkillState.worldRules().communityXp() == LIT_COMMUNITY_XP, COMMAND_TICKS);
         script.pause("let the lit tiers draw", SETTLE_TICKS);
         script.then("capture community_lit", () -> capture("community_lit"));
+    }
+
+    private void addTabSteps() {
+        script.step("open the community by its tab", () -> TreeScreenQa.pressTab(screen(), "COMMUNITY"),
+                () -> minecraft().screen instanceof CommunityScreen, SETTLE_TICKS);
+        script.pause("let the community tab open", SETTLE_TICKS);
+        script.then("check the community tab", () -> {
+            script.expect("the community tab is selected on its screen", TreeScreenQa.tabSelected(minecraft().screen, "COMMUNITY"));
+            capture("tabs_community");
+        });
+        script.step("return to the star chart by its tab", () -> TreeScreenQa.pressTab(minecraft().screen, "CHART"),
+                () -> minecraft().screen instanceof SkillTreeScreen, SETTLE_TICKS);
+        script.pause("let the tabs draw", SETTLE_TICKS);
+        script.then("check the star chart tab", () -> {
+            script.expect("the star chart tab is selected", TreeScreenQa.tabSelected(screen(), "CHART"));
+            script.expect("the hidden sky tab is offered only with hidden constellations",
+                    ClientSkillState.graph().flatMap(TreeRegion::hidden).isPresent(), TreeScreenQa.tabAvailable(screen(), "HIDDEN"));
+            capture("tabs");
+        });
     }
 
     void addSkySteps() {
