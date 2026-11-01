@@ -5,6 +5,7 @@ import dev.lesteoff.celestialskilltree.client.render.ConstellationGlyph;
 import dev.lesteoff.celestialskilltree.client.render.GraphRenderer;
 import dev.lesteoff.celestialskilltree.client.render.LineBatch;
 import dev.lesteoff.celestialskilltree.client.render.Palette;
+import dev.lesteoff.celestialskilltree.graph.Vec2;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -158,16 +159,24 @@ final class StatsSheetRenderer {
                 graphics.fill(left - 2, top - 1, left + INNER_WIDTH + 2, top + LINE_HEIGHT - 1, STRIPE);
             }
             GraphRenderer.draw(graphics, stat.icon(), left + ICON_SIZE / 2.0, top + TEXT_HEIGHT / 2.0 - 0.5, ICON_SIZE / 2.0);
-            int valueRight = left + INNER_WIDTH - TREE_COLUMN;
-            int valueLeft = drawValue(graphics, font, valueRight, top);
-            String label = fitted(font, stat.label().getString(), valueLeft - COLUMN_GAP - (left + LABEL_LEFT));
+            drawValue(graphics, font, left + INNER_WIDTH - TREE_COLUMN, top);
+            String label = fitted(font, stat.label().getString(), labelSpace(font));
             graphics.drawString(font, label, left + LABEL_LEFT, top, Palette.textDim(), true);
             String bonus = stat.treeBonus().orElse("–");
             graphics.drawString(font, bonus, left + INNER_WIDTH - font.width(bonus), top,
                     stat.treeBonus().isPresent() ? Palette.GAIN : Palette.FAINT, true);
         }
 
-        private int drawValue(GuiGraphics graphics, Font font, int right, int top) {
+        boolean labelCut(Font font) {
+            return font.width(stat.label()) > labelSpace(font);
+        }
+
+        private int labelSpace(Font font) {
+            int previewWidth = stat.preview().map(preview -> font.width(preview) + font.width(ARROW)).orElse(0);
+            return INNER_WIDTH - TREE_COLUMN - previewWidth - font.width(stat.value()) - COLUMN_GAP - LABEL_LEFT;
+        }
+
+        private void drawValue(GuiGraphics graphics, Font font, int right, int top) {
             int x = right;
             if (stat.preview().isPresent()) {
                 String preview = stat.preview().get();
@@ -178,7 +187,6 @@ final class StatsSheetRenderer {
             }
             x -= font.width(stat.value());
             graphics.drawString(font, stat.value(), x, top, Palette.TEXT, true);
-            return x;
         }
 
         private static String fitted(Font font, String text, int width) {
@@ -289,6 +297,17 @@ final class StatsSheetRenderer {
         return scrollbar.shown() && scrollOffset == scrollbar.maxScroll();
     }
 
+    Optional<Vec2> firstCutLabel(Font font) {
+        int top = PADDING - scrollOffset;
+        for (Line line : lines) {
+            if (line instanceof Stat stat && stat.labelCut(font)) {
+                return Optional.of(new Vec2(area.left() + (PADDING + LABEL_LEFT + 2) * scale, area.top() + (top + TEXT_HEIGHT / 2.0) * scale));
+            }
+            top += line.height();
+        }
+        return Optional.empty();
+    }
+
     private double sheetX(double mouseX) {
         return (mouseX - area.left()) / scale;
     }
@@ -297,7 +316,8 @@ final class StatsSheetRenderer {
         return (mouseY - area.top()) / scale;
     }
 
-    void render(GuiGraphics graphics, Font font, StatsSheet sheet, int screenWidth, int screenHeight, IntUnaryOperator controlsBottomAt) {
+    void render(GuiGraphics graphics, Font font, StatsSheet sheet, int screenWidth, int screenHeight, IntUnaryOperator controlsBottomAt,
+                int mouseX, int mouseY) {
         scale = scale();
         int width = Math.round(WIDTH * scale);
         int left = screenWidth - width - MARGIN;
@@ -328,6 +348,32 @@ final class StatsSheetRenderer {
         drawScrollbar(graphics);
         RenderSystem.disableBlend();
         graphics.pose().popPose();
+        cutLabelUnder(font, laidOut, mouseX, mouseY, innerHeight).ifPresent(label -> drawAboveSheet(graphics, font, label, mouseX, mouseY));
+    }
+
+    private static void drawAboveSheet(GuiGraphics graphics, Font font, Component label, int mouseX, int mouseY) {
+        graphics.pose().pushPose();
+        graphics.pose().translate(0, 0, ABOVE_WIDGETS);
+        graphics.renderTooltip(font, label, mouseX, mouseY);
+        graphics.pose().popPose();
+    }
+
+    private Optional<Component> cutLabelUnder(Font font, List<Line> laidOut, int mouseX, int mouseY, int innerHeight) {
+        double x = sheetX(mouseX);
+        double y = sheetY(mouseY);
+        boolean overText = area.contains(mouseX, mouseY) && x >= PADDING && x < PADDING + INNER_WIDTH
+                && y >= PADDING && y < PADDING + innerHeight;
+        if (!overText) {
+            return Optional.empty();
+        }
+        int top = PADDING - scrollOffset;
+        for (Line line : laidOut) {
+            if (y >= top && y < top + line.height()) {
+                return line instanceof Stat stat && stat.labelCut(font) ? Optional.of(stat.stat().label()) : Optional.empty();
+            }
+            top += line.height();
+        }
+        return Optional.empty();
     }
 
     private void drawScrollbar(GuiGraphics graphics) {

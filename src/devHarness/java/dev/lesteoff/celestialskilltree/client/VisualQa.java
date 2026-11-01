@@ -230,6 +230,9 @@ public final class VisualQa {
             qa.expect("free points match the points left under the tree", TreeScreenQa.pointsLeftAfterSelection(screen()), free);
         });
         qa.then("capture " + shot.name(), () -> qa.capture(SHOT_PREFIX + shot.name() + PNG));
+        qa.then("hover a cut stat name", () -> qa.expect("a cut stat name can be hovered", TreeScreenQa.hoverCutStatName(screen())));
+        qa.pause("let the full name draw", OPEN_TICKS);
+        qa.then("capture stats_full_name", () -> qa.capture(SHOT_PREFIX + "stats_full_name" + PNG));
     }
 
     private static void showStats(SkillTreeScreen screen) {

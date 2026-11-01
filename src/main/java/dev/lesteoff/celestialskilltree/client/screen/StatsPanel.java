@@ -32,12 +32,94 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static java.util.Map.entry;
 
 public final class StatsPanel {
     private static final double BLOCKS_PER_SECOND_PER_SPEED = 43.17;
     private static final double NEGLIGIBLE = 1e-9;
     private static final String MOD_PREFIX = CelestialSkillTree.MODID + ":";
     private static final String OTHER_ICON = "star";
+    private static final Pattern SPELL_SCHOOL = Pattern.compile("irons_spellbooks:(\\w+?)_(spell_power|magic_resist)");
+    private static final Map<String, String> ICON_BY_ATTRIBUTE = Map.ofEntries(
+            entry("minecraft:generic.luck", "luck"),
+            entry("minecraft:generic.oxygen_bonus", "diver"),
+            entry("minecraft:generic.safe_fall_distance", "feather"),
+            entry("minecraft:generic.fall_damage_multiplier", "fall_guard"),
+            entry("minecraft:generic.water_movement_efficiency", "wave"),
+            entry("neoforge:swim_speed", "swim"),
+            entry("minecraft:generic.burning_time", "burning"),
+            entry("minecraft:player.block_break_speed", "cracked_block"),
+            entry("minecraft:player.block_interaction_range", "reach_block"),
+            entry("minecraft:player.entity_interaction_range", "reach_entity"),
+            entry("minecraft:generic.attack_knockback", "fist"),
+            entry("minecraft:generic.step_height", "stairs"),
+            entry("minecraft:generic.jump_strength", "jump"),
+            entry("minecraft:player.sneaking_speed", "sneak_shot"),
+            entry("minecraft:player.submerged_mining_speed", "depth"),
+            entry("minecraft:player.sweeping_damage_ratio", "sweep"),
+            entry("minecraft:generic.movement_efficiency", "boot"),
+            entry("minecraft:generic.explosion_knockback_resistance", "bomb"),
+            entry("irons_spellbooks:max_mana", "crystal"),
+            entry("irons_spellbooks:mana_regen", "mana_flow"),
+            entry("irons_spellbooks:spell_power", "magic"),
+            entry("irons_spellbooks:spell_resist", "ward_circle"),
+            entry("irons_spellbooks:cooldown_reduction", "hourglass"),
+            entry("irons_spellbooks:cast_time_reduction", "hourglass"),
+            entry("irons_spellbooks:summon_damage", "soul"),
+            entry("irons_spellbooks:casting_movespeed", "caster_step"),
+            entry("ars_nouveau:ars_nouveau.perk.max_mana", "crystal"),
+            entry("ars_nouveau:ars_nouveau.perk.mana_regen", "mana_flow"),
+            entry("ars_nouveau:ars_nouveau.perk.spell_damage", "magic"),
+            entry("ars_nouveau:ars_nouveau.perk.warding", "ward_circle"),
+            entry("malum:soul_ward_capacity", "soul"),
+            entry("malum:soul_ward_recovery_rate", "soul"),
+            entry("malum:soul_ward_integrity", "soul"),
+            entry("malum:spirit_spoils", "soul"),
+            entry("malum:scythe_proficiency", "scythe"),
+            entry("malum:arcane_resonance", "magic"),
+            entry("malum:charge_recovery_rate", "hourglass"),
+            entry("lodestone:magic_damage", "magic"),
+            entry("lodestone:magic_proficiency", "magic"),
+            entry("lodestone:magic_resistance", "ward_circle"),
+            entry("forbidden_arcanus:generic.magic_protection", "ward_circle"),
+            entry("forbidden_arcanus:generic.aureal_regeneration", "halo"),
+            entry("curseofpandora:spell_tolerance", "ward_circle"),
+            entry("apothic_attributes:fire_damage", "fire"),
+            entry("apothic_attributes:cold_damage", "school_ice"),
+            entry("apothic_attributes:experience_gained", "book"),
+            entry("apothic_attributes:overheal", "heart_plus"),
+            entry("apothic_attributes:current_hp_damage", "damage"),
+            entry("apothic_attributes:ghost_health", "ghost"),
+            entry("apothic_attributes:armor_pierce", "critical"),
+            entry("apothic_attributes:armor_shred", "critical"),
+            entry("apothic_attributes:prot_pierce", "critical"),
+            entry("apothic_attributes:crit_chance", "critical"),
+            entry("apothic_attributes:crit_damage", "point_blank"),
+            entry("apothic_attributes:dodge_chance", "dodge"),
+            entry("apothic_attributes:arrow_velocity", "projectile"),
+            entry("apothic_attributes:draw_speed", "bow_grip"),
+            entry("puffish_attributes:melee_damage", "melee"),
+            entry("puffish_attributes:ranged_damage", "projectile"),
+            entry("puffish_attributes:magic_damage", "magic"),
+            entry("puffish_attributes:melee_resistance", "shield"),
+            entry("puffish_attributes:ranged_resistance", "arrow_guard"),
+            entry("puffish_attributes:magic_resistance", "ward_circle"),
+            entry("puffish_attributes:tamed_damage", "footprint"),
+            entry("puffish_attributes:tamed_resistance", "footprint"),
+            entry("puffish_attributes:sprinting_speed", "mobility"),
+            entry("puffish_attributes:stamina", "lunge"),
+            entry("puffish_attributes:fortune", "luck"),
+            entry("puffish_attributes:repair_cost", "tools"),
+            entry("parcool:parcool.max_stamina", "lunge"),
+            entry("parcool:parcool.stamina_recovery", "lunge"),
+            entry("l2damagetracker:regen", "healing"),
+            entry("l2damagetracker:bow_strength", "bow"),
+            entry("ftbultimine:max_blocks_modifier", "mining"),
+            entry("curios:ring", "halo"),
+            entry("curios:charm", "halo"));
 
     private enum Group {
         DEFENSE, OFFENSE, UTILITY
@@ -107,11 +189,19 @@ public final class StatsPanel {
                     .ifPresent(stat -> groups.computeIfAbsent(row.group(), unused -> new ArrayList<>()).add(stat));
         }
         unlisted.forEach((attribute, delta) -> holder(attribute).ifPresent(holder -> stat(player,
-                new Row(Group.UTILITY, holder, OTHER_ICON, attribute.startsWith(MOD_PREFIX) ? Format.PERCENT : Format.NUMBER, false), delta)
+                new Row(Group.UTILITY, holder, iconFor(attribute), attribute.startsWith(MOD_PREFIX) ? Format.PERCENT : Format.NUMBER, false), delta)
                 .ifPresent(stat -> groups.computeIfAbsent(Group.UTILITY, unused -> new ArrayList<>()).add(stat))));
         List<StatsSheet.Section> sections = new ArrayList<>();
         groups.forEach((group, stats) -> sections.add(new StatsSheet.Section(text(group.name().toLowerCase(Locale.ROOT)), stats)));
         return sections;
+    }
+
+    private static String iconFor(String attribute) {
+        Matcher school = SPELL_SCHOOL.matcher(attribute);
+        if (school.matches()) {
+            return "school_" + school.group(1) + (school.group(2).equals("magic_resist") ? "_ward" : "");
+        }
+        return ICON_BY_ATTRIBUTE.getOrDefault(attribute, OTHER_ICON);
     }
 
     private static Optional<StatsSheet.Stat> stat(Player player, Row row, double pendingDelta) {

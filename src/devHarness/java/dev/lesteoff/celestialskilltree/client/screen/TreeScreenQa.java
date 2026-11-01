@@ -133,6 +133,14 @@ public final class TreeScreenQa {
         return stats.scrolledToEnd();
     }
 
+    public static boolean hoverCutStatName(SkillTreeScreen screen) {
+        return screen.statsRenderer.firstCutLabel(Minecraft.getInstance().font).map(point -> {
+            screen.simulatedMouseX = point.x();
+            screen.simulatedMouseY = point.y();
+            return true;
+        }).orElse(false);
+    }
+
     public static void pressEscape(Screen screen) {
         screen.keyPressed(GLFW.GLFW_KEY_ESCAPE, 0, 0);
     }

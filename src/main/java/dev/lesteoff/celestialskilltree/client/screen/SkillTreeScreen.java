@@ -1086,7 +1086,7 @@ public final class SkillTreeScreen extends Screen {
             return;
         }
         if (panel == Panel.STATS) {
-            statsRenderer.render(graphics, font, statsSheet(), width, height, hud::panelTop);
+            statsRenderer.render(graphics, font, statsSheet(), width, height, hud::panelTop, mouseX, mouseY);
             return;
         }
         panelRenderer.render(graphics, font, panelView(), width, height, hud::panelTop, mouseX, mouseY);
