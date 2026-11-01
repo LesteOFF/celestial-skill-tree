@@ -18,20 +18,22 @@ public final class BetterMobCombatCompat {
 
     public static void register() {
         Reflection.requireTypes(COMBAT_STATE);
-        NeoForge.EVENT_BUS.addListener(EntityTickEvent.Post.class,
-                event -> OptionalEvents.guard(MOD_ID, () -> onTick(event)));
+        NeoForge.EVENT_BUS.addListener(EntityTickEvent.Post.class, BetterMobCombatCompat::onTick);
     }
 
     private static void onTick(EntityTickEvent.Post event) {
         boolean hastened = event.getEntity() instanceof Monster monster && !monster.level().isClientSide()
                 && monster.tickCount % HASTE_PERIOD_TICKS == 0 && !monster.getMainHandItem().isEmpty()
-                && EliteMobs.isElite(monster) && Reflection.isInstance(COMBAT_STATE, monster);
+                && EliteMobs.isElite(monster);
         if (hastened) {
-            shortenAttackCooldown((Monster) event.getEntity());
+            OptionalEvents.guard(MOD_ID, () -> shortenAttackCooldown((Monster) event.getEntity()));
         }
     }
 
     private static void shortenAttackCooldown(Monster monster) {
+        if (!Reflection.isInstance(COMBAT_STATE, monster)) {
+            return;
+        }
         int cooldown = (int) Reflection.call(monster, "bmc$getAttackCooldown");
         if (cooldown > LAST_COOLDOWN_TICK) {
             Reflection.call(monster, "bmc$setAttackCooldown", cooldown - 1);
