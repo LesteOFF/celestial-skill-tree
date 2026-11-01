@@ -4,7 +4,6 @@ import com.mojang.blaze3d.platform.InputConstants;
 import dev.lesteoff.celestialskilltree.CelestialSkillTree;
 import dev.lesteoff.celestialskilltree.client.render.FallingStarRenderer;
 import dev.lesteoff.celestialskilltree.client.screen.SkillTreeScreen;
-import dev.lesteoff.celestialskilltree.compat.enhancedbossbars.EnhancedBossBarsCompat;
 import dev.lesteoff.celestialskilltree.compat.supplementaries.CelestialGlobe;
 import dev.lesteoff.celestialskilltree.network.Payloads;
 import dev.lesteoff.celestialskilltree.registry.ModEntities;
@@ -13,7 +12,6 @@ import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
@@ -41,11 +39,6 @@ public final class ClientSetup {
             e.register(OPEN_KEY);
             e.register(BOON_KEY);
             TreeKeys.ALL.forEach(e::register);
-        }
-
-        @SubscribeEvent
-        public static void loaded(FMLLoadCompleteEvent e) {
-            e.enqueueWork(EnhancedBossBarsCompat::registerStyle);
         }
 
         @SubscribeEvent
