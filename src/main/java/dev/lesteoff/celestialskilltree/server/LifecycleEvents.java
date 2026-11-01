@@ -9,6 +9,7 @@ import dev.lesteoff.celestialskilltree.data.SkillTreeReloadListener;
 import dev.lesteoff.celestialskilltree.effects.CombatEvents;
 import dev.lesteoff.celestialskilltree.effects.ConsumptionEvents;
 import dev.lesteoff.celestialskilltree.effects.EffectEngine;
+import dev.lesteoff.celestialskilltree.effects.EliteBossBars;
 import dev.lesteoff.celestialskilltree.effects.MiningEvents;
 import dev.lesteoff.celestialskilltree.registry.ModAttachments;
 import net.minecraft.server.level.ServerPlayer;
@@ -49,6 +50,7 @@ public final class LifecycleEvents {
     @SubscribeEvent
     public static void onServerStopped(ServerStoppedEvent event) {
         SkillTreeManager.reset();
+        EliteBossBars.clear();
     }
 
     @SubscribeEvent
