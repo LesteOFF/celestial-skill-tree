@@ -70,11 +70,12 @@ public final class FallingStar extends Projectile {
         double flightTicks = height / -trajectory.y;
         int landingX = Mth.floor(player.getX() + random.nextGaussian() * LANDING_SPREAD * reach);
         int landingZ = Mth.floor(player.getZ() + random.nextGaussian() * LANDING_SPREAD * reach);
-        Vec3 start = new Vec3(landingX + 0.5 - trajectory.x * flightTicks,
-                level.getHeight(Heightmap.Types.MOTION_BLOCKING, landingX, landingZ) + height, landingZ + 0.5 - trajectory.z * flightTicks);
-        if (!entitiesTickAt(level, landingX, landingZ) || !entitiesTickAt(level, Mth.floor(start.x), Mth.floor(start.z))) {
+        double startX = landingX + 0.5 - trajectory.x * flightTicks;
+        double startZ = landingZ + 0.5 - trajectory.z * flightTicks;
+        if (!entitiesTickAt(level, landingX, landingZ) || !entitiesTickAt(level, Mth.floor(startX), Mth.floor(startZ))) {
             return Optional.empty();
         }
+        Vec3 start = new Vec3(startX, level.getHeight(Heightmap.Types.MOTION_BLOCKING, landingX, landingZ) + height, startZ);
         return Optional.of(launch(level, start, trajectory));
     }
 
