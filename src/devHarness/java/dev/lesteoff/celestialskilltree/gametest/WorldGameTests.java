@@ -1,10 +1,13 @@
 package dev.lesteoff.celestialskilltree.gametest;
 
 import dev.lesteoff.celestialskilltree.CelestialSkillTree;
+import dev.lesteoff.celestialskilltree.api.SkillEvents;
 import dev.lesteoff.celestialskilltree.config.ServerConfig;
 import dev.lesteoff.celestialskilltree.data.SkillTreeManager;
 import dev.lesteoff.celestialskilltree.data.WorldSkillData;
+import dev.lesteoff.celestialskilltree.effects.EffectEngine;
 import dev.lesteoff.celestialskilltree.effects.EliteMobs;
+import dev.lesteoff.celestialskilltree.effects.PetInheritance;
 import dev.lesteoff.celestialskilltree.entity.FallingStar;
 import dev.lesteoff.celestialskilltree.graph.CommunityTier;
 import dev.lesteoff.celestialskilltree.progression.CommunityProgress;
@@ -24,15 +27,20 @@ import dev.lesteoff.celestialskilltree.server.FallenStars;
 import dev.lesteoff.celestialskilltree.server.PlayerExperience;
 import dev.lesteoff.celestialskilltree.server.SkillService;
 import dev.lesteoff.celestialskilltree.server.SkyEvents;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.monster.warden.Warden;
@@ -139,6 +147,54 @@ public final class WorldGameTests {
             scenario.atLeast(health * 1.5, zombie.getMaxHealth(), "max health");
             scenario.atLeast(damage * 1.25, zombie.getAttributeValue(Attributes.ATTACK_DAMAGE), "attack damage");
             scenario.near(zombie.getMaxHealth(), zombie.getHealth(), "health after being empowered");
+        });
+    }
+
+    @GameTest(template = Scenario.EMPTY)
+    public static void aPetInheritsItsOwnersTreeOnceAndFollowsItsChanges(GameTestHelper helper) {
+        Scenario.run(helper, scenario -> {
+            ServerPlayer owner = scenario.blankPlayer();
+            Wolf wolf = scenario.mob(EntityType.WOLF);
+            AttributeInstance maxHealth = wolf.getAttribute(Attributes.MAX_HEALTH);
+            double plain = wolf.getMaxHealth();
+            scenario.learn(owner, GUARDIAN_HUB);
+            PetInheritance.inherit(wolf, owner);
+            scenario.check(wolf.getMaxHealth() > plain, "the pet inherits its owner's max health");
+            List<AttributeModifier> applied = List.copyOf(maxHealth.getModifiers());
+            PetInheritance.inherit(wolf, owner);
+            scenario.check(applied.stream().allMatch(modifier -> maxHealth.getModifier(modifier.id()) == modifier),
+                    "an unchanged tree leaves the pet's modifiers alone");
+            ModAttachments.setState(owner, new PlayerSkillState());
+            EffectEngine.refresh(owner);
+            PetInheritance.inherit(wolf, owner);
+            scenario.near(plain, wolf.getMaxHealth(), "max health once the owner forgets the tree");
+        });
+    }
+
+    @GameTest(template = Scenario.EMPTY)
+    public static void learningASkillEarnsTheFirstSkillAdvancement(GameTestHelper helper) {
+        Scenario.run(helper, scenario -> {
+            ServerPlayer player = scenario.blankPlayer();
+            AdvancementHolder firstSkill = scenario.server().getAdvancements()
+                    .get(ResourceLocation.fromNamespaceAndPath(CelestialSkillTree.MODID, "first_skill"));
+            scenario.check(firstSkill != null, "the first skill advancement is loaded");
+            scenario.check(!player.getAdvancements().getOrStartProgress(firstSkill).isDone(), "a blank player has not earned it");
+            PlayerSkillState state = scenario.learn(player, GUARDIAN_HUB);
+            SkillEvents.post(new SkillEvents.NodesLearned(player, List.copyOf(state.allocations().keySet())));
+            scenario.check(player.getAdvancements().getOrStartProgress(firstSkill).isDone(), "learning a skill earns it");
+        });
+    }
+
+    @GameTest(template = Scenario.EMPTY)
+    public static void slayingAConstellatedMonsterEarnsStarslayer(GameTestHelper helper) {
+        Scenario.run(helper, scenario -> {
+            ServerPlayer killer = scenario.blankPlayer();
+            AdvancementHolder starslayer = scenario.server().getAdvancements()
+                    .get(ResourceLocation.fromNamespaceAndPath(CelestialSkillTree.MODID, "constellated_kill"));
+            Zombie elite = scenario.mob(EntityType.ZOMBIE);
+            EliteMobs.empower(elite, RandomSource.create(ELITE_SEED), ELITE_NODES);
+            slay(elite, killer);
+            scenario.check(killer.getAdvancements().getOrStartProgress(starslayer).isDone(), "slaying a Constellated monster earns Starslayer");
         });
     }
 

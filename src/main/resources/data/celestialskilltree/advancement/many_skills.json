@@ -1,0 +1,25 @@
+{
+  "parent": "celestialskilltree:keystone",
+  "display": {
+    "icon": {
+      "id": "minecraft:nether_star"
+    },
+    "title": {
+      "translate": "advancements.celestialskilltree.many_skills.title"
+    },
+    "description": {
+      "translate": "advancements.celestialskilltree.many_skills.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "many_skills": {
+      "trigger": "celestialskilltree:milestone",
+      "conditions": {
+        "milestone": "many_skills"
+      }
+    }
+  }
+}

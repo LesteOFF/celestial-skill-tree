@@ -7,6 +7,7 @@ import dev.lesteoff.celestialskilltree.config.ServerConfig;
 import dev.lesteoff.celestialskilltree.network.NetworkSetup;
 import dev.lesteoff.celestialskilltree.registry.ModAttachments;
 import dev.lesteoff.celestialskilltree.registry.ModAttributes;
+import dev.lesteoff.celestialskilltree.registry.ModCriteria;
 import dev.lesteoff.celestialskilltree.registry.ModEntities;
 import dev.lesteoff.celestialskilltree.registry.ModItems;
 import dev.lesteoff.celestialskilltree.registry.ModBlocks;
@@ -31,6 +32,7 @@ public final class CelestialSkillTree {
         ModItems.register(modBus);
         ModEntities.register(modBus);
         ModSounds.register(modBus);
+        ModCriteria.register(modBus);
         modBus.addListener(NetworkSetup::register);
         container.registerConfig(ModConfig.Type.SERVER, ServerConfig.SPEC);
         container.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);

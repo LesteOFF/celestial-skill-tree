@@ -36,6 +36,7 @@ public final class CommunityTree {
         if (donation.ok()) {
             PlayerExperience.set(player, balance - donation.accepted());
             setProgress(player.server, data.communityXp() + donation.accepted());
+            Milestones.reach(player, Milestones.DONATION);
         }
         return donation;
     }

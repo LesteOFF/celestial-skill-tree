@@ -1,0 +1,22 @@
+{
+  "display": {
+    "icon": {
+      "id": "celestialskilltree:telescope"
+    },
+    "title": {
+      "translate": "advancements.celestialskilltree.root.title"
+    },
+    "description": {
+      "translate": "advancements.celestialskilltree.root.description"
+    },
+    "frame": "task",
+    "show_toast": false,
+    "announce_to_chat": false,
+    "background": "minecraft:textures/block/obsidian.png"
+  },
+  "criteria": {
+    "root": {
+      "trigger": "minecraft:tick"
+    }
+  }
+}

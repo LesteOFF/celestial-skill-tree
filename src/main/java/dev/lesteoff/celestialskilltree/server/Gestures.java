@@ -1,6 +1,5 @@
 package dev.lesteoff.celestialskilltree.server;
 
-import dev.lesteoff.celestialskilltree.graph.NodeType;
 import dev.lesteoff.celestialskilltree.graph.SkillGraphSnapshot;
 import dev.lesteoff.celestialskilltree.network.Payloads;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,8 +16,7 @@ public final class Gestures {
     }
 
     public static void keystonesLearned(ServerPlayer player, SkillGraphSnapshot graph, List<String> learned) {
-        boolean keystone = learned.stream().anyMatch(id -> graph.node(id).filter(node -> node.type() == NodeType.KEYSTONE).isPresent());
-        if (keystone) {
+        if (graph.anyKeystone(learned)) {
             show(player, LEARN_KEYSTONE);
         }
     }

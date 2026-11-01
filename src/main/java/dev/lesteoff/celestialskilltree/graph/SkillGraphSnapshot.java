@@ -116,6 +116,10 @@ public final class SkillGraphSnapshot {
         return nodes.containsKey(id);
     }
 
+    public boolean anyKeystone(Collection<String> ids) {
+        return ids.stream().anyMatch(id -> node(id).filter(node -> node.type() == NodeType.KEYSTONE).isPresent());
+    }
+
     public List<SkillConnection> connections() {
         return connections;
     }

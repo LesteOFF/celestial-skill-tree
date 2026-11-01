@@ -1,0 +1,25 @@
+{
+  "parent": "celestialskilltree:root",
+  "display": {
+    "icon": {
+      "id": "celestialskilltree:community_basin"
+    },
+    "title": {
+      "translate": "advancements.celestialskilltree.donation.title"
+    },
+    "description": {
+      "translate": "advancements.celestialskilltree.donation.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "donation": {
+      "trigger": "celestialskilltree:milestone",
+      "conditions": {
+        "milestone": "donation"
+      }
+    }
+  }
+}
