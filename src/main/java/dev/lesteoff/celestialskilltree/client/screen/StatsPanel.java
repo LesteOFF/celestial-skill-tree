@@ -92,7 +92,8 @@ public final class StatsPanel {
         List<StatsSheet.Section> sections = player == null ? List.of() : sections(player, pendingDeltas(player, graph, pending));
         Component name = player == null ? text("title") : player.getName();
         return new StatsSheet(name, sign, state.allocations().size(), points, sections,
-                effects(state, graph, node -> node.type() != NodeType.KEYSTONE && hasConditionalEffect(node)),
+                effects(state, graph, node -> node.type() != NodeType.KEYSTONE && hasConditionalEffect(node) && !hasTrigger(node)),
+                effects(state, graph, node -> node.type() != NodeType.KEYSTONE && hasTrigger(node)),
                 effects(state, graph, node -> node.type() == NodeType.KEYSTONE));
     }
 
@@ -157,9 +158,22 @@ public final class StatsPanel {
         return node.effects().stream().anyMatch(effect -> !(effect instanceof SkillEffect.Attribute));
     }
 
+    private static boolean hasTrigger(SkillNodeDefinition node) {
+        return node.effects().stream().anyMatch(SkillEffect.Trigger.class::isInstance);
+    }
+
     private static List<StatsSheet.Effect> effects(PlayerSkillState state, SkillGraphSnapshot graph, Predicate<SkillNodeDefinition> kind) {
-        return StatsSheet.merge(state.allocations().keySet().stream().flatMap(id -> graph.node(id).stream()).filter(kind)
-                .map(node -> new StatsSheet.Effect(SkillTexts.name(node), SkillTexts.description(node), 1)).toList());
+        Map<String, List<SkillNodeDefinition>> alike = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        state.allocations().keySet().stream().flatMap(id -> graph.node(id).stream()).filter(kind)
+                .forEach(node -> alike.computeIfAbsent(SkillTexts.name(node).getString() + '\n' + SkillTexts.description(node).getString(),
+                        key -> new ArrayList<>()).add(node));
+        return alike.values().stream().map(nodes -> combined(graph, state, nodes)).toList();
+    }
+
+    private static StatsSheet.Effect combined(SkillGraphSnapshot graph, PlayerSkillState state, List<SkillNodeDefinition> nodes) {
+        SkillNodeDefinition first = nodes.getFirst();
+        double strength = nodes.stream().mapToDouble(node -> CompiledBuild.strength(graph, state, node)).sum();
+        return new StatsSheet.Effect(SkillTexts.name(first), SkillTexts.description(first, strength), nodes.size());
     }
 
     private static Map<String, Double> pendingDeltas(Player player, SkillGraphSnapshot graph, Collection<String> pending) {

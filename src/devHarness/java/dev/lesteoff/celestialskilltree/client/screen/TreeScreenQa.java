@@ -11,6 +11,7 @@ import org.lwjgl.glfw.GLFW;
 import java.util.Collection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 public final class TreeScreenQa {
     private TreeScreenQa() {
@@ -119,7 +120,8 @@ public final class TreeScreenQa {
 
     public static List<String> statsEffectNames(SkillTreeScreen screen) {
         screen.refreshStatesIfDirty();
-        return screen.statsSheet().effects().stream().map(effect -> effect.name().getString()).toList();
+        StatsSheet sheet = screen.statsSheet();
+        return Stream.concat(sheet.effects().stream(), sheet.triggers().stream()).map(effect -> effect.name().getString()).toList();
     }
 
     public static boolean dragStatsScrollbarToEnd(SkillTreeScreen screen) {

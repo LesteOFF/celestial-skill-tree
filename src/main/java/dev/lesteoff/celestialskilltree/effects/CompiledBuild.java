@@ -52,11 +52,15 @@ public record CompiledBuild(Map<AttributeKey, Double> attributeSums, List<Keyed<
             }
             SkillNodeDefinition node = graph.nodes().get(id);
             if (node != null) {
-                collector.addAll(id, node.effects(), amplification(graph, state, id) * ranks(node, state));
+                collector.addAll(id, node.effects(), strength(graph, state, node));
             }
         }
         extraSources.forEach((sourceId, effects) -> collector.addAll(sourceId, effects, 1.0));
         return collector.build();
+    }
+
+    public static double strength(SkillGraphSnapshot graph, PlayerSkillState state, SkillNodeDefinition node) {
+        return amplification(graph, state, node.id()) * ranks(node, state);
     }
 
     private static int ranks(SkillNodeDefinition node, PlayerSkillState state) {
@@ -74,7 +78,7 @@ public record CompiledBuild(Map<AttributeKey, Double> attributeSums, List<Keyed<
         return strongest;
     }
 
-    private static SkillEffect scaled(SkillEffect effect, double factor) {
+    public static SkillEffect scaled(SkillEffect effect, double factor) {
         return switch (effect) {
             case SkillEffect.Attribute attribute ->
                     new SkillEffect.Attribute(attribute.attribute(), attribute.operation(), attribute.amount() * factor);

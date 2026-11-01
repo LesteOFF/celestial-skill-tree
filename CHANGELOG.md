@@ -19,8 +19,9 @@
   beside your birth sign's constellation, points at a glance (total = spent + to spend + free, with free already
   leaving out the pending selection like the counter under the tree), attributes grouped into Defense, Offense and Utility with
   an icon each, the tree's share in its own column, the pending selection previewed on the attribute it changes, and
-  conditional effects and keystones listed by skill in name order, with a skill learned more than once shown once with
-  its count (×2). It scrolls wherever the mouse is over it or with a scrollbar you can drag, and no longer covers the
+  conditional bonuses, triggered effects and keystones in their own lists by skill name. A skill learned more than once
+  is shown once with its count (×2) and its bonus added up the way the game applies it (ranks and black holes
+  included). It scrolls wherever the mouse is over it or with a scrollbar you can drag, and no longer covers the
   Cancel button.
 - Constellated monsters are rolled faster, and tamed creatures that inherit the tree only touch their attributes
   when their owner's tree changes.

@@ -371,6 +371,7 @@ final class StatsSheetRenderer {
             }
         }
         addEffects(lines, font, text("effects"), sheet.effects(), TooltipCard.Marker.EFFECT);
+        addEffects(lines, font, text("triggers"), sheet.triggers(), TooltipCard.Marker.EFFECT);
         addEffects(lines, font, text("keystones"), sheet.keystones(), TooltipCard.Marker.RANK);
         return lines;
     }
