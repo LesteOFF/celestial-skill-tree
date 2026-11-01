@@ -334,7 +334,7 @@ public final class SkillTreeScreen extends Screen {
         camera.fit(region.minX(), region.minY(), region.maxX(), region.maxY(), FIT_PADDING);
     }
 
-    private void showChart() {
+    void showChart() {
         if (hiddenPresence() > 0) {
             transition.start(this::fit);
         }

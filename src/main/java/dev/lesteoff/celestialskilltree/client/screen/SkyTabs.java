@@ -46,13 +46,14 @@ final class SkyTabs {
 
     static final int BOTTOM = TreeHud.EDGE + TreeHud.TOP_HEIGHT;
     private static final float OPEN_MILLIS = 160f;
+    private static Tab lastSelected = Tab.CHART;
+    private static long lastFrame;
 
     private final Map<Tab, TabButton> buttons = new EnumMap<>(Tab.class);
     private int screenWidth;
     private int minLeft;
     private int left;
     private int islandWidth;
-    private long lastFrame;
 
     void layout(int screenWidth, int minLeft, Tab selected, Actions actions, Consumer<AbstractWidget> add) {
         this.screenWidth = screenWidth;
@@ -64,8 +65,9 @@ final class SkyTabs {
             add.accept(button);
         }
         refresh();
-        select(selected);
+        select(lastSelected);
         buttons.values().forEach(button -> button.ease(1f));
+        select(selected);
         arrange();
     }
 
@@ -81,6 +83,7 @@ final class SkyTabs {
     }
 
     void select(Tab tab) {
+        lastSelected = tab;
         buttons.forEach((key, button) -> button.selected = key == tab);
     }
 

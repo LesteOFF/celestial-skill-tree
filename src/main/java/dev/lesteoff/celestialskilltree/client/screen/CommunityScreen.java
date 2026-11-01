@@ -19,6 +19,7 @@ import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public final class CommunityScreen extends Screen {
     private static final int EMBER_TINT = 0xA61C0E04;
@@ -88,15 +89,12 @@ public final class CommunityScreen extends Screen {
         tabs.layout(width, 0, SkyTabs.Tab.COMMUNITY, new SkyTabs.Actions() {
             @Override
             public void showChart() {
-                back();
+                backTo(SkillTreeScreen::showChart);
             }
 
             @Override
             public void showHiddenRegion() {
-                back();
-                if (parent instanceof SkillTreeScreen tree) {
-                    tree.showHiddenRegion();
-                }
+                backTo(SkillTreeScreen::showHiddenRegion);
             }
 
             @Override
@@ -128,6 +126,13 @@ public final class CommunityScreen extends Screen {
 
     private void back() {
         minecraft.setScreen(parent);
+    }
+
+    private void backTo(Consumer<SkillTreeScreen> view) {
+        back();
+        if (parent instanceof SkillTreeScreen tree) {
+            view.accept(tree);
+        }
     }
 
     @Override
