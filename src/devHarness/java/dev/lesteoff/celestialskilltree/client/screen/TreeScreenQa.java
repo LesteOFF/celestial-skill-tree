@@ -6,6 +6,7 @@ import dev.lesteoff.celestialskilltree.progression.RefundService;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.Collection;
 import java.util.ArrayList;
@@ -103,6 +104,39 @@ public final class TreeScreenQa {
         sheet.sections().stream().flatMap(section -> section.stats().stream()).forEach(stat -> text.add(stat.label().getString() + " "
                 + stat.value() + stat.preview().map(preview -> " → " + preview).orElse("")));
         return text;
+    }
+
+    public static List<Integer> statsPoints(SkillTreeScreen screen) {
+        screen.refreshStatesIfDirty();
+        StatsSheet.Points points = screen.statsSheet().points();
+        return List.of(points.total(), points.spent(), points.free(), points.pending());
+    }
+
+    public static int pointsLeftAfterSelection(SkillTreeScreen screen) {
+        screen.refreshStatesIfDirty();
+        return SkillTreeScreen.playerState().availablePoints() - screen.nodeStates.pendingCost();
+    }
+
+    public static List<String> statsEffectNames(SkillTreeScreen screen) {
+        screen.refreshStatesIfDirty();
+        return screen.statsSheet().effects().stream().map(effect -> effect.name().getString()).toList();
+    }
+
+    public static boolean dragStatsScrollbarToEnd(SkillTreeScreen screen) {
+        StatsSheetRenderer stats = screen.statsRenderer;
+        double x = stats.scrollbarX();
+        screen.mouseClicked(x, stats.scrollbarY(0), GLFW.GLFW_MOUSE_BUTTON_LEFT);
+        screen.mouseDragged(x, stats.scrollbarY(1), GLFW.GLFW_MOUSE_BUTTON_LEFT, 0, 0);
+        screen.mouseReleased(x, stats.scrollbarY(1), GLFW.GLFW_MOUSE_BUTTON_LEFT);
+        return stats.scrolledToEnd();
+    }
+
+    public static void pressEscape(Screen screen) {
+        screen.keyPressed(GLFW.GLFW_KEY_ESCAPE, 0, 0);
+    }
+
+    public static boolean asksToDiscard(Screen screen) {
+        return screen instanceof SkillTreeScreen tree && tree.panel == SkillTreeScreen.Panel.DISCARD;
     }
 
     public static void confirm(SkillTreeScreen screen) {

@@ -76,6 +76,7 @@ final class InWorldQa {
     private static final int COMMAND_TICKS = 200;
     private static final int RELOAD_TICKS = 1200;
     private static final int SETTLE_TICKS = 10;
+    private static final int SPARK_TICKS = 3;
     private static final int PAUSE_SAVE_TICKS = 60;
     private static final int RETRY_TICKS = 40;
     private static final int SKY_FADE_TICKS = 140;
@@ -368,6 +369,8 @@ final class InWorldQa {
             confirm(route);
             script.note("confirm sent for " + route);
         }, () -> state().isAllocated(GATEKEEPER) && maxHealth() > before.maxHealth(), SERVER_ANSWER_TICKS);
+        script.pause("let the confirm sparks travel", SPARK_TICKS);
+        script.then("capture confirm_sparks", () -> capture("confirm_sparks"));
         script.then("check the build", () -> {
             script.note("max health " + before.maxHealth() + " -> " + maxHealth());
             script.expect("skills learned", before.allocations() + route.size(), state().allocations().size());
@@ -656,6 +659,15 @@ final class InWorldQa {
                     ClientSkillState.graph().flatMap(TreeRegion::hidden).isPresent(), TreeScreenQa.tabAvailable(screen(), "HIDDEN"));
             capture("tabs");
         });
+        script.step("close the community with Esc", () -> TreeScreenQa.pressEscape(TreeScreenQa.openCommunity(screen())),
+                () -> minecraft().screen == null, SETTLE_TICKS);
+        script.step("press Esc on the community with a pending selection", () -> {
+            TreeScreenQa.setup(screen(), routeTo(cheapestGuardianNotable()), false, false);
+            TreeScreenQa.pressEscape(TreeScreenQa.openCommunity(screen()));
+        }, () -> TreeScreenQa.asksToDiscard(minecraft().screen), SETTLE_TICKS);
+        script.pause("let the discard question draw", SETTLE_TICKS);
+        script.then("capture tabs_esc_pending", () -> capture("tabs_esc_pending"));
+        script.then("drop the pending selection", () -> TreeScreenQa.setup(screen(), List.of(), false, false));
     }
 
     void addSkySteps() {

@@ -24,11 +24,12 @@ class SparkRoutesTest {
 
     @Test
     void eachConfirmedNodeGetsARouteFromAnAlreadyLitNeighbour() {
-        List<List<Vec2>> routes = SparkRoutes.of(line(), Set.of(id("a/hub")), List.of(id("a/m1"), id("a/m2")));
+        List<SparkRoutes.Spark> sparks = SparkRoutes.of(line(), Set.of(id("a/hub")), List.of(id("a/m1"), id("a/m2")));
 
-        assertEquals(2, routes.size());
-        assertEquals(List.of(new Vec2(0, 0), new Vec2(40, 0)), routes.get(0));
-        assertEquals(List.of(new Vec2(40, 0), new Vec2(80, 0)), routes.get(1), "a reversed edge still runs toward the new node");
+        assertEquals(2, sparks.size());
+        assertEquals(List.of(new Vec2(0, 0), new Vec2(40, 0)), sparks.get(0).path());
+        assertEquals(List.of(new Vec2(40, 0), new Vec2(80, 0)), sparks.get(1).path(), "a reversed edge still runs toward the new node");
+        assertEquals(id("a/m2"), sparks.get(1).target().id(), "the spark ends on the node just learned");
     }
 
     @Test
@@ -44,6 +45,15 @@ class SparkRoutesTest {
         assertEquals(new Vec2(20, 10), SparkRoutes.along(route, 0.75));
         assertEquals(new Vec2(20, 20), SparkRoutes.along(route, 1));
         assertEquals(new Vec2(0, 0), SparkRoutes.along(route, -1));
+    }
+
+    @Test
+    void aTabSwitchDarkensTheSkyThenBrightensItAgain() {
+        assertEquals(0f, SkyTransition.darknessAt(0));
+        assertEquals(0.5f, SkyTransition.darknessAt(SkyTransition.FADE_OUT_MILLIS / 2), 1e-6);
+        assertEquals(1f, SkyTransition.darknessAt(SkyTransition.FADE_OUT_MILLIS));
+        assertEquals(0.5f, SkyTransition.darknessAt(SkyTransition.FADE_OUT_MILLIS + SkyTransition.FADE_IN_MILLIS / 2), 1e-6);
+        assertEquals(0f, SkyTransition.darknessAt(SkyTransition.FADE_OUT_MILLIS + SkyTransition.FADE_IN_MILLIS));
     }
 
     @Test

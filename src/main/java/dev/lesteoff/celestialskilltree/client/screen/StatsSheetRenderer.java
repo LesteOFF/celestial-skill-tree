@@ -42,11 +42,17 @@ final class StatsSheetRenderer {
     private static final int TREE_UNDERLINE = 0x907EDC6E;
     private static final int UNDERLINE_PADDING = 3;
     private static final int SCROLL_STEP = 2 * LINE_HEIGHT;
+    private static final int SCROLLBAR_WIDTH = 3;
+    private static final int SCROLLBAR_LEFT = WIDTH - PADDING + 1;
+    private static final int SCROLLBAR_REACH = 3;
+    private static final int SCROLLBAR_TRACK = 0x50000000;
+    private static final int MIN_THUMB = 12;
+    private static final double NOT_GRABBED = -1;
+    private static final int COUNT_GAP = 3;
     private static final float ABOVE_WIDGETS = 400;
     private static final String ARROW = " → ";
     private static final String ELLIPSIS = "…";
-    private static final Component MORE_ABOVE = Component.literal("▲");
-    private static final Component MORE_BELOW = Component.literal("▼");
+    private static final String TIMES = "×";
 
     private interface Line {
         int height();
@@ -105,7 +111,7 @@ final class StatsSheetRenderer {
             int cell = INNER_WIDTH / 4;
             cell(graphics, font, left, top, points.total(), "total", Palette.TEXT);
             cell(graphics, font, left + cell, top, points.spent(), "spent", Palette.TEXT);
-            cell(graphics, font, left + 2 * cell, top, points.available(), "free", Palette.GOLD);
+            cell(graphics, font, left + 2 * cell, top, points.free(), "free", Palette.GOLD);
             cell(graphics, font, left + 3 * cell, top, points.pending(), "pending", points.pending() > 0 ? Palette.PENDING : Palette.textDim());
         }
 
@@ -180,7 +186,7 @@ final class StatsSheetRenderer {
         }
     }
 
-    private record Marked(TooltipCard.Marker marker, Component name) implements Line {
+    private record Marked(TooltipCard.Marker marker, Component name, int count) implements Line {
         public int height() {
             return LINE_HEIGHT;
         }
@@ -188,10 +194,40 @@ final class StatsSheetRenderer {
         public void draw(GuiGraphics graphics, Font font, int left, int top) {
             graphics.blitSprite(marker.sprite(), left, top, MARKER_SIZE, MARKER_SIZE);
             graphics.drawString(font, name, left + MARKER_SPACE, top, Palette.GOLD, true);
+            if (count > 1) {
+                graphics.drawString(font, TIMES + count, left + MARKER_SPACE + font.width(name) + COUNT_GAP, top, Palette.textDim(), true);
+            }
+        }
+    }
+
+    record Scrollbar(int top, int height, int contentHeight) {
+        static final Scrollbar NONE = new Scrollbar(0, 0, 0);
+
+        int maxScroll() {
+            return Math.max(0, contentHeight - height);
+        }
+
+        boolean shown() {
+            return maxScroll() > 0;
+        }
+
+        int thumbHeight() {
+            return Math.max(MIN_THUMB, height * height / contentHeight);
+        }
+
+        int thumbTop(int scroll) {
+            return top + (height - thumbHeight()) * scroll / maxScroll();
+        }
+
+        int scrollFor(double thumbTop) {
+            return (int) Math.round(Math.clamp((thumbTop - top) / (height - thumbHeight()), 0.0, 1.0) * maxScroll());
         }
     }
 
     private PanelRenderer.Area area = PanelRenderer.Area.NOWHERE;
+    private Scrollbar scrollbar = Scrollbar.NONE;
+    private float scale = 1f;
+    private double grabOffset = NOT_GRABBED;
     private int scrollOffset;
     private StatsSheet laidOutSheet;
     private List<Line> lines = List.of();
@@ -212,15 +248,65 @@ final class StatsSheetRenderer {
         scrollOffset = Math.max(0, scrollOffset - (int) Math.signum(amount) * SCROLL_STEP);
     }
 
+    boolean grabScrollbar(double mouseX, double mouseY) {
+        double x = sheetX(mouseX);
+        double y = sheetY(mouseY);
+        boolean onTrack = scrollbar.shown() && area.contains(mouseX, mouseY) && x >= SCROLLBAR_LEFT - SCROLLBAR_REACH
+                && y >= scrollbar.top() && y <= scrollbar.top() + scrollbar.height();
+        if (!onTrack) {
+            return false;
+        }
+        int thumbTop = scrollbar.thumbTop(scrollOffset);
+        boolean onThumb = y >= thumbTop && y <= thumbTop + scrollbar.thumbHeight();
+        grabOffset = onThumb ? y - thumbTop : scrollbar.thumbHeight() / 2.0;
+        dragScrollbar(mouseY);
+        return true;
+    }
+
+    boolean dragScrollbar(double mouseY) {
+        if (grabOffset == NOT_GRABBED) {
+            return false;
+        }
+        scrollOffset = scrollbar.scrollFor(sheetY(mouseY) - grabOffset);
+        return true;
+    }
+
+    boolean releaseScrollbar() {
+        boolean grabbed = grabOffset != NOT_GRABBED;
+        grabOffset = NOT_GRABBED;
+        return grabbed;
+    }
+
+    double scrollbarX() {
+        return area.left() + (SCROLLBAR_LEFT + SCROLLBAR_WIDTH / 2.0) * scale;
+    }
+
+    double scrollbarY(double fraction) {
+        return area.top() + (scrollbar.top() + scrollbar.height() * fraction) * scale;
+    }
+
+    boolean scrolledToEnd() {
+        return scrollbar.shown() && scrollOffset == scrollbar.maxScroll();
+    }
+
+    private double sheetX(double mouseX) {
+        return (mouseX - area.left()) / scale;
+    }
+
+    private double sheetY(double mouseY) {
+        return (mouseY - area.top()) / scale;
+    }
+
     void render(GuiGraphics graphics, Font font, StatsSheet sheet, int screenWidth, int screenHeight, IntUnaryOperator controlsBottomAt) {
-        float scale = scale();
+        scale = scale();
         int width = Math.round(WIDTH * scale);
         int left = screenWidth - width - MARGIN;
         int top = controlsBottomAt.applyAsInt(left) + 2;
         List<Line> laidOut = lines(font, sheet);
         int contentHeight = laidOut.stream().mapToInt(Line::height).sum();
         int innerHeight = Math.min(contentHeight, (int) ((screenHeight - top - TreeHud.BOTTOM_CONTROLS_HEIGHT) / scale) - 2 * PADDING);
-        scrollOffset = Mth.clamp(scrollOffset, 0, Math.max(0, contentHeight - innerHeight));
+        scrollbar = new Scrollbar(PADDING, innerHeight, contentHeight);
+        scrollOffset = Mth.clamp(scrollOffset, 0, scrollbar.maxScroll());
         int sheetHeight = innerHeight + 2 * PADDING;
         int height = Math.round(sheetHeight * scale);
         area = new PanelRenderer.Area(left, top, left + width, top + height);
@@ -239,19 +325,20 @@ final class StatsSheetRenderer {
             y += line.height();
         }
         graphics.disableScissor();
-        drawScrollMarks(graphics, font, contentHeight, innerHeight);
+        drawScrollbar(graphics);
         RenderSystem.disableBlend();
         graphics.pose().popPose();
     }
 
-    private void drawScrollMarks(GuiGraphics graphics, Font font, int contentHeight, int innerHeight) {
-        int x = WIDTH - PADDING + 1;
-        if (scrollOffset > 0) {
-            graphics.drawString(font, MORE_ABOVE, x, PADDING, Palette.GOLD, true);
+    private void drawScrollbar(GuiGraphics graphics) {
+        if (!scrollbar.shown()) {
+            return;
         }
-        if (scrollOffset < contentHeight - innerHeight) {
-            graphics.drawString(font, MORE_BELOW, x, PADDING + innerHeight - TEXT_HEIGHT, Palette.GOLD, true);
-        }
+        int right = SCROLLBAR_LEFT + SCROLLBAR_WIDTH;
+        graphics.fill(SCROLLBAR_LEFT, scrollbar.top(), right, scrollbar.top() + scrollbar.height(), SCROLLBAR_TRACK);
+        int thumbTop = scrollbar.thumbTop(scrollOffset);
+        int thumbColor = grabOffset == NOT_GRABBED ? Palette.ALLOCATED : Palette.GOLD;
+        graphics.fill(SCROLLBAR_LEFT, thumbTop, right, thumbTop + scrollbar.thumbHeight(), thumbColor);
     }
 
     private static float scale() {
@@ -295,7 +382,7 @@ final class StatsSheetRenderer {
         lines.add(new Divider());
         lines.add(new Heading(title, Component.literal(String.valueOf(effects.size()))));
         for (StatsSheet.Effect effect : effects) {
-            lines.add(new Marked(marker, effect.name()));
+            lines.add(new Marked(marker, effect.name(), effect.count()));
             addWrapped(lines, font, effect.description(), MARKER_SPACE, Palette.textDim());
         }
     }

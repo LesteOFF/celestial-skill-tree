@@ -87,7 +87,8 @@ public final class StatsPanel {
 
     static StatsSheet sheet(Player player, PlayerSkillState state, SkillGraphSnapshot graph, Collection<String> pending, int pendingCost) {
         Optional<StatsSheet.Sign> sign = state.sign().map(signId -> new StatsSheet.Sign(signId, Component.translatable(SkillSign.nameKey(signId))));
-        StatsSheet.Points points = new StatsSheet.Points(state.totalPoints(), state.activeSpentPoints(), state.availablePoints(), pendingCost);
+        StatsSheet.Points points = new StatsSheet.Points(state.totalPoints(), state.activeSpentPoints(),
+                state.availablePoints() - pendingCost, pendingCost);
         List<StatsSheet.Section> sections = player == null ? List.of() : sections(player, pendingDeltas(player, graph, pending));
         Component name = player == null ? text("title") : player.getName();
         return new StatsSheet(name, sign, state.allocations().size(), points, sections,
@@ -157,8 +158,8 @@ public final class StatsPanel {
     }
 
     private static List<StatsSheet.Effect> effects(PlayerSkillState state, SkillGraphSnapshot graph, Predicate<SkillNodeDefinition> kind) {
-        return state.allocations().keySet().stream().flatMap(id -> graph.node(id).stream()).filter(kind)
-                .map(node -> new StatsSheet.Effect(SkillTexts.name(node), SkillTexts.description(node))).toList();
+        return StatsSheet.merge(state.allocations().keySet().stream().flatMap(id -> graph.node(id).stream()).filter(kind)
+                .map(node -> new StatsSheet.Effect(SkillTexts.name(node), SkillTexts.description(node), 1)).toList());
     }
 
     private static Map<String, Double> pendingDeltas(Player player, SkillGraphSnapshot graph, Collection<String> pending) {

@@ -83,17 +83,17 @@ public final class CommunityScreen extends Screen {
         donateAllButton.setTooltip(Tooltip.create(GuiText.of("community.donate_all_tooltip")));
         donationButtons.add(donateAllButton);
         Button back = addRenderableWidget(new SkillButton(left + 3 * step, y, buttonWidth, BUTTON_HEIGHT, GuiText.of("back"),
-                button -> onClose()));
+                button -> back()));
         back.setTooltip(Tooltip.create(GuiText.of("back_tooltip")));
         tabs.layout(width, 0, SkyTabs.Tab.COMMUNITY, new SkyTabs.Actions() {
             @Override
             public void showChart() {
-                onClose();
+                back();
             }
 
             @Override
             public void showHiddenRegion() {
-                onClose();
+                back();
                 if (parent instanceof SkillTreeScreen tree) {
                     tree.showHiddenRegion();
                 }
@@ -126,9 +126,13 @@ public final class CommunityScreen extends Screen {
         super.removed();
     }
 
+    private void back() {
+        minecraft.setScreen(parent);
+    }
+
     @Override
     public void onClose() {
-        minecraft.setScreen(parent);
+        SkillTreeScreen.closeFrom(parent);
     }
 
     @Override

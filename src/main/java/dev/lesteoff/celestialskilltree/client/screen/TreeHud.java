@@ -72,8 +72,8 @@ final class TreeHud {
     private static final int MAX_SEARCH_WIDTH = 220;
     private static final int SEARCH_TEXT_LEFT = CONTENT_LEFT + HudSprites.TOOL_ICON_SIZE + 4;
     private static final int COUNTER_SPACE = 30;
-    private static final int ICON_TEXT_GAP = 3;
-    private static final int POINTS_SAMPLE = 888;
+    private static final int ICON_TEXT_GAP = 5;
+    private static final int POINTS_SAMPLE = 8888;
     private static final int XP_WIDTH = 120;
     private static final int MIN_XP_WIDTH = 50;
     private static final int TOOLTIP_WIDTH = 220;

@@ -144,10 +144,11 @@ public final class SkillTreeScreen extends Screen {
     final PendingSelection pending = new PendingSelection();
     private final Set<String> searchHits = new LinkedHashSet<>();
     private final PanelRenderer panelRenderer = new PanelRenderer();
-    private final StatsSheetRenderer statsRenderer = new StatsSheetRenderer();
+    final StatsSheetRenderer statsRenderer = new StatsSheetRenderer();
     private final long openedAt = Util.getMillis();
     private final OpeningReveal reveal = new OpeningReveal();
     private final ConfirmSparks sparks = new ConfirmSparks();
+    private final SkyTransition transition = new SkyTransition();
     private boolean openingSoundPlayed;
     private List<String> confirming = List.of();
     NodeStates nodeStates = NodeStates.EMPTY;
@@ -335,12 +336,12 @@ public final class SkillTreeScreen extends Screen {
 
     private void showChart() {
         if (hiddenPresence() > 0) {
-            fit();
+            transition.start(this::fit);
         }
     }
 
     void showHiddenRegion() {
-        ClientSkillState.graph().flatMap(TreeRegion::hidden).ifPresent(this::fit);
+        ClientSkillState.graph().flatMap(TreeRegion::hidden).ifPresent(region -> transition.start(() -> fit(region)));
     }
 
     private double hiddenPresence() {
@@ -742,6 +743,9 @@ public final class SkillTreeScreen extends Screen {
         if (super.mouseClicked(mouseX, mouseY, button)) {
             return true;
         }
+        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && statsRenderer.grabScrollbar(mouseX, mouseY)) {
+            return true;
+        }
         if (hud.search().isFocused()) {
             hud.search().setFocused(false);
             setFocused(null);
@@ -767,6 +771,9 @@ public final class SkillTreeScreen extends Screen {
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (statsRenderer.dragScrollbar(mouseY)) {
+            return true;
+        }
         if (!pressed || button != pressButton) {
             return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
         }
@@ -780,6 +787,9 @@ public final class SkillTreeScreen extends Screen {
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (statsRenderer.releaseScrollbar()) {
+            return true;
+        }
         if (!pressed || button != pressButton) {
             return super.mouseReleased(mouseX, mouseY, button);
         }
@@ -853,10 +863,23 @@ public final class SkillTreeScreen extends Screen {
     private void closeTopmost() {
         if (panel != Panel.NONE) {
             panel = Panel.NONE;
-        } else if (!pending.isEmpty()) {
-            panel = Panel.DISCARD;
         } else {
+            closeUnlessPending();
+        }
+    }
+
+    private void closeUnlessPending() {
+        if (pending.isEmpty()) {
             onClose();
+        } else {
+            panel = Panel.DISCARD;
+        }
+    }
+
+    static void closeFrom(Screen parent) {
+        Minecraft.getInstance().setScreen(parent);
+        if (parent instanceof SkillTreeScreen tree) {
+            tree.closeUnlessPending();
         }
     }
 
@@ -958,6 +981,7 @@ public final class SkillTreeScreen extends Screen {
         graphics.setColor(1f, 1f, 1f, 1f);
         RenderSystem.disableBlend();
         graphics.disableScissor();
+        transition.render(graphics, width, height);
         renderIslandsUnlessHidden(graphics);
     }
 
