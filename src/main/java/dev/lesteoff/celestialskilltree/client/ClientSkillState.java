@@ -163,11 +163,11 @@ public final class ClientSkillState {
         changeListener.run();
     }
 
-    public static void onCommunityProgress(long communityXp) {
+    public static void onCommunityProgress(Payloads.Community community) {
         if (fixture) {
             return;
         }
-        worldRules = worldRules.withCommunityXp(communityXp);
+        worldRules = worldRules.withCommunity(community);
         changeListener.run();
     }
 

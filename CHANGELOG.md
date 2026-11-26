@@ -1,5 +1,42 @@
 # Changelog
 
+## [2.1.4]
+
+> **Updating an existing world:** the XP already donated to the shared constellation moves onto its main path in
+> order (Kindling, Hearth, Beacon, then Zenith), so every world keeps the community bonuses it had. Those donations
+> are listed as "Earlier patrons and basins".
+
+### Added
+
+- The shared constellation is now a constellation of ten stars with branches instead of a straight path. Click a star
+  to pick it and donate to it; a star opens once the one before it is lit.
+- Rival stars: the Forge and the Hunt, and the Bulwark and the Mirage, close each other. Once one of them is lit, the
+  server has made its choice and the other one closes for good.
+- New community stars: Forge, Deep Vein, Hunt, Blood Moon, Bulwark and Mirage.
+- Patrons: the server remembers how much XP each player donated. A star's tooltip shows who lit it, the community
+  screen ranks the top five patrons and your own place, and the top patron gets a golden ✦ before their name in the
+  player list.
+
+### Changed
+
+- The first tab of the bar is now named Skill Tree, and the JEI pages of the Telescope and the Orb of Reconfiguration
+  speak of the skill tree too.
+- The community screen now looks like the skill tree: the same sky, stars drawn as nodes with an icon, a side column
+  with a card for the selected star and the patrons ranking that open and close, a donation bar, a help panel and a
+  list of every patron. `communityPanelSide` in the client config moves the column to the right.
+- The Community Basin feeds the next star on the main path and never picks a fork; the players choose those.
+- `/celestialskilltree community set|add` now takes the star: `community set <star> <xp>`.
+- Data packs: `xp_required` in `skill_community` files is now what that one star needs, and stars take a `parent`, a
+  `position`, an optional `exclusive` group and an optional `icon` (a skill icon texture, a star when left out).
+  `communityTierUnlocked` (KubeJS) and `CommunityTierUnlocked` fire once
+  for each star that lights.
+
+### Fixed
+
+- The Skill Tree tab on the community screen brings you back to the main tree even when you came from the Hidden Sky.
+- The tabs now open and close smoothly when you move between the tree and the community screen.
+- Zenith's description lists what it really gives: +2 Max Health and +10% Healing Received.
+
 ## [2.1.3]
 
 ### Added

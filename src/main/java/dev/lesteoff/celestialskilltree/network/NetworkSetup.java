@@ -6,7 +6,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 public final class NetworkSetup {
-    public static final String VERSION = "10";
+    public static final String VERSION = "11";
 
     private NetworkSetup() {
     }

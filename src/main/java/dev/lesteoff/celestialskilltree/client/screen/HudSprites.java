@@ -32,6 +32,7 @@ public final class HudSprites {
     public static final ResourceLocation SEARCH = icon("search");
     public static final ResourceLocation POINT = icon("point");
     public static final ResourceLocation TAB_LOCK = icon("tab_lock");
+    public static final ResourceLocation RANKING = icon("ranking");
 
     private HudSprites() {
     }

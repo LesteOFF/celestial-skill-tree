@@ -52,12 +52,13 @@ public final class GraphRenderer {
     private static final int DIM_FRAME = 0;
     private static final int DISC_FRAME = 1;
     private static final int LIT_FRAME = 2;
-    private static final int LOCK_MARK = 0;
-    private static final int CONFLICT_MARK = 1;
-    private static final int SEALED_MARK = 2;
     private static final int HOLE_DISK = 0;
     private static final Map<String, ResourceLocation> FRAME_CACHE = new HashMap<>();
     private static final Map<String, ResourceLocation> ICON_CACHE = new HashMap<>();
+
+    public enum Mark {
+        LOCK, CONFLICT, SEALED
+    }
 
     public interface StateLookup {
         NodeState state(String id);
@@ -283,8 +284,13 @@ public final class GraphRenderer {
     }
 
     public static void drawNodeFrame(GuiGraphics graphics, ResourceLocation strip, double centerX, double centerY, double radius) {
+        drawNodeFrame(graphics, strip, centerX, centerY, radius, true);
+    }
+
+    public static void drawNodeFrame(GuiGraphics graphics, ResourceLocation strip, double centerX, double centerY, double radius,
+                                     boolean lit) {
         draw(graphics, strip, DISC_FRAME, STRIP_FRAMES, centerX, centerY, radius);
-        draw(graphics, strip, LIT_FRAME, STRIP_FRAMES, centerX, centerY, radius);
+        draw(graphics, strip, lit ? LIT_FRAME : DIM_FRAME, STRIP_FRAMES, centerX, centerY, radius);
     }
 
     private static void drawRankPips(SpriteBatch batch, Ranks ranks, double x, double y, double radius) {
@@ -359,11 +365,11 @@ public final class GraphRenderer {
         switch (state) {
             case PENDING -> batch.add(SpriteBatch.Layer.FRONT, frameTex("ring"), x, y, radius * 1.12,
                     ClientConfig.REDUCED_MOTION.get() ? 0 : time * 0.8, PENDING_TINT[0], PENDING_TINT[1], PENDING_TINT[2], 1f);
-            case CONFLICTING -> mark(batch, CONFLICT_MARK, x, y, radius * 0.9);
-            case SEALED -> mark(batch, SEALED_MARK, x, y, radius * 0.9);
+            case CONFLICTING -> mark(batch, Mark.CONFLICT, x, y, radius * 0.9);
+            case SEALED -> mark(batch, Mark.SEALED, x, y, radius * 0.9);
             case LOCKED -> {
                 if (radius > MIN_LOCK_MARK_RADIUS) {
-                    mark(batch, LOCK_MARK, x + radius * 0.62, y + radius * 0.62, Math.max(3, radius * 0.42));
+                    mark(batch, Mark.LOCK, x + radius * 0.62, y + radius * 0.62, Math.max(3, radius * 0.42));
                 }
             }
             default -> {
@@ -371,8 +377,12 @@ public final class GraphRenderer {
         }
     }
 
-    private static void mark(SpriteBatch batch, int mark, double x, double y, double radius) {
-        batch.add(SpriteBatch.Layer.FRONT, frameTex("marks"), mark, STRIP_FRAMES, x, y, radius, 0, 1f, 1f, 1f, 1f);
+    private static void mark(SpriteBatch batch, Mark mark, double x, double y, double radius) {
+        batch.add(SpriteBatch.Layer.FRONT, frameTex("marks"), mark.ordinal(), STRIP_FRAMES, x, y, radius, 0, 1f, 1f, 1f, 1f);
+    }
+
+    public static void drawMark(GuiGraphics graphics, Mark mark, double centerX, double centerY, double radius) {
+        draw(graphics, frameTex("marks"), mark.ordinal(), STRIP_FRAMES, centerX, centerY, radius);
     }
 
     public static void draw(GuiGraphics graphics, ResourceLocation texture, double centerX, double centerY, double radius) {

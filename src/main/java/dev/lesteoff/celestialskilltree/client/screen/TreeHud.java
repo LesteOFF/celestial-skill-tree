@@ -52,22 +52,22 @@ final class TreeHud {
     }
 
     static final int EDGE = 6;
-    private static final int ISLAND_GAP = 4;
+    static final int ISLAND_GAP = 4;
     static final int PAD = 3;
-    private static final int CONTROL = 13;
-    private static final int ISLAND_HEIGHT = CONTROL + 2 * PAD;
+    static final int CONTROL = 13;
+    static final int ISLAND_HEIGHT = CONTROL + 2 * PAD;
     static final int TOOL = 20;
     static final int TOP_HEIGHT = TOOL + 2 * PAD;
-    private static final int DOCK_TOP = EDGE + TOP_HEIGHT + ISLAND_GAP;
+    static final int DOCK_TOP = EDGE + TOP_HEIGHT + ISLAND_GAP;
     static final int BOTTOM_CONTROLS_HEIGHT = EDGE + 2 * ISLAND_HEIGHT + 2 * ISLAND_GAP;
     private static final int TOP_TEXT_TOP = (TOP_HEIGHT - 8) / 2 + 1;
     private static final int SEARCH_ICON_TOP = (TOP_HEIGHT - HudSprites.TOOL_ICON_SIZE) / 2;
     static final int GAP = 2;
     private static final int SECTION_GAP = 6;
-    private static final int ICON_TOP = (ISLAND_HEIGHT - HudSprites.ICON_SIZE) / 2;
-    private static final int TEXT_TOP = (ISLAND_HEIGHT - 8) / 2 + 1;
-    private static final int CONTENT_LEFT = PAD + 2;
-    private static final int TEXT_BUTTON_PADDING = 14;
+    static final int ICON_TOP = (ISLAND_HEIGHT - HudSprites.ICON_SIZE) / 2;
+    static final int TEXT_TOP = (ISLAND_HEIGHT - 8) / 2 + 1;
+    static final int CONTENT_LEFT = PAD + 2;
+    static final int TEXT_BUTTON_PADDING = 14;
     private static final int MIN_SEARCH_WIDTH = 130;
     private static final int MAX_SEARCH_WIDTH = 220;
     private static final int SEARCH_TEXT_LEFT = CONTENT_LEFT + HudSprites.TOOL_ICON_SIZE + 4;

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "xp_required": 15000,
+  "parent": "celestialskilltree:forge",
+  "icon": "celestialskilltree:textures/skill_icons/crystal.png",
+  "position": {
+    "x": -125,
+    "y": 20
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:tool_preservation",
+      "operation": "add_value",
+      "amount": 0.1
+    }
+  ]
+}

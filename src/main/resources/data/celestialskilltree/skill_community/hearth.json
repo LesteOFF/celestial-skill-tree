@@ -1,6 +1,12 @@
 {
   "schema_version": 1,
-  "xp_required": 8000,
+  "xp_required": 6000,
+  "parent": "celestialskilltree:kindling",
+  "icon": "celestialskilltree:textures/skill_icons/mining.png",
+  "position": {
+    "x": 0,
+    "y": 60
+  },
   "effects": [
     {
       "type": "attribute",

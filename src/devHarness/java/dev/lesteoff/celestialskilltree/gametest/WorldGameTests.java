@@ -3,8 +3,6 @@ package dev.lesteoff.celestialskilltree.gametest;
 import dev.lesteoff.celestialskilltree.CelestialSkillTree;
 import dev.lesteoff.celestialskilltree.api.SkillEvents;
 import dev.lesteoff.celestialskilltree.config.ServerConfig;
-import dev.lesteoff.celestialskilltree.data.SkillTreeManager;
-import dev.lesteoff.celestialskilltree.data.WorldSkillData;
 import dev.lesteoff.celestialskilltree.effects.EffectEngine;
 import dev.lesteoff.celestialskilltree.effects.EliteMobs;
 import dev.lesteoff.celestialskilltree.effects.PetInheritance;
@@ -56,6 +54,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import java.util.List;
+import java.util.Map;
 
 @GameTestHolder(CelestialSkillTree.MODID)
 @PrefixGameTestTemplate(false)
@@ -70,6 +69,10 @@ public final class WorldGameTests {
     private static final int ELITE_NODES = 8;
     private static final long ELITE_SEED = 42;
     private static final float FATAL = 10_000f;
+    private static final String KINDLING = "celestialskilltree:kindling";
+    private static final String HEARTH = "celestialskilltree:hearth";
+    private static final String FORGE = "celestialskilltree:forge";
+    private static final String HUNT = "celestialskilltree:hunt";
 
     private WorldGameTests() {
     }
@@ -80,10 +83,6 @@ public final class WorldGameTests {
 
     private static void slay(LivingEntity victim, ServerPlayer killer) {
         victim.hurt(killer.damageSources().playerAttack(killer), FATAL);
-    }
-
-    private static long communityGoal() {
-        return CommunityProgress.goal(SkillTreeManager.communityTiers().stream().map(CommunityTier::xpRequired).toList());
     }
 
     private static int harvestRipeWheat(Scenario scenario, GameTestHelper helper, ServerPlayer farmer) {
@@ -299,33 +298,47 @@ public final class WorldGameTests {
         Scenario.run(helper, scenario -> {
             ServerPlayer donor = scenario.blankPlayer();
             ServerPlayer bystander = scenario.blankPlayer();
-            long firstTier = SkillTreeManager.communityTiers().get(0).xpRequired();
-            scenario.communityProgress(0);
+            CommunityTier first = CommunityTree.stars().get(0);
+            scenario.communityProgress(Map.of());
             double healthBefore = bystander.getMaxHealth();
-            scenario.communityProgress(firstTier - 50);
+            scenario.communityProgress(Map.of(first.id(), first.xpRequired() - 50));
             PlayerExperience.set(donor, 300);
-            CommunityProgress.Donation donation = CommunityTree.donate(donor, 120);
+            CommunityProgress.Donation donation = CommunityTree.donate(donor, first.id(), 120);
             scenario.check(donation.ok(), "the donation is accepted");
-            scenario.same(120, donation.accepted(), "XP accepted");
-            scenario.same(180, Scenario.experience(donor), "XP left with the donor");
-            scenario.same(firstTier + 70, WorldSkillData.of(scenario.server()).communityXp(), "shared progress");
+            scenario.same(50, donation.accepted(), "XP accepted, up to what the star still misses");
+            scenario.same(250, Scenario.experience(donor), "XP left with the donor");
+            scenario.same(first.xpRequired(), (long) CommunityTree.progress(scenario.server()).get(first.id()), "progress of the star");
+            scenario.same(50, CommunityTree.patrons(scenario.server()).get(donor.getUUID()).gaveTo(first.id()), "XP credited to the donor");
             scenario.near(healthBefore + 1, bystander.getMaxHealth(), "max health of a player who did not donate");
-            scenario.communityProgress(0);
+            scenario.communityProgress(Map.of());
             scenario.near(healthBefore, bystander.getMaxHealth(), "max health once progress is reset");
         });
     }
 
     @GameTest(template = Scenario.EMPTY)
-    public static void aCompleteConstellationTakesNoMoreExperience(GameTestHelper helper) {
+    public static void theBasinFillsOnlyTheMainPath(GameTestHelper helper) {
         Scenario.run(helper, scenario -> {
             ServerPlayer donor = scenario.blankPlayer();
-            long goal = communityGoal();
-            scenario.communityProgress(goal - 30);
-            scenario.same(30, CommunityTree.contribute(scenario.server(), 500), "XP accepted from a machine");
-            scenario.same(goal, WorldSkillData.of(scenario.server()).communityXp(), "shared progress");
-            scenario.same(0, CommunityTree.remaining(scenario.server()), "XP still missing");
+            scenario.communityProgress(Map.of());
+            long trunk = CommunityTree.remaining(scenario.server());
+            scenario.same(trunk, CommunityTree.contribute(scenario.server(), trunk + 500), "XP accepted from a machine");
+            scenario.same(0, CommunityTree.remaining(scenario.server()), "XP still missing on the main path");
+            scenario.check(CommunityTree.litStars(scenario.server()).stream().allMatch(starId ->
+                    CommunityProgress.find(CommunityTree.stars(), starId).orElseThrow().exclusive().isEmpty()), "no fork was chosen");
             PlayerExperience.set(donor, 300);
-            scenario.same(RejectReason.COMMUNITY_COMPLETE, CommunityTree.donate(donor, 10).reason().orElseThrow(), "why the donation is refused");
+            String first = CommunityTree.stars().get(0).id();
+            scenario.same(RejectReason.STAR_LIT, CommunityTree.donate(donor, first, 10).reason().orElseThrow(), "why the donation is refused");
+            scenario.same(300, Scenario.experience(donor), "XP left with the donor");
+        });
+    }
+
+    @GameTest(template = Scenario.EMPTY)
+    public static void lightingAStarClosesItsRival(GameTestHelper helper) {
+        Scenario.run(helper, scenario -> {
+            ServerPlayer donor = scenario.blankPlayer();
+            scenario.communityProgress(Scenario.litCommunity(KINDLING, HEARTH, FORGE));
+            PlayerExperience.set(donor, 300);
+            scenario.same(RejectReason.STAR_EXCLUDED, CommunityTree.donate(donor, HUNT, 10).reason().orElseThrow(), "why the donation is refused");
             scenario.same(300, Scenario.experience(donor), "XP left with the donor");
         });
     }

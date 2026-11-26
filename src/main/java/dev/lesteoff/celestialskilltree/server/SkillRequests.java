@@ -169,11 +169,11 @@ public final class SkillRequests {
 
     public static void onDonate(Payloads.DonateXp message, IPayloadContext context) {
         open(context, message.requestId()).filter(request -> admitted(request, message.expectedStateRevision()))
-                .ifPresent(request -> donate(request, message.amount()));
+                .ifPresent(request -> donate(request, message.starId(), message.amount()));
     }
 
-    private static void donate(Request request, int amount) {
-        CommunityProgress.Donation donation = CommunityTree.donate(request.player(), amount);
+    private static void donate(Request request, String starId, int amount) {
+        CommunityProgress.Donation donation = CommunityTree.donate(request.player(), starId, amount);
         if (donation.ok()) {
             request.accept("message.celestialskilltree.donated", donation.accepted());
         } else {
