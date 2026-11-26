@@ -1,9 +1,11 @@
 package dev.lesteoff.celestialskilltree.network;
 
 import dev.lesteoff.celestialskilltree.CelestialSkillTree;
+import dev.lesteoff.celestialskilltree.graph.CommunityParser;
 import dev.lesteoff.celestialskilltree.graph.GraphCodec;
 import dev.lesteoff.celestialskilltree.graph.SkillSign;
 import dev.lesteoff.celestialskilltree.progression.AllocationService;
+import dev.lesteoff.celestialskilltree.progression.CommunityProgress;
 import dev.lesteoff.celestialskilltree.progression.PlayerSkillState;
 import dev.lesteoff.celestialskilltree.progression.SkyEvent;
 import dev.lesteoff.celestialskilltree.progression.XpCurve;
@@ -53,11 +55,11 @@ public final class Payloads {
         }
     }
 
-    public record DonateXp(UUID requestId, long expectedStateRevision, int amount) implements CustomPacketPayload {
+    public record DonateXp(UUID requestId, long expectedStateRevision, String starId, int amount) implements CustomPacketPayload {
         public static final Type<DonateXp> TYPE = typeOf("donate_xp");
         public static final StreamCodec<ByteBuf, DonateXp> CODEC = StreamCodec.composite(
                 UUIDUtil.STREAM_CODEC, DonateXp::requestId, ByteBufCodecs.VAR_LONG, DonateXp::expectedStateRevision,
-                ByteBufCodecs.VAR_INT, DonateXp::amount, DonateXp::new);
+                NODE_ID, DonateXp::starId, ByteBufCodecs.VAR_INT, DonateXp::amount, DonateXp::new);
 
         public Type<DonateXp> type() {
             return TYPE;
@@ -155,9 +157,72 @@ public final class Payloads {
             ByteBufCodecs.VAR_INT, XpCurve::base, ByteBufCodecs.VAR_INT, XpCurve::linear,
             ByteBufCodecs.VAR_INT, XpCurve::quadratic, ByteBufCodecs.DOUBLE, XpCurve::discount, XpCurve::new);
 
-    public record TierInfo(String id, long xpRequired) {
+    public record Position(float x, float y) {
+        public static final StreamCodec<ByteBuf, Position> CODEC = StreamCodec.composite(
+                ByteBufCodecs.FLOAT, Position::x, ByteBufCodecs.FLOAT, Position::y, Position::new);
+    }
+
+    public record TierInfo(String id, long xpRequired, String parent, String exclusive, String icon, Position position) {
         public static final StreamCodec<ByteBuf, TierInfo> CODEC = StreamCodec.composite(
-                NODE_ID, TierInfo::id, ByteBufCodecs.VAR_LONG, TierInfo::xpRequired, TierInfo::new);
+                NODE_ID, TierInfo::id, ByteBufCodecs.VAR_LONG, TierInfo::xpRequired, NODE_ID, TierInfo::parent,
+                NODE_ID, TierInfo::exclusive, ByteBufCodecs.STRING_UTF8, TierInfo::icon, Position.CODEC, TierInfo::position,
+                TierInfo::new);
+
+        public float x() {
+            return position.x();
+        }
+
+        public float y() {
+            return position.y();
+        }
+
+        public boolean rivals(TierInfo other) {
+            return !id.equals(other.id) && !exclusive.isEmpty() && exclusive.equals(other.exclusive);
+        }
+    }
+
+    public record Patron(String name, long xp) {
+        public static final StreamCodec<ByteBuf, Patron> CODEC = StreamCodec.composite(
+                ByteBufCodecs.stringUtf8(16), Patron::name, ByteBufCodecs.VAR_LONG, Patron::xp, Patron::new);
+
+        public boolean anonymous() {
+            return name.isEmpty();
+        }
+    }
+
+    public record StarProgress(String id, long donated, CommunityProgress.StarStatus status, List<Patron> patrons) {
+        public static final int MAX_PATRONS = 3;
+        public static final StreamCodec<ByteBuf, StarProgress> CODEC = StreamCodec.composite(
+                NODE_ID, StarProgress::id, ByteBufCodecs.VAR_LONG, StarProgress::donated,
+                ByteBufCodecs.idMapper(CommunityProgress.StarStatus::byId, CommunityProgress.StarStatus::ordinal), StarProgress::status,
+                Patron.CODEC.apply(ByteBufCodecs.list(MAX_PATRONS)), StarProgress::patrons, StarProgress::new);
+    }
+
+    public record Community(List<StarProgress> stars, List<Patron> ranking, int ownRank, long ownTotal, long anonymousXp,
+                            int patronCount) {
+        public static final int MAX_RANKING = 256;
+        public static final Community NONE = new Community(List.of(), List.of(), 0, 0, 0, 0);
+        public static final StreamCodec<ByteBuf, Community> CODEC = StreamCodec.composite(
+                StarProgress.CODEC.apply(ByteBufCodecs.list(CommunityParser.MAX_STARS)), Community::stars,
+                Patron.CODEC.apply(ByteBufCodecs.list(MAX_RANKING)), Community::ranking,
+                ByteBufCodecs.VAR_INT, Community::ownRank, ByteBufCodecs.VAR_LONG, Community::ownTotal,
+                ByteBufCodecs.VAR_LONG, Community::anonymousXp, ByteBufCodecs.VAR_INT, Community::patronCount, Community::new);
+
+        public Optional<StarProgress> progress(String starId) {
+            return stars.stream().filter(star -> star.id().equals(starId)).findFirst();
+        }
+
+        public CommunityProgress.StarStatus status(String starId) {
+            return progress(starId).map(StarProgress::status).orElse(CommunityProgress.StarStatus.LOCKED);
+        }
+
+        public long donated() {
+            return stars.stream().mapToLong(StarProgress::donated).sum();
+        }
+
+        public long litCount() {
+            return stars.stream().filter(star -> star.status() == CommunityProgress.StarStatus.LIT).count();
+        }
     }
 
     public record SignBonus(String descriptionKey, boolean active) {
@@ -183,13 +248,13 @@ public final class Payloads {
         }
     }
 
-    public record WorldRules(SkyEvent skyEvent, long communityXp, List<TierInfo> communityTiers, List<SignInfo> signs) {
-        public static final int MAX_TIERS = 64;
+    public record WorldRules(SkyEvent skyEvent, List<TierInfo> communityTiers, Community community, List<SignInfo> signs) {
         public static final int MAX_SIGNS = 64;
-        public static final WorldRules NONE = new WorldRules(SkyEvent.NONE, 0, List.of(), List.of());
+        public static final WorldRules NONE = new WorldRules(SkyEvent.NONE, List.of(), Community.NONE, List.of());
         public static final StreamCodec<ByteBuf, WorldRules> CODEC = StreamCodec.composite(
-                ByteBufCodecs.idMapper(SkyEvent::byId, SkyEvent::ordinal), WorldRules::skyEvent, ByteBufCodecs.VAR_LONG, WorldRules::communityXp,
-                TierInfo.CODEC.apply(ByteBufCodecs.list(MAX_TIERS)), WorldRules::communityTiers,
+                ByteBufCodecs.idMapper(SkyEvent::byId, SkyEvent::ordinal), WorldRules::skyEvent,
+                TierInfo.CODEC.apply(ByteBufCodecs.list(CommunityParser.MAX_STARS)), WorldRules::communityTiers,
+                Community.CODEC, WorldRules::community,
                 SignInfo.CODEC.apply(ByteBufCodecs.list(MAX_SIGNS)), WorldRules::signs, WorldRules::new);
 
         public List<String> signIds() {
@@ -204,19 +269,19 @@ public final class Payloads {
             return Component.translatable(sign(signId).map(SignInfo::descriptionKey).orElse(SkillSign.defaultDescriptionKey(signId)));
         }
 
-        public List<Long> thresholds() {
-            return communityTiers.stream().map(TierInfo::xpRequired).toList();
+        public Optional<TierInfo> communityTier(String starId) {
+            return communityTiers.stream().filter(tier -> tier.id().equals(starId)).findFirst();
         }
 
-        public WorldRules withCommunityXp(long xp) {
-            return new WorldRules(skyEvent, xp, communityTiers, signs);
+        public WorldRules withCommunity(Community updated) {
+            return new WorldRules(skyEvent, communityTiers, updated, signs);
         }
     }
 
-    public record CommunityProgressSync(long communityXp) implements CustomPacketPayload {
+    public record CommunityProgressSync(Community community) implements CustomPacketPayload {
         public static final Type<CommunityProgressSync> TYPE = typeOf("community_progress");
         public static final StreamCodec<ByteBuf, CommunityProgressSync> CODEC = StreamCodec.composite(
-                ByteBufCodecs.VAR_LONG, CommunityProgressSync::communityXp, CommunityProgressSync::new);
+                Community.CODEC, CommunityProgressSync::community, CommunityProgressSync::new);
 
         public Type<CommunityProgressSync> type() {
             return TYPE;

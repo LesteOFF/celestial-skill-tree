@@ -3,7 +3,6 @@ package dev.lesteoff.celestialskilltree.effects;
 import dev.lesteoff.celestialskilltree.CelestialSkillTree;
 import dev.lesteoff.celestialskilltree.config.ServerConfig;
 import dev.lesteoff.celestialskilltree.data.SkillTreeManager;
-import dev.lesteoff.celestialskilltree.data.WorldSkillData;
 import dev.lesteoff.celestialskilltree.graph.Condition;
 import dev.lesteoff.celestialskilltree.graph.Ids;
 import dev.lesteoff.celestialskilltree.graph.SkillEffect;
@@ -11,6 +10,7 @@ import dev.lesteoff.celestialskilltree.graph.SkillGraphSnapshot;
 import dev.lesteoff.celestialskilltree.progression.PlayerSkillState;
 import dev.lesteoff.celestialskilltree.registry.ModAttachments;
 import dev.lesteoff.celestialskilltree.registry.ModTags;
+import dev.lesteoff.celestialskilltree.server.CommunityTree;
 import dev.lesteoff.celestialskilltree.server.ExtraSign;
 import dev.lesteoff.celestialskilltree.server.SkyEvents;
 import net.minecraft.core.Holder;
@@ -124,8 +124,7 @@ public final class EffectEngine {
 
     private static CompiledBuild compile(SkillGraphSnapshot graph, ServerPlayer player) {
         PlayerSkillState state = ModAttachments.state(player);
-        long communityXp = WorldSkillData.of(player.server).communityXp();
-        Map<String, List<SkillEffect>> extras = ExtraEffects.of(state, communityXp);
+        Map<String, List<SkillEffect>> extras = ExtraEffects.of(state, CommunityTree.litStars(player.server));
         extras.putAll(BorrowedNodes.effects(graph, player));
         extras.putAll(ExtraSign.effects(player, state));
         return CompiledBuild.compile(graph, state, extras, StolenNodes.of(player));

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "xp_required": 8000,
+  "parent": "celestialskilltree:hearth",
+  "exclusive": "celestialskilltree:forge_or_hunt",
+  "icon": "celestialskilltree:textures/skill_icons/critical.png",
+  "position": {
+    "x": 70,
+    "y": 50
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:crit_damage",
+      "operation": "add_value",
+      "amount": 0.1
+    }
+  ]
+}

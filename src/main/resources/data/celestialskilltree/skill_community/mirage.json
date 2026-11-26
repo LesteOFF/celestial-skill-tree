@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "xp_required": 20000,
+  "parent": "celestialskilltree:beacon",
+  "exclusive": "celestialskilltree:bulwark_or_mirage",
+  "icon": "celestialskilltree:textures/skill_icons/dodge.png",
+  "position": {
+    "x": 60,
+    "y": -35
+  },
+  "effects": [
+    {
+      "type": "attribute",
+      "attribute": "celestialskilltree:dodge_chance",
+      "operation": "add_value",
+      "amount": 0.03
+    }
+  ]
+}
