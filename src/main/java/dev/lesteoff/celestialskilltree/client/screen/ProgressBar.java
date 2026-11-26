@@ -43,7 +43,7 @@ final class ProgressBar {
         }
     }
 
-    private static void drawTrack(GuiGraphics graphics, int left, int right, int top, double fraction) {
+    static void drawTrack(GuiGraphics graphics, int left, int right, int top, double fraction) {
         RenderSystem.enableBlend();
         graphics.blitSprite(HudSprites.XP_TRACK, left, top, right - left, TRACK_HEIGHT);
         int innerWidth = right - left - 2 * FILL_INSET;

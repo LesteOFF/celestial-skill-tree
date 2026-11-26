@@ -1,68 +1,53 @@
 package dev.lesteoff.celestialskilltree.client.screen;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import dev.lesteoff.celestialskilltree.client.ClientRequests;
 import dev.lesteoff.celestialskilltree.client.ClientSkillState;
 import dev.lesteoff.celestialskilltree.client.render.BackgroundRenderer;
-import dev.lesteoff.celestialskilltree.client.render.LineBatch;
-import dev.lesteoff.celestialskilltree.client.render.Shapes;
+import dev.lesteoff.celestialskilltree.client.render.Palette;
 import dev.lesteoff.celestialskilltree.config.ClientConfig;
-import dev.lesteoff.celestialskilltree.graph.CommunityTier;
 import dev.lesteoff.celestialskilltree.network.Payloads;
-import dev.lesteoff.celestialskilltree.progression.CommunityProgress;
+import dev.lesteoff.celestialskilltree.progression.CommunityProgress.StarStatus;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.FormattedCharSequence;
+import org.lwjgl.glfw.GLFW;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public final class CommunityScreen extends Screen {
-    private static final int EMBER_TINT = 0xA61C0E04;
-    private static final int UNLIT_PATH = 0xFF4A3A28;
-    private static final int LIT_GLOW = 0x55F3D15C;
-    private static final int LIT_PATH = 0xFFF3D15C;
-    private static final int LIT_CORE = 0xFFFFF6D6;
-    private static final int UNLIT_STAR = 0xFF8A7A66;
-    private static final int NEXT_STAR = 0xFF7FD6E8;
-    private static final int TEXT_COLOR = 0xFFE9E3D8;
-    private static final int PATH_SAMPLES = 64;
-    private static final int MOTES = 9;
-    private static final double MOTE_SPEED = 0.12;
-    private static final double LEFT_FRACTION = 0.13;
-    private static final double RIGHT_FRACTION = 0.87;
-    private static final double BOTTOM_FRACTION = 0.6;
-    private static final double TOP_FRACTION = 0.22;
-    private static final double STAR_SIZE = 7;
-    private static final double HOVER_REACH = 14;
-    private static final int MAX_BUTTON_WIDTH = 86;
-    private static final int SIDE_MARGIN = 8;
-    private static final int BUTTON_COUNT = 4;
-    private static final long CONFIRM_WINDOW_MILLIS = 3000;
-    private static final int BUTTON_HEIGHT = 20;
-    private static final int BUTTON_GAP = 6;
-    private static final int SMALL_DONATION = 100;
-    private static final int LARGE_DONATION = 1000;
     private static final long MESSAGE_MILLIS = 4000;
-    private static final float TITLE_SCALE = 1.5f;
-    private static final int TITLE_GAP = 8;
-    private static final int TOOLTIP_WIDTH = 200;
+    private static final int MESSAGE_GAP = 3;
+    private static final int AREA_MARGIN = 8;
+    private static final int ICON_TEXT_GAP = 4;
 
-    private record Point(double x, double y) {
+    enum Modal {
+        NONE, HELP, PATRONS
+    }
+
+    private record Badge(int x, int y, int width, Component text) {
     }
 
     private final Screen parent;
     private final long openedAt = Util.getMillis();
-    private final List<Button> donationButtons = new ArrayList<>();
     private final SkyTabs tabs = new SkyTabs();
-    private Button donateAllButton;
-    private long donateAllArmedUntil;
+    private final CommunityConstellation constellation = new CommunityConstellation();
+    private final CommunitySidebar sidebar = new CommunitySidebar();
+    private final CommunityDonationBar donationBar = new CommunityDonationBar();
+    private final PanelRenderer modalRenderer = new PanelRenderer();
+    private Modal modal = Modal.NONE;
+    private List<Component> modalLines = List.of();
     private Component message;
     private long messageUntil;
+    private String selected = "";
+    private boolean selectedWasOpen;
+    private int areaCenter;
 
     public CommunityScreen(Screen parent) {
         super(GuiText.of("community.title"));
@@ -72,20 +57,16 @@ public final class CommunityScreen extends Screen {
     @Override
     protected void init() {
         ClientSkillState.setListeners(this::onResult, () -> { });
-        donationButtons.clear();
-        int buttonWidth = Math.min(MAX_BUTTON_WIDTH, (width - 2 * SIDE_MARGIN - (BUTTON_COUNT - 1) * BUTTON_GAP) / BUTTON_COUNT);
-        int step = buttonWidth + BUTTON_GAP;
-        int left = (width - BUTTON_COUNT * step + BUTTON_GAP) / 2;
-        int y = height - BUTTON_HEIGHT - 8;
-        addDonationButton(left, y, buttonWidth, GuiText.of("community.donate", GuiText.number(SMALL_DONATION)), SMALL_DONATION);
-        addDonationButton(left + step, y, buttonWidth, GuiText.of("community.donate", GuiText.number(LARGE_DONATION)), LARGE_DONATION);
-        donateAllButton = addRenderableWidget(new SkillButton(left + 2 * step, y, buttonWidth, BUTTON_HEIGHT,
-                GuiText.of("community.donate_all"), button -> donateAll()));
-        donateAllButton.setTooltip(Tooltip.create(GuiText.of("community.donate_all_tooltip")));
-        donationButtons.add(donateAllButton);
-        Button back = addRenderableWidget(new SkillButton(left + 3 * step, y, buttonWidth, BUTTON_HEIGHT, GuiText.of("back"),
-                button -> back()));
-        back.setTooltip(Tooltip.create(GuiText.of("back_tooltip")));
+        keepSelection();
+        sidebar.layout(font, width, this::addRenderableWidget, () -> openModal(Modal.HELP), () -> openModal(Modal.PATRONS));
+        int inner = CommunitySidebar.innerEdge(width);
+        int areaLeft = CommunitySidebar.onLeft() ? inner : TreeHud.EDGE;
+        int areaRight = CommunitySidebar.onLeft() ? width - TreeHud.EDGE : inner;
+        areaCenter = (areaLeft + areaRight) / 2;
+        donationBar.layout(font, areaCenter, width, height, this::addRenderableWidget, this::donate);
+        boolean barUnderColumn = CommunitySidebar.onLeft() ? donationBar.left() < inner : donationBar.right() > inner;
+        sidebar.limitBottom(barUnderColumn ? donationBar.top() - TreeHud.ISLAND_GAP : height - TreeHud.EDGE);
+        constellation.layout(areaLeft + AREA_MARGIN, SkyTabs.BOTTOM, areaRight - AREA_MARGIN, messageTop() - MESSAGE_GAP);
         tabs.layout(width, 0, SkyTabs.Tab.COMMUNITY, new SkyTabs.Actions() {
             @Override
             public void showChart() {
@@ -101,21 +82,11 @@ public final class CommunityScreen extends Screen {
             public void openCommunity() {
             }
         }, this::addRenderableWidget);
+        updateDonationBar();
     }
 
-    private void addDonationButton(int x, int y, int buttonWidth, Component label, int amount) {
-        Button button = addRenderableWidget(new SkillButton(x, y, buttonWidth, BUTTON_HEIGHT, label, pressed -> donate(amount)));
-        button.setTooltip(Tooltip.create(GuiText.of("community.donate_tooltip", GuiText.number(amount))));
-        donationButtons.add(button);
-    }
-
-    private void donateAll() {
-        if (Util.getMillis() < donateAllArmedUntil) {
-            donateAllArmedUntil = 0;
-            donate(Integer.MAX_VALUE);
-        } else {
-            donateAllArmedUntil = Util.getMillis() + CONFIRM_WINDOW_MILLIS;
-        }
+    private int messageTop() {
+        return donationBar.top() - MESSAGE_GAP - font.lineHeight;
     }
 
     @Override
@@ -124,12 +95,8 @@ public final class CommunityScreen extends Screen {
         super.removed();
     }
 
-    private void back() {
-        minecraft.setScreen(parent);
-    }
-
     private void backTo(Consumer<SkillTreeScreen> view) {
-        back();
+        minecraft.setScreen(parent);
         if (parent instanceof SkillTreeScreen tree) {
             view.accept(tree);
         }
@@ -146,11 +113,43 @@ public final class CommunityScreen extends Screen {
     }
 
     void donate(int amount) {
-        if (ClientSkillState.requestInFlight()) {
+        if (ClientSkillState.requestInFlight() || !isOpen(selected)) {
             return;
         }
         ClientSkillState.state().ifPresent(state -> ClientRequests.send(
-                new Payloads.DonateXp(ClientRequests.newRequest(), state.stateRevision(), amount)));
+                new Payloads.DonateXp(ClientRequests.newRequest(), state.stateRevision(), selected, amount)));
+    }
+
+    void select(String starId) {
+        selected = starId;
+        selectedWasOpen = isOpen(starId);
+    }
+
+    void openPatrons() {
+        openModal(Modal.PATRONS);
+    }
+
+    Modal modal() {
+        return modal;
+    }
+
+    private void openModal(Modal opened) {
+        modal = opened;
+        modalLines = opened == Modal.HELP ? PanelContents.communityHelp()
+                : PanelContents.patrons(CommunityConstellation.community(), playerName());
+        modalRenderer.resetScroll();
+    }
+
+    private void closeModal() {
+        modal = Modal.NONE;
+    }
+
+    private String playerName() {
+        return minecraft.player == null ? "" : minecraft.player.getGameProfile().getName();
+    }
+
+    private static boolean isOpen(String starId) {
+        return CommunityConstellation.community().status(starId) == StarStatus.OPEN;
     }
 
     private void onResult(Payloads.TransactionResult result) {
@@ -161,151 +160,136 @@ public final class CommunityScreen extends Screen {
     @Override
     public void tick() {
         super.tick();
-        Payloads.WorldRules rules = ClientSkillState.worldRules();
-        boolean canDonate = !ClientSkillState.requestInFlight() && ClientSkillState.xpBalance() > 0
-                && rules.communityXp() < CommunityProgress.goal(rules.thresholds());
-        donationButtons.forEach(button -> button.active = canDonate);
-        boolean armed = Util.getMillis() < donateAllArmedUntil;
-        donateAllButton.setMessage(GuiText.of(armed ? "community.donate_all_confirm" : "community.donate_all")
-                .withStyle(armed ? ChatFormatting.YELLOW : ChatFormatting.RESET));
+        keepSelection();
+        updateDonationBar();
+    }
+
+    private void updateDonationBar() {
+        boolean canDonate = !ClientSkillState.requestInFlight() && ClientSkillState.xpBalance() > 0 && isOpen(selected);
+        donationBar.update(targetLabel(), canDonate);
+    }
+
+    private Component targetLabel() {
+        return selectedStar().map(star -> (Component) GuiText.of("community.target", CommunityConstellation.name(star.id())
+                        .withStyle(CommunityConstellation.nameStyle(CommunityConstellation.status(star)))))
+                .orElse(GuiText.of("community.no_target").withStyle(ChatFormatting.GRAY));
+    }
+
+    private void keepSelection() {
+        boolean known = selectedStar().isPresent();
+        if (!known || selectedWasOpen && !isOpen(selected)) {
+            select(defaultTarget().orElse(""));
+        }
+    }
+
+    private Optional<Payloads.TierInfo> selectedStar() {
+        return ClientSkillState.worldRules().communityTier(selected);
+    }
+
+    private static Optional<String> defaultTarget() {
+        List<Payloads.TierInfo> stars = CommunityConstellation.stars();
+        List<Payloads.TierInfo> open = stars.stream().filter(star -> isOpen(star.id())).toList();
+        return open.stream().filter(star -> star.exclusive().isEmpty()).findFirst().or(() -> open.stream().findFirst())
+                .or(() -> stars.stream().findFirst()).map(Payloads.TierInfo::id);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (modal != Modal.NONE) {
+            if (!modalRenderer.click(mouseX, mouseY) && !modalRenderer.contains(mouseX, mouseY)) {
+                closeModal();
+            }
+            return true;
+        }
+        if (super.mouseClicked(mouseX, mouseY, button) || sidebar.click(mouseX, mouseY)) {
+            return true;
+        }
+        Optional<Payloads.TierInfo> clicked = constellation.starAt(mouseX, mouseY);
+        clicked.ifPresent(star -> select(star.id()));
+        return clicked.isPresent();
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (modal != Modal.NONE) {
+            modalRenderer.scroll(scrollY);
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (modal != Modal.NONE && keyCode == GLFW.GLFW_KEY_ESCAPE) {
+            closeModal();
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     private double seconds() {
         return ClientConfig.REDUCED_MOTION.get() ? 0 : (Util.getMillis() - openedAt) / 1000.0;
     }
 
-    private Point pathPoint(double fraction) {
-        double x = width * (LEFT_FRACTION + (RIGHT_FRACTION - LEFT_FRACTION) * fraction);
-        double rise = 1 - (1 - fraction) * (1 - fraction);
-        return new Point(x, height * (BOTTOM_FRACTION - (BOTTOM_FRACTION - TOP_FRACTION) * rise));
-    }
-
-    private Point tierPoint(int index, int tierCount) {
-        return pathPoint((index + 1) / (double) tierCount);
-    }
-
     @Override
     public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         BackgroundRenderer.render(graphics, width, height, 0, 0, seconds());
-        graphics.fill(0, 0, width, height, EMBER_TINT);
         tabs.render(graphics);
+        if (CommunityConstellation.stars().isEmpty()) {
+            return;
+        }
+        constellation.render(graphics, font, selected, seconds());
+        sidebar.render(graphics, selectedStar());
+        donationBar.renderPanel(graphics);
+        Badge badge = litBadge();
+        RenderSystem.enableBlend();
+        graphics.blitSprite(HudSprites.PANEL, badge.x(), badge.y(), badge.width(), TreeHud.ISLAND_HEIGHT);
+        graphics.blitSprite(HudSprites.POINT, badge.x() + TreeHud.CONTENT_LEFT, badge.y() + TreeHud.ICON_TOP, HudSprites.ICON_SIZE,
+                HudSprites.ICON_SIZE);
+        RenderSystem.disableBlend();
+    }
+
+    private Badge litBadge() {
+        Payloads.Community community = CommunityConstellation.community();
+        Component text = GuiText.of("community.lit_count", community.litCount(), CommunityConstellation.stars().size());
+        int badgeWidth = 2 * TreeHud.CONTENT_LEFT + HudSprites.ICON_SIZE + ICON_TEXT_GAP + font.width(text);
+        return new Badge(TreeHud.EDGE, TreeHud.EDGE, badgeWidth, text);
     }
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.render(graphics, mouseX, mouseY, partialTick);
-        Payloads.WorldRules rules = ClientSkillState.worldRules();
-        List<Payloads.TierInfo> tiers = rules.communityTiers();
-        double lit = CommunityProgress.pathFraction(rules.thresholds(), rules.communityXp());
-        drawTitle(graphics);
-        if (tiers.isEmpty()) {
-            graphics.drawCenteredString(font, GuiText.of("community.none"), width / 2, height / 2, TEXT_COLOR);
+        boolean blocked = modal != Modal.NONE;
+        super.render(graphics, blocked ? -1 : mouseX, blocked ? -1 : mouseY, partialTick);
+        if (CommunityConstellation.stars().isEmpty()) {
+            graphics.drawCenteredString(font, GuiText.of("community.none"), width / 2, height / 2, Palette.TEXT);
             return;
         }
-        drawPath(graphics, tiers, rules.communityXp(), lit);
-        drawLabels(graphics, tiers, rules.communityXp());
-        drawSummary(graphics, rules);
-        drawTierTooltip(graphics, tiers, mouseX, mouseY);
-    }
-
-    private void drawTitle(GuiGraphics graphics) {
-        graphics.pose().pushPose();
-        graphics.pose().translate(width / 2f, SkyTabs.BOTTOM + TITLE_GAP, 0);
-        graphics.pose().scale(TITLE_SCALE, TITLE_SCALE, 1f);
-        graphics.drawCenteredString(font, title.copy().withStyle(ChatFormatting.GOLD), 0, 0, TEXT_COLOR);
-        graphics.pose().popPose();
-    }
-
-    private void drawPath(GuiGraphics graphics, List<Payloads.TierInfo> tiers, long communityXp, double lit) {
-        LineBatch batch = new LineBatch(graphics);
-        for (int i = 0; i < PATH_SAMPLES; i++) {
-            double from = i / (double) PATH_SAMPLES;
-            double to = (i + 1) / (double) PATH_SAMPLES;
-            Point start = pathPoint(from);
-            Point end = pathPoint(to);
-            batch.segment(start.x(), start.y(), end.x(), end.y(), 2f, UNLIT_PATH);
-            if (from < lit) {
-                Point litEnd = pathPoint(Math.min(to, lit));
-                batch.segment(start.x(), start.y(), litEnd.x(), litEnd.y(), 7f, LIT_GLOW);
-                batch.segment(start.x(), start.y(), litEnd.x(), litEnd.y(), 3f, LIT_PATH);
-            }
-        }
-        drawMotes(batch, lit);
-        Point origin = pathPoint(0);
-        Shapes.sparkle(batch, origin.x(), origin.y(), STAR_SIZE * 0.6, LIT_PATH);
-        for (int i = 0; i < tiers.size(); i++) {
-            drawTierStar(batch, tierPoint(i, tiers.size()), communityXp >= tiers.get(i).xpRequired(),
-                    i == CommunityProgress.unlockedCount(ClientSkillState.worldRules().thresholds(), communityXp));
-        }
-        batch.draw();
-    }
-
-    private void drawMotes(LineBatch batch, double lit) {
-        if (lit <= 0 || ClientConfig.REDUCED_MOTION.get()) {
-            return;
-        }
-        for (int i = 0; i < MOTES; i++) {
-            double fraction = ((seconds() * MOTE_SPEED + i / (double) MOTES) % 1.0) * lit;
-            Point mote = pathPoint(fraction);
-            double bob = Math.sin(seconds() * 3 + i * 2.1) * 3;
-            Shapes.sparkle(batch, mote.x(), mote.y() - 5 + bob, 1.8, LIT_CORE);
+        donationBar.renderText(graphics);
+        Badge badge = litBadge();
+        graphics.drawString(font, badge.text(), badge.x() + TreeHud.CONTENT_LEFT + HudSprites.ICON_SIZE + ICON_TEXT_GAP,
+                badge.y() + TreeHud.TEXT_TOP, Palette.GOLD, true);
+        drawMessage(graphics);
+        if (blocked) {
+            PanelRenderer.View view = new PanelRenderer.View(modalLines,
+                    List.of(new PanelRenderer.Action(GuiText.of("close"), this::closeModal, false)));
+            modalRenderer.render(graphics, font, view, width, height, left -> SkyTabs.BOTTOM, mouseX, mouseY);
+        } else if (!sidebar.contains(mouseX, mouseY) && !donationBar.contains(mouseX, mouseY)) {
+            constellation.starAt(mouseX, mouseY).ifPresent(star -> drawStarTooltip(graphics, star, mouseX, mouseY));
         }
     }
 
-    private void drawTierStar(LineBatch batch, Point point, boolean reached, boolean next) {
-        double pulse = 0.5 + 0.5 * Math.sin(seconds() * 2.4);
-        if (reached) {
-            Shapes.ring(batch, point.x(), point.y(), STAR_SIZE * (1.7 + 0.25 * pulse), 2f, Shapes.withAlpha(LIT_PATH, 0.35 + 0.3 * pulse));
-            Shapes.sparkle(batch, point.x(), point.y(), STAR_SIZE * 1.5, LIT_PATH);
-            Shapes.sparkle(batch, point.x(), point.y(), STAR_SIZE * 0.7, LIT_CORE);
-        } else {
-            int color = next ? Shapes.withAlpha(NEXT_STAR, 0.6 + 0.4 * pulse) : UNLIT_STAR;
-            Shapes.ring(batch, point.x(), point.y(), STAR_SIZE, 1.5f, color);
-            Shapes.sparkle(batch, point.x(), point.y(), STAR_SIZE * 0.45, color);
-        }
-    }
-
-    private void drawLabels(GuiGraphics graphics, List<Payloads.TierInfo> tiers, long communityXp) {
-        for (int i = 0; i < tiers.size(); i++) {
-            Payloads.TierInfo tier = tiers.get(i);
-            Point point = tierPoint(i, tiers.size());
-            boolean reached = communityXp >= tier.xpRequired();
-            graphics.drawCenteredString(font, Component.translatable(CommunityTier.nameKey(tier.id()))
-                    .withStyle(reached ? ChatFormatting.GOLD : ChatFormatting.GRAY), (int) point.x(), (int) point.y() + 16, TEXT_COLOR);
-            graphics.drawCenteredString(font, GuiText.of("community.xp_amount", grouped(tier.xpRequired()))
-                    .withStyle(reached ? ChatFormatting.GREEN : ChatFormatting.DARK_GRAY), (int) point.x(), (int) point.y() + 27, TEXT_COLOR);
-        }
-    }
-
-    private void drawSummary(GuiGraphics graphics, Payloads.WorldRules rules) {
-        List<Long> thresholds = rules.thresholds();
-        int top = (int) (height * BOTTOM_FRACTION) + 46;
-        graphics.drawCenteredString(font, GuiText.of("community.progress", grouped(rules.communityXp()),
-                grouped(CommunityProgress.goal(thresholds)), CommunityProgress.unlockedCount(thresholds, rules.communityXp()),
-                thresholds.size()), width / 2, top, TEXT_COLOR);
-        graphics.drawCenteredString(font, GuiText.of("community.balance", grouped(ClientSkillState.xpBalance()))
-                .withStyle(ChatFormatting.YELLOW), width / 2, top + 11, TEXT_COLOR);
+    private void drawMessage(GuiGraphics graphics) {
         boolean showMessage = message != null && Util.getMillis() < messageUntil;
-        graphics.drawCenteredString(font, showMessage ? message : GuiText.of("community.irreversible").withStyle(ChatFormatting.RED),
-                width / 2, top + 22, TEXT_COLOR);
+        Component line = showMessage ? message : GuiText.of("community.irreversible").withStyle(ChatFormatting.RED);
+        graphics.drawCenteredString(font, line, areaCenter, messageTop(), Palette.TEXT);
     }
 
-    private void drawTierTooltip(GuiGraphics graphics, List<Payloads.TierInfo> tiers, int mouseX, int mouseY) {
-        for (int i = 0; i < tiers.size(); i++) {
-            Point point = tierPoint(i, tiers.size());
-            if (Math.hypot(mouseX - point.x(), mouseY - point.y()) <= HOVER_REACH) {
-                Payloads.TierInfo tier = tiers.get(i);
-                Component tooltip = Component.empty()
-                        .append(Component.translatable(CommunityTier.nameKey(tier.id())).withStyle(ChatFormatting.GOLD))
-                        .append("\n").append(Component.translatable(CommunityTier.descriptionKey(tier.id())).withStyle(ChatFormatting.GREEN))
-                        .append("\n").append(GuiText.of("community.tier_at", grouped(tier.xpRequired())).withStyle(ChatFormatting.GRAY));
-                TooltipPanel.render(graphics, font, font.split(tooltip, TOOLTIP_WIDTH), mouseX, mouseY);
-                return;
-            }
-        }
-    }
-
-    private static String grouped(long amount) {
-        return GuiText.number(amount);
+    private void drawStarTooltip(GuiGraphics graphics, Payloads.TierInfo star, int mouseX, int mouseY) {
+        StarStatus status = CommunityConstellation.status(star);
+        List<FormattedCharSequence> lines = List.of(
+                CommunityConstellation.name(star.id()).withStyle(ChatFormatting.GOLD).getVisualOrderText(),
+                GuiText.of("community.status." + status.name().toLowerCase(Locale.ROOT))
+                        .withStyle(CommunityConstellation.nameStyle(status)).getVisualOrderText());
+        TooltipPanel.render(graphics, font, lines, mouseX, mouseY);
     }
 }

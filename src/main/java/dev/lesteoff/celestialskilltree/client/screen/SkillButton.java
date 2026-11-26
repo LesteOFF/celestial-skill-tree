@@ -18,7 +18,7 @@ final class SkillButton extends Button {
     private static final int TEXT_HEIGHT = 8;
     static final float INACTIVE_ICON_SHADE = 0.45f;
 
-    private final WidgetSprites sprites;
+    private WidgetSprites sprites;
     private ResourceLocation icon;
 
     SkillButton(int x, int y, int width, int height, Component label, OnPress onPress) {
@@ -38,6 +38,10 @@ final class SkillButton extends Button {
 
     void setIcon(ResourceLocation icon) {
         this.icon = icon;
+    }
+
+    void setSprites(WidgetSprites sprites) {
+        this.sprites = sprites;
     }
 
     @Override
