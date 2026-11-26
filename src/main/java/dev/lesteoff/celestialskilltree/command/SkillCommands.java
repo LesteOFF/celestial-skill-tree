@@ -45,6 +45,8 @@ public final class SkillCommands {
             SkillTreeManager.graph().map(graph -> DiscoveryService.keys(graph).stream().sorted().toList()).orElse(List.of()), builder);
     private static final SuggestionProvider<CommandSourceStack> SIGNS = (context, builder) -> SharedSuggestionProvider.suggestResource(
             SkillTreeManager.sortedSignIds().stream().map(ResourceLocation::parse), builder);
+    private static final SuggestionProvider<CommandSourceStack> COMMUNITY_STARS = (context, builder) -> SharedSuggestionProvider.suggestResource(
+            SkillTreeManager.communityTiers().stream().map(star -> ResourceLocation.parse(star.id())), builder);
 
     private SkillCommands() {
     }
@@ -82,10 +84,10 @@ public final class SkillCommands {
                 .then(admin("star").then(player().executes(WorldCommands::star)))
                 .then(admin("constellate").executes(WorldCommands::constellate))
                 .then(owner("community")
-                        .then(Commands.literal("set").then(Commands.argument("xp", LongArgumentType.longArg(0))
-                                .executes(context -> WorldCommands.community(context, false))))
-                        .then(Commands.literal("add").then(Commands.argument("xp", LongArgumentType.longArg(0))
-                                .executes(context -> WorldCommands.community(context, true)))))
+                        .then(Commands.literal("set").then(communityStar().then(Commands.argument("xp", LongArgumentType.longArg(0))
+                                .executes(context -> WorldCommands.community(context, false)))))
+                        .then(Commands.literal("add").then(communityStar().then(Commands.argument("xp", LongArgumentType.longArg(0))
+                                .executes(context -> WorldCommands.community(context, true))))))
                 .then(admin("eclipse")
                         .then(Commands.literal("start").executes(context -> WorldCommands.skyEvent(context, SkyEvent.ECLIPSE, true)))
                         .then(Commands.literal("stop").executes(context -> WorldCommands.skyEvent(context, SkyEvent.ECLIPSE, false))))
@@ -117,6 +119,10 @@ public final class SkillCommands {
 
     private static RequiredArgumentBuilder<CommandSourceStack, ResourceLocation> node() {
         return Commands.argument(NODE, ResourceLocationArgument.id()).suggests(NODES);
+    }
+
+    private static RequiredArgumentBuilder<CommandSourceStack, ResourceLocation> communityStar() {
+        return Commands.argument("star", ResourceLocationArgument.id()).suggests(COMMUNITY_STARS);
     }
 
     private static RequiredArgumentBuilder<CommandSourceStack, Integer> pointsArgument(String name, int min, int max,

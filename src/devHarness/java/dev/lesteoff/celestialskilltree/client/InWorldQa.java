@@ -7,12 +7,14 @@ import dev.lesteoff.celestialskilltree.client.screen.SkillTreeScreen;
 import dev.lesteoff.celestialskilltree.client.screen.TreeRegion;
 import dev.lesteoff.celestialskilltree.client.screen.TreeScreenQa;
 import dev.lesteoff.celestialskilltree.compat.Reflection;
+import dev.lesteoff.celestialskilltree.config.ClientConfig;
 import dev.lesteoff.celestialskilltree.graph.NodeType;
 import dev.lesteoff.celestialskilltree.graph.SkillGraphSnapshot;
 import dev.lesteoff.celestialskilltree.graph.SkillSign;
 import dev.lesteoff.celestialskilltree.network.Payloads;
 import dev.lesteoff.celestialskilltree.progression.Allocation;
 import dev.lesteoff.celestialskilltree.progression.AllocationService;
+import dev.lesteoff.celestialskilltree.progression.CommunityProgress;
 import dev.lesteoff.celestialskilltree.progression.LedgerService;
 import dev.lesteoff.celestialskilltree.progression.PathFinder;
 import dev.lesteoff.celestialskilltree.progression.PlayerSkillState;
@@ -98,7 +100,9 @@ final class InWorldQa {
     private static final int MOST_EXPENSIVE_SKILL = 10;
     private static final int BULK_XP = 2000;
     private static final int DONATION = 120;
-    private static final int LIT_COMMUNITY_XP = 9000;
+    private static final List<String> LIT_COMMUNITY = List.of("celestialskilltree:kindling 2000", "celestialskilltree:hearth 6000",
+            "celestialskilltree:forge 8000");
+    private static final String CLOSED_RIVAL = "celestialskilltree:hunt";
     private static final float SKY_PITCH = -70f;
 
     record Snapshot(int allocations, int available, int spent, int purchased, double maxHealth, long xp, long communityXp,
@@ -106,7 +110,7 @@ final class InWorldQa {
         static Snapshot take() {
             PlayerSkillState state = state();
             return new Snapshot(state.allocations().size(), state.availablePoints(), state.activeSpentPoints(), state.purchasedPoints(),
-                    InWorldQa.maxHealth(), ClientSkillState.xpBalance(), ClientSkillState.worldRules().communityXp(),
+                    InWorldQa.maxHealth(), ClientSkillState.xpBalance(), ClientSkillState.worldRules().community().donated(),
                     ClientSkillState.graphRevision(), ClientSkillState.economy().orbRequired());
         }
     }
@@ -277,9 +281,13 @@ final class InWorldQa {
     static void prepareWindow() {
         Minecraft minecraft = minecraft();
         minecraft.getWindow().setWindowed(WINDOW_WIDTH, WINDOW_HEIGHT);
-        minecraft.options.guiScale().set(2);
         minecraft.options.pauseOnLostFocus = false;
-        minecraft.resizeDisplay();
+        resizeGui(2);
+    }
+
+    private static void resizeGui(int scale) {
+        minecraft().options.guiScale().set(scale);
+        minecraft().resizeDisplay();
     }
 
     private static void deleteWorld() {
@@ -628,18 +636,46 @@ final class InWorldQa {
         script.step("donate to the shared constellation", () -> {
             remember();
             TreeScreenQa.donate(TreeScreenQa.openCommunity(screen()), DONATION);
-        }, () -> ClientSkillState.worldRules().communityXp() == before.communityXp() + DONATION && !ClientSkillState.requestInFlight(),
+        }, () -> ClientSkillState.worldRules().community().donated() > before.communityXp() && !ClientSkillState.requestInFlight(),
                 SERVER_ANSWER_TICKS);
         script.then("check the donation", () -> {
-            script.expect("XP left after donating", before.xp() - DONATION, ClientSkillState.xpBalance());
-            script.expect("community tiers known to the client", !ClientSkillState.worldRules().communityTiers().isEmpty());
+            long given = ClientSkillState.worldRules().community().donated() - before.communityXp();
+            script.expect("XP left after donating", before.xp() - given, ClientSkillState.xpBalance());
+            script.expect("community stars known to the client", !ClientSkillState.worldRules().communityTiers().isEmpty());
+            script.expect("the donor is ranked among the patrons", ClientSkillState.worldRules().community().ownRank() > 0);
         });
         script.pause("let the community panel draw", SETTLE_TICKS);
         script.then("capture community", () -> capture("community"));
-        script.step("light the first tiers", () -> command("celestialskilltree community set " + LIT_COMMUNITY_XP),
-                () -> ClientSkillState.worldRules().communityXp() == LIT_COMMUNITY_XP, COMMAND_TICKS);
+        script.step("light the trunk and the forge", () -> LIT_COMMUNITY.forEach(star -> command("celestialskilltree community set " + star)),
+                () -> ClientSkillState.worldRules().community().status(CLOSED_RIVAL) == CommunityProgress.StarStatus.EXCLUDED, COMMAND_TICKS);
         script.pause("let the lit tiers draw", SETTLE_TICKS);
         script.then("capture community_lit", () -> capture("community_lit"));
+        script.step("fold the community panels", TreeScreenQa::toggleCommunityPanels, TreeScreenQa::communityPanelsClosed, SETTLE_TICKS);
+        script.pause("let the folded panels draw", SETTLE_TICKS);
+        script.then("capture community_collapsed", () -> capture("community_collapsed"));
+        script.step("unfold the community panels", TreeScreenQa::toggleCommunityPanels, TreeScreenQa::communityPanelsOpen, SETTLE_TICKS);
+        script.step("show every patron", () -> TreeScreenQa.openPatrons(minecraft().screen),
+                () -> TreeScreenQa.patronsOpen(minecraft().screen), SETTLE_TICKS);
+        script.pause("let the patrons list draw", SETTLE_TICKS);
+        script.then("capture community_patrons", () -> capture("community_patrons"));
+        script.step("close the patrons list with Esc", () -> TreeScreenQa.pressEscape(minecraft().screen),
+                () -> minecraft().screen instanceof CommunityScreen && !TreeScreenQa.patronsOpen(minecraft().screen), SETTLE_TICKS);
+        script.step("move the community panels right", () -> {
+            ClientConfig.COMMUNITY_PANEL_SIDE.set(ClientConfig.PanelSide.RIGHT);
+            TreeScreenQa.openCommunity(screen());
+        }, () -> minecraft().screen instanceof CommunityScreen, SETTLE_TICKS);
+        script.pause("let the right panels draw", SETTLE_TICKS);
+        script.then("capture community_right", () -> capture("community_right"));
+        script.step("shrink the community to gui scale 3", () -> {
+            ClientConfig.COMMUNITY_PANEL_SIDE.set(ClientConfig.PanelSide.LEFT);
+            resizeGui(3);
+            TreeScreenQa.openCommunity(screen());
+        }, () -> minecraft().screen instanceof CommunityScreen, SETTLE_TICKS);
+        script.pause("let the small community draw", SETTLE_TICKS);
+        script.then("capture community_gui3", () -> {
+            capture("community_gui3");
+            resizeGui(2);
+        });
     }
 
     private void addTabSteps() {
@@ -650,11 +686,11 @@ final class InWorldQa {
             script.expect("the community tab is selected on its screen", TreeScreenQa.tabSelected(minecraft().screen, "COMMUNITY"));
             capture("tabs_community");
         });
-        script.step("return to the star chart by its tab", () -> TreeScreenQa.pressTab(minecraft().screen, "CHART"),
+        script.step("return to the skill tree by its tab", () -> TreeScreenQa.pressTab(minecraft().screen, "CHART"),
                 () -> minecraft().screen instanceof SkillTreeScreen, SETTLE_TICKS);
         script.pause("let the tabs draw", SETTLE_TICKS);
-        script.then("check the star chart tab", () -> {
-            script.expect("the star chart tab is selected", TreeScreenQa.tabSelected(screen(), "CHART"));
+        script.then("check the skill tree tab", () -> {
+            script.expect("the skill tree tab is selected", TreeScreenQa.tabSelected(screen(), "CHART"));
             script.expect("the hidden sky tab is offered only with hidden constellations",
                     ClientSkillState.graph().flatMap(TreeRegion::hidden).isPresent(), TreeScreenQa.tabAvailable(screen(), "HIDDEN"));
             capture("tabs");

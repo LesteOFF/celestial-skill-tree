@@ -192,4 +192,25 @@ public final class TreeScreenQa {
     public static void donate(CommunityScreen community, int amount) {
         community.donate(amount);
     }
+
+    public static void toggleCommunityPanels() {
+        CommunitySidebar.toggleStar();
+        CommunitySidebar.toggleRanking();
+    }
+
+    public static boolean communityPanelsOpen() {
+        return CommunitySidebar.starOpen() && CommunitySidebar.rankingOpen();
+    }
+
+    public static boolean communityPanelsClosed() {
+        return !CommunitySidebar.starOpen() && !CommunitySidebar.rankingOpen();
+    }
+
+    public static void openPatrons(Screen screen) {
+        ((CommunityScreen) screen).openPatrons();
+    }
+
+    public static boolean patronsOpen(Screen screen) {
+        return screen instanceof CommunityScreen community && community.modal() == CommunityScreen.Modal.PATRONS;
+    }
 }

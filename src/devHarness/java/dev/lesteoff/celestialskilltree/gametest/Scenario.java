@@ -3,11 +3,11 @@ package dev.lesteoff.celestialskilltree.gametest;
 import com.mojang.authlib.GameProfile;
 import dev.lesteoff.celestialskilltree.CelestialSkillTree;
 import dev.lesteoff.celestialskilltree.data.SkillTreeManager;
-import dev.lesteoff.celestialskilltree.data.WorldSkillData;
 import dev.lesteoff.celestialskilltree.effects.AttributeAliases;
 import dev.lesteoff.celestialskilltree.effects.EffectEngine;
 import dev.lesteoff.celestialskilltree.graph.SkillGraphSnapshot;
 import dev.lesteoff.celestialskilltree.progression.AllocationService;
+import dev.lesteoff.celestialskilltree.progression.CommunityProgress;
 import dev.lesteoff.celestialskilltree.progression.LedgerService;
 import dev.lesteoff.celestialskilltree.progression.PathFinder;
 import dev.lesteoff.celestialskilltree.progression.PlayerSkillState;
@@ -47,12 +47,15 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.network.registration.NetworkRegistry;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.OptionalLong;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 final class Scenario {
     static final String EMPTY = "empty";
@@ -71,7 +74,7 @@ final class Scenario {
     private final GameTestHelper helper;
     private final List<ServerPlayer> players = new ArrayList<>();
     private final List<Entity> tracked = new ArrayList<>();
-    private OptionalLong communityBefore = OptionalLong.empty();
+    private Optional<Map<String, Long>> communityBefore = Optional.empty();
     private boolean skyForced;
     private int pendingSteps;
 
@@ -117,7 +120,7 @@ final class Scenario {
         if (skyForced) {
             SkyEvents.force(server(), SkyEvent.NONE);
         }
-        communityBefore.ifPresent(xp -> CommunityTree.setProgress(server(), xp));
+        communityBefore.ifPresent(progress -> CommunityTree.setProgress(server(), progress));
         tracked.forEach(Entity::discard);
         level().getEntitiesOfClass(ItemEntity.class, dropArea()).forEach(Entity::discard);
         players.forEach(server().getPlayerList()::remove);    }
@@ -229,11 +232,16 @@ final class Scenario {
         level().updateSkyBrightness();
     }
 
-    void communityProgress(long xp) {
+    void communityProgress(Map<String, Long> progress) {
         if (communityBefore.isEmpty()) {
-            communityBefore = OptionalLong.of(WorldSkillData.of(server()).communityXp());
+            communityBefore = Optional.of(CommunityTree.progress(server()));
         }
-        CommunityTree.setProgress(server(), xp);
+        CommunityTree.setProgress(server(), progress);
+    }
+
+    static Map<String, Long> litCommunity(String... starIds) {
+        return Arrays.stream(starIds).collect(Collectors.toMap(starId -> starId,
+                starId -> CommunityProgress.find(CommunityTree.stars(), starId).orElseThrow().xpRequired()));
     }
 
     void check(boolean condition, String message) {

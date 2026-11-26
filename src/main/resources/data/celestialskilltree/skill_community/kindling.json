@@ -1,6 +1,11 @@
 {
   "schema_version": 1,
   "xp_required": 2000,
+  "icon": "celestialskilltree:textures/skill_icons/health.png",
+  "position": {
+    "x": 0,
+    "y": 120
+  },
   "effects": [
     {
       "type": "attribute",

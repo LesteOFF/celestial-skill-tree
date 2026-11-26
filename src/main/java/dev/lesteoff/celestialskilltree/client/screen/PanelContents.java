@@ -25,6 +25,7 @@ import java.util.function.Function;
 final class PanelContents {
     private static final int MAX_LISTED_NODES = 10;
     private static final List<String> MOUSE_CONTROLS = List.of("click", "shift_click", "right_click", "drag", "scroll");
+    private static final List<String> COMMUNITY_HELP = List.of("donate", "branches", "rivals", "basins", "patrons");
 
     private PanelContents() {
     }
@@ -36,6 +37,39 @@ final class PanelContents {
         TreeKeys.ALL.forEach(mapping -> lines.add(keyLine(mapping)));
         lines.add(keyLine(ClientSetup.OPEN_KEY).append(GuiText.of("help.closes").withStyle(ChatFormatting.GRAY)));
         return lines;
+    }
+
+    static List<Component> communityHelp() {
+        List<Component> lines = new ArrayList<>();
+        lines.add(GuiText.of("community.title").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+        COMMUNITY_HELP.forEach(line -> lines.add(GuiText.of("community.help." + line)));
+        return lines;
+    }
+
+    static List<Component> patrons(Payloads.Community community, String ownName) {
+        List<Component> lines = new ArrayList<>();
+        lines.add(GuiText.of("community.patrons_title", community.patronCount()).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+        List<Payloads.Patron> ranking = community.ranking();
+        if (ranking.isEmpty() && community.anonymousXp() == 0) {
+            lines.add(GuiText.of("community.no_patrons").withStyle(ChatFormatting.GRAY));
+        }
+        for (int i = 0; i < ranking.size(); i++) {
+            lines.add(patronLine(i, ranking.get(i), ownName));
+        }
+        if (community.patronCount() > ranking.size()) {
+            lines.add(GuiText.of("community.and_more", community.patronCount() - ranking.size()).withStyle(ChatFormatting.GRAY));
+        }
+        if (community.anonymousXp() > 0) {
+            lines.add(GuiText.of("community.patron_line", GuiText.of("community.anonymous"), GuiText.number(community.anonymousXp()))
+                    .withStyle(ChatFormatting.GRAY));
+        }
+        return lines;
+    }
+
+    private static Component patronLine(int index, Payloads.Patron patron, String ownName) {
+        String key = index == 0 ? "community.top_patron_line" : "community.patron_rank_line";
+        ChatFormatting style = patron.name().equals(ownName) ? ChatFormatting.GREEN : index == 0 ? ChatFormatting.GOLD : ChatFormatting.WHITE;
+        return GuiText.of(key, index + 1, patron.name(), GuiText.number(patron.xp())).withStyle(style);
     }
 
     private static MutableComponent keyLine(KeyMapping mapping) {

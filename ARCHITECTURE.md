@@ -232,8 +232,15 @@ Dist.CLIENT)` classes, which is why the dedicated server starts without loading 
   an eclipse lasts (`compat/nomansland`), the disc uses the sun matrix Cirrus captured that frame when it moved the
   sun (`compat/cirrus`), and `mixin/CirrusCloudRendererMixin` (`@Pseudo`, optional) takes the sunlight off Cirrus'
   clouds during an eclipse.
-- **Community**: `server/CommunityTree` applies donations (pure rules in `CommunityProgress`) and refreshes everyone
-  when a tier is reached.
+- **Community**: the shared constellation is a small star graph read from `skill_community/` by `graph/CommunityParser`
+  (each star has a `parent`, an optional `exclusive` group of rivals and a `position`). `server/CommunityTree` applies
+  donations to the star a player picks (pure rules in `CommunityProgress`: status, rivals, `pour` along the main path
+  for the Community Basin and the migration of the old single XP total), credits patrons in `WorldSkillData` and
+  refreshes everyone when a star lights. The top patron gets a mark in the tab list. On the client `CommunityScreen`
+  only wires the pieces: `CommunityConstellation` lays out and draws the stars as tree nodes (icon from the star's
+  `icon`, keystone frame on branch tips), `CommunitySidebar` holds the dock and the star card and ranking panels that
+  fold open and closed (`communityPanelSide` mirrors the column), and `CommunityDonationBar` the donation island.
+  The help and the full list of patrons open in a `PanelRenderer` modal.
 - **Star fragments**: `StarFragmentItem.redeem` grants one point through `LedgerService.grant` (limit respected).
   `server/ShootingStars` rolls once a second per Overworld player at night (far more often during a star shower) and
   calls `entity/FallingStar.spawnNear`: the entity starts 50-80 blocks above a landing point near the player, moves

@@ -3,15 +3,17 @@ package dev.lesteoff.celestialskilltree.command;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import dev.lesteoff.celestialskilltree.data.WorldSkillData;
 import dev.lesteoff.celestialskilltree.effects.EliteMobs;
 import dev.lesteoff.celestialskilltree.entity.FallingStar;
+import dev.lesteoff.celestialskilltree.graph.CommunityTier;
+import dev.lesteoff.celestialskilltree.progression.CommunityProgress;
 import dev.lesteoff.celestialskilltree.progression.SkyEvent;
 import dev.lesteoff.celestialskilltree.registry.ModTags;
 import dev.lesteoff.celestialskilltree.server.CommunityTree;
 import dev.lesteoff.celestialskilltree.server.SkyEvents;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -64,10 +66,16 @@ final class WorldCommands {
 
     static int community(CommandContext<CommandSourceStack> context, boolean add) {
         MinecraftServer server = context.getSource().getServer();
+        String starId = ResourceLocationArgument.getId(context, "star").toString();
+        if (CommunityProgress.find(CommunityTree.stars(), starId).isEmpty()) {
+            context.getSource().sendFailure(Component.translatable("command.celestialskilltree.community.unknown", starId));
+            return 0;
+        }
         long xp = LongArgumentType.getLong(context, "xp");
-        long total = add ? WorldSkillData.of(server).communityXp() + xp : xp;
-        CommunityTree.setProgress(server, total);
-        context.getSource().sendSuccess(() -> Component.translatable("command.celestialskilltree.community", total), true);
+        long total = add ? CommunityTree.progress(server).getOrDefault(starId, 0L) + xp : xp;
+        CommunityTree.setStar(server, starId, total);
+        context.getSource().sendSuccess(() -> Component.translatable("command.celestialskilltree.community",
+                Component.translatable(CommunityTier.nameKey(starId)), total), true);
         return 1;
     }
 }

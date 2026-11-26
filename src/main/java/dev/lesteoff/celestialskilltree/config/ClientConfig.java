@@ -15,6 +15,11 @@ public final class ClientConfig {
     public static final ModConfigSpec.BooleanValue REDUCED_MOTION;
     public static final ModConfigSpec.BooleanValue DETAILED_TOOLTIPS;
     public static final ModConfigSpec.BooleanValue HIGH_CONTRAST;
+    public static final ModConfigSpec.EnumValue<PanelSide> COMMUNITY_PANEL_SIDE;
+
+    public enum PanelSide {
+        LEFT, RIGHT
+    }
 
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -37,6 +42,7 @@ public final class ClientConfig {
                 .define("backgroundDecorations", true);
         REDUCED_MOTION = builder.comment("Disable parallax, drifting motes and pulsing highlights").define("reducedMotion", false);
         HIGH_CONTRAST = builder.comment("Brighter locked nodes, inactive connections and secondary text").define("highContrast", false);
+        COMMUNITY_PANEL_SIDE = builder.comment("Side of the community screen's panels").defineEnum("communityPanelSide", PanelSide.LEFT);
         builder.pop();
         builder.push("feedback");
         UI_SOUND_VOLUME = builder.comment("Volume of the skill tree interface sounds; 0 mutes them")

@@ -1,6 +1,12 @@
 {
   "schema_version": 1,
-  "xp_required": 50000,
+  "xp_required": 30000,
+  "parent": "celestialskilltree:beacon",
+  "icon": "celestialskilltree:textures/skill_icons/halo.png",
+  "position": {
+    "x": 0,
+    "y": -60
+  },
   "effects": [
     {
       "type": "attribute",
